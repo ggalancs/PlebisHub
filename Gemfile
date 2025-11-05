@@ -2,8 +2,8 @@ source 'https://rubygems.org'
 
 ruby '2.7.8'
 
-# Rails 7.0 - Following official upgrade guide
-gem 'rails', '~> 7.0.8'
+# Rails 7.1 - Following official upgrade guide
+gem 'rails', '~> 7.1.5'
 gem 'sprockets-rails' # Required in Rails 7.0 (no longer bundled)
 gem 'sqlite3', '~> 1.3.6'
 gem 'sass-rails'
@@ -30,7 +30,7 @@ gem 'spanish_vat_validators', '0.0.6'#, github: 'leio10/spanish_vat_validators'
 gem 'simple_captcha2', require: 'simple_captcha'
 gem 'carmen-rails'
 gem 'esendex'
-gem 'activeadmin', '~> 2.9' # Rails 6.0+ compatible
+gem 'activeadmin', '~> 3.2' # Rails 7.1+ compatible
 gem 'active_skin'
 gem 'mailcatcher' # for staging too
 gem 'resque'
@@ -90,7 +90,7 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'webmock'
   gem 'minitest-reporters'
-  gem 'nokogiri', '~> 1.12.5' # nokogiri >= 1.13 requires Ruby >= 2.6
+  gem 'nokogiri', '~> 1.15' # Required by Rails 7.1 (>= 1.14), Ruby 2.7 compatible
   gem 'capybara'
   # gem 'capybara-webkit' # Commented: deprecated and requires Qt (qmake)
   gem 'selenium-webdriver' # Modern driver for Capybara
