@@ -19,7 +19,7 @@ ActiveAdmin.register VoteCircle do
   filter :name
   filter :island_code
   filter :town
-  filter :vote_circle_autonomy_id_in, as: :select, collection: Podemos::GeoExtra::AUTONOMIES.values.uniq.map(&:reverse).map{|c| [c[0],"__#{c[1][2,2]}%"]}, label: "Circle autonomy"
+  filter :vote_circle_autonomy_id_in, as: :select, collection: PlebisBrand::GeoExtra::AUTONOMIES.values.uniq.map(&:reverse).map{|c| [c[0],"__#{c[1][2,2]}%"]}, label: "Circle autonomy"
   filter :vote_circle_province_id_in, as: :select, collection: Carmen::Country.coded("ES").subregions.map{|x|[x.name, "____#{(x.index).to_s.rjust(2,"0")}%"]}, label: "Circle province"
 
   index download_links: -> { current_user.is_admin? && current_user.superadmin? }
@@ -131,8 +131,8 @@ ActiveAdmin.register VoteCircle do
       if vc.town.present?
         town_code = vc.town
         province_code = "p_#{vc.town[2,2]}"
-        autonomy_code = Podemos::GeoExtra::AUTONOMIES[province_code][0]
-        island = Podemos::GeoExtra::ISLANDS[vc.town]
+        autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES[province_code][0]
+        island = PlebisBrand::GeoExtra::ISLANDS[vc.town]
         island_code = vc.island_code
         island_code = island.present? ? island[0] : nil unless island_code.present?
         country_code = spain_code

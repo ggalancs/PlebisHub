@@ -8,13 +8,13 @@
           when 0 then %>
             <%= f.input :location, as: :select, collection: [[ "Estatal", "00"]] %>
         <% when 1 then %>
-            <%= f.input :location, as: :select, collection: Podemos::GeoExtra::AUTONOMIES.values.uniq.map {|u| [ u[1], u[0][2..-1] ]} %>
+            <%= f.input :location, as: :select, collection: PlebisBrand::GeoExtra::AUTONOMIES.values.uniq.map {|u| [ u[1], u[0][2..-1] ]} %>
         <% when 2 then %>
             <%= f.input :location, as: :select, collection: spain.subregions.map {|r| [ r.name, r.index.to_s.rjust(2,"0") ]} %>
         <% when 3 then %>
             <%= f.input :location, as: :select, collection: spain.subregions.map {|r| r.subregions.map {|sr| [ "#{sr.name} (#{r.name})", sr.code.scan(/\d/).join("") ] } } .flatten(1).sort_by(&:first) %>
         <% when 4 then %>
-            <%= f.input :location, as: :select, collection: Podemos::GeoExtra::ISLANDS.values.uniq.map {|u| [ u[1], u[0][2..-1] ]} %>
+            <%= f.input :location, as: :select, collection: PlebisBrand::GeoExtra::ISLANDS.values.uniq.map {|u| [ u[1], u[0][2..-1] ]} %>
         <% when 5 then %>
             <%= f.input :location, as: :select, collection: [[ "Exterior", "00"]] %>
         <% when 6 then %>

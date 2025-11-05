@@ -398,21 +398,21 @@ ActiveAdmin.register Collaboration do
   
   collection_action :charge, :method => :get do
     Collaboration.credit_cards.pluck(:id).each do |cid|
-      Resque.enqueue(PodemosCollaborationWorker, cid)
+      Resque.enqueue(PlebisBrandCollaborationWorker, cid)
     end
     redirect_to :admin_collaborations
   end
 
   collection_action :generate_orders, :method => :get do
     Collaboration.banks.pluck(:id).each do |cid|
-      Resque.enqueue(PodemosCollaborationWorker, cid)
+      Resque.enqueue(PlebisBrandCollaborationWorker, cid)
     end
     redirect_to :admin_collaborations
   end
 
   collection_action :generate_csv, :method => :get do
     Collaboration.bank_file_lock true
-    Resque.enqueue(PodemosCollaborationWorker, -1)
+    Resque.enqueue(PlebisBrandCollaborationWorker, -1)
     redirect_to :admin_collaborations
   end
 
@@ -622,7 +622,7 @@ ActiveAdmin.register Collaboration do
     provinces.each_with_index do |province,i|
       prov_code = "p_#{(i+1).to_s.rjust(2, "0")}"
       province.subregions.each do |town|
-        row = [ Podemos::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name ]
+        row = [ PlebisBrand::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name ]
         months.keys.each do |month|
           row.push(towns_data[town.code][month][0])
           row.push(towns_data[town.code][month][1]/100)
@@ -632,14 +632,14 @@ ActiveAdmin.register Collaboration do
     end
 
     headers = ["Comunidad Autónoma", "Provincia", "Municipio"]
-    send_csv_file(headers,months,output_data,"podemos.for_town_cc.#{Date.today.to_s}.csv")
+    send_csv_file(headers,months,output_data,"plebisbrand.for_town_cc.#{Date.today.to_s}.csv")
   end
 
   collection_action :download_for_autonomy, :method => :get do
     date = Date.parse params[:date]
     months = Hash[(0..5).map{|i| [(date-i.months).unique_month, (date-i.months).strftime("%b").downcase]}.reverse]
 
-    autonomies = Hash[Podemos::GeoExtra::AUTONOMIES.values]
+    autonomies = Hash[PlebisBrand::GeoExtra::AUTONOMIES.values]
     autonomies["~"] = "Sin asignación"
     autonomies_data = Hash.new {|h,k| h[k] = Hash.new 0 }
 
@@ -658,7 +658,7 @@ ActiveAdmin.register Collaboration do
     end
 
     headers = ["Comunidad Autónoma"]
-    send_csv_file(headers,months,output_data,"podemos.for_autonomy_cc.#{Date.today.to_s}.csv")
+    send_csv_file(headers,months,output_data,"plebisbrand.for_autonomy_cc.#{Date.today.to_s}.csv")
   end
 
   collection_action :download_for_island, :method => :get do
@@ -666,7 +666,7 @@ ActiveAdmin.register Collaboration do
     months = Hash[(0..5).map{|i| [(date-i.months).unique_month, (date-i.months).strftime("%b").downcase]}.reverse]
 
     islands = Hash.new {|h,k| h[k] = [] }
-    Podemos::GeoExtra::ISLANDS.each do |town, info|
+    PlebisBrand::GeoExtra::ISLANDS.each do |town, info|
       islands["p_#{town[2..3]}"] << info
     end
     islands.each {|_, info| info.uniq! }
@@ -682,7 +682,7 @@ ActiveAdmin.register Collaboration do
     provinces.each_with_index do |province,i|
       prov_code = "p_#{(i+1).to_s.rjust(2, "0")}"
       islands[prov_code].each do |island_code, island_name|
-        row = [ Podemos::GeoExtra::AUTONOMIES[prov_code][1], province.name, island_name ]
+        row = [ PlebisBrand::GeoExtra::AUTONOMIES[prov_code][1], province.name, island_name ]
         months.keys.each do |month|
           puts("#{island_code} #{month}")
           row.push(island_data[island_code][month][0])
@@ -693,7 +693,7 @@ ActiveAdmin.register Collaboration do
     end
 
     headers = ["Comunidad Autónoma", "Provincia", "Isla"]
-    send_csv_file(headers,months,output_data,"podemos.for_island_cc.#{Date.today.to_s}.csv")
+    send_csv_file(headers,months,output_data,"plebisbrand.for_island_cc.#{Date.today.to_s}.csv")
   end
 
   collection_action :download_for_vote_circle_town, :method => :get do
@@ -714,7 +714,7 @@ ActiveAdmin.register Collaboration do
     provinces.each_with_index do |province,i|
       prov_code = "p_#{(i+1).to_s.rjust(2, "0")}"
       province.subregions.each do |town|
-        row = [ Podemos::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name ]
+        row = [ PlebisBrand::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name ]
         months.keys.each do |month|
           row.push(towns_data[town.code][month][0])
           row.push(towns_data[town.code][month][1]/100)
@@ -730,7 +730,7 @@ ActiveAdmin.register Collaboration do
   collection_action :download_for_vote_circle_autonomy, :method => :get do
     date = Date.parse params[:date]
     months = Hash[(0..6).map{|i| [(date-i.months).unique_month, (date-i.months).strftime("%b").downcase]}.reverse]
-    autonomies = Hash[Podemos::GeoExtra::AUTONOMIES.values]
+    autonomies = Hash[PlebisBrand::GeoExtra::AUTONOMIES.values]
     autonomies["~"] = "Sin asignación"
     autonomies_data = Hash.new {|h,k| h[k] = Hash.new 0 }
 
@@ -762,7 +762,7 @@ ActiveAdmin.register Collaboration do
     months = Hash[(0..6).map{|i| [(date-i.months).unique_month, (date-i.months).strftime("%b").downcase]}.reverse]
 
     islands = Hash.new {|h,k| h[k] = [] }
-    Podemos::GeoExtra::ISLANDS.each do |town, info|
+    PlebisBrand::GeoExtra::ISLANDS.each do |town, info|
       islands["p_#{town[2..3]}"] << info
     end
     islands.each {|_, info| info.uniq! }
@@ -778,7 +778,7 @@ ActiveAdmin.register Collaboration do
     provinces.each_with_index do |province,i|
       prov_code = "p_#{(i+1).to_s.rjust(2, "0")}"
       islands[prov_code].each do |island_code, island_name|
-        row = [ Podemos::GeoExtra::AUTONOMIES[prov_code][1], province.name, island_name ]
+        row = [ PlebisBrand::GeoExtra::AUTONOMIES[prov_code][1], province.name, island_name ]
         months.keys.each do |month|
           puts("#{island_code} #{month}")
           row.push(island_data[island_code][month][0])
@@ -820,7 +820,7 @@ ActiveAdmin.register Collaboration do
           tts = circle_data[town.code][vc].keys
           tts = [""] if tts.count == 0
           tts.each do |tt|
-            row = [ Podemos::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name,vote_circle.original_name,"",tt ]
+            row = [ PlebisBrand::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name,vote_circle.original_name,"",tt ]
             sum_row = 0
             months.keys.each do |month|
               amount_month = circle_data[town.code][vc][tt][month][1]/100
@@ -855,7 +855,7 @@ ActiveAdmin.register Collaboration do
           tts = towns_data[town.code][cp].keys
           tts = [""] if tts.count == 0
           tts.each do |tt|
-            row = [ Podemos::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name,"",cp,tt ]
+            row = [ PlebisBrand::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name,"",cp,tt ]
             sum_row = 0
             months.keys.each do |month|
               amount_month = towns_data[town.code][cp][tt][month][1]/100
@@ -870,14 +870,14 @@ ActiveAdmin.register Collaboration do
     end
 
     headers = ["Comunidad Autónoma", "Provincia", "Municipio", "Círculo", "Código Postal","Territorio de Asignación"]
-    send_csv_file(headers,months,output_data,"podemos.user_for_cp_cc.#{Date.today.to_s}.csv")
+    send_csv_file(headers,months,output_data,"plebisbrand.user_for_cp_cc.#{Date.today.to_s}.csv")
   end
 
   collection_action :download_for_circle_and_cp_autonomy, :method => :get do
     date = Date.parse params[:date]
     months = Hash[(0..7).map{|i| [(date-i.months).unique_month, (date-i.months).strftime("%b").downcase]}.reverse]
     provinces = Carmen::Country.coded("ES").subregions
-    autonomies = Hash[Podemos::GeoExtra::AUTONOMIES.values]
+    autonomies = Hash[PlebisBrand::GeoExtra::AUTONOMIES.values]
     output_data = []
 
     # ---------------------- Generate Circle Data ---------------------------------------------------------------------------------
@@ -953,7 +953,7 @@ ActiveAdmin.register Collaboration do
           tts = towns_data[town.code][cp].keys
           tts = [""] if tts.count == 0
           tts.each do |tt|
-            row = [ Podemos::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name,"",cp,tt ]
+            row = [ PlebisBrand::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name,"",cp,tt ]
             sum_row = 0
             months.keys.each do |month|
               amount_month = towns_data[town.code][cp][tt][month][1]/100
@@ -968,14 +968,14 @@ ActiveAdmin.register Collaboration do
     end
 
     headers = ["Comunidad Autónoma", "Provincia", "Municipio", "Círculo", "Código Postal","Territorio de Asignación"]
-    send_csv_file(headers,months,output_data,"podemos.user_for_cp_cc.#{Date.today.to_s}.csv")
+    send_csv_file(headers,months,output_data,"plebisbrand.user_for_cp_cc.#{Date.today.to_s}.csv")
   end
 
   collection_action :download_for_circle_and_cp_country, :method => :get do
     date =Date.parse params[:date]
     months = Hash[(0..7).map{|i| [(date-i.months).unique_month, (date-i.months).strftime("%b").downcase]}.reverse]
     provinces = Carmen::Country.coded("ES").subregions
-    autonomies = Hash[Podemos::GeoExtra::AUTONOMIES.values]
+    autonomies = Hash[PlebisBrand::GeoExtra::AUTONOMIES.values]
     countries = Hash[ Carmen::Country.all.map do |c| [ c.code,c.name ] end ]
     output_data = []
 
@@ -1059,7 +1059,7 @@ ActiveAdmin.register Collaboration do
           tts = towns_data[town.code][cp].keys
           tts = [""] if tts.count == 0
           tts.each do |tt|
-            row = [ Podemos::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name,"",cp,tt ]
+            row = [ PlebisBrand::GeoExtra::AUTONOMIES[prov_code][1], province.name, town.name,"",cp,tt ]
             sum_row = 0
             months.keys.each do |month|
               amount_month = towns_data[town.code][cp][tt][month][1]/100
@@ -1098,7 +1098,7 @@ ActiveAdmin.register Collaboration do
     end
 
     headers = ["Comunidad Autónoma", "Provincia", "Municipio", "Círculo", "Código Postal","Territorio de Asignación"]
-    send_csv_file(headers,months,output_data,"podemos.user_for_country_cp.#{Date.today.to_s}.csv")
+    send_csv_file(headers,months,output_data,"plebisbrand.user_for_country_cp.#{Date.today.to_s}.csv")
   end
 
   batch_action :error_batch, if: proc{ params[:scope]=="suspects" } do |ids|

@@ -5,7 +5,7 @@ class PageController < ApplicationController
   before_action :authenticate_user!, except: [ :privacy_policy, :faq, :guarantees, :funding, :guarantees_form, :show_form,
                                               :old_circles_data_validation, :primarias_andalucia, :listas_primarias_andaluzas,
                                               :responsables_organizacion_municipales, :count_votes,
-                                              :responsables_municipales_andalucia, :plaza_podemos_municipal,
+                                              :responsables_municipales_andalucia, :plaza_plebisbrand_municipal,
                                               :portal_transparencia_cc_estatal, :mujer_igualdad, :alta_consulta_ciudadana,
                                               :representantes_electorales_extranjeros, :responsables_areas_cc_autonomicos,
                                               :apoderados_campana_autonomica_andalucia, :comparte_cambio_valoracion_propietarios,
@@ -31,7 +31,7 @@ class PageController < ApplicationController
       authenticate_user!
     end
 
-    if /https:\/\/[^\/]*\.podemos.info\/.*/.match(@page.link)
+    if /https:\/\/[^\/]*\.plebisbrand.info\/.*/.match(@page.link)
       render :formview_iframe, locals: { title: @page.title, url: add_user_params(@page.link) }
     else
       render :form_iframe, locals: { title: @page.title, url: form_url(@page.id_form) }
@@ -66,19 +66,19 @@ class PageController < ApplicationController
     render :form_iframe, locals: { title: "Comparte tu casa", url: form_url(71), return_path: root_path }
   end
   def find_hospitality
-    render :formview_iframe, locals: { title: "Encuentra alojamiento", url: "https://forms.podemos.info/compartir-casa/"}
+    render :formview_iframe, locals: { title: "Encuentra alojamiento", url: "https://forms.plebisbrand.info/compartir-casa/"}
   end
   def share_car_sevilla
     render :form_iframe, locals: { title: "Comparte tu coche: Destino Sevilla", url: form_url(72), return_path: root_path }
   end
   def find_car_sevilla
-    render :formview_iframe, locals: { title: "Encuentra coche a Sevilla", url: "https://forms.podemos.info/compartir-viaje-sevilla/"}
+    render :formview_iframe, locals: { title: "Encuentra coche a Sevilla", url: "https://forms.plebisbrand.info/compartir-viaje-sevilla/"}
   end
   def share_car_doshermanas
     render :form_iframe, locals: { title: "Comparte tu coche: Destino Dos Hermanas", url: form_url(73), return_path: root_path }
   end
   def find_car_doshermanas
-    render :formview_iframe, locals: { title: "Encuentra coche a Dos Hermanas", url: "https://forms.podemos.info/compartir-viaje-dos-hermanas/"}
+    render :formview_iframe, locals: { title: "Encuentra coche a Dos Hermanas", url: "https://forms.plebisbrand.info/compartir-viaje-dos-hermanas/"}
   end
 
   def town_legal
@@ -105,8 +105,8 @@ class PageController < ApplicationController
     render :form_iframe, locals: { title: "Elecciones Andalucía 2015 - Personas de contacto", url: form_url(51) }
   end
 
-  def plaza_podemos_municipal
-    render :form_iframe, locals: { title: "Plaza Podemos municipales", url: form_url(52) }
+  def plaza_plebisbrand_municipal
+    render :form_iframe, locals: { title: "Plaza PlebisBrand municipales", url: form_url(52) }
   end
 
   def portal_transparencia_cc_estatal
@@ -122,11 +122,11 @@ class PageController < ApplicationController
   end
 
   def representantes_electorales_extranjeros
-    render :form_iframe, locals: { title: "Elecciones Andaluzas: Representantes electorales de Podemos en Consulados extranjeros", url: form_url(60) }
+    render :form_iframe, locals: { title: "Elecciones Andaluzas: Representantes electorales de PlebisBrand en Consulados extranjeros", url: form_url(60) }
   end
 
   def representantes_electorales_extranjeros
-    render :form_iframe, locals: { title: "Elecciones Andaluzas: Representantes electorales de Podemos en Consulados extranjeros", url: form_url(60) }
+    render :form_iframe, locals: { title: "Elecciones Andaluzas: Representantes electorales de PlebisBrand en Consulados extranjeros", url: form_url(60) }
   end
 
   def responsables_areas_cc_autonomicos
@@ -174,7 +174,7 @@ class PageController < ApplicationController
   end
 
   def condiciones_uso_correo
-    render :form_iframe, locals: { title: "Condiciones de uso del correo electrónico PODEMOS", url: form_url(80) }
+    render :form_iframe, locals: { title: "Condiciones de uso del correo electrónico PLEBISBRAND", url: form_url(80) }
   end
 
   private

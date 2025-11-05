@@ -347,7 +347,7 @@ ActiveAdmin.register MicrocreditLoan do
     @microcredit = @loan.microcredit
     @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
 
-    render pdf: 'IngresoMicrocreditosPodemos.pdf', template: 'microcredit/email_guide.pdf.erb', encoding: "UTF-8"
+    render pdf: 'IngresoMicrocreditosPlebisBrand.pdf', template: 'microcredit/email_guide.pdf.erb', encoding: "UTF-8"
   end
 
   controller do

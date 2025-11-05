@@ -61,7 +61,7 @@ class UserVerification < ApplicationRecord
   end
 
   def active?
-    $redis = $redis || Redis::Namespace.new("podemos_queue_validator", :redis => Redis.new)
+    $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
     current_hash = $redis.hget(:processing,id)
     current_verification = UserVerification.find(id) if UserVerification.where(id: id).any?
     if current_verification && current_hash
@@ -76,7 +76,7 @@ class UserVerification < ApplicationRecord
   end
 
   def get_current_verifier
-    $redis = $redis || Redis::Namespace.new("podemos_queue_validator", :redis => Redis.new)
+    $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
     current_hash = $redis.hget(:processing,id)
     if current_hash
       # convert hash in string to hash

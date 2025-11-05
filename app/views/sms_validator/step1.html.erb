@@ -9,9 +9,9 @@
       <%= semantic_form_for(current_user, url: sms_validator_phone_path, html: {method: :post}) do |f| %>
           <fieldset>
             <legend class="invisible">Cambia tu móvil</legend>
-            <p><%= t('podemos.valid.phone.p1') %></p>
+            <p><%= t('plebisbrand.valid.phone.p1') %></p>
 
-            <p><%= t('podemos.valid.phone.p2') %></p>
+            <p><%= t('plebisbrand.valid.phone.p2') %></p>
 
             <p>Debes ingresar un teléfono móvil válido para el país en el que te encuentras, sin prefijo internacional, sólo con números (sin espacios ni guiones). Según el formulario que has rellenado te encuentras en <b><%= current_user.country_name %></b> (prefijo internacional +<%= current_user.country_phone_prefix %>). Si esto no es correcto, puedes cambiar tu ubicación en tu <a href="<%=edit_user_registration_path%>">página del perfil</a>.</p>
 

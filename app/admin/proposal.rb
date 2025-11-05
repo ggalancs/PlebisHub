@@ -1,5 +1,5 @@
 ActiveAdmin.register Proposal do
-  menu :parent => "Participación"
+  menu :parent => "PlebisHubción"
 
   controller do
     def scoped_collection

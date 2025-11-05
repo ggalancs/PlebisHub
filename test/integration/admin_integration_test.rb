@@ -15,7 +15,7 @@ class AdminIntegrationTest < ActionDispatch::IntegrationTest
     get '/admin'
     assert_response :redirect
     assert_redirected_to root_path
-    assert_equal I18n.t('podemos.unauthorized'), flash[:error] 
+    assert_equal I18n.t('plebisbrand.unauthorized'), flash[:error] 
   end
 
   test "should not get /admin/resque as anon" do
@@ -29,7 +29,7 @@ class AdminIntegrationTest < ActionDispatch::IntegrationTest
     get '/admin'
     assert_response :redirect
     assert_redirected_to authenticated_root_path
-    assert_equal I18n.t('podemos.unauthorized'), flash[:error] 
+    assert_equal I18n.t('plebisbrand.unauthorized'), flash[:error] 
   end
 
   test "should not get /admin/resque as normal user" do
@@ -57,7 +57,7 @@ class AdminIntegrationTest < ActionDispatch::IntegrationTest
     get '/admin/users/download_newsletter_csv'
     assert_response :redirect
     assert_redirected_to root_path
-    assert_equal I18n.t('podemos.unauthorized'), flash[:error] 
+    assert_equal I18n.t('plebisbrand.unauthorized'), flash[:error] 
   end
     
   #test "should download newsletter CSV as admin and not download wants_newsletter = false" do

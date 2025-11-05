@@ -1,6 +1,6 @@
-namespace :podemos do
+namespace :plebisbrand do
 
-  desc "[podemos] Assign vote_circle territories to orders from a specific month and year"
+  desc "[plebisbrand] Assign vote_circle territories to orders from a specific month and year"
   task :add_vote_circle_territories_to_orders, [:month, :year] => :environment do |t, args|
     args.with_defaults(:month => Date.today.month, :year => Date.today.year)
     min_date =Date.civil(args.year.to_i,args.month.to_i,1)
@@ -15,7 +15,7 @@ namespace :podemos do
         if circle.town.present?
           town_code = circle.town
           autonomy_code = circle.autonomy_code
-          island = Podemos::GeoExtra::ISLANDS[circle.town]
+          island = PlebisBrand::GeoExtra::ISLANDS[circle.town]
           island_code = circle.island_code
           island_code = island.present? ? island[0] : o.island_code unless island_code.present?
         else

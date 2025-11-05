@@ -1,4 +1,4 @@
-class PodemosImportCollaborations
+class PlebisBrandImportCollaborations
 
   def self.log_to_file(filename, text)
     File.open(filename, 'a') { |f| f.write(text) }

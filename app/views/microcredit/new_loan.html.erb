@@ -13,7 +13,7 @@ input.button, a.button { background-color: <%=@brand_config["color2"]%> !importa
   <div class="modal-dialog">
     <div>    
       <h2><%= t 'microcredit.common.title', name: @brand_config["name"]%> - <%=@microcredit.title%></h2>
-      <p>Te recomendamos que <%= link_to "accedas con tu usuario del Portal de Participación", microcredit_login_path%> para que no tengas que rellenar nuevamente estos datos y para que puedas consultar el estado del préstamo en el futuro.</p>
+      <p>Te recomendamos que <%= link_to "accedas con tu usuario del Portal de PlebisHubción", microcredit_login_path%> para que no tengas que rellenar nuevamente estos datos y para que puedas consultar el estado del préstamo en el futuro.</p>
       <div class="buttonbox"><a class="close button">Continuar sin identificarse</a>&nbsp;&nbsp; &nbsp;&nbsp;<%= link_to "Acceder con tu usuario", microcredit_login_path, class:"button"%></div>
     </div>
   </div>
@@ -181,7 +181,7 @@ input.button, a.button { background-color: <%=@brand_config["color2"]%> !importa
 
       <div>
         <p><br/></p>
-        <h3>Recuerda hacer el ingreso en la cuenta de Podemos: <br/>
+        <h3>Recuerda hacer el ingreso en la cuenta de PlebisBrand: <br/>
           <%=@microcredit.account_number %> (Caja de Ingenieros) indicando en el concepto el número que recibirás en tu correo electrónico</h3>
       </div>
     <% if !current_user %>

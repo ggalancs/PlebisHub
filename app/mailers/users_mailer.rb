@@ -23,16 +23,16 @@ class UsersMailer < ActionMailer::Base
     mail(
       from: Rails.application.secrets["default_from_email"],
       to: @user.email,
-      subject: '[participa.podemos.info] Has intentado registrarte de nuevo'
+      subject: '[participa.plebisbrand.info] Has intentado registrarte de nuevo'
     )
   end
 
   def new_militant_email(user_id)
   @user_email = User.find(user_id).email
   mail(
-    from: "soportemilitantes@podemos.info",
+    from: "soportemilitantes@plebisbrand.info",
     to: @user_email,
-    subject: 'Enhorabuena, ya eres militante de Podemos'
+    subject: 'Enhorabuena, ya eres militante de PlebisBrand'
   )
   end
 
@@ -41,8 +41,8 @@ class UsersMailer < ActionMailer::Base
     mail(
       from: Rails.application.secrets["default_from_email"],
       to: @user.email,
-      bcc: 'bajas@podemos.info',
-      subject: 'Te has dado de baja de Podemos'
+      bcc: 'bajas@plebisbrand.info',
+      subject: 'Te has dado de baja de PlebisBrand'
     )
   end
 end

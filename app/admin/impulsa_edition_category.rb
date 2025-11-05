@@ -10,7 +10,7 @@ ActiveAdmin.register ImpulsaEditionCategory do
       row :impulsa_edition
       row :name
       row :category_type_name do |impulsa_edition_category|
-        t("podemos.impulsa.category_type_name.#{impulsa_edition_category.category_type_name}") if impulsa_edition_category.category_type_name
+        t("plebisbrand.impulsa.category_type_name.#{impulsa_edition_category.category_type_name}") if impulsa_edition_category.category_type_name
       end
       row :winners
       row :prize
@@ -43,13 +43,13 @@ ActiveAdmin.register ImpulsaEditionCategory do
         end
       end
       f.input :name
-      f.input :category_type, as: :select, collection: ImpulsaEditionCategory::CATEGORY_TYPES.map{|k,v| [I18n.t("podemos.impulsa.category_type_name.#{k}"), v]}
+      f.input :category_type, as: :select, collection: ImpulsaEditionCategory::CATEGORY_TYPES.map{|k,v| [I18n.t("plebisbrand.impulsa.category_type_name.#{k}"), v]}
       f.input :winners, min: 1
       f.input :prize, min: 0
       f.input :has_votings, as: :boolean
       f.input :only_authors
       f.input :coofficial_language, as: :select, collection: I18n.available_locales.map {|l| [I18n.name_for_locale(l),l] if l!=I18n.default_locale }
-      f.input :territories, as: :check_boxes, collection: Podemos::GeoExtra::AUTONOMIES.values.uniq.map(&:reverse).sort if resource.has_territory?
+      f.input :territories, as: :check_boxes, collection: PlebisBrand::GeoExtra::AUTONOMIES.values.uniq.map(&:reverse).sort if resource.has_territory?
       f.input :wizard_raw, as: :text, input_html: { rows: 30, class: "yaml" }
       f.input :evaluation_raw, as: :text, input_html: { rows: 30, class: "yaml" }
     end

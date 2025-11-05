@@ -11,7 +11,7 @@ class LegacyPasswordController < ApplicationController
       if current_user.save
         current_user.update_attribute(:has_legacy_password, false)
         sign_in current_user
-        redirect_to root_path, notice: t('podemos.legacy.password.changed')
+        redirect_to root_path, notice: t('plebisbrand.legacy.password.changed')
       else
         render action: 'new'
       end

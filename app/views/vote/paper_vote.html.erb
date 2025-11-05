@@ -17,7 +17,7 @@
       <%= hidden_field_tag 'validation_token', validation_token_for_paper_vote_user %>
       <%= hidden_field_tag 'user_id', paper_vote_user.id %>
       <% if election.scope == 6 %>
-        <%= submit_tag("Participa", class: "button") %>
+        <%= submit_tag("PlebisHub", class: "button") %>
         <p><%= link_to "Volver", "" %></p>
       <% else %>
           <%= submit_tag("Vota", class: "button") %>

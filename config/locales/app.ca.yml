@@ -25,7 +25,7 @@ ca:
       Detail: "Detall"
     new_loan:
       user_access: "Et recomanem que cliquis aquí %{link} per evitar que hagis d'introduir aquestes dades novament i per tal de consultar l'estat del teu préstec en el futur."
-      user_access_link: "accés amb el teu usuari al Portal de Participació"
+      user_access_link: "accés amb el teu usuari al Portal de PlebisHubció"
       nologin: "Continuar sense identificar-te"
       login: "Accedir amb el teu usuari"
       help_phone: "Si necessites ajuda contacta amb <strong>%{phone}</strong>."

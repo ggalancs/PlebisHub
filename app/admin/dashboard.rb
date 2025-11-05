@@ -9,7 +9,7 @@ ActiveAdmin.register_page "Dashboard" do
           div "Condiciones de uso y aviso legal"
           div "Manual de uso de la aplicación"
           div do
-            link_to "Manual de uso de datos de carácter personal", "/pdf/PODEMOS_LOPD_-_MANUAL_DE_USUARIO_DE_BASES_DE_DATOS_DE_PODEMOS_v.2014.09.10.pdf", target: "_blank"
+            link_to "Manual de uso de datos de carácter personal", "/pdf/PLEBISBRAND_LOPD_-_MANUAL_DE_USUARIO_DE_BASES_DE_DATOS_DE_PLEBISBRAND_v.2014.09.10.pdf", target: "_blank"
           end
           div "Documento de seguridad"
           div "Funciones y obligaciones del personal"

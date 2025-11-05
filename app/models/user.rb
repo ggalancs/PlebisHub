@@ -201,14 +201,14 @@ class User < ApplicationRecord
   ransacker :vote_autonomy, formatter: proc { |value|
     values = value.split(",")
     spain = Carmen::Country.coded("ES")
-    Podemos::GeoExtra::AUTONOMIES.map { |k,v| spain.subregions[k[2..3].to_i-1].subregions.map {|r| r.code } if v[0].in?(values) } .compact.flatten
+    PlebisBrand::GeoExtra::AUTONOMIES.map { |k,v| spain.subregions[k[2..3].to_i-1].subregions.map {|r| r.code } if v[0].in?(values) } .compact.flatten
   } do |parent|
     parent.table[:vote_town]
   end
 
   ransacker :vote_island, formatter: proc { |value|
     values = value.split(",")
-    Podemos::GeoExtra::ISLANDS.map {|k,v| k if v[0].in?(values)} .compact
+    PlebisBrand::GeoExtra::ISLANDS.map {|k,v| k if v[0].in?(values)} .compact
   } do |parent|
     parent.table[:vote_town]
   end
@@ -436,7 +436,7 @@ class User < ApplicationRecord
 
   def autonomy_code
     if self.in_spain? and _province
-      Podemos::GeoExtra::AUTONOMIES[self.province_code][0]
+      PlebisBrand::GeoExtra::AUTONOMIES[self.province_code][0]
     else
       ""
     end
@@ -444,7 +444,7 @@ class User < ApplicationRecord
 
   def autonomy_name
     if self.in_spain? and _province
-      Podemos::GeoExtra::AUTONOMIES[self.province_code][1]
+      PlebisBrand::GeoExtra::AUTONOMIES[self.province_code][1]
     else
       ""
     end
@@ -452,7 +452,7 @@ class User < ApplicationRecord
 
   def island_code
     if self.in_spanish_island?
-      Podemos::GeoExtra::ISLANDS[self.town][0]
+      PlebisBrand::GeoExtra::ISLANDS[self.town][0]
     else
       ""
     end
@@ -460,18 +460,18 @@ class User < ApplicationRecord
 
   def island_name
     if self.in_spanish_island?
-      Podemos::GeoExtra::ISLANDS[self.town][1]
+      PlebisBrand::GeoExtra::ISLANDS[self.town][1]
     else
       ""
     end
   end
 
   def in_spanish_island?
-    (self.in_spain? and Podemos::GeoExtra::ISLANDS.has_key? self.town) or false
+    (self.in_spain? and PlebisBrand::GeoExtra::ISLANDS.has_key? self.town) or false
   end
 
   def vote_in_spanish_island?
-    (Podemos::GeoExtra::ISLANDS.has_key? self.vote_town) or false
+    (PlebisBrand::GeoExtra::ISLANDS.has_key? self.vote_town) or false
   end
 
   def has_vote_town?
@@ -484,7 +484,7 @@ class User < ApplicationRecord
 
   def vote_autonomy_code
     if _vote_province
-      Podemos::GeoExtra::AUTONOMIES[self.vote_province_code][0]
+      PlebisBrand::GeoExtra::AUTONOMIES[self.vote_province_code][0]
     else
       ""
     end
@@ -492,7 +492,7 @@ class User < ApplicationRecord
 
   def vote_autonomy_name
     if _vote_province
-      Podemos::GeoExtra::AUTONOMIES[self.vote_province_code][1]
+      PlebisBrand::GeoExtra::AUTONOMIES[self.vote_province_code][1]
     else
       ""
     end
@@ -561,7 +561,7 @@ class User < ApplicationRecord
 
   def vote_island_code
     if self.vote_in_spanish_island?
-      Podemos::GeoExtra::ISLANDS[self.vote_town][0]
+      PlebisBrand::GeoExtra::ISLANDS[self.vote_town][0]
     else
       ""
     end
@@ -569,7 +569,7 @@ class User < ApplicationRecord
 
   def vote_island_name
     if self.vote_in_spanish_island?
-      Podemos::GeoExtra::ISLANDS[self.vote_town][1]
+      PlebisBrand::GeoExtra::ISLANDS[self.vote_town][1]
     else
       ""
     end
@@ -659,7 +659,7 @@ class User < ApplicationRecord
   def before_save
     unless @skip_before_save
       if User.with_deleted.banned.where(document_vatid: self.document_vatid).any?
-        self.errors.add("Información insuficiente:",I18n.t("podemos.banned", full_name: self.full_name))
+        self.errors.add("Información insuficiente:",I18n.t("plebisbrand.banned", full_name: self.full_name))
         false
       else
         # Spanish users can't set a different town for vote, except when blocked
@@ -786,11 +786,11 @@ class User < ApplicationRecord
   end
 
   def urban_vote_town?
-    self.vote_town.present? && Podemos::GeoExtra::URBAN_TOWNS.member?(self.vote_town)
+    self.vote_town.present? && PlebisBrand::GeoExtra::URBAN_TOWNS.member?(self.vote_town)
   end
 
   def semi_urban_vote_town?
-    self.vote_town.present? && Podemos::GeoExtra::SEMI_URBAN_TOWNS.member?(self.vote_town)
+    self.vote_town.present? && PlebisBrand::GeoExtra::SEMI_URBAN_TOWNS.member?(self.vote_town)
   end
 
   def rural_vote_town?

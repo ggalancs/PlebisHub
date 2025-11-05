@@ -171,7 +171,7 @@ class VoteController < ApplicationController
   def check_valid_location(user = current_user, valid_locations = nil)
     return true if election.has_valid_location_for?(user, valid_locations: valid_locations)
 
-    flash[:error] = I18n.t('podemos.election.no_location')
+    flash[:error] = I18n.t('plebisbrand.election.no_location')
     false
   end
 
@@ -189,9 +189,9 @@ class VoteController < ApplicationController
   def check_not_voted(user = current_user)
     return true unless user.has_already_voted_in(election.id)
     if election.scope == 6
-      flash[:error] = t("podemos.election.already_identified")
+      flash[:error] = t("plebisbrand.election.already_identified")
     else
-      flash[:error] = t("podemos.election.already_voted")
+      flash[:error] = t("plebisbrand.election.already_voted")
     end
     false
   end
@@ -199,7 +199,7 @@ class VoteController < ApplicationController
   def check_validation_token(received_token)
     return true if validation_token_for_paper_vote_user == received_token
 
-    flash[:error] = t("podemos.election.token_error")
+    flash[:error] = t("plebisbrand.election.token_error")
     false
   end
 end

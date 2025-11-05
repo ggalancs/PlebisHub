@@ -1,5 +1,5 @@
-class PodemosReportWorker
-  @queue = :podemos_report_queue
+class PlebisBrandReportWorker
+  @queue = :plebisbrand_report_queue
 
   def self.perform report_id
     report = Report.find(report_id)

@@ -4,7 +4,7 @@ class ImpulsaMailer < ActionMailer::Base
     mail(
       from: project.impulsa_edition.email,
       to: project.user.email,
-      subject: '[PODEMOS IMPULSA] Proyecto desestimado'
+      subject: '[PLEBISBRAND IMPULSA] Proyecto desestimado'
     )
   end
 
@@ -16,7 +16,7 @@ class ImpulsaMailer < ActionMailer::Base
     mail(
       from: project.impulsa_edition.email,
       to: project.user.email,
-      subject: '[PODEMOS IMPULSA] Necesaria subsanación'
+      subject: '[PLEBISBRAND IMPULSA] Necesaria subsanación'
     )
   end
 
@@ -24,7 +24,7 @@ class ImpulsaMailer < ActionMailer::Base
     mail(
       from: project.impulsa_edition.email,
       to: project.user.email,
-      subject: '[PODEMOS IMPULSA] Tu proyecto ha sido revisado y está completo'
+      subject: '[PLEBISBRAND IMPULSA] Tu proyecto ha sido revisado y está completo'
     )
   end
 
@@ -33,7 +33,7 @@ class ImpulsaMailer < ActionMailer::Base
     mail(
       from: project.impulsa_edition.email,
       to: project.user.email,
-      subject: '[PODEMOS IMPULSA] Tu proyecto no ha superado la fase de evaluación'
+      subject: '[PLEBISBRAND IMPULSA] Tu proyecto no ha superado la fase de evaluación'
     )
   end
 
@@ -45,7 +45,7 @@ class ImpulsaMailer < ActionMailer::Base
     mail(
       from: project.impulsa_edition.email,
       to: project.user.email,
-      subject: '[PODEMOS IMPULSA] Tu proyecto ha superado la fase de evaluación'
+      subject: '[PLEBISBRAND IMPULSA] Tu proyecto ha superado la fase de evaluación'
     )
   end
 end

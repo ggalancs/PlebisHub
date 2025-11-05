@@ -11,8 +11,8 @@ def export name, total, col_sep="\t", force_quotes=false
   end
 end
 
-namespace :podemos do
-  desc "[podemos] Elections stats"
+namespace :plebisbrand do
+  desc "[plebisbrand] Elections stats"
   task :election_stats, [:ids] => :environment do |t, args|
     args.with_defaults(:ids => "")
 

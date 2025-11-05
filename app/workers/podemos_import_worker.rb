@@ -1,11 +1,11 @@
-class PodemosImportWorker
+class PlebisBrandImportWorker
 
-  require 'podemos_import'
+  require 'plebisbrand_import'
 
-  @queue = :podemos_import_queue
+  @queue = :plebisbrand_import_queue
 
   def self.perform row
-    PodemosImport.process_row(row)
+    PlebisBrandImport.process_row(row)
   end
 
 end

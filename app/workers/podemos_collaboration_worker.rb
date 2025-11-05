@@ -1,7 +1,7 @@
-require 'podemos_export'
+require 'plebisbrand_export'
 
-class PodemosCollaborationWorker
-  @queue = :podemos_collaboration_queue
+class PlebisBrandCollaborationWorker
+  @queue = :plebisbrand_collaboration_queue
 
   def self.perform collaboration_id
     if collaboration_id==-1

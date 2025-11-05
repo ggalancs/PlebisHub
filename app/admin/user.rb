@@ -204,7 +204,7 @@ ActiveAdmin.register User do
 
     if !user.participation_team_at.nil?
 
-      panel "Equipos de Acción Participativa" do
+      panel "Equipos de Acción PlebisHubtiva" do
         if user.participation_team.any?
           table_for user.participation_team do
             column :name
@@ -218,7 +218,7 @@ ActiveAdmin.register User do
     active_admin_comments
   end
 
-  sidebar "Buscar personas en Participa", 'data-panel' => :collapsed, :only => :index, priority: 1 do
+  sidebar "Buscar personas en PlebisHub", 'data-panel' => :collapsed, :only => :index, priority: 1 do
     render("admin/users/process_search_persons")
   end
 
@@ -228,7 +228,7 @@ ActiveAdmin.register User do
       user.user_verifications.order(:created_at).each do |user_verification|
         tr class: "row row-link" do
           th user_verification.created_at.to_date
-          td link_to(t("podemos.user_verification.status.#{user_verification.status}"), edit_admin_user_verification_path(user_verification))
+          td link_to(t("plebisbrand.user_verification.status.#{user_verification.status}"), edit_admin_user_verification_path(user_verification))
         end
       end
     end if user.user_verifications.any?
@@ -253,9 +253,9 @@ ActiveAdmin.register User do
   filter :province
   filter :country
   filter :vote_circle_id
-  filter :vote_autonomy_in, as: :select, collection: Podemos::GeoExtra::AUTONOMIES.values.uniq.map(&:reverse), label: "Vote autonomy"
+  filter :vote_autonomy_in, as: :select, collection: PlebisBrand::GeoExtra::AUTONOMIES.values.uniq.map(&:reverse), label: "Vote autonomy"
   filter :vote_province_in, as: :select, collection: Carmen::Country.coded("ES").subregions.map{|x|[x.name, "p_#{(x.index).to_s.rjust(2,"0")}"]}, label: "Vote province"
-  filter :vote_island_in, as: :select, collection: Podemos::GeoExtra::ISLANDS.values.uniq.map(&:reverse), label: "Vote island"
+  filter :vote_island_in, as: :select, collection: PlebisBrand::GeoExtra::ISLANDS.values.uniq.map(&:reverse), label: "Vote island"
   filter :vote_town
   filter :current_sign_in_at
   filter :current_sign_in_ip
@@ -267,9 +267,9 @@ ActiveAdmin.register User do
   filter :sms_confirmed_at
   filter :sign_in_count
   filter :wants_participation
-  filter :participation_team_id, as: :select, collection: ParticipationTeam.all
+  filter :participation_team_id, as: :select, collection: PlebisHubtionTeam.all
   filter :votes_election_id, as: :select, collection: Election.all
-  filter :user_vote_circle_autonomy_id_in, as: :select, collection: Podemos::GeoExtra::AUTONOMIES.values.uniq.map(&:reverse).map{|c| [c[0],"__#{c[1][2,2]}%"]}, label: "Circle autonomy"
+  filter :user_vote_circle_autonomy_id_in, as: :select, collection: PlebisBrand::GeoExtra::AUTONOMIES.values.uniq.map(&:reverse).map{|c| [c[0],"__#{c[1][2,2]}%"]}, label: "Circle autonomy"
   filter :user_vote_circle_province_id_in, as: :select, collection: Carmen::Country.coded("ES").subregions.map{|x|[x.name, "____#{(x.index).to_s.rjust(2,"0")}%"]}, label: "Circle province"
   filter :user_vote_circle_id_in, as: :select, collection: proc { VoteCircle.all.order(:original_name).map { |c| [c.original_name, c.id] }}, label: "Circle name"
 
@@ -526,7 +526,7 @@ ActiveAdmin.register User do
   end
 
   collection_action :fill_csv, :method => :post do
-    require 'podemos_export'
+    require 'plebisbrand_export'
     file = params["fill_csv"]["file"]
     subaction = params["commit"]
 #    csv = fill_data file.read, User.confirmed
@@ -534,7 +534,7 @@ ActiveAdmin.register User do
     if subaction == "Descargar CSV"
       send_data csv["results"],
         type: 'text/csv; charset=utf-8; header=present',
-        disposition: "attachment; filename=participa.podemos.#{Date.today.to_s}.csv"
+        disposition: "attachment; filename=participa.plebisbrand.#{Date.today.to_s}.csv"
     else
       flash[:notice] = "Usuarios procesados: #{csv['processed'].join(',')}. Total: #{csv['processed'].count}"
       redirect_to action: :index, "[q][id_in]": "#{csv['processed'].join(' ')}"
@@ -590,7 +590,7 @@ ActiveAdmin.register User do
 
     send_data csv.encode('utf-8'),
       type: 'text/tsv; charset=utf-8; header=present',
-      disposition: "attachment; filename=podemos.participationteams.#{Date.today.to_s}.csv"
+      disposition: "attachment; filename=plebisbrand.participationteams.#{Date.today.to_s}.csv"
   end
 
   sidebar :report, only: :index do

@@ -1,5 +1,5 @@
 ActiveAdmin.register Election do
-  menu :parent => "Participación"
+  menu :parent => "PlebisHubción"
 
   permit_params :title, :info_url, :election_type, :agora_election_id, :scope, :census_file, :server, :starts_at, :ends_at, :close_message, :locations,
                 :user_created_at_max, :priority, :info_text, :requires_vatid_check, :requires_sms_check, :show_on_index,
@@ -62,7 +62,7 @@ ActiveAdmin.register Election do
         raw election.close_message
       end
       row "Crear Aviso" do
-        link_to "Crear aviso para móviles para esta votación", new_admin_notice_path(notice: { link: create_vote_url(election_id: election.id), title: "Podemos", body: "Nueva votación disponible: #{election.title}" }), class: "button"
+        link_to "Crear aviso para móviles para esta votación", new_admin_notice_path(notice: { link: create_vote_url(election_id: election.id), title: "PlebisBrand", body: "Nueva votación disponible: #{election.title}" }), class: "button"
       end
     end
 

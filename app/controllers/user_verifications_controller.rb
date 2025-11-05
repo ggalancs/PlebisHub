@@ -14,10 +14,10 @@ class UserVerificationsController < ApplicationController
     @user_verification.status = UserVerification.statuses[:accepted_by_email] if current_user.photos_unnecessary?
     if @user_verification.save
       if @user_verification.wants_card
-        redirect_to(edit_user_registration_path ,flash: { notice: [t('podemos.user_verification.documentation_received'), t('podemos.user_verification.please_check_details')].join("<br>")})
+        redirect_to(edit_user_registration_path ,flash: { notice: [t('plebisbrand.user_verification.documentation_received'), t('plebisbrand.user_verification.please_check_details')].join("<br>")})
       else
         redirect_to(create_vote_path(election_id: params[:election_id])) and return if params[:election_id]
-        redirect_to(session.delete(:return_to)||root_path, flash: { notice: t('podemos.user_verification.documentation_received')})
+        redirect_to(session.delete(:return_to)||root_path, flash: { notice: t('plebisbrand.user_verification.documentation_received')})
       end
     else
       render :new
@@ -54,8 +54,8 @@ class UserVerificationsController < ApplicationController
     provinces = Carmen::Country.coded("ES").subregions.map {|p| [ "%02d" % + p.index, p.name ] }
 
     provinces.each do |province_num, province_name|
-      autonomy_code = Podemos::GeoExtra::AUTONOMIES["p_#{province_num}"].first
-      autonomy_name = Podemos::GeoExtra::AUTONOMIES["p_#{province_num}"].last
+      autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_num}"].first
+      autonomy_name = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_num}"].last
       total_sum = 0
       if aacc_code == 'c_00' or autonomy_code == aacc_code
         UserVerification.statuses.each do |name, status|
@@ -220,8 +220,8 @@ class UserVerificationsController < ApplicationController
     provinces = Carmen::Country.coded("ES").subregions.map {|p| [ "%02d" % + p.index, p.name ] }
     provinces.each do |province_num, province_name|
       towns_hash["p_#{province_num}"].each do |vote_town_num|
-        autonomy_code = Podemos::GeoExtra::AUTONOMIES["p_#{province_num}"].first
-        autonomy_name = Podemos::GeoExtra::AUTONOMIES["p_#{province_num}"].last
+        autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_num}"].first
+        autonomy_name = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_num}"].last
         vote_town_name = Carmen::Country.coded("ES").subregions[province_num.to_i - 1].subregions.coded(vote_town_num).name
         total_mun_sum = 0
         if aacc_code == 'c_00' or autonomy_code == aacc_code
@@ -245,8 +245,8 @@ class UserVerificationsController < ApplicationController
       end
 
       total_sum = 0
-      autonomy_code = Podemos::GeoExtra::AUTONOMIES["p_#{province_num}"].first
-      autonomy_name = Podemos::GeoExtra::AUTONOMIES["p_#{province_num}"].last
+      autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_num}"].first
+      autonomy_name = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_num}"].last
       if aacc_code == 'c_00' or autonomy_code == aacc_code
         UserVerification.statuses.each do |name, status|
           count = data[[province_num, status]] || 0
@@ -330,9 +330,9 @@ class UserVerificationsController < ApplicationController
   private
   def check_valid_and_verified
     if current_user.has_not_future_verified_elections?
-      redirect_to(session.delete(:return_to)||root_path, flash: { notice: t('podemos.user_verification.user_not_valid_to_verify') })
+      redirect_to(session.delete(:return_to)||root_path, flash: { notice: t('plebisbrand.user_verification.user_not_valid_to_verify') })
     elsif current_user.verified? && current_user.photos_necessary?
-      redirect_to(session.delete(:return_to)||root_path, flash: { notice: t('podemos.user_verification.user_already_verified') })
+      redirect_to(session.delete(:return_to)||root_path, flash: { notice: t('plebisbrand.user_verification.user_already_verified') })
     end
   end
   def user_verification_params

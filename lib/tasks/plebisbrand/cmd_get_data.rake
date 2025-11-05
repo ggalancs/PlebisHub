@@ -68,11 +68,11 @@ namespace :cmd_get_data do
       if options[:cccaa] && spain
         towns = []
         options[:cccaa].each do |ccaa|
-          midata = Podemos::GeoExtra::AUTONOMIES.map { |k,v| spain.subregions[k[2..3].to_i-1].subregions.map {|r| r.code } if v[0] == ccaa } .compact.flatten
+          midata = PlebisBrand::GeoExtra::AUTONOMIES.map { |k,v| spain.subregions[k[2..3].to_i-1].subregions.map {|r| r.code } if v[0] == ccaa } .compact.flatten
           towns += midata
         end
       end
-      #towns = Podemos::GeoExtra::AUTONOMIES.map { |k,v| spain.subregions[k[2..3].to_i-1].subregions.map {|r| r.code } if v[0]==options[:cccaa] } .compact.flatten if spain
+      #towns = PlebisBrand::GeoExtra::AUTONOMIES.map { |k,v| spain.subregions[k[2..3].to_i-1].subregions.map {|r| r.code } if v[0]==options[:cccaa] } .compact.flatten if spain
       data = data.where(vote_town:towns) if spain  
       data = data.where("vote_town ilike ?",'m_'+options[:province]+"%") if options[:foreign].blank? && options[:cccaa].blank? && options[:province].present?    
       data = data.where(vote_town:options[:town]) if options[:foreign].blank? && options[:cccaa].blank? && options[:province].blank? && options[:town].present?

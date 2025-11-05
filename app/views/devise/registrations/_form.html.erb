@@ -10,7 +10,7 @@
         No puedes modificar los datos personales que ya han sido verificados.
         </p>
         <p>
-        Si necesitas modificarlos envía un email a <a href='mailto:lopd@podemos.info'>lopd@podemos.info</a>
+        Si necesitas modificarlos envía un email a <a href='mailto:lopd@plebisbrand.info'>lopd@plebisbrand.info</a>
         adjuntando el nuevo documento de identidad escaneado e indicando los motivos de la modificación de dichos datos.
         </p>
       </div>
@@ -49,15 +49,15 @@
       <% end %>
       <%= f.input :document_vatid, required: true, input_html: {disabled: action != "new", required: true, class: 'input-s'} %>
       <p class="js-registration-document-dni text-m invisible">
-        <%= t('podemos.registration.message.dni') %>
+        <%= t('plebisbrand.registration.message.dni') %>
       </p>
 
       <p class="js-registration-document-nie text-m invisible">
-        <%= t('podemos.registration.message.nie') %>
+        <%= t('plebisbrand.registration.message.nie') %>
       </p>
 
       <p class="js-registration-document-passport text-m invisible">
-        <%= t('podemos.registration.message.passport') %>
+        <%= t('plebisbrand.registration.message.passport') %>
       </p>
     </div>
 
@@ -175,7 +175,7 @@
           </span>
           <span class="no-input">
             <div class="tos">
-              <%= t('podemos.registration.terms_of_service.p1_html')%>
+              <%= t('plebisbrand.registration.terms_of_service.p1_html')%>
             </div>
           </span>
         </div>
@@ -187,9 +187,9 @@
           <%= f.label :terms_of_service %>
           <div class="input-box">
             <%= f.check_box :terms_of_service, class: 'checkbox' %>
-            <p class="text-xl">He leído y acepto las condiciones generales de inscripción en Podemos, uso del portal de participación, empleo de cookies y política de privacidad,
-              así como los Estatutos, el Código Ético y los Documentos de Podemos que puedo consultar y descargar en los siguientes enlaces
-              <a href='https://files.podemos.info/tbsEDpJwi7.pdf' target='_blank'>Condiciones generales de inscripción, uso del portal y política de privacidad de Podemos</a>  y <a href='https://podemos.info/documentos/' target='_blank'>https://podemos.info/documentos/.</a></p>
+            <p class="text-xl">He leído y acepto las condiciones generales de inscripción en PlebisBrand, uso del portal de participación, empleo de cookies y política de privacidad,
+              así como los Estatutos, el Código Ético y los Documentos de PlebisBrand que puedo consultar y descargar en los siguientes enlaces
+              <a href='https://files.plebisbrand.info/tbsEDpJwi7.pdf' target='_blank'>Condiciones generales de inscripción, uso del portal y política de privacidad de PlebisBrand</a>  y <a href='https://plebisbrand.info/documentos/' target='_blank'>https://plebisbrand.info/documentos/.</a></p>
           </div>
         </div>
 

@@ -51,7 +51,7 @@ class SmsValidatorController < ApplicationController
       current_user.send_sms_token!
       render action: "step3"
     else
-      flash.now[:error] = t('podemos.valid.phone.captcha_invalid') 
+      flash.now[:error] = t('plebisbrand.valid.phone.captcha_invalid') 
       render action: "step2"
     end
   end
@@ -60,10 +60,10 @@ class SmsValidatorController < ApplicationController
   def valid
     #if current_user.check_sms_token(params[:sms_token][:sms_user_token])
     if current_user.check_sms_token(sms_token_params[:sms_user_token_given])
-      flash.now[:notice] = t('podemos.valid.phone.valid')
+      flash.now[:notice] = t('plebisbrand.valid.phone.valid')
       redirect_to authenticated_root_path
     else
-      flash.now[:error] = t('podemos.valid.phone.invalid') 
+      flash.now[:error] = t('plebisbrand.valid.phone.invalid') 
       render action: "step3"
     end
   end

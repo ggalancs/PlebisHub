@@ -51,7 +51,7 @@ ActiveAdmin.register Page do
       f.input :require_login, :as => :boolean, label: "Requerir que el usuario se autentifique"
       f.input :meta_description, label: "Descripción de la página para redes sociales"
       f.input :meta_image, label: "URL de la imagen para redes sociales"
-      f.input :promoted, :as => :boolean, label: "Visualizar en la página inicial de Participa"
+      f.input :promoted, :as => :boolean, label: "Visualizar en la página inicial de PlebisHub"
       f.input :priority, label: "Nivel de importancia dentro de la lista. Cuanto mayor es más arriba aparece"
       f.input :text_button, label:"Texto del botón para invitar a entrar al usuario.", default: "Apúntate aquí"
     end

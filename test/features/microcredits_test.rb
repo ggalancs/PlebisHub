@@ -11,7 +11,7 @@ feature "Microcredits" do
     page.must_have_content microcredit.title
 
     click_link "Quiero colaborar"
-    page.must_have_content "Acepto las condiciones generales del Contrato civil de suscripción de microcréditos de Podemos"
+    page.must_have_content "Acepto las condiciones generales del Contrato civil de suscripción de microcréditos de PlebisBrand"
 
     click_button "Guardar Suscripción"
     page.must_have_content "no puede estar en blanco"
@@ -30,7 +30,7 @@ feature "Microcredits" do
     check('microcredit_loan_terms_of_service')
 
     click_button "Guardar Suscripción"
-    page.must_have_content "En unos segundos recibirás un correo electrónico con toda la información necesaria para finalizar el proceso de suscripción del microcrédito Podemos"
+    page.must_have_content "En unos segundos recibirás un correo electrónico con toda la información necesaria para finalizar el proceso de suscripción del microcrédito PlebisBrand"
   end
 
   scenario "new loan - logged in user" do
@@ -43,7 +43,7 @@ feature "Microcredits" do
     page.must_have_content microcredit.title
 
     click_link "Quiero colaborar"
-    page.must_have_content "Acepto las condiciones generales del Contrato civil de suscripción de microcréditos de Podemos"
+    page.must_have_content "Acepto las condiciones generales del Contrato civil de suscripción de microcréditos de PlebisBrand"
 
     click_button "Guardar Suscripción"
     page.must_have_content "no puede estar en blanco"
@@ -53,7 +53,7 @@ feature "Microcredits" do
     check('microcredit_loan_terms_of_service')
 
     click_button "Guardar Suscripción"
-    page.must_have_content "En unos segundos recibirás un correo electrónico con toda la información necesaria para finalizar el proceso de suscripción del microcrédito Podemos"
+    page.must_have_content "En unos segundos recibirás un correo electrónico con toda la información necesaria para finalizar el proceso de suscripción del microcrédito PlebisBrand"
   end
 
 end

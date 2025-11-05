@@ -207,7 +207,7 @@ class Collaboration < ApplicationRecord
 
   def calculate_bic
     clean_iban = calculate_iban
-    bic = Podemos::SpanishBIC[clean_iban[4..7].to_i] if !bic && clean_iban.present? and clean_iban[0..1]=="ES"
+    bic = PlebisBrand::SpanishBIC[clean_iban[4..7].to_i] if !bic && clean_iban.present? and clean_iban[0..1]=="ES"
     bic = iban_bic.gsub(" ","") if !bic && iban_bic.present?
     bic
   end
@@ -598,7 +598,7 @@ class Collaboration < ApplicationRecord
     else
       return nil unless self.get_non_user.respond_to?('ine_town')
       vote_province_code = "p_" + self.get_non_user.ine_town.slice(2,2)
-      Podemos::GeoExtra::AUTONOMIES[vote_province_code][0]
+      PlebisBrand::GeoExtra::AUTONOMIES[vote_province_code][0]
     end
   end
 
@@ -608,7 +608,7 @@ class Collaboration < ApplicationRecord
     else
       return nil unless self.get_non_user.respond_to?('ine_town')
       vote_province_code = "p_" + self.get_non_user.ine_town.slice(2,2)
-      Podemos::GeoExtra::AUTONOMIES[vote_province_code][1]
+      PlebisBrand::GeoExtra::AUTONOMIES[vote_province_code][1]
     end
   end
 
@@ -616,7 +616,7 @@ class Collaboration < ApplicationRecord
     if self.user
       self.user.vote_island_code
     else
-      Podemos::GeoExtra::ISLANDS[self.get_non_user.ine_town][0]
+      PlebisBrand::GeoExtra::ISLANDS[self.get_non_user.ine_town][0]
     end
   end
 
@@ -624,7 +624,7 @@ class Collaboration < ApplicationRecord
     if self.user
       self.user.vote_island_name
     else
-      Podemos::GeoExtra::ISLANDS[self.get_non_user.ine_town][1]
+      PlebisBrand::GeoExtra::ISLANDS[self.get_non_user.ine_town][1]
     end
   end
 
@@ -657,7 +657,7 @@ class Collaboration < ApplicationRecord
     else
       return nil unless self.get_non_user.respond_to?('ine_town')
       vote_province_code = "p_" + self.get_non_user.ine_town.slice(2,2)
-      autonomy_code = Podemos::GeoExtra::AUTONOMIES[vote_province_code][0]
+      autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES[vote_province_code][0]
     end
     autonomy_code
   end
@@ -669,7 +669,7 @@ class Collaboration < ApplicationRecord
       if u.vote_circle_id.present?
         circle = u.vote_circle
         if circle.town.present?
-          island = Podemos::GeoExtra::ISLANDS[circle.town]
+          island = PlebisBrand::GeoExtra::ISLANDS[circle.town]
           island_code = circle.island_code
           island_code = island.present? ? island[0] : u.vote_island_code unless island_code.present?
         elsif circle.in_spain?
@@ -678,7 +678,7 @@ class Collaboration < ApplicationRecord
       end
       island_code ||= u.vote_island_code
     else
-      island_code = Podemos::GeoExtra::ISLANDS[self.get_non_user.ine_town][0]
+      island_code = PlebisBrand::GeoExtra::ISLANDS[self.get_non_user.ine_town][0]
     end
     island_code
   end
@@ -718,15 +718,15 @@ class Collaboration < ApplicationRecord
   end
 
   def self.bank_filename date, full_path=true
-    filename = "podemos.orders.#{date.year.to_s}.#{date.month.to_s}"
+    filename = "plebisbrand.orders.#{date.year.to_s}.#{date.month.to_s}"
     if full_path
-      "#{Rails.root}/db/podemos/#{filename}.csv"
+      "#{Rails.root}/db/plebisbrand/#{filename}.csv"
     else
       filename
     end      
   end
 
-  BANK_FILE_LOCK = "#{Rails.root}/db/podemos/podemos.orders.#{Rails.env}.lock"
+  BANK_FILE_LOCK = "#{Rails.root}/db/plebisbrand/plebisbrand.orders.#{Rails.env}.lock"
   def self.bank_file_lock status
     if status 
       folder = File.dirname BANK_FILE_LOCK

@@ -1,4 +1,4 @@
-<% content_for :title, t('podemos.valid.phone.p5') %>
+<% content_for :title, t('plebisbrand.valid.phone.p5') %>
 
 <div class="content-content cols">
   <div class="row">
@@ -14,18 +14,18 @@
           <fieldset>
             <legend class="invisible">Código SMS</legend>
 
-            <p><%= t('podemos.valid.phone.p5') %></p>
+            <p><%= t('plebisbrand.valid.phone.p5') %></p>
 
             <div class="inputlabel-box">
                 <% if current_user.errors.include?(:phone) %>
                   <%= field_notice_box %>
                 <% end %>
-                <%= f.input :sms_user_token_given, label: t('podemos.valid.phone.token') %>
+                <%= f.input :sms_user_token_given, label: t('plebisbrand.valid.phone.token') %>
             </div>
 
 
             <%= f.actions class: 'enter' do %>
-                <%= f.action :submit, label: t('podemos.valid.phone.button'), button_html: {class: "button"} %>
+                <%= f.action :submit, label: t('plebisbrand.valid.phone.button'), button_html: {class: "button"} %>
             <% end %>
           </fieldset>
       <% end %>

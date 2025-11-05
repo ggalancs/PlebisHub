@@ -1,5 +1,5 @@
 ActiveAdmin.register ImpulsaEdition do
-  menu :parent => "Participación"
+  menu :parent => "PlebisHubción"
   config.filters = false
   permit_params :id, :name, :email, :description, :start_at, :new_projects_until, :review_projects_until, :validation_projects_until, :votings_start_at, :ends_at, :publish_results_at
 
@@ -38,7 +38,7 @@ ActiveAdmin.register ImpulsaEdition do
       table_for resource.impulsa_edition_categories.order(:name) do
         column :name
         column :category_type_name do |impulsa_edition_category|
-          t("podemos.impulsa.category_type_name.#{impulsa_edition_category.category_type_name}") if impulsa_edition_category.category_type_name
+          t("plebisbrand.impulsa.category_type_name.#{impulsa_edition_category.category_type_name}") if impulsa_edition_category.category_type_name
         end
         column :winners
         column :prize
