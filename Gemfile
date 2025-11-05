@@ -2,12 +2,12 @@ source 'https://rubygems.org'
 
 ruby '2.5.9'
 
-# Rails 5.0 - Following official upgrade guide
-gem 'rails', '~> 5.0.7'
+# Rails 5.1 - Following official upgrade guide
+gem 'rails', '~> 5.1.7'
 gem 'sqlite3', '~> 1.3.6'
 gem 'sass-rails'
 gem 'uglifier', '>= 2.7.2'
-gem 'coffee-rails', '~> 4.1.0'
+gem 'coffee-rails', '~> 4.2'
 gem 'therubyracer', git: 'https://github.com/cowboyd/therubyracer.git',  platforms: :ruby
 gem 'jquery-rails'
 gem 'turbolinks'
@@ -34,20 +34,19 @@ gem 'active_skin'
 gem 'mailcatcher' # for staging too
 gem 'resque'
 gem 'resque_mailer' # for automated email sending in background
-gem 'aws-sdk-rails'
+gem 'aws-sdk-rails', '~> 2.1' # aws-sdk-rails >= 3 requires Ruby >= 2.6
 gem 'kaminari'
 gem 'pushmeup'
 gem 'date_validator'
 gem 'phonelib'
 gem 'iban-tools'
-gem 'paper_trail', '~> 8.1' # Updated for Rails 5
+gem 'paper_trail', '~> 10.3' # Rails 5.1+ compatible
 gem 'ffi', '~> 1.15.5' # Compatible with Ruby 2.5.9
 gem 'ffi-icu'
 gem 'unicode'
 gem 'rack-openid'
 gem 'ruby-openid'
 gem "secure_headers"
-gem 'minitest-rails'
 gem 'rake-progressbar'
 gem 'rails_autolink'
 gem 'flag_shih_tzu'
@@ -62,9 +61,9 @@ gem 'validate_url'
 gem 'norma43', git: 'https://github.com/podemos-info/norma43.git'
 gem "d3-rails"
 gem "jquery-fileupload-rails"
-gem 'state_machines'
-gem 'state_machines-activerecord'
-gem 'state_machines-audit_trail'
+gem 'state_machines', '~> 0.5.0' # state_machines >= 0.6 requires Ruby >= 3.0
+gem 'state_machines-activerecord', '~> 0.6.0'
+gem 'state_machines-audit_trail', '~> 1.0'
 gem 'rubypress'
 gem 'digest-crc'
 gem 'xmlrpc'
@@ -89,11 +88,13 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'webmock'
   gem 'minitest-reporters'
+  gem 'nokogiri', '~> 1.12.5' # nokogiri >= 1.13 requires Ruby >= 2.6
   gem 'capybara'
   # gem 'capybara-webkit' # Commented: deprecated and requires Qt (qmake)
   gem 'selenium-webdriver' # Modern driver for Capybara
   gem 'launchy'
   gem 'database_cleaner'
-  gem 'minitest-rails-capybara'
+  gem 'minitest-rails', '~> 5.1' # Rails 5.1 compatible
+  # gem 'minitest-rails-capybara' # Temporarily disabled for upgrade
 end
 
