@@ -8,13 +8,18 @@ Bundler.require(*Rails.groups)
 
 module PodemosParticipa
   class Application < Rails::Application
+    # Restore secrets method for Rails 7.2+ compatibility
+    # Rails.application.secrets was removed in Rails 7.2
+    def secrets
+      @secrets ||= config.secrets
+    end
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.1
+    config.load_defaults 7.2
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w(assets tasks))
+    config.autoload_lib(ignore: %w[assets tasks])
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -23,5 +28,9 @@ module PodemosParticipa
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # Restore Rails.application.secrets for Rails 7.2+ compatibility
+    # secrets.yml support was removed in Rails 7.2
+    config.secrets = config_for(:secrets)
   end
 end

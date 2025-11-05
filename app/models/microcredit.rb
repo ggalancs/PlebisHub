@@ -224,7 +224,7 @@ class Microcredit < ApplicationRecord
   end
 
   def subgoals
-    @subgoals ||= YAML.load(self[:subgoals]) if self[:subgoals]
+    @subgoals ||= YAML.unsafe_load(self[:subgoals], aliases: true) if self[:subgoals]
   end
 
   def renewable?

@@ -57,7 +57,7 @@ class MicrocreditLoan < ApplicationRecord
       set_user_data user
       self.document_vatid = user.document_vatid
     elsif user_data
-      set_user_data YAML.load(self.user_data)
+      set_user_data YAML.unsafe_load(self.user_data, aliases: true)
     else
       self.country = "ES"
     end

@@ -582,11 +582,11 @@ phone: '666666'"
   end
 
   test "should .bank_file_lock work" do
-    assert_not File.exists? Collaboration::BANK_FILE_LOCK
+    assert_not File.exist? Collaboration::BANK_FILE_LOCK
     Collaboration.bank_file_lock true
-    assert File.exists? Collaboration::BANK_FILE_LOCK
+    assert File.exist? Collaboration::BANK_FILE_LOCK
     Collaboration.bank_file_lock false
-    assert_not File.exists? Collaboration::BANK_FILE_LOCK
+    assert_not File.exist? Collaboration::BANK_FILE_LOCK
   end
 
   test "should Collaboration.has_bank_file? work" do
