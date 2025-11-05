@@ -41,6 +41,7 @@ gem 'date_validator'
 gem 'phonelib'
 gem 'iban-tools'
 gem 'paper_trail', '~> 8.1' # Updated for Rails 5
+gem 'ffi', '~> 1.15.5' # Compatible with Ruby 2.5.9
 gem 'ffi-icu'
 gem 'unicode'
 gem 'rack-openid'
@@ -58,7 +59,7 @@ gem "paranoia", "~> 2.2"
 gem 'cocoon'
 gem 'paperclip', '~> 5.2.1'
 gem 'validate_url'
-gem 'norma43', github: 'podemos-info/norma43'
+gem 'norma43', git: 'https://github.com/podemos-info/norma43.git'
 gem "d3-rails"
 gem "jquery-fileupload-rails"
 gem 'state_machines'
@@ -78,7 +79,7 @@ group :development, :test do
   gem 'capistrano-bundler'
   gem 'capistrano-rails'
   gem 'capistrano-passenger'
-  gem 'factory_bot_rails'
+  gem 'factory_bot_rails', '~> 5.2' # factory_bot 6.x requires Ruby >= 2.7
   gem 'byebug', '<7.0.0'
   gem 'better_errors'
   gem 'binding_of_caller'
@@ -89,7 +90,8 @@ group :development, :test do
   gem 'webmock'
   gem 'minitest-reporters'
   gem 'capybara'
-  gem 'capybara-webkit'
+  # gem 'capybara-webkit' # Commented: deprecated and requires Qt (qmake)
+  gem 'selenium-webdriver' # Modern driver for Capybara
   gem 'launchy'
   gem 'database_cleaner'
   gem 'minitest-rails-capybara'
