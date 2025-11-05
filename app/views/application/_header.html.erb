@@ -38,7 +38,7 @@
             <%= nav_menu_link_to "Microcréditos", "leaf", microcredit_path, [microcredit_path], title: "Microcréditos"  %>
           </li>
           <li>
-            <%= nav_menu_link_to "Salir", "sign-out", destroy_user_session_path, [destroy_user_session_path], method: :delete, title: "Cerrar sesión" %>
+            <%= nav_menu_link_to "Salir", "sign-out", destroy_user_session_path, [destroy_user_session_path], method: :delete, data: { turbo_method: :delete }, title: "Cerrar sesión" %>
           </li>
         </ul>
       </nav><%#.menu%>

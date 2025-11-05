@@ -13,7 +13,7 @@
     <%= link_to "Financiación", funding_path %>
   </li>
   <li>
-    <%= link_to "Salir", destroy_user_session_path, method: :delete %>
+    <%= link_to "Salir", destroy_user_session_path, method: :delete, data: { turbo_method: :delete } %>
   </li>
 </ul>
 </div>
