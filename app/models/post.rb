@@ -7,7 +7,7 @@ class Post < ApplicationRecord
 
   STATUS = {"Borrador" => 0, "Publicado" => 1}
 
-  scope :index, -> { order(created_at: :desc)}
+  scope :recent, -> { order(created_at: :desc)}
   scope :created, -> { where(deleted_at: nil) }
   scope :drafts,  -> { where(status: 0) }
   scope :published,  -> { where(status: 1) }
@@ -28,11 +28,13 @@ class Post < ApplicationRecord
     ]
   end
 
-  auto_html_for :content do
-    simple_format
-    link(target: "_blank")
-    youtube(width: 400, height: 250)
-    vimeo(width: 400, height: 250)
-    image
-  end
+  # auto_html_for requires auto_html gem to be loaded
+  # Temporarily commented for testing
+  # auto_html_for :content do
+  #   simple_format
+  #   link(target: "_blank")
+  #   youtube(width: 400, height: 250)
+  #   vimeo(width: 400, height: 250)
+  #   image
+  # end
 end
