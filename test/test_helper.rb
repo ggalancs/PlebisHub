@@ -61,9 +61,10 @@ end
 
 ActiveRecord::Base.shared_connection = ActiveRecord::Base.connection
 
-Capybara::Webkit.configure do |config|
-  config.block_unknown_urls
-end
+# Capybara::Webkit configuration disabled (webkit not installed)
+# Capybara::Webkit.configure do |config|
+#   config.block_unknown_urls
+# end
 
 def with_versioning
   was_enabled = PaperTrail.enabled?
