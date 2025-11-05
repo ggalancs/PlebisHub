@@ -2,8 +2,9 @@ source 'https://rubygems.org'
 
 ruby '2.7.8'
 
-# Rails 6.1 - Following official upgrade guide
-gem 'rails', '~> 6.1.7'
+# Rails 7.0 - Following official upgrade guide
+gem 'rails', '~> 7.0.8'
+gem 'sprockets-rails' # Required in Rails 7.0 (no longer bundled)
 gem 'sqlite3', '~> 1.3.6'
 gem 'sass-rails'
 gem 'uglifier', '>= 2.7.2'
@@ -20,7 +21,7 @@ gem 'pg'
 gem 'rb-readline'
 gem 'airbrake'
 
-gem 'devise', '~> 4.7.1'
+gem 'devise', '~> 4.9' # Rails 7.0+ compatible
 gem 'cancancan', '~> 1.9'
 gem 'bootstrap-sass', '~> 3.4.1'
 gem 'formtastic'
@@ -95,7 +96,7 @@ group :development, :test do
   gem 'selenium-webdriver' # Modern driver for Capybara
   gem 'launchy'
   gem 'database_cleaner'
-  gem 'minitest-rails', '~> 6.1' # Rails 6.1 compatible
+  gem 'minitest-rails', '~> 7.0' # Rails 7.0 compatible
   # gem 'minitest-rails-capybara' # Temporarily disabled for upgrade
 end
 
