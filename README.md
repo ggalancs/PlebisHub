@@ -2,6 +2,16 @@
 
 **PlebisHub** es una plataforma modular de participación ciudadana que nació como un fork de la aplicación "Participa" de Podemos, pero que pretende evolucionar hacia una solución completamente independiente, modular y adaptable a diferentes organizaciones y necesidades.
 
+## Capturas de Pantalla
+
+> **Nota**: Las capturas de pantalla actuales en `doc/images/` son del sistema anterior y están pendientes de actualización. Ver `doc/images/README.md` para más información.
+
+![Interfaz Principal de PlebisHub](doc/images/plebishub01_placeholder.svg)
+
+![Funcionalidad de PlebisHub](doc/images/plebishub02_placeholder.svg)
+
+![Características de PlebisHub](doc/images/plebishub03_placeholder.svg)
+
 ## Sobre este proyecto
 
 Este proyecto mantiene la licencia original de su antecesor, pero representa una nueva dirección hacia una plataforma de participación ciudadana completamente modular y flexible, diseñada para adaptarse a diversos contextos organizativos y democráticos.
