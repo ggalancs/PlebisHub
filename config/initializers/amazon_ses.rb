@@ -1,5 +1,7 @@
-Aws::Rails.add_action_mailer_delivery_method(:ses,
-  credentials: Aws::Credentials.new(
-    Rails.application.secrets.aws_ses["access_key_id"],
-    Rails.application.secrets.aws_ses["secret_access_key"]
- ), region: "eu-west-1")
+if Rails.application.secrets.aws_ses.present?
+  Aws::Rails.add_action_mailer_delivery_method(:ses,
+    credentials: Aws::Credentials.new(
+      Rails.application.secrets.aws_ses["access_key_id"],
+      Rails.application.secrets.aws_ses["secret_access_key"]
+   ), region: "eu-west-1")
+end
