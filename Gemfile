@@ -1,9 +1,9 @@
 source 'https://rubygems.org'
 
-ruby '2.5.9'
+ruby '2.7.8'
 
-# Rails 5.2 - Following official upgrade guide
-gem 'rails', '~> 5.2.8'
+# Rails 6.0 - Following official upgrade guide
+gem 'rails', '~> 6.0.6'
 gem 'sqlite3', '~> 1.3.6'
 gem 'sass-rails'
 gem 'uglifier', '>= 2.7.2'
@@ -29,7 +29,7 @@ gem 'spanish_vat_validators', '0.0.6'#, github: 'leio10/spanish_vat_validators'
 gem 'simple_captcha2', require: 'simple_captcha'
 gem 'carmen-rails'
 gem 'esendex'
-gem 'activeadmin', '~> 1.4.3' # Updated for Rails 5 compatibility
+gem 'activeadmin', '~> 2.9' # Rails 6.0+ compatible
 gem 'active_skin'
 gem 'mailcatcher' # for staging too
 gem 'resque'
@@ -72,14 +72,15 @@ gem 'grape'
 gem 'rqrcode'
 
 group :development, :test do
+  gem 'listen' # Required by Rails 6.0 for file watching
   gem 'puma'
   gem 'capistrano', '~> 3.10.2'
   gem 'capistrano-rvm'
   gem 'capistrano-bundler'
   gem 'capistrano-rails'
   gem 'capistrano-passenger'
-  gem 'factory_bot_rails', '~> 5.2' # factory_bot 6.x requires Ruby >= 2.7
-  gem 'byebug', '<7.0.0'
+  gem 'factory_bot_rails', '~> 6.2' # Ruby 2.7+ compatible
+  gem 'byebug', '~> 11.1' # Ruby 2.7 compatible
   gem 'better_errors'
   gem 'binding_of_caller'
   gem 'rails-perftest'
@@ -94,7 +95,7 @@ group :development, :test do
   gem 'selenium-webdriver' # Modern driver for Capybara
   gem 'launchy'
   gem 'database_cleaner'
-  gem 'minitest-rails', '~> 5.1' # Rails 5.1 compatible
+  gem 'minitest-rails', '~> 6.0' # Rails 6.0 compatible
   # gem 'minitest-rails-capybara' # Temporarily disabled for upgrade
 end
 
