@@ -6,4 +6,15 @@ class Page < ApplicationRecord
   validates :title, presence: true
 
   acts_as_paranoid
+
+  # Scopes
+  scope :promoted, -> { where(promoted: true) }
+  scope :ordered_by_priority, -> { order(priority: :desc) }
+  scope :promoted_ordered, -> { promoted.ordered_by_priority }
+
+  # Instance methods
+  def external_plebisbrand_link?
+    return false if link.blank?
+    /https:\/\/[^\/]*\.plebisbrand.info\/.*/.match?(link)
+  end
 end

@@ -6,7 +6,7 @@ ruby '3.3.10'
 gem 'rails', '~> 7.2.0'
 gem 'json', '>= 2.0' # Ruby 3.3 compatible (old 1.8.6 breaks)
 gem 'sprockets-rails' # Required in Rails 7.0 (no longer bundled)
-gem 'sqlite3', '~> 1.3.6'
+gem 'sqlite3', '~> 1.4'
 gem 'sass-rails'
 gem 'uglifier', '>= 2.7.2'
 gem 'coffee-rails', '~> 4.2'
