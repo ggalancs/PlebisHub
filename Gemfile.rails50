@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '2.5.9'
+ruby '2.4.2'
 
 # Rails 5.0 - Following official upgrade guide
 gem 'rails', '~> 5.0.7'
@@ -67,7 +67,7 @@ gem 'state_machines-audit_trail'
 gem 'rubypress'
 gem 'digest-crc'
 gem 'xmlrpc'
-gem "espeak-ruby", require: false
+gem "espeak-ruby", require: "espeak"
 gem 'grape'
 gem 'rqrcode'
 

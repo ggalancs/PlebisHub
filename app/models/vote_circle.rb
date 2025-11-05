@@ -1,4 +1,4 @@
-class VoteCircle < ActiveRecord::Base
+class VoteCircle < ApplicationRecord
   include TerritoryDetails
 
   enum kind: { interno: 0, barrial: 1, municipal: 2, comarcal: 3, exterior: 4 }
