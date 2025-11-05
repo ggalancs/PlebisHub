@@ -2,8 +2,8 @@ source 'https://rubygems.org'
 
 ruby '2.5.9'
 
-# Rails 5.1 - Following official upgrade guide
-gem 'rails', '~> 5.1.7'
+# Rails 5.2 - Following official upgrade guide
+gem 'rails', '~> 5.2.8'
 gem 'sqlite3', '~> 1.3.6'
 gem 'sass-rails'
 gem 'uglifier', '>= 2.7.2'
