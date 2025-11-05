@@ -1,2 +1,2 @@
-class VoteCircleType < ActiveRecord::Base
+class VoteCircleType < ApplicationRecord
 end

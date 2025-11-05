@@ -1,4 +1,4 @@
-class ImpulsaProject < ActiveRecord::Base
+class ImpulsaProject < ApplicationRecord
   include ImpulsaProjectStates
   include ImpulsaProjectWizard
   include ImpulsaProjectEvaluation

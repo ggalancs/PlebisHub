@@ -1,4 +1,4 @@
-class MicrocreditLoan < ActiveRecord::Base
+class MicrocreditLoan < ApplicationRecord
   apply_simple_captcha
   acts_as_paranoid
 
@@ -57,7 +57,7 @@ class MicrocreditLoan < ActiveRecord::Base
       set_user_data user
       self.document_vatid = user.document_vatid
     elsif user_data
-      set_user_data YAML.load(self.user_data)
+      set_user_data YAML.unsafe_load(self.user_data, aliases: true)
     else
       self.country = "ES"
     end

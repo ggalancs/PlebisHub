@@ -1,5 +1,5 @@
 require 'fileutils'
-class Collaboration < ActiveRecord::Base
+class Collaboration < ApplicationRecord
   include Rails.application.routes.url_helpers
 
   acts_as_paranoid
@@ -546,7 +546,7 @@ class Collaboration < ActiveRecord::Base
   end
 
   def parse_non_user
-    @non_user = if self.non_user_data then YAML.load(self.non_user_data) else nil end
+    @non_user = if self.non_user_data then YAML.unsafe_load(self.non_user_data, aliases: true) else nil end
   end
 
   def format_non_user
@@ -733,12 +733,12 @@ class Collaboration < ActiveRecord::Base
       FileUtils.mkdir_p(folder) unless File.directory?(folder)
       FileUtils.touch BANK_FILE_LOCK
     else
-      File.delete(BANK_FILE_LOCK) if File.exists? BANK_FILE_LOCK
+      File.delete(BANK_FILE_LOCK) if File.exist? BANK_FILE_LOCK
     end    
   end
 
   def self.has_bank_file? date
-    [ File.exists?(BANK_FILE_LOCK), File.exists?(self.bank_filename(date)) ]
+    [ File.exist?(BANK_FILE_LOCK), File.exist?(self.bank_filename(date)) ]
   end
 
   def self.update_paid_unconfirmed_bank_collaborations orders

@@ -306,7 +306,7 @@ class OrderTest < ActiveSupport::TestCase
 
   test "should .redsys_parse_response! work" do
     filename = "#{Rails.root}/log/redsys_test.log"
-    if File.exists? filename
+    if File.exist? filename
       FileUtils.rm(filename)
     end
     @order.save

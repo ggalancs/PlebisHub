@@ -1,10 +1,1 @@
-User-agent: *
-Disallow: /
-
-User-agent: *
-Allow: /ayuda-para-acceder
-Allow: /es/users/password/new
-Allow: /es/comision-de-garantias-democraticas
-Allow: /es/colabora
-Allow: /es/microcreditos
-Allow: /es/users/sign_up
+# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file

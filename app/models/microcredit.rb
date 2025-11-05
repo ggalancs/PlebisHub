@@ -1,4 +1,4 @@
-class Microcredit < ActiveRecord::Base
+class Microcredit < ApplicationRecord
   include FlagShihTzu
 
   has_flags 1 => :mailing
@@ -224,7 +224,7 @@ class Microcredit < ActiveRecord::Base
   end
 
   def subgoals
-    @subgoals ||= YAML.load(self[:subgoals]) if self[:subgoals]
+    @subgoals ||= YAML.unsafe_load(self[:subgoals], aliases: true) if self[:subgoals]
   end
 
   def renewable?

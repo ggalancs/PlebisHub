@@ -1,6 +1,6 @@
-require File.expand_path('../boot', __FILE__)
+require_relative "boot"
 
-require 'rails/all'
+require "rails/all"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -8,26 +8,29 @@ Bundler.require(*Rails.groups)
 
 module PodemosParticipa
   class Application < Rails::Application
-    # Settings in config/environments/* take precedence over those specified here.
-    # Application configuration should go into files in config/initializers
-    # -- all .rb files in that directory are automatically loaded.
-
-    config.exceptions_app = self.routes
-    config.time_zone = 'Madrid'
-    config.i18n.default_locale = :es
-    config.i18n.available_locales = [ :es, :ca, :eu, :ga, :en ]
-    config.i18n.fallbacks = [:es, :en] # https://github.com/jim/carmen-rails/issues/13
-    config.i18n.load_path += Dir[Rails.root.join('config', 'locales', 'carmen', '*.{rb,yml}').to_s]
-    config.i18n.load_path += Dir[Rails.root.join('config', 'locales', 'carmen', 'es', '*.{rb,yml}').to_s]
-    config.action_mailer.default_url_options = { host: Rails.application.secrets.host }
-    
-    config.generators do |g|
-      g.test_framework :test_unit, fixture: true
+    # Restore secrets method for Rails 7.2+ compatibility
+    # Rails.application.secrets was removed in Rails 7.2
+    def secrets
+      @secrets ||= config.secrets
     end
+    # Initialize configuration defaults for originally generated Rails version.
+    config.load_defaults 7.2
+
+    # Please, add to the `ignore` list any other `lib` subdirectories that do
+    # not contain `.rb` files, or that should not be reloaded or eager loaded.
+    # Common ones are `templates`, `generators`, or `middleware`, for example.
+    config.autoload_lib(ignore: %w[assets tasks])
+
+    # Configuration for the application, engines, and railties goes here.
+    #
+    # These settings can be overridden in specific environments using the files
+    # in config/environments, which are processed later.
+    #
+    # config.time_zone = "Central Time (US & Canada)"
+    # config.eager_load_paths << Rails.root.join("extras")
+
+    # Restore Rails.application.secrets for Rails 7.2+ compatibility
+    # secrets.yml support was removed in Rails 7.2
+    config.secrets = config_for(:secrets)
   end
 end
-
-Rails.application.routes.default_url_options[:host] = Rails.application.secrets.host
-
-require 'add_unique_month_to_dates'
-

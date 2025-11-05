@@ -17,13 +17,15 @@ SecureHeaders::Configuration.default do |config|
   config.clear_site_data = %w(storage) # cookies breaks login on mobile, cache seems to hang mobile chrome browser
 
   trusted_src = ["'self'", "'unsafe-inline'"]
-  trusted_src.push Rails.application.secrets.forms['domain']
+  trusted_src.push Rails.application.secrets.forms['domain'] if Rails.application.secrets.forms.present?
   Rails.application.secrets[:secure_sites].each do |site|
     trusted_src.push site
   end if Rails.application.secrets[:secure_sites].present?
-  Rails.application.secrets.agora["servers"].each do |id, server|
-    trusted_src.push server['url'].gsub('https://', '').gsub('http://','').gsub('/','')
-  end if Rails.application.secrets.agora["servers"].present?
+  if Rails.application.secrets.agora.present? && Rails.application.secrets.agora["servers"].present?
+    Rails.application.secrets.agora["servers"].each do |id, server|
+      trusted_src.push server['url'].gsub('https://', '').gsub('http://','').gsub('/','')
+    end
+  end
   trusted_src.uniq!
 
   # TO-DO: review this

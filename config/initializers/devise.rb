@@ -251,4 +251,11 @@ Devise.setup do |config|
   # When using omniauth, Devise cannot automatically set Omniauth path,
   # so you need to do it manually. For the users scope, it would be:
   # config.omniauth_path_prefix = '/my_engine/users/auth'
+
+  # ==> Turbo / Hotwire Configuration
+  # Configure responders for Turbo / Hotwire compatibility (Rails 7.0+)
+  # For backwards compatibility, Devise keeps error_status as :ok and redirect_status as :found,
+  # but for proper Turbo support, they should be set as below:
+  config.responder.error_status = :unprocessable_entity
+  config.responder.redirect_status = :see_other
 end

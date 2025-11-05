@@ -1,4 +1,4 @@
-class ReportGroup < ActiveRecord::Base
+class ReportGroup < ApplicationRecord
   def process row
     begin
       get_proc.call row
@@ -65,9 +65,9 @@ class ReportGroup < ActiveRecord::Base
   end
 
   def self.unserialize value
-    data = YAML.load(value)
+    data = YAML.unsafe_load(value, aliases: true)
     if data.is_a? Array
-      data.map { |d| ReportGroup.new YAML.load(d) }
+      data.map { |d| ReportGroup.new YAML.unsafe_load(d, aliases: true) }
     else
       ReportGroup.new data
     end

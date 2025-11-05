@@ -1,4 +1,4 @@
-class UserVerification < ActiveRecord::Base
+class UserVerification < ApplicationRecord
   belongs_to :user, -> { with_deleted }
 
   has_paper_trail
