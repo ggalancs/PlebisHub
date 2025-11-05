@@ -1,4 +1,4 @@
-<%= content_for :title, t("podemos.user.personal_data") %>
+<%= content_for :title, t("plebisbrand.user.personal_data") %>
 <div class="content">
   <div class="content-content cols">
     <div class="row">
@@ -8,47 +8,47 @@
           <ul>
             <li class="active">
               <a href="#personal-data" class="js-change-tab">
-                <span><%= t("podemos.user.personal_data")%></span>
+                <span><%= t("plebisbrand.user.personal_data")%></span>
               </a>
             </li>
             <li>
               <a href="#change-password" class="js-change-tab">
-                <span><%=t("podemos.user.change_password") %></span>
+                <span><%=t("plebisbrand.user.change_password") %></span>
               </a>
             </li>
             <li>
               <a href="#recover-password" class="js-change-tab">
-                <span><%=t("podemos.user.recover_password") %></span>
+                <span><%=t("plebisbrand.user.recover_password") %></span>
               </a>
             </li>
             <li>
               <a href="#change-email" class="js-change-tab">
-                <span><%=t("podemos.user.change_email") %></span>
+                <span><%=t("plebisbrand.user.change_email") %></span>
               </a>
             </li> 
             <li>
               <a href="<%= current_user.is_valid_phone? ? "#change-phone" : sms_validator_step1_path %>" <% if current_user.is_valid_phone? %>class="js-change-tab"<% end %> >
-                <span><%=t("podemos.user.change_phone") %></span>
+                <span><%=t("plebisbrand.user.change_phone") %></span>
               </a>
             </li>
             <li>
               <a href="#newsletters-suscription" class="js-change-tab">
-                <span><%= t("podemos.user.newsletters_suscription") %></span>
+                <span><%= t("plebisbrand.user.newsletters_suscription") %></span>
               </a>
             </li>
             <li>
               <a href="#wants-info-by-sms" class="js-change-tab">
-                <span><%= t("podemos.user.wants_info_by_sms") %></span>
+                <span><%= t("plebisbrand.user.wants_info_by_sms") %></span>
               </a>
             </li>
             <li>
               <a href="#circle" class="js-change-tab">
-                <span><%= t("podemos.user.vote_circle") %></span>
+                <span><%= t("plebisbrand.user.vote_circle") %></span>
               </a>
             </li>
             <li>
               <a href="#cancel-account" class="js-change-tab">
-                <span><%= t("podemos.user.cancel_account") %></span>
+                <span><%= t("plebisbrand.user.cancel_account") %></span>
               </a>
             </li>
           </ul>

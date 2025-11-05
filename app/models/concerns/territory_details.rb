@@ -53,8 +53,8 @@ module TerritoryDetails
       town_name = country.subregions[town_code[2,2].to_i-1].subregions.coded(town_code).name
       province_code= "p_#{town_code[2,2]}"
       province_name = country.subregions[town_code[2,2].to_i-1].name
-      autonomy_code = Podemos::GeoExtra::AUTONOMIES[province_code][0]
-      autonomy_name = Podemos::GeoExtra::AUTONOMIES[province_code][1]
+      autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES[province_code][0]
+      autonomy_name = PlebisBrand::GeoExtra::AUTONOMIES[province_code][1]
     else
       unknown = options[:unknown]
       town_code = unknown

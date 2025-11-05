@@ -1,11 +1,11 @@
-require 'podemos_export'
+require 'plebisbrand_export'
 
 UNKNOWN = "Desconocido"
 FOREIGN = "Extranjeros"
 NATIVE = "Españoles"
 
-namespace :podemos do
-  desc "[podemos] Dump counters for users attributes"
+namespace :plebisbrand do
+  desc "[plebisbrand] Dump counters for users attributes"
   task :daily_census, [:year,:month,:day] => :environment do |t, args|
     args.with_defaults(:year => nil, :month=>nil, :day=>nil)
 
@@ -32,7 +32,7 @@ namespace :podemos do
     countries[UNKNOWN] = [0]* num_columns
     progress.inc
 
-    autonomies = Hash[ Podemos::GeoExtra::AUTONOMIES.map do |k, v| [ v[1], [0]* num_columns] end ]
+    autonomies = Hash[ PlebisBrand::GeoExtra::AUTONOMIES.map do |k, v| [ v[1], [0]* num_columns] end ]
     autonomies[FOREIGN] = [0]* num_columns
     progress.inc
 
@@ -40,7 +40,7 @@ namespace :podemos do
     provinces[UNKNOWN] = [0]* num_columns
     progress.inc
 
-    islands = Hash[ Podemos::GeoExtra::ISLANDS.map do |k, v| [ v[1], [0]* num_columns ] end ]
+    islands = Hash[ PlebisBrand::GeoExtra::ISLANDS.map do |k, v| [ v[1], [0]* num_columns ] end ]
     progress.inc
 
     towns = Hash[ provinces_coded.map do |p|

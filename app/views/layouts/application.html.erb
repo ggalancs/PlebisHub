@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= yield :title %> | Podemos</title>
+  <title><%= yield :title %> | PlebisBrand</title>
   <link rel="shortcut icon" href="<%= image_path("favicon.png") %>" type="image/png">
   <link rel="icon" href="<%= image_path("favicon.png") %>" type="image/png">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1" name="viewport">
@@ -9,10 +9,10 @@
   <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
   <%= stylesheet_link_tag 'application', media: 'all' %>
   <%= csrf_meta_tags %>
-  <meta property="og:title" content="Podemos | Portal de participación" />
+  <meta property="og:title" content="PlebisBrand | Portal de participación" />
   <meta property="og:image" content="<%=@meta_image%>" />
   <meta property="og:description" content="<%=@meta_description%>" />
-  <meta name="twitter:title" content="Podemos | Portal de participación" />
+  <meta name="twitter:title" content="PlebisBrand | Portal de participación" />
   <meta name="twitter:description" content="<%=@meta_description%>" />
   <meta name="twitter:image" content="<%=@meta_image%>" />
   <%= render partial: 'tag_manager_head' %>

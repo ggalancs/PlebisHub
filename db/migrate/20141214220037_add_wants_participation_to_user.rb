@@ -1,4 +1,4 @@
-class AddWantsParticipationToUser < ActiveRecord::Migration
+class AddWantsPlebisHubtionToUser < ActiveRecord::Migration
   def change
     add_column :users, :wants_participation, :boolean
   end

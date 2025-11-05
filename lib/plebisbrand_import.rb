@@ -1,4 +1,4 @@
-class PodemosImport
+class PlebisBrandImport
   # Legacy WP Gravity Forms
   # =======================
   #
@@ -6,8 +6,8 @@ class PodemosImport
   # La contraseña es el token enviado por SMS
   #
   # $ rails console staging
-  # > require 'podemos_import'
-  # > PodemosImport.init('/home/capistrano/juntos.csv')
+  # > require 'plebisbrand_import'
+  # > PlebisBrandImport.init('/home/capistrano/juntos.csv')
   #
   # $ bundle exec rake environment resque:work QUEUE=* RAILS_ENV=staging 
   #
@@ -76,7 +76,7 @@ class PodemosImport
     u.first_name = row[0][1]
     u.last_name = row[1][1]
     u.document_vatid =  row[3][1].nil? ? row[4][1] : row[3][1]
-    u.document_type = PodemosImport.convert_document_type(row[2][1], u.document_vatid)
+    u.document_type = PlebisBrandImport.convert_document_type(row[2][1], u.document_vatid)
     # legacy: al principio no se preguntaba fecha de nacimiento
     unless row[5][1].nil?
       u.born_at = Date.parse row[5][1] # 1943-10-15
@@ -92,8 +92,8 @@ class PodemosImport
       u.town = "A"
     end
     u.postal_code = row[12][1]
-    u.province = PodemosImport.convert_province row[12][1], row[13][1], row[11][1]
-    u.country = PodemosImport.convert_country row[13][1]
+    u.province = PlebisBrandImport.convert_province row[12][1], row[13][1], row[11][1]
+    u.country = PlebisBrandImport.convert_country row[13][1]
     # legacy: al principio no se preguntaba para recibir la newsletter
     if row[16][1] == 1
       u.wants_newsletter = true
@@ -107,7 +107,7 @@ class PodemosImport
     u.old_circle_data = row[15][1].nil? ? row[14][1] : row[15][1]
     u.save
     unless u.valid?
-      PodemosImport.invalid_record(u, row)
+      PlebisBrandImport.invalid_record(u, row)
     end
   end
 
@@ -115,7 +115,7 @@ class PodemosImport
     File.delete("#{Rails.root}/log/users_invalid.log") 
     File.delete("#{Rails.root}/log/users_email.log") 
     CSV.foreach(csv_file, headers: true) do |row|
-      Resque.enqueue(PodemosImportWorker, row)
+      Resque.enqueue(PlebisBrandImportWorker, row)
     end
   end
 

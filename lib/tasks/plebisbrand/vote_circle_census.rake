@@ -1,10 +1,10 @@
-require 'podemos_export'
+require 'plebisbrand_export'
 
 #UNKNOWN = "Desconocido"
 #FOREIGN = "Extranjeros"
 #NATIVE  = "Españoles"
 SPAIN   = "ES"
-namespace :podemos do
+namespace :plebisbrand do
   def calc_muni_dc (m)
     w = [[0,1,2,3,4,5,6,7,8,9],[0,3,8,2,7,4,1,5,9,6],[0,2,4,6,8,1,3,5,7,9]]
     c = m.to_s.rjust(5,'0').split('').map(&:to_i)
@@ -56,8 +56,8 @@ namespace :podemos do
           town_name = ""
           province_code= "p_#{muni_code[2,2]}"
           province_name = country.subregions[muni_code[2,2].to_i-1].name
-          autonomy_code = Podemos::GeoExtra::AUTONOMIES[province_code][0]
-          autonomy_name = Podemos::GeoExtra::AUTONOMIES[province_code][1]
+          autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES[province_code][0]
+          autonomy_name = PlebisBrand::GeoExtra::AUTONOMIES[province_code][1]
           region_code = "#{autonomy_code[2,2]}#{province_code[2,2]}#{town_code}"
           region_name = ""
         end
@@ -74,7 +74,7 @@ namespace :podemos do
     type_circle != "IP" && type_circle != "TB" && type_circle != "TC" && type_circle != "TM"
   end
 
-  desc "[podemos] Dump counters for users attributes"
+  desc "[plebisbrand] Dump counters for users attributes"
   task :vote_circle_census, [:year,:month,:day] => :environment do |t, args|
     args.with_defaults(:year => nil, :month=>nil, :day=>nil)
 
@@ -104,7 +104,7 @@ namespace :podemos do
     countries[UNKNOWN] =[ UNKNOWN, [0]* num_columns].flatten
     progress.inc
 
-    autonomies = Hash[ Podemos::GeoExtra::AUTONOMIES.map do |k, v| [ v[0],[v[1], [0]* num_columns].flatten] end ]
+    autonomies = Hash[ PlebisBrand::GeoExtra::AUTONOMIES.map do |k, v| [ v[0],[v[1], [0]* num_columns].flatten] end ]
     #autonomies[FOREIGN] = [0]* num_columns
     autonomies["c_#{UNKNOWN}"] = [UNKNOWN,[0]* num_columns].flatten
     progress.inc
@@ -113,7 +113,7 @@ namespace :podemos do
     provinces["p_#{UNKNOWN}"] = [UNKNOWN, UNKNOWN, [0]* num_columns].flatten
     progress.inc
 
-    #islands = Hash[ Podemos::GeoExtra::ISLANDS.map do |k, v| [ v[1], [0]* num_columns ] end ]
+    #islands = Hash[ PlebisBrand::GeoExtra::ISLANDS.map do |k, v| [ v[1], [0]* num_columns ] end ]
     progress.inc
 
     towns = Hash[ provinces_coded.map do |p|
@@ -192,11 +192,11 @@ namespace :podemos do
         cod_prov_reg = "p_#{full_code[4..5]}"
         if provinces.keys.include? cod_prov_reg
           prov_reg = provinces[cod_prov_reg][1]
-          ccaa_reg = Podemos::GeoExtra::AUTONOMIES[cod_prov_reg][1]
+          ccaa_reg = PlebisBrand::GeoExtra::AUTONOMIES[cod_prov_reg][1]
         elsif  provinces.keys.include? u.province.code
           cod_prov_reg = provinces[u.province.code][0]
           prov_reg = provinces[u.province.code][1]
-          ccaa_reg = Podemos::GeoExtra::AUTONOMIES[u.province_code][1]
+          ccaa_reg = PlebisBrand::GeoExtra::AUTONOMIES[u.province_code][1]
         else
           cod_prov_reg = UNKNOWN
           prov_reg = UNKNOWN
@@ -224,8 +224,8 @@ namespace :podemos do
     end
 
     provinces.keys.each do |k|
-      if Podemos::GeoExtra::AUTONOMIES[k].present?
-        provinces[k][0] = Podemos::GeoExtra::AUTONOMIES[k][1]
+      if PlebisBrand::GeoExtra::AUTONOMIES[k].present?
+        provinces[k][0] = PlebisBrand::GeoExtra::AUTONOMIES[k][1]
         provinces[k][5] = circles_territory[k]
       end
     end
@@ -235,7 +235,7 @@ namespace :podemos do
        cod_prov_reg = "p_#{k[4..5]}"
        if provinces.keys.include? cod_prov_reg
          prov_reg = provinces[cod_prov_reg][1]
-         ccaa_reg = Podemos::GeoExtra::AUTONOMIES[cod_prov_reg][1]
+         ccaa_reg = PlebisBrand::GeoExtra::AUTONOMIES[cod_prov_reg][1]
        else
          prov_reg = UNKNOWN
          ccaa_reg = UNKNOWN
@@ -248,7 +248,7 @@ namespace :podemos do
     towns.keys.each do |k|
       if towns_names[k].present?
         prov = "p_#{k[2..3]}"
-        towns[k][0] = Podemos::GeoExtra::AUTONOMIES[prov][1]
+        towns[k][0] = PlebisBrand::GeoExtra::AUTONOMIES[prov][1]
         towns[k][1] = provinces[prov][1]
         towns[k][2] =towns_names[k]
         towns[k][6] = circles_territory[k]

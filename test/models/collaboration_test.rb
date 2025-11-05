@@ -575,8 +575,8 @@ phone: '666666'"
 
   test "should .bank_filename work" do
     date = Date.today
-    filename = "podemos.orders.#{date.year.to_s}.#{date.month.to_s}"
-    full_filename = "#{Rails.root}/db/podemos/#{filename}.csv"
+    filename = "plebisbrand.orders.#{date.year.to_s}.#{date.month.to_s}"
+    full_filename = "#{Rails.root}/db/plebisbrand/#{filename}.csv"
     assert_equal full_filename, Collaboration.bank_filename(Date.today)
     assert_equal filename, Collaboration.bank_filename(Date.today, false)
   end

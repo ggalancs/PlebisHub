@@ -523,7 +523,7 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "should in_participation_team? work" do
-    p = ParticipationTeam.create
+    p = PlebisHubtionTeam.create
     assert_not @user.in_participation_team? p.id
     @user.participation_team << p
     @user.save

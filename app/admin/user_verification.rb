@@ -30,7 +30,7 @@ ActiveAdmin.register UserVerification do
 
   collection_action :get_first_free, :method => :get do
     self.clean_redis_hash
-    $redis = $redis || Redis::Namespace.new("podemos_queue_validator", :redis => Redis.new)
+    $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
 
     ids = $redis.hkeys(:processing)
     verifications = UserVerification.pending.where(id: ids)
@@ -55,7 +55,7 @@ ActiveAdmin.register UserVerification do
         $redis.hset(:processing,verification.id,{author_id: current_user.id,locked_at: DateTime.now.utc.strftime("%d/%m/%Y %H|%M")})
         redirect_to edit_admin_user_verification_path(verification.id)
       else
-        redirect_to(admin_user_verifications_path, flash: {warning: t('podemos.user_verification.no_pending_verifications')})
+        redirect_to(admin_user_verifications_path, flash: {warning: t('plebisbrand.user_verification.no_pending_verifications')})
       end
     end
   end
@@ -162,7 +162,7 @@ end
           table_for more_pending do
             column "fecha creación", :created_at
             column "estado" do |verification|
-              t("podemos.user_verification.status.#{verification.status}")
+              t("plebisbrand.user_verification.status.#{verification.status}")
             end
             column :descartable?
             column do |verification|
@@ -183,7 +183,7 @@ end
             end
           end
         else
-          $redis = $redis || Redis::Namespace.new("podemos_queue_validator", :redis => Redis.new)
+          $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
           $redis.hset(:processing,user_verification.id,{author_id: current_user.id,locked_at: DateTime.now.utc.strftime("%d/%m/%Y %H|%M")})
         end
 
@@ -236,13 +236,13 @@ end
     end
 
     def remove_redis_hash id
-      $redis = $redis || Redis::Namespace.new("podemos_queue_validator", :redis => Redis.new)
+      $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
       current = $redis.hget(:processing,id)
       $redis.hdel(:processing,id)
     end
 
     def clean_redis_hash
-      $redis = $redis || Redis::Namespace.new("podemos_queue_validator", :redis => Redis.new)
+      $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
       ids = $redis.hkeys :processing
       ids.each do |i|
         verification = UserVerification.find_by_id(i)

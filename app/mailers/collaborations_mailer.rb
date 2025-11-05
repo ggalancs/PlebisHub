@@ -3,7 +3,7 @@ class CollaborationsMailer < ActionMailer::Base
     @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
     @user = user
     mail(
-      from: 'administracion@podemos.info',
+      from: 'administracion@plebisbrand.info',
       to: user.email,
       subject: 'Problema en el pago con tarjeta de su colaboración'
     ) do |format|
@@ -15,7 +15,7 @@ class CollaborationsMailer < ActionMailer::Base
     @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
     @user = user
     mail(
-        from: 'administracion@podemos.info',
+        from: 'administracion@plebisbrand.info',
         to: user.email,
         subject: 'Problema en el pago con tarjeta de su colaboración'
     ) do |format|
@@ -27,7 +27,7 @@ class CollaborationsMailer < ActionMailer::Base
     @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
     @user = user
     mail(
-        from: 'administracion@podemos.info',
+        from: 'administracion@plebisbrand.info',
         to: user.email,
         subject: 'Problema en la domiciliación del recibo de su colaboración'
       ) do |format|
@@ -39,7 +39,7 @@ class CollaborationsMailer < ActionMailer::Base
     @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
     @user = user
     mail(
-        from: 'administracion@podemos.info',
+        from: 'administracion@plebisbrand.info',
         to: user.email,
         subject: 'Problema en la domicilación de sus recibos, colaboración suspendida temporalmente'
       ) do |format|
@@ -55,7 +55,7 @@ class CollaborationsMailer < ActionMailer::Base
     @month = I18n.localize(@order.created_at, :format => "%B")
     @date = I18n.localize(@order.created_at, :format => "%B %Y")
     mail(
-      from: 'colaboraciones@podemos.info',
+      from: 'colaboraciones@plebisbrand.info',
       to: @user.email,
       subject: "Devolución cuota #{@date}"
     )
@@ -69,7 +69,7 @@ class CollaborationsMailer < ActionMailer::Base
     @month = I18n.localize(@order.created_at, :format => "%B")
     @date = I18n.localize(@order.created_at, :format => "%B %Y")
     mail(
-      from: 'colaboraciones@podemos.info',
+      from: 'colaboraciones@plebisbrand.info',
       to: @user.email,
       subject: "Devolución colaboración #{@date}"
     )
@@ -80,7 +80,7 @@ class CollaborationsMailer < ActionMailer::Base
     @user = collaboration.get_user
 
     mail(
-      from: 'colaboraciones@podemos.info',
+      from: 'colaboraciones@plebisbrand.info',
       to: @user.email,
       subject: "Suspensión colaboración"
     )
@@ -91,7 +91,7 @@ class CollaborationsMailer < ActionMailer::Base
     @user = collaboration.get_user
 
     mail(
-      from: 'colaboraciones@podemos.info',
+      from: 'colaboraciones@plebisbrand.info',
       to: @user.email,
       subject: "Suspensión cuota"
     )

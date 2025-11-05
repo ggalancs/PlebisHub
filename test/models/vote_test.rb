@@ -55,7 +55,7 @@ class VoteTest < ActiveSupport::TestCase
     message = v.generate_message
     assert_equal(message.split(':')[0], v.voter_id)
     assert_equal(message.split(':')[2], v.scoped_agora_election_id.to_s)
-    # es un timestamp que no podemos comprobar mas que sea epoch valido de hoy
+    # es un timestamp que no plebisbrand comprobar mas que sea epoch valido de hoy
     timestamp = message.split(':')[4].to_i
     assert(Time.at(timestamp).to_date == Date.today)
   end
@@ -80,7 +80,7 @@ class VoteTest < ActiveSupport::TestCase
     # FIXME: should point to agoravoting demo server and check the auth 
     # assert(result.include? "IE10 viewport hack for Surface/desktop Windows 8 bug")
     # WebMock.disable_net_connect!(allow_localhost: true)
-    # no podemos comprobar más ya que en agoravoting no permiten ejecutarlo sin JS
+    # no plebisbrand comprobar más ya que en agoravoting no permiten ejecutarlo sin JS
   end
 
 end

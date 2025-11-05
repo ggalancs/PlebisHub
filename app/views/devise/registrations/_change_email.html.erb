@@ -1,6 +1,6 @@
-<%= content_tag(:h2, t("podemos.user.change_email"))%>
+<%= content_tag(:h2, t("plebisbrand.user.change_email"))%>
 
-<p> <%= t('podemos.user.change_email_explain') %> </p>
+<p> <%= t('plebisbrand.user.change_email_explain') %> </p>
 
 <% if resource.class.reconfirmable && resource.unconfirmed_email.present? %>
     <%= alert_box "" do %>
@@ -32,7 +32,7 @@
       </div>
 
       <%= f.actions class: 'enter' do %>
-          <%= f.action :submit, label: t("podemos.user.change_email"), button_html: {class: "button"} %>
+          <%= f.action :submit, label: t("plebisbrand.user.change_email"), button_html: {class: "button"} %>
       <% end %>
     </fieldset>
 <% end %>

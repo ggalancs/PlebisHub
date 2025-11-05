@@ -6,7 +6,7 @@ require "rails/all"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-module PodemosParticipa
+module PlebisHub
   class Application < Rails::Application
     # Restore secrets method for Rails 7.2+ compatibility
     # Rails.application.secrets was removed in Rails 7.2

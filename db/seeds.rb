@@ -27,8 +27,8 @@ def assign_vote_circle_territories
       if vc.town.present?
         town_code = vc.town
         province_code = "p_#{vc.town[2,2]}"
-        autonomy_code = Podemos::GeoExtra::AUTONOMIES[province_code][0]
-        island = Podemos::GeoExtra::ISLANDS[vc.town]
+        autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES[province_code][0]
+        island = PlebisBrand::GeoExtra::ISLANDS[vc.town]
         island_code = vc.island_code
         island_code = island.present? ? island[0] : nil unless island_code.present?
         country_code = spain_code

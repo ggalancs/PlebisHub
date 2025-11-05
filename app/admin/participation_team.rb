@@ -1,4 +1,4 @@
-ActiveAdmin.register ParticipationTeam do
+ActiveAdmin.register PlebisHubtionTeam do
   menu :parent => "Users"
 
 

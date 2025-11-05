@@ -56,7 +56,7 @@ class ElectionLocation < ApplicationRecord
         when 0 then
           "Estatal"
         when 1 then
-          autonomy = Podemos::GeoExtra::AUTONOMIES.values.uniq.select {|a| a[0][2..-1]==location } .first
+          autonomy = PlebisBrand::GeoExtra::AUTONOMIES.values.uniq.select {|a| a[0][2..-1]==location } .first
           autonomy[1]
         when 2 then
           province = spain.subregions[location.to_i-1]
@@ -65,7 +65,7 @@ class ElectionLocation < ApplicationRecord
           town = spain.subregions[location[0..1].to_i-1].subregions.coded("m_%s_%s_%s" % [location[0..1], location[2..4], location[5]])
           town.name
         when 4 then
-          island = Podemos::GeoExtra::ISLANDS.values.uniq.select {|i| i[0][2..-1]==location } .first
+          island = PlebisBrand::GeoExtra::ISLANDS.values.uniq.select {|i| i[0][2..-1]==location } .first
           island[1]
         when 5 then
           "Exterior"

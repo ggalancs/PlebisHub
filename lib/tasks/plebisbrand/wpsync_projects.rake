@@ -1,6 +1,6 @@
 require 'rubypress'
 
-namespace :podemos do
+namespace :plebisbrand do
 
   desc '[events] Sync projects with WordPress'
   task :export_projects => :environment do
@@ -53,7 +53,7 @@ namespace :podemos do
           post_info[:post_name] = post_info[:post_title].parameterize
           post_info[:terms_names][:edition_category] = [ project.impulsa_edition.name, project.impulsa_edition_category.name ]
           
-          ret = wp.execute('podemos.saveProject', { project_id: project.id, project: post_info, attachment: attachment } )
+          ret = wp.execute('plebisbrand.saveProject', { project_id: project.id, project: post_info, attachment: attachment } )
           p "S #{project.id} -> #{ret}"
         rescue Exception => ex
           p "ERROR IN #{project.id} -> #{ex}"

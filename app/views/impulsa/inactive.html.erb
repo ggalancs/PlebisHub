@@ -1,13 +1,13 @@
-<% content_for :title, t("podemos.impulsa.title") %>
+<% content_for :title, t("plebisbrand.impulsa.title") %>
 
 <div class="content-content cols">
   <div class="row">
     <div class="col-b-4a12">
-      <%= content_tag(:h2, t("podemos.impulsa.title")) %>
+      <%= content_tag(:h2, t("plebisbrand.impulsa.title")) %>
       <% if @upcoming %>
-        <%= content_tag(:p, t("podemos.impulsa.upcoming", start_at: @upcoming.start_at.strftime("%d de %m"))) %>
+        <%= content_tag(:p, t("plebisbrand.impulsa.upcoming", start_at: @upcoming.start_at.strftime("%d de %m"))) %>
       <% else %>
-        <%= content_tag(:p, t("podemos.impulsa.noupcoming")) %>
+        <%= content_tag(:p, t("plebisbrand.impulsa.noupcoming")) %>
       <% end %>
     </div>
   </div>

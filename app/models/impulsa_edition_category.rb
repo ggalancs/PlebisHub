@@ -68,7 +68,7 @@ class ImpulsaEditionCategory < ApplicationRecord
   end
 
   def territories_names
-    names = Hash[Podemos::GeoExtra::AUTONOMIES.values]
+    names = Hash[PlebisBrand::GeoExtra::AUTONOMIES.values]
     self.territories.map {|t| names[t]}
   end
 

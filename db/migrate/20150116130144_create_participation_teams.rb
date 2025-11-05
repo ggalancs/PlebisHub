@@ -1,4 +1,4 @@
-class CreateParticipationTeams < ActiveRecord::Migration
+class CreatePlebisHubtionTeams < ActiveRecord::Migration
   def change
     create_table :participation_teams do |t|
       t.string :name

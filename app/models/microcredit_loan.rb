@@ -190,7 +190,7 @@ class MicrocreditLoan < ApplicationRecord
   end
 
   def calculate_bic
-    bic = Podemos::SpanishBIC[iban_account[4..7].to_i] if iban_account && !iban_account.empty? && iban_account[0..1]=="ES"
+    bic = PlebisBrand::SpanishBIC[iban_account[4..7].to_i] if iban_account && !iban_account.empty? && iban_account[0..1]=="ES"
     bic = iban_bic.gsub(" ","") if !bic && iban_bic && !iban_bic.empty?
     bic
   end

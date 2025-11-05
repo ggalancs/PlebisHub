@@ -13,8 +13,8 @@ class ApplicationHelperTest < ActionView::TestCase
     response = nav_menu_link_to "Inicio", "home", root_path, [root_path], title: "Inicio"
     expected = "<a title=\"Inicio\" class=\"\" href=\"/\"><i class=\"fa fa-home\"></i><span>Inicio</span></a>"
     assert_equal expected, response
-    response = nav_menu_link_to "Equipos de Participación", "users", participation_teams_path, [participation_teams_path], title: "Equipos de Participación"
-    expected = "<a title=\"Equipos de Participación\" class=\"\" href=\"/equipos-de-accion-participativa\"><i class=\"fa fa-users\"></i><span>Equipos de Participación</span></a>"
+    response = nav_menu_link_to "Equipos de PlebisHubción", "users", participation_teams_path, [participation_teams_path], title: "Equipos de PlebisHubción"
+    expected = "<a title=\"Equipos de PlebisHubción\" class=\"\" href=\"/equipos-de-accion-participativa\"><i class=\"fa fa-users\"></i><span>Equipos de PlebisHubción</span></a>"
     assert_equal expected, response
     response = nav_menu_link_to "Colaboración económica", "euro", new_collaboration_path, [new_collaboration_path], title: "Colaboración económica"
     expected = "<a title=\"Colaboración económica\" class=\"\" href=\"/colabora\"><i class=\"fa fa-euro\"></i><span>Colaboración económica</span></a>"

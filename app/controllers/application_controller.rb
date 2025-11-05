@@ -88,7 +88,7 @@ class ApplicationController < ActionController::Base
     if current_user and current_user.banned?
       name = current_user.full_name
       sign_out_and_redirect current_user
-      flash[:notice] = t("podemos.banned", full_name: name)
+      flash[:notice] = t("plebisbrand.banned", full_name: name)
     end
   end
 
@@ -129,7 +129,7 @@ class ApplicationController < ActionController::Base
 
   def authenticate_admin_user!
     unless signed_in? && (current_user.is_admin? || current_user.finances_admin? || current_user.impulsa_admin? ||current_user.verifier?|| current_user.paper_authority?)
-      redirect_to root_url, flash: { error: t('podemos.unauthorized') }
+      redirect_to root_url, flash: { error: t('plebisbrand.unauthorized') }
     end
   end
 

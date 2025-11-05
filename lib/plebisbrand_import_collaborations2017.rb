@@ -1,4 +1,4 @@
-class PodemosImportCollaborations2017
+class PlebisBrandImportCollaborations2017
  @@fields={
       :name => "NOMBRE",
       :surname1 => "APELLIDO 1",

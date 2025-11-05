@@ -58,10 +58,10 @@ class VoteCircle < ApplicationRecord
   end
 
   def island_name
-    return "" unless (self.island_code && Podemos::GeoExtra::ISLANDS[self.island_code]) || (self.town && Podemos::GeoExtra::ISLANDS[self.town])
+    return "" unless (self.island_code && PlebisBrand::GeoExtra::ISLANDS[self.island_code]) || (self.town && PlebisBrand::GeoExtra::ISLANDS[self.town])
     code = self.town if self.town && self.town.present?
     code ||= self.island_code if self.island_code
-    Podemos::GeoExtra::ISLANDS[code][1]
+    PlebisBrand::GeoExtra::ISLANDS[code][1]
   end
 
   def town_name
@@ -79,7 +79,7 @@ class VoteCircle < ApplicationRecord
   end
 
   def autonomy_name
-    self.province_code ? Podemos::GeoExtra::AUTONOMIES[self.province_code][1] :""
+    self.province_code ? PlebisBrand::GeoExtra::AUTONOMIES[self.province_code][1] :""
   end
 
   def country_name
@@ -97,7 +97,7 @@ class VoteCircle < ApplicationRecord
     country = Carmen::Country.coded(country_code)
     town_code = muni_code[5..7].to_i > 0 ? muni_code[5..7] : "000"
     province_code= muni_code[2,2]
-    autonomy_code = Podemos::GeoExtra::AUTONOMIES["p_#{province_code}"  ][0]
+    autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_code}"  ][0]
     region_code="#{autonomy_code[2,2]}#{province_code}#{town_code}"
     last_code = VoteCircle.where("code like ?","TC#{region_code}%").order(:code).pluck(:code).last
     ind = last_code.present? ? (last_code[9..-1].to_i + 1).to_s.rjust(2,"0") : "01"

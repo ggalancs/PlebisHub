@@ -91,7 +91,7 @@ ActiveAdmin.register ImpulsaProject do
   end
 
   show do
-    panel t("podemos.impulsa.admin_section") do
+    panel t("plebisbrand.impulsa.admin_section") do
       attributes_table_for impulsa_project do
         row :id
         row :edition do 
@@ -298,7 +298,7 @@ ActiveAdmin.register ImpulsaProject do
   end
 
   form do |f|
-    f.inputs t("podemos.impulsa.admin_section") do
+    f.inputs t("plebisbrand.impulsa.admin_section") do
       li do
         label "Edition"
         div class: :readonly do link_to(impulsa_project.impulsa_edition.name, admin_impulsa_edition_path(impulsa_project.impulsa_edition)) end
@@ -355,7 +355,7 @@ ActiveAdmin.register ImpulsaProject do
     json.each do |answer|
       id_proyecto = 0
       answer["urls"].each do |url|
-        id_proyecto_aux = url["url"].gsub('https://participa.podemos.info/impulsa/proyecto/','').to_i
+        id_proyecto_aux = url["url"].gsub('https://participa.plebisbrand.info/impulsa/proyecto/','').to_i
         id_proyecto = id_proyecto_aux if id_proyecto_aux > 0
       end
       votes = answer["total_count"]

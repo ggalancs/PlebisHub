@@ -19,7 +19,7 @@ ActiveAdmin.register Order do
   # BIC/SWIFT Campo imprescindible cuando son cuentas en el extranjero
   # TOTAL Importe a pagar
   # CÓDIGO DE ADEUDO  Se pondra FRST cuando sea el primer cargo desde la fecha de alta, y RCUR en los siguientes sucesivos
-  # URL FUENTE  "Este campo no se si existira en el nuevo entorno. Si no es asi poner por defecto https://podemos.info/participa/colaboraciones/colabora/
+  # URL FUENTE  "Este campo no se si existira en el nuevo entorno. Si no es asi poner por defecto https://plebisbrand.info/participa/colaboraciones/colabora/
   # "
   # ID - ENTRADA  Codigo del colaborador en la base de datos
   # FECHA DE LA ENTRADA Fecha de alta en la base de datos
