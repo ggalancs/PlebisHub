@@ -5,11 +5,18 @@ FactoryBot.define do
     # Create user with DNI (not passport) to pass validates_not_passport
     # Using German address to avoid Spanish postal code validations
     user do
-      create(:user,
+      # Spanish DNI format: 8 digits + check letter
+      dni_letters = "TRWAGMYFPDXBNJZSQVHLCKE"
+      number = rand(10000000..99999999)
+      letter = dni_letters[number % 23]
+
+      u = build(:user,
         document_type: 1, # DNI
-        document_vatid: "12345678Z", # Valid DNI format
+        document_vatid: "#{number}#{letter}",
         born_at: 25.years.ago # Ensure over 18
       )
+      u.save(validate: false)
+      u
     end
 
     payment_type { 1 } # Credit card by default
