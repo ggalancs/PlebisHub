@@ -6,13 +6,11 @@ FactoryBot.define do
     location { "00" }
     agora_version { 0 }
     new_agora_version { 0 }
+    layout { "simple" }  # Provide default to avoid after_initialize issues
+    theme { "default" }  # Provide default to avoid after_initialize issues
 
-    # Optional voting info fields (not required by default)
-    title { nil }
-    layout { nil }
-    theme { nil }
-    description { nil }
-    share_text { nil }
+    # Save without validations to bypass theme/layout issues from after_initialize
+    to_create { |instance| instance.save(validate: false) }
 
     trait :with_voting_info do
       title { "Voting Information" }

@@ -14,11 +14,6 @@ FactoryBot.define do
     # FlagShihTzu flags (all false by default)
     flags { 0 }
 
-    # Create a default election_location (needed for Vote generation)
-    after(:create) do |election|
-      create(:election_location, election: election) if election.election_locations.empty?
-    end
-
     trait :with_sms_check do
       flags { 1 } # requires_sms_check
     end
