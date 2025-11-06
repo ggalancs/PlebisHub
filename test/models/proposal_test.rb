@@ -214,6 +214,7 @@ class ProposalTest < ActiveSupport::TestCase
   # ====================
 
   test "reddit scope should return only proposals with reddit_threshold true" do
+    Proposal.delete_all
     reddit_proposal = create(:proposal, reddit_threshold: true)
     normal_proposal = create(:proposal, reddit_threshold: false)
 
@@ -225,7 +226,9 @@ class ProposalTest < ActiveSupport::TestCase
 
   test "reddit scope should return empty when no reddit proposals exist" do
     # Create users so threshold is not automatically 0
-    1000.times { create(:user) }
+    Proposal.delete_all
+    User.delete_all
+    1000.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     # Create proposals with reddit_threshold explicitly false and votes below threshold
     proposal1 = build(:proposal, reddit_threshold: false, votes: 0)
@@ -336,12 +339,13 @@ class ProposalTest < ActiveSupport::TestCase
 
   test "should update reddit_threshold before save when votes reach threshold" do
     # Create some confirmed users first
-    5.times { create(:user) }
+    User.delete_all
+    1000.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal, reddit_threshold: false, votes: 0)
     assert_not proposal.reddit_threshold
 
-    # Calculate required votes (0.2% of confirmed users)
+    # Calculate required votes (0.2% of 1000 confirmed users = 2)
     required = proposal.reddit_required_votes
 
     # Update votes to meet threshold
@@ -353,7 +357,8 @@ class ProposalTest < ActiveSupport::TestCase
 
   test "should not update reddit_threshold when votes below threshold" do
     # Create users so threshold is not 0
-    1000.times { create(:user) }
+    User.delete_all
+    1000.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal, reddit_threshold: false, votes: 0)
     assert_not proposal.reddit_threshold
@@ -381,8 +386,11 @@ class ProposalTest < ActiveSupport::TestCase
 
   # confirmed_users method
   test "confirmed_users should return count of fully confirmed users" do
-    create(:user)
-    create(:user)
+    # Clean users from previous tests to get accurate count
+    User.delete_all
+
+    create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current)
+    create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current)
     create(:user, :unconfirmed)
 
     proposal = create(:proposal)
@@ -394,7 +402,8 @@ class ProposalTest < ActiveSupport::TestCase
 
   # reddit_required_votes method
   test "reddit_required_votes should return 0.2 percent of confirmed users" do
-    10.times { create(:user) }
+    User.delete_all
+    10.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal)
 
@@ -403,7 +412,8 @@ class ProposalTest < ActiveSupport::TestCase
   end
 
   test "reddit_required_votes should calculate correctly for large user base" do
-    1000.times { create(:user) }
+    User.delete_all
+    1000.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal)
 
@@ -413,7 +423,8 @@ class ProposalTest < ActiveSupport::TestCase
 
   # monthly_email_required_votes method
   test "monthly_email_required_votes should return 2 percent of confirmed users" do
-    100.times { create(:user) }
+    User.delete_all
+    100.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal)
 
@@ -423,7 +434,8 @@ class ProposalTest < ActiveSupport::TestCase
 
   # agoravoting_required_votes method
   test "agoravoting_required_votes should return 10 percent of confirmed users" do
-    100.times { create(:user) }
+    User.delete_all
+    100.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal)
 
@@ -433,7 +445,8 @@ class ProposalTest < ActiveSupport::TestCase
 
   # support_percentage method
   test "support_percentage should calculate correctly" do
-    50.times { create(:user) }
+    User.delete_all
+    50.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal)
     proposal.update_column(:supports_count, 10)
@@ -494,7 +507,8 @@ class ProposalTest < ActiveSupport::TestCase
 
   # monthly_email_required_votes? method
   test "monthly_email_required_votes? should return true when threshold met" do
-    100.times { create(:user) }
+    User.delete_all
+    100.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal)
     proposal.update_column(:supports_count, 5)
@@ -504,7 +518,8 @@ class ProposalTest < ActiveSupport::TestCase
   end
 
   test "monthly_email_required_votes? should return false when threshold not met" do
-    100.times { create(:user) }
+    User.delete_all
+    100.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal)
     proposal.update_column(:supports_count, 1)
@@ -515,7 +530,8 @@ class ProposalTest < ActiveSupport::TestCase
 
   # agoravoting_required_votes? method
   test "agoravoting_required_votes? should return true when threshold met" do
-    100.times { create(:user) }
+    User.delete_all
+    100.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal)
     proposal.update_column(:supports_count, 15)
@@ -525,7 +541,8 @@ class ProposalTest < ActiveSupport::TestCase
   end
 
   test "agoravoting_required_votes? should return false when threshold not met" do
-    100.times { create(:user) }
+    User.delete_all
+    100.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal)
     proposal.update_column(:supports_count, 5)
@@ -567,7 +584,8 @@ class ProposalTest < ActiveSupport::TestCase
 
   # discarded? method
   test "discarded? should return false for active proposal" do
-    100.times { create(:user) }
+    User.delete_all
+    100.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal, created_at: 1.month.ago)
     proposal.update_column(:supports_count, 20)
@@ -576,7 +594,8 @@ class ProposalTest < ActiveSupport::TestCase
   end
 
   test "discarded? should return true for finished proposal without enough votes" do
-    100.times { create(:user) }
+    User.delete_all
+    100.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal, created_at: 4.months.ago)
     proposal.update_column(:supports_count, 5)
@@ -586,7 +605,8 @@ class ProposalTest < ActiveSupport::TestCase
   end
 
   test "discarded? should return false for finished proposal with enough votes" do
-    100.times { create(:user) }
+    User.delete_all
+    100.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
     proposal = create(:proposal, created_at: 4.months.ago)
     proposal.update_column(:supports_count, 20)
@@ -827,6 +847,7 @@ class ProposalTest < ActiveSupport::TestCase
   end
 
   test "should handle proposals with no users in system" do
+    User.delete_all
     proposal = create(:proposal)
 
     # Methods should handle zero users gracefully
