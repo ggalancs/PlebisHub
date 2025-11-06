@@ -33,7 +33,7 @@ class User < ApplicationRecord
 
   has_many :supports, dependent: :destroy
   has_many :collaborations, dependent: :destroy
-  has_and_belongs_to_many :participation_team
+  has_and_belongs_to_many :participation_teams
   has_many :microcredit_loans
   has_many :user_verifications
   has_many :militant_records
