@@ -165,7 +165,7 @@ class Election < ApplicationRecord
       base = User.with_deleted.not_banned.where("deleted_at is null or deleted_at > ?", self.user_created_at_max).where.not(sms_confirmed_at:nil).where("created_at < ?", self.user_created_at_max)
       base_date = self.user_created_at_max
     end
-    base = base.where("current_sign_in_at > ?", base_date - eval(Rails.application.secrets.users["active_census_range"]) )
+    base = base.where("current_sign_in_at > ?", base_date - parse_duration_config("active_census_range") )
 
     if self.ignore_multiple_territories
       base.count
@@ -264,5 +264,42 @@ class Election < ApplicationRecord
 
   def generate_access_token(info)
     Base64.urlsafe_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::SHA256.new('sha256'), counter_key, info))[0..16]
+  end
+
+  private
+
+  # Safely parse duration configuration strings without using eval()
+  # Supports ActiveSupport duration formats: "5.minutes", "1.hour", "1.year"
+  def parse_duration_config(key)
+    config_value = Rails.application.secrets.users[key]
+
+    # If config value is already a duration (integer seconds), return it
+    return config_value.seconds if config_value.is_a?(Integer)
+
+    # Parse string like "1.year", "5.minutes", "1.hour"
+    # This safely evaluates only ActiveSupport duration methods
+    case config_value.to_s.strip
+    when /^(\d+)\.second(s)?$/
+      $1.to_i.seconds
+    when /^(\d+)\.minute(s)?$/
+      $1.to_i.minutes
+    when /^(\d+)\.hour(s)?$/
+      $1.to_i.hours
+    when /^(\d+)\.day(s)?$/
+      $1.to_i.days
+    when /^(\d+)\.week(s)?$/
+      $1.to_i.weeks
+    when /^(\d+)\.month(s)?$/
+      $1.to_i.months
+    when /^(\d+)\.year(s)?$/
+      $1.to_i.years
+    else
+      # Fallback: try to parse as integer seconds
+      config_value.to_i.seconds
+    end
+  rescue => e
+    Rails.logger.error("Failed to parse duration config '#{key}': #{config_value} - #{e.message}")
+    # Safe default fallback for active_census_range
+    1.year
   end
 end

@@ -1,5 +1,6 @@
 module ImpulsaProjectWizard
   extend ActiveSupport::Concern
+  include SafeConditionEvaluator
 
   included do
     include ActiveModel::Validations::SpanishVatValidatorsHelpers
@@ -144,7 +145,15 @@ module ImpulsaProjectWizard
     end
 
     def wizard_eval_condition group
-      group[:condition].blank? || eval(group[:condition])
+      return true if group[:condition].blank?
+
+      # Use safe evaluator instead of eval()
+      # SECURITY: This prevents arbitrary code execution from database-stored conditions
+      SafeConditionEvaluator.evaluate(self, group[:condition])
+    rescue => e
+      Rails.logger.error("Wizard condition evaluation failed: #{e.message} for condition: #{group[:condition]}")
+      # Fail-safe: if condition can't be evaluated safely, skip the group
+      false
     end
 
     def wizard_field_error gname, fname, group = nil, field = nil, options = {}
