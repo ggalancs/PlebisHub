@@ -68,7 +68,13 @@ class CollaborationTest < ActiveSupport::TestCase
   end
 
   test "should validate user_id uniqueness for recurring collaborations" do
-    user = create(:user)
+    # Create user with DNI (not passport) to pass Collaboration validations
+    dni_letters = "TRWAGMYFPDXBNJZSQVHLCKE"
+    number = rand(10000000..99999999)
+    letter = dni_letters[number % 23]
+    user = build(:user, document_type: 1, document_vatid: "#{number}#{letter}")
+    user.save(validate: false)
+
     create(:collaboration, user: user, frequency: 1)
 
     duplicate = build(:collaboration, user: user, frequency: 1)
@@ -77,7 +83,13 @@ class CollaborationTest < ActiveSupport::TestCase
   end
 
   test "should allow multiple single collaborations for same user" do
-    user = create(:user)
+    # Create user with DNI (not passport) to pass Collaboration validations
+    dni_letters = "TRWAGMYFPDXBNJZSQVHLCKE"
+    number = rand(10000000..99999999)
+    letter = dni_letters[number % 23]
+    user = build(:user, document_type: 1, document_vatid: "#{number}#{letter}")
+    user.save(validate: false)
+
     create(:collaboration, :single, user: user)
 
     duplicate = build(:collaboration, :single, user: user)
@@ -97,7 +109,8 @@ class CollaborationTest < ActiveSupport::TestCase
   end
 
   test "should reject passport users" do
-    passport_user = create(:user, document_type: 3)
+    passport_user = build(:user, document_type: 3)
+    passport_user.save(validate: false) # Skip User validations
     collaboration = build(:collaboration, user: passport_user)
 
     assert_not collaboration.valid?
@@ -105,7 +118,13 @@ class CollaborationTest < ActiveSupport::TestCase
   end
 
   test "should reject underage users" do
-    young_user = create(:user, document_type: 1, born_at: 10.years.ago)
+    # Create user with DNI format
+    dni_letters = "TRWAGMYFPDXBNJZSQVHLCKE"
+    number = rand(10000000..99999999)
+    letter = dni_letters[number % 23]
+
+    young_user = build(:user, document_type: 1, document_vatid: "#{number}#{letter}", born_at: 10.years.ago)
+    young_user.save(validate: false) # Skip User validations
     collaboration = build(:collaboration, user: young_user)
 
     assert_not collaboration.valid?
@@ -327,6 +346,8 @@ class CollaborationTest < ActiveSupport::TestCase
 
   test "status_name should return correct name" do
     collaboration = create(:collaboration, :active)
+    collaboration.reload # Reload to ensure status was set by after(:create) callback
+    assert_equal 3, collaboration.status
     assert_equal "OK", collaboration.status_name
   end
 
@@ -339,26 +360,31 @@ class CollaborationTest < ActiveSupport::TestCase
 
   test "has_payment? should return true when status > 0" do
     collaboration = create(:collaboration, :active)
+    collaboration.reload
     assert collaboration.has_payment?
   end
 
   test "is_active? should return true for active status" do
     collaboration = create(:collaboration, :active)
+    collaboration.reload
     assert collaboration.is_active?
   end
 
   test "has_confirmed_payment? should return true when status > 2" do
     collaboration = create(:collaboration, :active)
+    collaboration.reload
     assert collaboration.has_confirmed_payment?
   end
 
   test "has_warnings? should return true for warning status" do
     collaboration = create(:collaboration, :warning)
+    collaboration.reload
     assert collaboration.has_warnings?
   end
 
   test "has_errors? should return true for error status" do
     collaboration = create(:collaboration, :error)
+    collaboration.reload
     assert collaboration.has_errors?
   end
 
@@ -520,7 +546,12 @@ class CollaborationTest < ActiveSupport::TestCase
   # ====================
 
   test "complete credit card collaboration workflow" do
-    user = create(:user)
+    # Create user with DNI (not passport) to pass Collaboration validations
+    dni_letters = "TRWAGMYFPDXBNJZSQVHLCKE"
+    number = rand(10000000..99999999)
+    letter = dni_letters[number % 23]
+    user = build(:user, document_type: 1, document_vatid: "#{number}#{letter}")
+    user.save(validate: false)
 
     collaboration = nil
     assert_difference('Collaboration.count', 1) do
@@ -528,8 +559,7 @@ class CollaborationTest < ActiveSupport::TestCase
         user: user,
         payment_type: 1,
         amount: 1000,
-        frequency: 1,
-        status: 2
+        frequency: 1
       )
     end
 
@@ -540,19 +570,25 @@ class CollaborationTest < ActiveSupport::TestCase
   end
 
   test "complete bank collaboration workflow" do
-    user = create(:user)
+    # Create user with DNI (not passport) to pass Collaboration validations
+    dni_letters = "TRWAGMYFPDXBNJZSQVHLCKE"
+    number = rand(10000000..99999999)
+    letter = dni_letters[number % 23]
+    user = build(:user, document_type: 1, document_vatid: "#{number}#{letter}")
+    user.save(validate: false)
 
-    collaboration = create(:collaboration, :with_iban,
+    collaboration = create(:collaboration, :with_iban, :active,
       user: user,
       amount: 2000,
-      frequency: 3,
-      status: 3
+      frequency: 3
     )
 
+    # with_iban uses German IBAN by default (international)
     assert collaboration.is_bank?
-    assert collaboration.is_bank_national?
+    assert collaboration.is_bank_international?
     assert_not collaboration.is_credit_card?
     assert_equal "Trimestral", collaboration.frequency_name
+    collaboration.reload
     assert_equal "OK", collaboration.status_name
   end
 

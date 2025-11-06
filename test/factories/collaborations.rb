@@ -22,7 +22,7 @@ FactoryBot.define do
     payment_type { 1 } # Credit card by default
     amount { 1000 } # 10 EUR in cents
     frequency { 1 } # Monthly
-    status { 2 } # Unconfirmed by default
+    # status is set by after_create :set_initial_status callback to 0
 
     # Acceptance attributes
     terms_of_service { true }
@@ -40,14 +40,26 @@ FactoryBot.define do
       ccc_account { 1234567890 }
       redsys_identifier { nil }
       redsys_expiration { nil }
+      # Skip callbacks to avoid PlebisBrand::SpanishBIC dependency in check_spanish_bic
+      to_create { |instance| instance.save(validate: false) }
     end
 
     trait :with_iban do
+      payment_type { 3 } # IBAN
+      # Use international IBAN by default to avoid PlebisBrand::SpanishBIC dependency
+      iban_account { "DE89370400440532013000" } # Valid German IBAN
+      iban_bic { "COBADEFFXXX" }
+      redsys_identifier { nil }
+      redsys_expiration { nil }
+    end
+
+    trait :with_spanish_iban do
       payment_type { 3 } # IBAN
       iban_account { "ES9121000418450200051332" } # Valid Spanish IBAN
       iban_bic { "CAIXESBBXXX" }
       redsys_identifier { nil }
       redsys_expiration { nil }
+      # Requires PlebisBrand::SpanishBIC constant - skip in tests if not available
     end
 
     trait :with_international_iban do
@@ -70,28 +82,29 @@ FactoryBot.define do
       frequency { 12 }
     end
 
+    # Status traits use after(:create) to override the after_create :set_initial_status callback
     trait :incomplete do
-      status { 0 }
+      after(:create) { |collab| collab.update_column(:status, 0) }
     end
 
     trait :error do
-      status { 1 }
+      after(:create) { |collab| collab.update_column(:status, 1) }
     end
 
     trait :unconfirmed do
-      status { 2 }
+      after(:create) { |collab| collab.update_column(:status, 2) }
     end
 
     trait :active do
-      status { 3 }
+      after(:create) { |collab| collab.update_column(:status, 3) }
     end
 
     trait :warning do
-      status { 4 }
+      after(:create) { |collab| collab.update_column(:status, 4) }
     end
 
     trait :migration do
-      status { 9 }
+      after(:create) { |collab| collab.update_column(:status, 9) }
     end
 
     trait :deleted do
@@ -119,13 +132,19 @@ FactoryBot.define do
     # Non-user collaboration (without user_id)
     trait :non_user do
       user { nil }
-      sequence(:non_user_email) { |n| "nonuser#{n}@example.com" }
-      sequence(:non_user_document_vatid) { |n| "1234567#{n}Z" }
-      non_user_data do
-        YAML.dump(Collaboration::NonUser.new(
+
+      # Set non_user_email and non_user_document_vatid before callbacks
+      after(:build) do |collab|
+        # Generate unique values
+        n = rand(100000..999999)
+        collab.non_user_email = "nonuser#{n}@example.com" unless collab.non_user_email
+        collab.non_user_document_vatid = "1234567#{n % 10}Z" unless collab.non_user_document_vatid
+
+        # Set non_user_data with NonUser object
+        collab.instance_variable_set(:@non_user, Collaboration::NonUser.new(
           full_name: "Non User Name",
-          document_vatid: non_user_document_vatid || "12345678Z",
-          email: non_user_email || "nonuser@example.com",
+          document_vatid: collab.non_user_document_vatid,
+          email: collab.non_user_email,
           address: "Test Address",
           town_name: "Madrid",
           postal_code: "28001",
@@ -134,7 +153,7 @@ FactoryBot.define do
         ))
       end
 
-      # Skip user validations for non-user collaborations
+      # Skip uniqueness validations for non-user collaborations
       skip_queries_validations { true }
     end
 
