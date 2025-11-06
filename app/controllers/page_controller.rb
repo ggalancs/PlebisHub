@@ -217,9 +217,7 @@ class PageController < ApplicationController
   end
 
   def sign_url(url)
-    timestamp = Time.now.to_i
-    signature = Base64.urlsafe_encode64(OpenSSL::HMAC.digest("SHA256", secret, "#{timestamp}::#{url}")[0..20])
-    "#{url}&signature=#{signature}&timestamp=#{timestamp}"
+    UrlSignatureService.new(secret).sign_url(url)
   end
 
   def domain

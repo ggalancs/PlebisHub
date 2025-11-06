@@ -28,6 +28,14 @@ class Microcredit < ApplicationRecord
   scope :renewables, -> { where.not( renewal_terms_file_name: nil ) }
   scope :standard, ->{where("flags = 0")}
   scope :mailing, ->{where("flags = 1")}
+
+  # Scopes for filtering active/upcoming/finished campaigns by type
+  scope :active_standard, -> { active.standard }
+  scope :active_mailing, -> { active.mailing }
+  scope :upcoming_standard, -> { upcoming_finished_by_priority.standard.select(&:is_upcoming?) }
+  scope :upcoming_mailing, -> { upcoming_finished_by_priority.mailing.select(&:is_upcoming?) }
+  scope :finished_standard, -> { upcoming_finished_by_priority.standard.select(&:recently_finished?) }
+  scope :finished_mailing, -> { upcoming_finished_by_priority.mailing.select(&:recently_finished?) }
   def is_standard?
     (!self.mailing)
   end
@@ -255,5 +263,59 @@ class Microcredit < ApplicationRecord
     if self.bank_counted_amount < bank_counted_amount_was
       self.errors.add("Saldo erróneo", "No puedes establecer un saldo bancario inferior al que ya había.")
     end
+  end
+
+  # Generate detailed summary of loan amounts grouped by microcredit options
+  def options_summary
+    data_temp = {}
+    loans.confirmed.group(:microcredit_option_id).sum(:amount).each do |option_id, total|
+      data_temp[option_id] = {
+        option_name: MicrocreditOption.find(option_id).name,
+        total: total
+      }
+    end
+
+    data_detail = []
+    no_children = []
+    with_children = []
+    grand_total = 0
+
+    MicrocreditOption.root_parents.where(microcredit_id: id).each do |parent|
+      if data_temp[parent.id].present? && parent.children.none?
+        data_temp[parent.id][:class_name] = "microcredit_option_detail_parent"
+        no_children.push(data_temp[parent.id])
+        grand_total += data_temp[parent.id][:total]
+      else
+        parent_data = {
+          option_name: parent.name,
+          total: 0,
+          class_name: "microcredit_option_detail_parent"
+        }
+        children_data = []
+
+        parent.children.each do |child|
+          next if data_temp[child.id].blank?
+
+          parent_data[:total] += data_temp[child.id][:total]
+          data_temp[child.id][:class_name] = "microcredit_option_detail_child"
+          children_data.push(data_temp[child.id])
+        end
+
+        children_data.sort_by! { |h| h[:option_name] } if children_data.any?
+        with_children.push(parent_data)
+        with_children += children_data
+        grand_total += parent_data[:total]
+      end
+    end
+
+    data_detail = no_children + with_children
+    grand_total = 1 if grand_total.zero?
+
+    data_detail.each_with_index do |element, index|
+      element[:width] = (element[:total] * 65 / grand_total) + 10
+      element[:index] = index
+    end
+
+    { data: data_detail, grand_total: grand_total }
   end
 end

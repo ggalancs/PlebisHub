@@ -95,7 +95,7 @@ class CollaborationsController < ApplicationController
   private
 
   def payment_types
-    Order::PAYMENT_TYPES.to_a.select { |k, v| [3, @collaboration.payment_type].member? v }
+    Collaboration.available_payment_types(@collaboration)
   end
 
   def force_single?
@@ -103,22 +103,24 @@ class CollaborationsController < ApplicationController
   end
 
   def only_recurrent?
-    params["only_recurrent"].present? && params["only_recurrent"] =="true"
+    params["only_recurrent"].present? && params["only_recurrent"] == "true"
   end
 
   def active_frequencies
-    return Collaboration::FREQUENCIES.to_a.select {|k, v| k == "Puntual" } if force_single?
-    return Collaboration::FREQUENCIES.to_a.select {|k, v| k != "Puntual" } if current_user.recurrent_collaboration || only_recurrent?
-    Collaboration::FREQUENCIES.to_a
+    Collaboration.available_frequencies_for_user(
+      current_user,
+      force_single: force_single?,
+      only_recurrent: only_recurrent?
+    )
   end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_collaboration
     @collaboration = force_single? ? current_user.single_collaboration : current_user.recurrent_collaboration
     return unless @collaboration
-    start_date = [@collaboration.created_at.to_date, Date.today - 6.months].max
-    max_element = (@collaboration.frequency == 0? 1 : (12/@collaboration.frequency) - 1)
-    @orders = @collaboration.get_orders(start_date, start_date + 12.months)[0..max_element]
+
+    result = @collaboration.calculate_date_range_and_orders
+    @orders = result[:orders]
   end
 
   def pending_single_orders

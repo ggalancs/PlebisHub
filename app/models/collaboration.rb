@@ -750,4 +750,26 @@ class Collaboration < ApplicationRecord
     u.update(militant: u.still_militant?)
     u.process_militant_data
   end
+
+  # Get available payment types based on collaboration state
+  def self.available_payment_types(collaboration)
+    Order::PAYMENT_TYPES.to_a.select { |_k, v| [3, collaboration.payment_type].member?(v) }
+  end
+
+  # Get available frequencies for user based on existing collaborations and parameters
+  def self.available_frequencies_for_user(user, force_single: false, only_recurrent: false)
+    return FREQUENCIES.to_a.select { |k, _v| k == "Puntual" } if force_single
+    return FREQUENCIES.to_a.select { |k, _v| k != "Puntual" } if user.recurrent_collaboration || only_recurrent
+
+    FREQUENCIES.to_a
+  end
+
+  # Calculate date range and max order elements for display
+  def calculate_date_range_and_orders
+    start_date = [created_at.to_date, Date.today - 6.months].max
+    max_element = (frequency.zero? ? 1 : (12 / frequency) - 1)
+    orders = get_orders(start_date, start_date + 12.months)[0..max_element]
+
+    { start_date: start_date, max_element: max_element, orders: orders }
+  end
 end

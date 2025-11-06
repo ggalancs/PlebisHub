@@ -33,19 +33,19 @@ class MicrocreditController < ApplicationController
   def index
     @all_microcredits = Microcredit.upcoming_finished_by_priority
 
-    #@microcredits = @all_microcredits.select { |m| m.is_active? }
-    @microcredits_standard = @all_microcredits.select { |m| m.is_standard? and m.is_active? }
-    @microcredits_mailing =@all_microcredits.select { |m| m.is_mailing? and m.is_active? }
-    if @microcredits_standard.length == 0
-      @upcoming_microcredits_standard = @all_microcredits.select { |m| m.is_standard? and m.is_upcoming? } .sort_by(&:starts_at)
-      @finished_microcredits_standard = @all_microcredits.select { |m| m.is_standard? and m.recently_finished? } .sort_by(&:ends_at).reverse
-      @microcredit_index_upcoming_text = @upcoming_microcredits_standard.first.get_microcredit_index_upcoming_text if @upcoming_microcredits_standard.any?
+    @microcredits_standard = @all_microcredits.select(&:is_active?).select(&:is_standard?)
+    @microcredits_mailing = @all_microcredits.select(&:is_active?).select(&:is_mailing?)
+
+    if @microcredits_standard.empty?
+      @upcoming_microcredits_standard = @all_microcredits.select(&:is_standard?).select(&:is_upcoming?).sort_by(&:starts_at)
+      @finished_microcredits_standard = @all_microcredits.select(&:is_standard?).select(&:recently_finished?).sort_by(&:ends_at).reverse
+      @microcredit_index_upcoming_text = @upcoming_microcredits_standard.first&.get_microcredit_index_upcoming_text
     end
 
-    if @microcredits_mailing.length == 0
-      @upcoming_microcredits_mailing = @all_microcredits.select { |m| m.is_mailing? and m.is_upcoming? } .sort_by(&:starts_at)
-      @finished_microcredits_mailing = @all_microcredits.select { |m| m.is_mailing? and m.recently_finished? } .sort_by(&:ends_at).reverse
-      @microcredit_index_upcoming_text = get_microcredit_index_upcoming_text @upcoming_microcredits_mailing.first if @upcoming_microcredits_mailing.any?
+    if @microcredits_mailing.empty?
+      @upcoming_microcredits_mailing = @all_microcredits.select(&:is_mailing?).select(&:is_upcoming?).sort_by(&:starts_at)
+      @finished_microcredits_mailing = @all_microcredits.select(&:is_mailing?).select(&:recently_finished?).sort_by(&:ends_at).reverse
+      @microcredit_index_upcoming_text ||= @upcoming_microcredits_mailing.first&.get_microcredit_index_upcoming_text
     end
   end
 
@@ -122,47 +122,12 @@ class MicrocreditController < ApplicationController
   end
 
   def show_options
-    class_parent = "microcredit_option_detail_parent"
-    class_child = "microcredit_option_detail_child"
-    @colors =["#683064","#6b478e","#b052a9","#c4a0d8"]
-    @grand_total = 0
+    @colors = ["#683064", "#6b478e", "#b052a9", "#c4a0d8"]
     @microcredit = Microcredit.find(params[:id])
-    data_temp = {}
-    @microcredit.loans.confirmed.group(:microcredit_option_id).sum(:amount).each do |r|
-      data_temp[r[0]]={ option_name:MicrocreditOption.find(r[0]).name, total:r[1]}
-    end
 
-    @data_detail = []
-    no_children=[]
-    with_children=[]
-    MicrocreditOption.root_parents.where(microcredit_id: @microcredit.id).each do |pa|
-      if data_temp[pa.id].present? && pa.children.none?
-        data_temp[pa.id][:class_name] = class_parent
-        no_children.push(data_temp[pa.id])
-        @grand_total += data_temp[pa.id][:total]
-      else
-        parent_data={option_name:pa.name,total:0,class_name:class_parent}
-        children_data = []
-        pa.children.each do |child|
-          next if data_temp[child.id].blank?
-          parent_data[:total] += data_temp[child.id][:total]
-          data_temp[child.id][:class_name] = class_child
-          children_data.push(data_temp[child.id])
-        end
-        children_data.sort_by! {|h| h[:option_name]} if children_data.any?
-        with_children.push (parent_data)
-        with_children += (children_data)
-        @grand_total += parent_data[:total]
-      end
-    end
-    @data_detail = no_children + with_children
-    @grand_total = 1 if @grand_total.zero?
-    i = 0
-    @data_detail.each do |e|
-      e[:width] = (e[:total] * 65/@grand_total) +10
-      e[:index] = i
-      i+=1
-    end
+    summary = @microcredit.options_summary
+    @data_detail = summary[:data]
+    @grand_total = summary[:grand_total]
   end
 
   private
@@ -175,38 +140,13 @@ class MicrocreditController < ApplicationController
     end
   end
 
-  def get_renewal validate = false
-    if params[:loan_id]
-      loan = MicrocreditLoan.find_by(id: params[:loan_id])
-    else
-      loan = MicrocreditLoan.renewables.where(document_vatid: current_user.document_vatid).first
-      loan ||= MicrocreditLoan.recently_renewed.where(document_vatid: current_user.document_vatid).first
-    end
-    return nil unless @microcredit && !@microcredit.has_finished? && loan && loan.microcredit.renewable? && (current_user || loan.unique_hash==params[:hash])
-
-    loans = MicrocreditLoan.renewables.where(microcredit_id:loan.microcredit_id, document_vatid: loan.document_vatid)
-    other_loans = MicrocreditLoan.renewables.where.not(microcredit_id:loan.microcredit_id).where(document_vatid: loan.document_vatid).to_a.uniq(&:microcredit_id)
-    recently_renewed_loans = MicrocreditLoan.recently_renewed.where(microcredit_id:loan.microcredit_id, document_vatid: loan.document_vatid)
-
-    require 'ostruct'
-    if validate
-      renewal = OpenStruct.new( params.require(:renewals).permit(:renewal_terms, :terms_of_service, loan_renewals: []))
-    else
-      renewal = OpenStruct.new( renewal_terms: false, terms_of_service: false, loan_renewals: [])
-    end
-    renewal.loans = loans
-    renewal.loan_renewals = renewal.loans.select {|l| renewal.loan_renewals.member? l.id.to_s }
-    renewal.other_loans = other_loans
-    renewal.recently_renewed_loans = recently_renewed_loans
-    renewal.loan = loans.first || recently_renewed_loans.first
-    renewal.errors = {}
-    if validate
-      renewal.errors[:renewal_terms] = t("errors.messages.accepted") if renewal.renewal_terms=="0"
-      renewal.errors[:terms_of_service] = t("errors.messages.accepted") if renewal.terms_of_service=="0"
-      renewal.errors[:loan_renewals] = t("microcredit.loans_renewal.none_selected") if renewal.loan_renewals.length==0
-    end
-    renewal.valid = renewal.errors.length==0
-    renewal
+  def get_renewal(validate = false)
+    service = LoanRenewalService.new(@microcredit, params)
+    service.build_renewal(
+      loan_id: params[:loan_id],
+      current_user: current_user,
+      validate: validate
+    )
   end
 
   def any_renewable?
@@ -214,15 +154,9 @@ class MicrocreditController < ApplicationController
 
     if params[:loan_id]
       loan = MicrocreditLoan.find_by(id: params[:loan_id])
-      loan && loan.unique_hash==params[:hash] && loan.microcredit.renewable?
+      loan && loan.unique_hash == params[:hash] && loan.microcredit.renewable?
     else
       current_user && current_user.any_microcredit_renewable?
     end
   end
-end
-
-class OpenStruct                                                                                                                    
-  def self.human_attribute_name(name)                                                                                               
-    I18n::t("formtastic.labels.#{name}")
-  end                                                                                                                               
 end

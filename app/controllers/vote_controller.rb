@@ -58,18 +58,18 @@ class VoteController < ApplicationController
   def paper_vote
     return back_to_home unless check_open_election && check_paper_authority? && election&.paper? &&
                                election_location&.paper_token == params[:token]
-    tracking = Logger.new(File.join(Rails.root, "log", "paper_authorities.log"))
 
+    paper_vote_service = PaperVoteService.new(election, election_location, current_user)
     can_vote = false
+
     if params[:validation_token]
       return redirect_to(:back) unless paper_vote_user? && check_validation_token(params[:validation_token])
 
-      tracking.info "** #{current_user.id} #{current_user.full_name} ** VOTE: #{paper_vote_user.id}"
-
-      save_paper_vote_for_user(paper_vote_user)
+      paper_vote_service.log_vote_registered(paper_vote_user)
+      flash.merge!(paper_vote_service.save_vote_for_user(paper_vote_user))
       return redirect_to(:back)
     elsif params[:document_vatid] && params[:document_type]
-      tracking.info "** #{current_user.id} #{current_user.full_name} ** QUERY: #{params[:document_type]} #{params[:document_vatid]}"
+      paper_vote_service.log_vote_query(params[:document_type], params[:document_vatid])
 
       return redirect_to(:back) unless paper_vote_user? && check_valid_user(paper_vote_user) &&
                                        check_valid_location(paper_vote_user, [election_location]) &&
@@ -93,19 +93,14 @@ class VoteController < ApplicationController
     @paper_authority_votes_count ||= Vote.where(election: election, paper_authority_id: current_user.id).count
   end
 
-  def get_paper_vote_user_from_csv()
-    return unless election.census_file.present?
-    result = nil
-    data =CSV.parse(Paperclip.io_adapters.for(election.census_file).read,headers:true)
-    data.each do |r|
-      if params[:validation_token] && r["user_id"] == params[:user_id]
-        result = User.find_by_id(params[:user_id])
-      elsif params[:document_vatid] && params[:document_type] && r["dni"].downcase == params[:document_vatid].downcase
-        result = User.where("lower(document_vatid) = ?", params[:document_vatid].downcase).find_by(document_type: params[:document_type])
-      end
-      break if result
+  def get_paper_vote_user_from_csv
+    parser = CensusFileParser.new(election)
+
+    if params[:validation_token]
+      parser.find_user_by_validation_token(params[:user_id], params[:validation_token])
+    elsif params[:document_vatid] && params[:document_type]
+      parser.find_user_by_document(params[:document_vatid], params[:document_type])
     end
-    result
   end
   def paper_vote_user
     if election.scope == 6 && election.census_file.file?
@@ -135,17 +130,6 @@ class VoteController < ApplicationController
     render content_type: 'text/plain', status: :gone, text: root_url
   end
 
-  def save_paper_vote_for_user(user)
-    if election.votes.create(user_id: user.id, paper_authority: current_user)
-      if election.scope == 6
-        flash[:notice] = "Identificación registrada."
-      else
-        flash[:notice] = "El voto ha sido registrado."
-      end
-    else
-      flash[:error] = "No se ha podido registrar el voto. Inténtalo nuevamente o consulta con la persona que administra el sistema."
-    end
-  end
 
   def paper_vote_user?
     return true if paper_vote_user
