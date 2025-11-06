@@ -6,6 +6,9 @@ require 'simplecov'
 require 'webmock/minitest'
 require 'minitest/reporters'
 
+# Explicitly require validators to ensure they're loaded before models
+require Rails.root.join('app', 'validators', 'email_validator')
+
 # Configure SimpleCov for 95% coverage target
 SimpleCov.start 'rails' do
   add_filter '/test/'

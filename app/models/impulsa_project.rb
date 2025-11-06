@@ -7,6 +7,7 @@ class ImpulsaProject < ApplicationRecord
   belongs_to :user, -> { with_deleted }
   has_one :impulsa_edition, through: :impulsa_edition_category
   has_many :impulsa_project_state_transitions, dependent: :destroy
+  has_many :impulsa_project_topics, dependent: :destroy
 
 
   validates :name, :impulsa_edition_category_id, :status, presence: true
