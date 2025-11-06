@@ -40,7 +40,7 @@ class UserVerification < ApplicationRecord
   scope :not_sended, -> {where wants_card: true, born_at: nil  }
 
   def discardable?
-    status == :pending || status == :issues
+    pending? || issues?
   end
 
   def require_back?

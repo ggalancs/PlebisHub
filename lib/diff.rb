@@ -56,3 +56,6 @@ module ActiveRecord
     end
   end
 end
+
+# Zeitwerk expects a Diff constant
+Diff = ActiveRecord::Diff

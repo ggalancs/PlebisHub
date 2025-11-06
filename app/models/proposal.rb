@@ -1,13 +1,26 @@
 require 'numeric'
+
 class Proposal < ApplicationRecord
+  # Associations
   has_many :supports, dependent: :destroy
 
+  # Validations
+  validates :title, presence: true
+  validates :description, presence: true
+  validates :votes, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :supports_count, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :hotness, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+
+  # Scopes
   scope :reddit,  -> { where(reddit_threshold: true) }
   scope :recent,  -> { order('created_at desc') }
   scope :popular, -> { order('supports_count desc') }
   scope :time,    -> { order('created_at asc') }
   scope :hot,     -> { order('hotness desc') }
-  
+  scope :active,  -> { where('created_at > ?', 3.months.ago) }
+  scope :finished, -> { where('created_at <= ?', 3.months.ago) }
+
+  # Callbacks
   before_save :update_threshold
 
   def update_threshold
@@ -68,7 +81,7 @@ class Proposal < ApplicationRecord
   end
 
   def supportable? user
-    not (finished? || discarded?(user))
+    not (finished? || discarded?)
   end
 
   def self.filter(filtering_params)
