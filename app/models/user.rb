@@ -751,15 +751,52 @@ class User < ApplicationRecord
   end
 
   def can_check_sms_check?
-    sms_check_at.present? && (DateTime.now < (sms_check_at + eval(Rails.application.secrets.users["sms_check_valid_interval"])))
+    sms_check_at.present? && (DateTime.now < (sms_check_at + parse_duration_config("sms_check_valid_interval")))
   end
 
   def next_sms_check_request_at
     if sms_check_at.present?
-      sms_check_at + eval(Rails.application.secrets.users["sms_check_request_interval"])
+      sms_check_at + parse_duration_config("sms_check_request_interval")
     else
       DateTime.now - 1.second
     end
+  end
+
+  private
+
+  # Safely parse duration configuration strings without using eval()
+  # Supports ActiveSupport duration formats: "5.minutes", "1.hour", "1.year"
+  def parse_duration_config(key)
+    config_value = Rails.application.secrets.users[key]
+
+    # If config value is already a duration (integer seconds), return it
+    return config_value.seconds if config_value.is_a?(Integer)
+
+    # Parse string like "1.year", "5.minutes", "1.hour"
+    # This safely evaluates only ActiveSupport duration methods
+    case config_value.to_s.strip
+    when /^(\d+)\.second(s)?$/
+      $1.to_i.seconds
+    when /^(\d+)\.minute(s)?$/
+      $1.to_i.minutes
+    when /^(\d+)\.hour(s)?$/
+      $1.to_i.hours
+    when /^(\d+)\.day(s)?$/
+      $1.to_i.days
+    when /^(\d+)\.week(s)?$/
+      $1.to_i.weeks
+    when /^(\d+)\.month(s)?$/
+      $1.to_i.months
+    when /^(\d+)\.year(s)?$/
+      $1.to_i.years
+    else
+      # Fallback: try to parse as integer seconds
+      config_value.to_i.seconds
+    end
+  rescue => e
+    Rails.logger.error("Failed to parse duration config '#{key}': #{config_value} - #{e.message}")
+    # Safe default fallback
+    5.minutes
   end
 
   def send_sms_check!

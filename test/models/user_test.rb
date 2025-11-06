@@ -469,6 +469,77 @@ class UserTest < ActiveSupport::TestCase
   end
 
   # ====================
+  # SECURITY REFACTORING TESTS (Phase 1)
+  # ====================
+  # Tests for parse_duration_config - replaced unsafe eval() with safe parsing
+
+  test "parse_duration_config should parse seconds format" do
+    user = build(:user)
+    Rails.application.secrets.users.stub :[], "5.seconds", ["test_interval"] do
+      result = user.send(:parse_duration_config, "test_interval")
+      assert_equal 5.seconds, result
+    end
+  end
+
+  test "parse_duration_config should parse minutes format" do
+    user = build(:user)
+    Rails.application.secrets.users.stub :[], "10.minutes", ["test_interval"] do
+      result = user.send(:parse_duration_config, "test_interval")
+      assert_equal 10.minutes, result
+    end
+  end
+
+  test "parse_duration_config should parse hours format" do
+    user = build(:user)
+    Rails.application.secrets.users.stub :[], "2.hours", ["test_interval"] do
+      result = user.send(:parse_duration_config, "test_interval")
+      assert_equal 2.hours, result
+    end
+  end
+
+  test "parse_duration_config should parse days format" do
+    user = build(:user)
+    Rails.application.secrets.users.stub :[], "7.days", ["test_interval"] do
+      result = user.send(:parse_duration_config, "test_interval")
+      assert_equal 7.days, result
+    end
+  end
+
+  test "parse_duration_config should parse years format" do
+    user = build(:user)
+    Rails.application.secrets.users.stub :[], "1.year", ["test_interval"] do
+      result = user.send(:parse_duration_config, "test_interval")
+      assert_equal 1.year, result
+    end
+  end
+
+  test "parse_duration_config should handle integer seconds" do
+    user = build(:user)
+    Rails.application.secrets.users.stub :[], 300, ["test_interval"] do
+      result = user.send(:parse_duration_config, "test_interval")
+      assert_equal 300.seconds, result
+    end
+  end
+
+  test "parse_duration_config should fallback to safe default on invalid input" do
+    user = build(:user)
+    Rails.application.secrets.users.stub :[], "invalid", ["test_interval"] do
+      result = user.send(:parse_duration_config, "test_interval")
+      assert_equal 5.minutes, result # Default fallback
+    end
+  end
+
+  test "parse_duration_config should not execute arbitrary code" do
+    user = build(:user)
+    # Try to inject malicious code (should NOT execute)
+    Rails.application.secrets.users.stub :[], "system('rm -rf /'); 1.hour", ["test_interval"] do
+      result = user.send(:parse_duration_config, "test_interval")
+      # Should fallback to safe default, not execute system command
+      assert_equal 5.minutes, result
+    end
+  end
+
+  # ====================
   # NOTE: Additional methods not tested due to scope (focused on critical functionality)
   # ====================
   # - Geographic methods (vote_town, vote_province, vote_autonomy, etc.) - ~30 methods
