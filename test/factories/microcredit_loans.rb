@@ -1,8 +1,8 @@
 FactoryBot.define do
   factory :microcredit_loan do
-    association :microcredit, factory: :microcredit, strategy: :create
-    association :user, factory: :user, strategy: :create
-    association :microcredit_option, factory: :microcredit_option, strategy: :create
+    association :microcredit
+    association :user
+    association :microcredit_option
 
     amount { 100 }
     iban_account { "ES9121000418450200051332" }
