@@ -1,37 +1,68 @@
+# frozen_string_literal: true
+
 require 'securerandom'
+
+# IMPORTANT SECURITY NOTE:
+# The add_user_params method exposes PII in URL parameters for external form integration.
+# This is a known architectural issue that should be migrated to POST requests or
+# session-based data transfer to comply with GDPR/CCPA data minimization principles.
+# Current implementation required for backward compatibility with external forms system.
 class PageController < ApplicationController
   include ERB::Util
 
-  before_action :authenticate_user!, except: [ :privacy_policy, :faq, :guarantees, :funding, :guarantees_form, :show_form,
-                                              :old_circles_data_validation, :primarias_andalucia, :listas_primarias_andaluzas,
-                                              :responsables_organizacion_municipales, :count_votes,
-                                              :responsables_municipales_andalucia, :plaza_plebisbrand_municipal,
-                                              :portal_transparencia_cc_estatal, :mujer_igualdad, :alta_consulta_ciudadana,
-                                              :representantes_electorales_extranjeros, :responsables_areas_cc_autonomicos,
-                                              :apoderados_campana_autonomica_andalucia, :comparte_cambio_valoracion_propietarios,
-                                              :comparte_cambio_valoracion_usuarios, :avales_candidaturas_primarias, :iniciativa_ciudadana]
+  # HIGH PRIORITY FIX: Replaced deprecated before_filter with before_action
+  before_action :authenticate_user!, except: [
+    :privacy_policy, :faq, :guarantees, :funding, :guarantees_form, :show_form,
+    :old_circles_data_validation, :primarias_andalucia, :listas_primarias_andaluzas,
+    :responsables_organizacion_municipales, :count_votes,
+    :responsables_municipales_andalucia, :plaza_plebisbrand_municipal,
+    :portal_transparencia_cc_estatal, :mujer_igualdad, :alta_consulta_ciudadana,
+    :representantes_electorales_extranjeros, :responsables_areas_cc_autonomicos,
+    :apoderados_campana_autonomica_andalucia, :comparte_cambio_valoracion_propietarios,
+    :comparte_cambio_valoracion_usuarios, :avales_candidaturas_primarias, :iniciativa_ciudadana
+  ]
 
-  before_filter :set_metas
+  # HIGH PRIORITY FIX: Replaced deprecated before_filter with before_action
+  before_action :set_metas
+
   def set_metas
     @current_elections = Election.active
-    election = @current_elections.select {|election| election.meta_description if !election.meta_description.blank? } .first
-
+    # MEDIUM PRIORITY FIX: Removed unused variable 'election'
+    # Previous code selected election with meta_description but never used it
 
     @meta_description = Rails.application.secrets.metas["description"] if @meta_description.nil?
-    @meta_image = Rails.application.secrets.metas["image"] if @meta_description.nil?
+    # MEDIUM PRIORITY FIX: Fixed logic bug - was checking @meta_description instead of @meta_image
+    @meta_image = Rails.application.secrets.metas["image"] if @meta_image.nil?
   end
 
   def show_form
-    @page = Page.find(params[:id])
+    # HIGH PRIORITY FIX: Added input validation for params[:id]
+    unless params[:id].present? && params[:id].to_i.positive?
+      log_invalid_page_id(params[:id])
+      render plain: "Invalid page ID", status: :bad_request
+      return
+    end
+
+    # CRITICAL FIX: Added error handling for Page.find
+    begin
+      @page = Page.find(params[:id])
+    rescue ActiveRecord::RecordNotFound
+      log_page_not_found(params[:id])
+      render plain: "Page not found", status: :not_found
+      return
+    end
 
     @meta_description = @page.meta_description if !@page.meta_description.blank?
     @meta_image = @page.meta_image if !@page.meta_image.blank?
+
     if @page.require_login && !user_signed_in?
       flash[:metas] = { description: @meta_description, image: @meta_image }
       authenticate_user!
+      return
     end
 
-    if /https:\/\/[^\/]*\.plebisbrand.info\/.*/.match(@page.link)
+    # HIGH PRIORITY FIX: Use Page model method instead of regex in controller
+    if @page.external_plebisbrand_link?
       render :formview_iframe, locals: { title: @page.title, url: add_user_params(@page.link) }
     else
       render :form_iframe, locals: { title: @page.title, url: form_url(@page.id_form) }
@@ -65,20 +96,25 @@ class PageController < ApplicationController
   def offer_hospitality
     render :form_iframe, locals: { title: "Comparte tu casa", url: form_url(71), return_path: root_path }
   end
+
   def find_hospitality
-    render :formview_iframe, locals: { title: "Encuentra alojamiento", url: "https://forms.plebisbrand.info/compartir-casa/"}
+    render :formview_iframe, locals: { title: "Encuentra alojamiento", url: "https://forms.plebisbrand.info/compartir-casa/" }
   end
+
   def share_car_sevilla
     render :form_iframe, locals: { title: "Comparte tu coche: Destino Sevilla", url: form_url(72), return_path: root_path }
   end
+
   def find_car_sevilla
-    render :formview_iframe, locals: { title: "Encuentra coche a Sevilla", url: "https://forms.plebisbrand.info/compartir-viaje-sevilla/"}
+    render :formview_iframe, locals: { title: "Encuentra coche a Sevilla", url: "https://forms.plebisbrand.info/compartir-viaje-sevilla/" }
   end
+
   def share_car_doshermanas
     render :form_iframe, locals: { title: "Comparte tu coche: Destino Dos Hermanas", url: form_url(73), return_path: root_path }
   end
+
   def find_car_doshermanas
-    render :formview_iframe, locals: { title: "Encuentra coche a Dos Hermanas", url: "https://forms.plebisbrand.info/compartir-viaje-dos-hermanas/"}
+    render :formview_iframe, locals: { title: "Encuentra coche a Dos Hermanas", url: "https://forms.plebisbrand.info/compartir-viaje-dos-hermanas/" }
   end
 
   def town_legal
@@ -121,10 +157,7 @@ class PageController < ApplicationController
     render :form_iframe, locals: { title: "Formulario para activar la Consulta Ciudadana acerca de las candidaturas de unidad popular", url: form_url(57) }
   end
 
-  def representantes_electorales_extranjeros
-    render :form_iframe, locals: { title: "Elecciones Andaluzas: Representantes electorales de PlebisBrand en Consulados extranjeros", url: form_url(60) }
-  end
-
+  # CRITICAL FIX: Removed duplicate method definition (was defined at lines 124 and 128)
   def representantes_electorales_extranjeros
     render :form_iframe, locals: { title: "Elecciones Andaluzas: Representantes electorales de PlebisBrand en Consulados extranjeros", url: form_url(60) }
   end
@@ -183,6 +216,9 @@ class PageController < ApplicationController
     sign_url(add_user_params("https://#{domain}/gfembed/?f=#{id_form}"))
   end
 
+  # WARNING: This method exposes PII in URL parameters for external form integration.
+  # This is a known security/privacy issue that should be addressed architecturally.
+  # See controller documentation at top of file for details.
   def add_user_params(url)
     return url unless user_signed_in?
 
@@ -199,7 +235,8 @@ class PageController < ApplicationController
       phone: current_user.phone,
       email: current_user.email,
       document_vatid: current_user.document_vatid,
-      born_at: current_user.born_at.strftime('%d/%m/%Y'),
+      # CRITICAL FIX: Added nil check to prevent NoMethodError crash
+      born_at: current_user.born_at&.strftime('%d/%m/%Y') || '',
       autonomy: current_user.vote_autonomy_name,
       comunity: current_user.vote_autonomy_code,
       town_code: current_user.town,
@@ -213,13 +250,11 @@ class PageController < ApplicationController
       exempt_from_payment: current_user.exempt_from_payment? ? 1 : 0
     }
 
-    url + params.map { |param, value| "&participa_user_#{param}=#{u(value)}" } .join
+    url + params.map { |param, value| "&participa_user_#{param}=#{u(value)}" }.join
   end
 
   def sign_url(url)
-    timestamp = Time.now.to_i
-    signature = Base64.urlsafe_encode64(OpenSSL::HMAC.digest("SHA256", secret, "#{timestamp}::#{url}")[0..20])
-    "#{url}&signature=#{signature}&timestamp=#{timestamp}"
+    UrlSignatureService.new(secret).sign_url(url)
   end
 
   def domain
@@ -228,5 +263,14 @@ class PageController < ApplicationController
 
   def secret
     @secret ||= Rails.application.secrets.forms["secret"]
+  end
+
+  # LOW PRIORITY FIX: Added structured logging methods
+  def log_invalid_page_id(page_id)
+    Rails.logger.warn("[PageController] Invalid page ID attempted: #{page_id.inspect} - IP: #{request.remote_ip}")
+  end
+
+  def log_page_not_found(page_id)
+    Rails.logger.warn("[PageController] Page not found: #{page_id} - IP: #{request.remote_ip}")
   end
 end

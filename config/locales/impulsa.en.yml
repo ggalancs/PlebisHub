@@ -1,0 +1,25 @@
+en:
+  impulsa:
+    errors:
+      generic: "An error has occurred. Please try again."
+      step_load_failed: "The wizard step could not be loaded."
+      save_failed: "The project could not be saved."
+      cannot_mark_for_review: "The project cannot be marked for review."
+      review_failed: "An error occurred while marking the project for review."
+      delete_failed: "An error occurred while processing your request."
+      cannot_delete: "The project could not be deleted."
+      cannot_resign: "The project resignation could not be recorded."
+      step_save_failed: "The wizard step could not be saved."
+      invalid_field: "The specified field is not valid. Please reload the page and try again."
+      no_file_provided: "No file was provided."
+      upload_failed: "An error occurred while uploading the file."
+      wrong_extension: "The uploaded file type is not correct."
+      wrong_size: "The uploaded file size exceeds the allowed limit."
+      wrong_field_upload: "The uploaded file does not correspond to any field. Please reload the page and try uploading it again."
+      wrong_field_delete: "The specified file does not correspond to any field. Please reload the page and try deleting it again."
+      unauthorized: "You do not have permission to access this project."
+      invalid_step: "The specified wizard step is not valid."
+    messages:
+      marked_for_review: "The project has been marked for review."
+      project_deleted: "The project has been deleted."
+      resignation_recorded: "Your project resignation has been recorded."

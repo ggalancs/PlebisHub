@@ -1,0 +1,15 @@
+es:
+  microcredit:
+    errors:
+      configuration_error: "Error de configuración del sistema. Por favor, contacta al administrador."
+      initialization_failed: "No se pudo inicializar el sistema de microcréditos."
+      invalid_id: "El identificador del microcrédito no es válido."
+      not_found: "El microcrédito solicitado no existe."
+      load_failed: "No se pudo cargar el formulario de préstamo."
+      creation_failed: "No se pudo crear el préstamo. Por favor, inténtalo de nuevo."
+      save_failed: "No se pudo guardar el préstamo. Verifica los datos introducidos."
+      listing_failed: "No se pudieron cargar los microcréditos disponibles."
+      renewal_failed: "No se pudo procesar la renovación del préstamo."
+      options_failed: "No se pudieron cargar las opciones del microcrédito."
+    new_loan:
+      created_email_pending: "Tu préstamo se ha creado correctamente. Recibirás un correo de confirmación en breve."

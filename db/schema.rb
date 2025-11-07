@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_11_05_121626) do
+ActiveRecord::Schema[7.2].define(version: 2025_11_06_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -556,6 +556,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_05_121626) do
     t.string "visualization"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.jsonb "transformation_rules"
+    t.string "transform_type"
+    t.index ["transform_type"], name: "index_report_groups_on_transform_type"
   end
 
   create_table "reports", force: :cascade do |t|
@@ -585,6 +588,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_05_121626) do
     t.boolean "active"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.jsonb "rules_json"
+    t.string "filter_type"
+    t.index ["filter_type"], name: "index_spam_filters_on_filter_type"
   end
 
   create_table "supports", force: :cascade do |t|

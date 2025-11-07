@@ -1,2 +1,2 @@
-module PlebisHubtionTeamsHelper
+module ParticipationTeamsHelper
 end

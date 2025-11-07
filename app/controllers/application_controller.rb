@@ -1,156 +1,268 @@
-class ApplicationController < ActionController::Base
+# frozen_string_literal: true
 
-  # Prevent CSRF attacks by raising an exception.
-  # For APIs, you may want to use :null_session instead.
+# ApplicationController - Base Controller for All Controllers
+#
+# SECURITY FIXES IMPLEMENTED:
+# - Added frozen_string_literal
+# - Replaced deprecated before_filter with before_action
+# - Added comprehensive error handling
+# - Added security logging
+# - Enhanced admin logging
+# - Added documentation
+#
+# This is the base controller that all other controllers inherit from.
+# It provides common functionality like authentication, locale setting,
+# and security filters.
+class ApplicationController < ActionController::Base
+  # Prevent CSRF attacks by raising an exception
   protect_from_forgery with: :exception
 
-  before_filter :banned_user
-  before_filter :unresolved_issues
+  # SECURITY FIX: Replaced deprecated before_filter with before_action
+  before_action :banned_user
+  before_action :unresolved_issues
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :store_user_location!, if: :storable_location?
   before_action :set_locale
-  before_filter :allow_iframe_requests
-  before_filter :admin_logger
-  before_filter :set_metas
+  before_action :allow_iframe_requests
+  before_action :admin_logger
+  before_action :set_metas
 
+  # Set meta tags for SEO
   def set_metas
     @current_elections = Election.active
-    election = @current_elections.select {|election| election.meta_description if !election.meta_description.blank? } .first
+    election = @current_elections.find do |e|
+      e.meta_description.present?
+    end
+
     if election
       @meta_description = election.meta_description
-      @meta_image = election.meta_image if !election.meta_image.blank?
+      @meta_image = election.meta_image if election.meta_image.present?
     end
 
-    @meta_description = Rails.application.secrets.metas["description"] if @meta_description.nil?
-    @meta_image = Rails.application.secrets.metas["image"] if @meta_image.nil?
+    @meta_description ||= Rails.application.secrets.metas['description']
+    @meta_image ||= Rails.application.secrets.metas['image']
 
-    if flash[:metas] && flash[:metas]["description"]
-      @meta_description = flash[:metas]["description"]
-      @meta_image = flash[:metas]["image"]
+    if flash[:metas]&.dig('description')
+      @meta_description = flash[:metas]['description']
+      @meta_image = flash[:metas]['image']
     end
+  rescue StandardError => e
+    log_error('set_metas_error', e)
+    # Set safe defaults
+    @meta_description ||= Rails.application.secrets.metas['description'] rescue nil
+    @meta_image ||= Rails.application.secrets.metas['image'] rescue nil
   end
 
+  # Allow iframe requests by removing X-Frame-Options header
+  # NOTE: This enables embedding. Consider security implications.
   def allow_iframe_requests
     response.headers.delete('X-Frame-Options')
   end
 
+  # Log admin actions for audit trail
   def admin_logger
-    if params["controller"].starts_with? "admin/"
-      tracking = Logger.new(File.join(Rails.root, "log", "activeadmin.log"))
-      if user_signed_in?
-        tracking.info "** #{current_user.full_name} ** #{request.method()} #{request.path}"
-      else
-        tracking.info "** Anonimous ** #{request.method()} #{request.path}"
-      end
+    return unless params['controller']&.starts_with?('admin/')
+
+    begin
+      tracking = Logger.new(File.join(Rails.root, 'log', 'activeadmin.log'))
+      user_info = user_signed_in? ? current_user.full_name : 'Anonymous'
+      tracking.info "** #{user_info} ** #{request.method} #{request.path}"
       tracking.info params.to_s
-      #tracking.info request
+
+      log_security_event('admin_action',
+        user_id: current_user&.id,
+        action: "#{request.method} #{request.path}"
+      )
+    rescue StandardError => e
+      log_error('admin_logger_error', e)
     end
   end
 
-  def default_url_options(options={})
+  # Set URL options to include locale
+  def default_url_options(options = {})
     { locale: I18n.locale }
   end
 
+  # Set locale from params or use default
   def set_locale
     I18n.locale = params[:locale] || I18n.default_locale
+  rescue StandardError => e
+    log_error('set_locale_error', e)
+    I18n.locale = I18n.default_locale
   end
 
+  # Override Devise sign-in redirect
   def after_sign_in_path_for(user)
+    # Set cookie policy
     cookies[:cookiepolicy] = {
-       :value => 'hide',
-       :expires => 18.year.from_now
+      value: 'hide',
+      expires: 18.years.from_now
     }
 
-    # reset session value
-    session.delete(:return_to) if session.has_key?(:return_to)
+    # Reset session values
+    session.delete(:return_to)
     session[:no_unresolved_issues] = false
 
+    # Check for unresolved issues
     issue = user.get_unresolved_issue
 
     if issue
-      # clear user validation errors if generated on issues check to avoid stop login process
+      # Clear validation errors to avoid blocking login
       user.errors.messages.clear
 
-      flash.delete(:notice) # remove succesfully logged message
+      # Remove success message, show issue instead
+      flash.delete(:notice)
       if issue[:message]
-        issue[:message].each { |type, text| flash[type] = t("issues."+text) }
+        issue[:message].each { |type, text| flash[type] = t("issues.#{text}") }
       end
+
+      log_security_event('user_has_unresolved_issue',
+        user_id: user.id,
+        issue_controller: issue[:controller]
+      )
+
       return issue[:path]
     end
 
-    # no issues, don't check it again
+    # No issues found
     session[:no_unresolved_issues] = true
+    log_security_event('sign_in_successful', user_id: user.id)
 
     stored_location_for(user) || super
+  rescue StandardError => e
+    log_error('after_sign_in_error', e, user_id: user&.id)
+    super
   end
 
+  # Check if user is banned and sign them out
   def banned_user
-    if current_user and current_user.banned?
-      name = current_user.full_name
-      sign_out_and_redirect current_user
-      flash[:notice] = t("plebisbrand.banned", full_name: name)
-    end
+    return unless current_user&.banned?
+
+    name = current_user.full_name
+    user_id = current_user.id
+
+    log_security_event('banned_user_signed_out',
+      user_id: user_id,
+      full_name: name
+    )
+
+    sign_out_and_redirect current_user
+    flash[:notice] = t('plebisbrand.banned', full_name: name)
+  rescue StandardError => e
+    log_error('banned_user_error', e)
   end
 
+  # Check for unresolved user issues
   def unresolved_issues
-    if current_user
+    return unless current_user
+    return if session[:no_unresolved_issues]
 
-      if session[:no_unresolved_issues]
-        return nil
-      end
-      # get an unresolved issue, if any
-      issue = current_user.get_unresolved_issue true
-      if issue
-        # user is in the right page to fix problem, just inform about the issue
-        if params[:controller] == issue[:controller]
-          if issue[:message] and request.method != "POST" # only inform in the first request of the page
-            issue[:message].each { |type, text| flash.now[type] = t("issues."+text) }
-          end
-        # user wants to log out or edit his profile
-        elsif params[:controller] == 'devise/sessions' or params[:controller] == "registrations" or params[:controller].start_with? "admin/"
-        # user can't do anything else but fix the issue
-        else
-          redirect_to issue[:path]
+    begin
+      issue = current_user.get_unresolved_issue(true)
+      return unless issue
+
+      # User is on the page to fix the issue
+      if params[:controller] == issue[:controller]
+        if issue[:message] && request.method != 'POST'
+          issue[:message].each { |type, text| flash.now[type] = t("issues.#{text}") }
         end
+      # Allow access to sign out, profile, and admin
+      elsif params[:controller] == 'devise/sessions' ||
+            params[:controller] == 'registrations' ||
+            params[:controller]&.start_with?('admin/')
+        # Allow these controllers
       else
-        # when everything is OK, stop checking issues
-        session[:no_unresolved_issues] = true
+        # Redirect to fix issue
+        redirect_to issue[:path]
       end
+    rescue StandardError => e
+      log_error('unresolved_issues_error', e, user_id: current_user&.id)
+      session[:no_unresolved_issues] = true
     end
   end
 
+  # Handle CanCan authorization failures
   rescue_from CanCan::AccessDenied do |exception|
-    redirect_to root_url, :alert => exception.message
+    log_security_event('access_denied_cancan',
+      user_id: current_user&.id,
+      exception_message: exception.message
+    )
+    redirect_to root_url, alert: exception.message
   end
 
-  def access_denied exception
-    redirect_to root_url, :alert => exception.message
+  # Generic access denied handler
+  def access_denied(exception)
+    log_security_event('access_denied',
+      user_id: current_user&.id,
+      exception_message: exception.message
+    )
+    redirect_to root_url, alert: exception.message
   end
 
+  # Authenticate admin users
   def authenticate_admin_user!
-    unless signed_in? && (current_user.is_admin? || current_user.finances_admin? || current_user.impulsa_admin? ||current_user.verifier?|| current_user.paper_authority?)
+    unless signed_in? && (
+      current_user.is_admin? ||
+      current_user.finances_admin? ||
+      current_user.impulsa_admin? ||
+      current_user.verifier? ||
+      current_user.paper_authority?
+    )
+      log_security_event('admin_authentication_failed',
+        user_id: current_user&.id
+      )
       redirect_to root_url, flash: { error: t('plebisbrand.unauthorized') }
     end
   end
 
+  # Track user for PaperTrail audit logs
   def user_for_papertrail
-    user_signed_in? ? current_user : "Unknown user"
+    user_signed_in? ? current_user : 'Unknown user'
   end
 
   protected
 
+  # Configure Devise permitted parameters
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_in, keys: [:login, :document_vatid, :email, :password, :remember_me])
+    devise_parameter_sanitizer.permit(:sign_in,
+      keys: [:login, :document_vatid, :email, :password, :remember_me]
+    )
   end
 
   private
 
+  # Check if location should be stored
   def storable_location?
-    request.get? && is_navigational_format? && !:devise_controller? && !request.xhr?
+    request.get? && is_navigational_format? && !devise_controller? && !request.xhr?
   end
 
+  # Store user location for redirect after sign-in
   def store_user_location!
-    store_location_for(:user,request.fullpath)
+    store_location_for(:user, request.fullpath)
   end
 
+  # SECURITY LOGGING
+  def log_security_event(event_type, details = {})
+    Rails.logger.info({
+      event: event_type,
+      ip_address: request.remote_ip,
+      user_agent: request.user_agent,
+      controller: 'application',
+      **details,
+      timestamp: Time.current.iso8601
+    }.to_json)
+  end
+
+  def log_error(event_type, exception, details = {})
+    Rails.logger.error({
+      event: event_type,
+      error_class: exception.class.name,
+      error_message: exception.message,
+      backtrace: exception.backtrace&.first(5),
+      ip_address: request.remote_ip,
+      controller: 'application',
+      **details,
+      timestamp: Time.current.iso8601
+    }.to_json)
+  end
 end

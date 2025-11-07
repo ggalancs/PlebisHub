@@ -19,6 +19,27 @@ FactoryBot.define do
       comment { "Verification rejected" }
     end
 
+    trait :issues do
+      status { :issues }
+      processed_at { 1.day.ago }
+      comment { "Issues found with verification" }
+    end
+
+    trait :accepted_by_email do
+      status { :accepted_by_email }
+      processed_at { 1.day.ago }
+    end
+
+    trait :discarded do
+      status { :discarded }
+      processed_at { 1.day.ago }
+    end
+
+    trait :paused do
+      status { :paused }
+      processed_at { 1.day.ago }
+    end
+
     trait :with_card do
       wants_card { true }
       born_at { 25.years.ago }

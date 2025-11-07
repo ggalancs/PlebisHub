@@ -1,0 +1,25 @@
+es:
+  impulsa:
+    errors:
+      generic: "Ha ocurrido un error. Por favor, inténtalo de nuevo."
+      step_load_failed: "No se ha podido cargar el paso del wizard."
+      save_failed: "No se ha podido guardar el proyecto."
+      cannot_mark_for_review: "El proyecto no puede ser marcado para ser revisado."
+      review_failed: "Ha ocurrido un error al marcar el proyecto para revisión."
+      delete_failed: "Ha ocurrido un error al procesar tu solicitud."
+      cannot_delete: "El proyecto no ha podido ser borrado."
+      cannot_resign: "No se ha podido registrar la renuncia al proyecto."
+      step_save_failed: "No se ha podido guardar el paso del wizard."
+      invalid_field: "El campo indicado no es válido. Por favor, recarga la página e inténtalo nuevamente."
+      no_file_provided: "No se ha proporcionado ningún archivo."
+      upload_failed: "Ha ocurrido un error al subir el archivo."
+      wrong_extension: "El tipo de fichero subido no es correcto."
+      wrong_size: "El tamaño del fichero subido supera el límite permitido."
+      wrong_field_upload: "El fichero subido no corresponde a ningún campo. Por favor, recarga la página e intenta subirlo nuevamente."
+      wrong_field_delete: "El fichero indicado no corresponde a ningún campo. Por favor, recarga la página e intenta borrarlo nuevamente."
+      unauthorized: "No tienes permisos para acceder a este proyecto."
+      invalid_step: "El paso del wizard indicado no es válido."
+    messages:
+      marked_for_review: "El proyecto ha sido marcado para ser revisado."
+      project_deleted: "El proyecto ha sido borrado."
+      resignation_recorded: "Tu renuncia a realizar el proyecto ha sido registrada."
