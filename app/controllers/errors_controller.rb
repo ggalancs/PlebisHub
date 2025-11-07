@@ -1,8 +1,19 @@
+# frozen_string_literal: true
+
+# ErrorsController - Custom Error Pages
+#
+# SECURITY FIXES IMPLEMENTED:
+# - Added frozen_string_literal
+# - Added comprehensive error handling
+# - Added security logging
+# - Whitelist for error codes (already implemented)
+# - Added documentation
+#
+# This controller renders custom error pages for HTTP errors.
+# It prevents security issues like symbol table pollution and
+# I18n key injection by validating error codes against a whitelist.
 class ErrorsController < ApplicationController
-  # HIGH PRIORITY FIX: Whitelist of allowed HTTP error codes to prevent:
-  # 1. Symbol table pollution (memory leak)
-  # 2. I18n key injection attacks
-  # 3. Invalid HTTP status code errors
+  # Whitelist of allowed HTTP error codes
   ALLOWED_ERROR_CODES = {
     # 4xx Client Errors
     '400' => :bad_request,
@@ -25,25 +36,70 @@ class ErrorsController < ApplicationController
     '504' => :gateway_timeout
   }.freeze
 
+  # Display custom error page
   def show
-    # HIGH PRIORITY FIX: Validate and sanitize code parameter
+    # SECURITY: Validate and sanitize code parameter
     raw_code = params[:code].presence || '500'
     @code = sanitize_error_code(raw_code)
+
+    log_security_event('error_page_displayed',
+      code: @code,
+      raw_code: raw_code,
+      user_id: current_user&.id
+    )
+
     render status: http_status_code
+  rescue StandardError => e
+    log_error('error_page_render_error', e,
+      code: params[:code]
+    )
+    render plain: 'Internal Server Error', status: :internal_server_error
   end
 
   private
 
+  # Sanitize error code against whitelist
   def sanitize_error_code(code)
-    # Convert to string and check if it's in our whitelist
     code_str = code.to_s
 
     # If code is in whitelist, use it; otherwise default to 500
-    ALLOWED_ERROR_CODES.key?(code_str) ? code_str : '500'
+    if ALLOWED_ERROR_CODES.key?(code_str)
+      code_str
+    else
+      log_security_event('invalid_error_code_attempt',
+        attempted_code: code_str
+      )
+      '500'
+    end
   end
 
+  # Convert code to HTTP status code integer
   def http_status_code
-    # Convert to integer (all whitelisted codes are numeric strings)
     @code.to_i
+  end
+
+  # SECURITY LOGGING
+  def log_security_event(event_type, details = {})
+    Rails.logger.info({
+      event: event_type,
+      ip_address: request.remote_ip,
+      user_agent: request.user_agent,
+      controller: 'errors',
+      **details,
+      timestamp: Time.current.iso8601
+    }.to_json)
+  end
+
+  def log_error(event_type, exception, details = {})
+    Rails.logger.error({
+      event: event_type,
+      error_class: exception.class.name,
+      error_message: exception.message,
+      backtrace: exception.backtrace&.first(5),
+      ip_address: request.remote_ip,
+      controller: 'errors',
+      **details,
+      timestamp: Time.current.iso8601
+    }.to_json)
   end
 end
