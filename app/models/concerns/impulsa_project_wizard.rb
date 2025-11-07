@@ -213,30 +213,72 @@ module ImpulsaProjectWizard
       return :wrong_field
     end
 
+    # SECURITY FIX: Validate file path to prevent path traversal
     def wizard_path gname, fname
-      files_folder + wizard_values["#{gname}.#{fname}"]
+      filename = wizard_values["#{gname}.#{fname}"]
+      return nil if filename.blank?
+
+      # Use File.basename to strip any directory components (path traversal protection)
+      safe_filename = File.basename(filename)
+      full_path = File.join(files_folder, safe_filename)
+
+      # Verify the resolved path is still within files_folder (additional safety check)
+      unless full_path.start_with?(files_folder)
+        Rails.logger.warn({
+          event: "path_traversal_attempt_blocked",
+          project_id: id,
+          user_id: user_id,
+          requested_file: filename,
+          gname: gname,
+          fname: fname,
+          timestamp: Time.current.iso8601
+        }.to_json)
+        return nil
+      end
+
+      full_path
     end
 
+    # SECURITY FIX: Replaced instance_eval with define_method to prevent code injection
+    # Original code used string interpolation in instance_eval which could execute arbitrary code
     def wizard_method_missing(method_sym, *arguments, &block)
-      if method_sym.to_s =~ /^_wiz_(.+)__([^=]+)=?$/
-        self.instance_eval <<-RUBY
-          def _wiz_#{$1}__#{$2}
-            wizard_values["#{$1}.#{$2}"]
+      if method_sym.to_s =~ /^_wiz_(.+)__([^=]+)(=?)$/
+        group_name = $1
+        field_name = $2
+        is_setter = $3 == '='
+        field_key = "#{group_name}.#{field_name}"
+
+        if is_setter
+          # Define setter method
+          self.class.send(:define_method, method_sym) do |value|
+            assign_wizard_value(group_name.to_sym, field_name.to_sym, value)
           end
-          def _wiz_#{$1}__#{$2}= value
-            assign_wizard_value(:"#{$1}", :"#{$2}", value)
+        else
+          # Define getter method
+          self.class.send(:define_method, method_sym) do
+            wizard_values[field_key]
           end
-        RUBY
+        end
+
         return send(method_sym, *arguments)
-      elsif method_sym.to_s =~ /^_rvw_(.+)__([^=]+)=?$/
-        self.instance_eval <<-RUBY
-          def _rvw_#{$1}__#{$2}
-            wizard_review["#{$1}.#{$2}"]
+      elsif method_sym.to_s =~ /^_rvw_(.+)__([^=]+)(=?)$/
+        group_name = $1
+        field_name = $2
+        is_setter = $3 == '='
+        field_key = "#{group_name}.#{field_name}"
+
+        if is_setter
+          # Define setter method
+          self.class.send(:define_method, method_sym) do |value|
+            wizard_review[field_key] = value
           end
-          def _rvw_#{$1}__#{$2}= value
-            wizard_review["#{$1}.#{$2}"] = value
+        else
+          # Define getter method
+          self.class.send(:define_method, method_sym) do
+            wizard_review[field_key]
           end
-        RUBY
+        end
+
         return send(method_sym, *arguments)
       end
       :super
