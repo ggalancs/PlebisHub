@@ -1,6 +1,22 @@
+# frozen_string_literal: true
+
+# VoteController - Electronic Voting System
+#
+# CRITICAL SECURITY NOTICE:
+# This controller manages electronic voting for democratic processes.
+# Any security vulnerability could compromise election integrity.
+#
+# Security measures implemented:
+# - Timing-safe token comparison (secure_compare)
+# - Comprehensive input validation
+# - Complete error handling with logging
+# - Authorization logging
+#
 class VoteController < ApplicationController
   layout "full", only: [:create]
   before_action :authenticate_user!, except: [:election_votes_count, :election_location_votes_count]
+  before_action :validate_election_id, only: [:send_sms_check, :sms_check, :create, :create_token, :check, :election_votes_count, :paper_vote]
+  before_action :validate_election_location_id, only: [:election_location_votes_count, :paper_vote]
 
   helper_method :election, :election_location, :paper_vote_user, :validation_token_for_paper_vote_user, :paper_authority_votes_count
 

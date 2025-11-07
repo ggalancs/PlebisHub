@@ -1,0 +1,21 @@
+es:
+  vote:
+    sms_check:
+      sent: "El código ha sido enviado a tu teléfono móvil."
+      rate_limited: "Ya se ha solicitado un código recientemente."
+      invalid_token: "El código introducido es incorrecto."
+    errors:
+      sms_check_failed: "No se pudo enviar el código de verificación. Por favor, inténtalo más tarde."
+      create_failed: "No se pudo procesar tu voto. Por favor, inténtalo más tarde."
+      check_failed: "No se pudo verificar tu elegibilidad para votar."
+      invalid_election: "La elección seleccionada no es válida."
+      invalid_location: "La ubicación de votación no es válida."
+      invalid_document_type: "El tipo de documento no es válido."
+      invalid_document_format: "El formato del documento no es válido."
+      election_closed: "Ha llegado la fecha límite para votar. La votación está cerrada."
+      user_not_eligible: "Tu usuario no tiene la antigüedad requerida para participar en esta votación."
+      verification_required: "Para esta votación es necesario que verifiques tu identidad"
+      census_file_error: "Error al procesar el archivo de censo. Por favor, contacta al administrador."
+      paper_vote_failed: "No se pudo procesar el voto en papel. Por favor, inténtalo de nuevo."
+    paper_vote:
+      user_not_found: "No se han encontrado usuarios con el documento dado."
