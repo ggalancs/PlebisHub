@@ -45,12 +45,12 @@ RSpec.describe AudioCaptchaController, type: :controller do
 
         # Allow all I18n translations by default, stub only specific captcha letters
         allow(I18n).to receive(:t).and_call_original
-        allow(I18n).to receive(:t).with("simple_captcha.letters.A").and_return("A")
-        allow(I18n).to receive(:t).with("simple_captcha.letters.B").and_return("Be")
-        allow(I18n).to receive(:t).with("simple_captcha.letters.C").and_return("Ce")
-        allow(I18n).to receive(:t).with("simple_captcha.letters.1").and_return("uno")
-        allow(I18n).to receive(:t).with("simple_captcha.letters.2").and_return("dos")
-        allow(I18n).to receive(:t).with("simple_captcha.letters.3").and_return("tres")
+        allow(I18n).to receive(:t).with("simple_captcha.letters.A", default: "A").and_return("A")
+        allow(I18n).to receive(:t).with("simple_captcha.letters.B", default: "B").and_return("Be")
+        allow(I18n).to receive(:t).with("simple_captcha.letters.C", default: "C").and_return("Ce")
+        allow(I18n).to receive(:t).with("simple_captcha.letters.1", default: "1").and_return("uno")
+        allow(I18n).to receive(:t).with("simple_captcha.letters.2", default: "2").and_return("dos")
+        allow(I18n).to receive(:t).with("simple_captcha.letters.3", default: "3").and_return("tres")
 
         # Mock ESpeak::Speech
         allow(ESpeak::Speech).to receive(:new).and_return(mock_speech)
@@ -136,14 +136,12 @@ RSpec.describe AudioCaptchaController, type: :controller do
     end
 
     context "with missing captcha_key parameter" do
-      it "attempts to get captcha value with nil key" do
-        expect(SimpleCaptcha::Utils).to receive(:simple_captcha_value).with(nil)
+      it "returns 404 when captcha_key is missing" do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value).with(nil)
           .and_return(nil)
 
-        # This will likely fail - controller doesn't handle nil properly
-        expect {
-          get :index
-        }.to raise_error
+        get :index
+        expect(response).to have_http_status(:not_found)
       end
     end
 
@@ -157,11 +155,9 @@ RSpec.describe AudioCaptchaController, type: :controller do
           .and_return(nil)
       end
 
-      it "returns nil for captcha_value" do
-        # This will likely fail - controller doesn't handle nil captcha_value
-        expect {
-          get :index, params: { captcha_key: invalid_key }
-        }.to raise_error
+      it "returns 404 when captcha_value is nil" do
+        get :index, params: { captcha_key: invalid_key }
+        expect(response).to have_http_status(:not_found)
       end
     end
 
@@ -172,10 +168,9 @@ RSpec.describe AudioCaptchaController, type: :controller do
           .and_return(nil)
       end
 
-      it "handles empty string captcha_key" do
-        expect {
-          get :index, params: { captcha_key: "" }
-        }.to raise_error
+      it "returns 404 for empty string captcha_key" do
+        get :index, params: { captcha_key: "" }
+        expect(response).to have_http_status(:not_found)
       end
     end
 
@@ -196,13 +191,21 @@ RSpec.describe AudioCaptchaController, type: :controller do
         end
       end
 
-      it "does not escape the audio directory with path traversal" do
+      it "sanitizes path traversal attempts and saves file safely" do
+        # The file should be saved with sanitized filename (basename only)
+        safe_filename = File.basename(malicious_key)
+        safe_path = "#{file_dir}/#{safe_filename}.mp3"
+
+        # Verify that save is called with the sanitized path, not the dangerous one
+        expect(mock_speech).to receive(:save).with(safe_path) do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          File.write(path, "fake audio")
+        end
+
         get :index, params: { captcha_key: malicious_key }
 
-        # The file path should be sanitized or the request should be rejected
-        # Currently, this is a vulnerability
-        generated_path = "#{file_dir}/#{malicious_key}.mp3"
-        expect(generated_path).to include("../")  # Demonstrates the vulnerability
+        expect(response).to have_http_status(:success)
+        expect(File.exist?(safe_path)).to be true
       end
     end
 
@@ -328,6 +331,88 @@ RSpec.describe AudioCaptchaController, type: :controller do
         end
 
         expect(speeds.uniq.length).to be >= 1
+      end
+    end
+
+    context "I18n fallback behavior" do
+      let(:captcha_with_missing_translation) { "XYZ" }
+
+      before do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return(captcha_with_missing_translation)
+
+        # Mock I18n to return translation_missing for some letters
+        allow(I18n).to receive(:t).and_call_original
+        allow(I18n).to receive(:t).with("simple_captcha.letters.X", default: "X").and_return("X")
+        allow(I18n).to receive(:t).with("simple_captcha.letters.Y", default: "Y").and_return("Y")
+        allow(I18n).to receive(:t).with("simple_captcha.letters.Z", default: "Z").and_return("Z")
+
+        allow(ESpeak::Speech).to receive(:new).and_return(mock_speech)
+        allow(mock_speech).to receive(:save) do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          File.write(path, "fake audio")
+        end
+      end
+
+      it "uses fallback when I18n translation is missing" do
+        get :index, params: { captcha_key: captcha_key }
+        expect(response).to have_http_status(:success)
+
+        # Verify ESpeak was called with the fallback letters
+        expect(ESpeak::Speech).to have_received(:new).with("X Y Z", anything)
+      end
+    end
+
+    context "cleanup of old audio files" do
+      before do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return(captcha_value)
+
+        allow(I18n).to receive(:t).and_call_original
+        allow(I18n).to receive(:t).with(/^simple_captcha\.letters\./).and_return("test")
+        allow(ESpeak::Speech).to receive(:new).and_return(mock_speech)
+        allow(mock_speech).to receive(:save) do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          File.write(path, "fake audio")
+        end
+      end
+
+      it "deletes audio files older than 1 hour" do
+        # Create old files
+        old_file = "#{file_dir}/old_captcha.mp3"
+        FileUtils.mkdir_p(file_dir)
+        File.write(old_file, "old audio")
+
+        # Set file modification time to 2 hours ago
+        old_time = Time.now - 2.hours
+        File.utime(old_time, old_time, old_file)
+
+        expect(File.exist?(old_file)).to be true
+
+        get :index, params: { captcha_key: captcha_key }
+
+        # Old file should be deleted
+        expect(File.exist?(old_file)).to be false
+      end
+
+      it "keeps audio files newer than 1 hour" do
+        # Create recent file
+        recent_file = "#{file_dir}/recent_captcha.mp3"
+        FileUtils.mkdir_p(file_dir)
+        File.write(recent_file, "recent audio")
+
+        # Set file modification time to 30 minutes ago
+        recent_time = Time.now - 30.minutes
+        File.utime(recent_time, recent_time, recent_file)
+
+        expect(File.exist?(recent_file)).to be true
+
+        get :index, params: { captcha_key: captcha_key }
+
+        # Recent file should still exist
+        expect(File.exist?(recent_file)).to be true
       end
     end
   end

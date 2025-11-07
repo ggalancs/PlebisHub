@@ -218,13 +218,62 @@
 
 ---
 
+## Security & Quality Checklist
+
+**APPLY TO EVERY CONTROLLER** - Issues discovered during AudioCaptchaController testing:
+
+### 1. Input Validation (HIGH PRIORITY)
+- [ ] **Nil/Empty Parameter Checks**: Validate all required parameters are present before processing
+  - Return appropriate HTTP status (404, 422, etc.) when parameters are missing/invalid
+  - Example: `unless captcha_value.present?; head :not_found; return; end`
+- [ ] **Type Validation**: Ensure parameters are of expected type before use
+
+### 2. Path Traversal Security (HIGH PRIORITY - SECURITY)
+- [ ] **File Path Sanitization**: All user-provided inputs used in file paths MUST be sanitized
+  - Use `File.basename()` to strip directory components
+  - Never directly interpolate user input into file paths
+  - Example: `"#{dir}/#{File.basename(params[:key])}.ext"`
+- [ ] **Directory Traversal Prevention**: Verify files are created/accessed within expected directories
+- [ ] **Test Coverage**: Include security tests for path traversal attempts
+
+### 3. I18n Translation Handling (MEDIUM PRIORITY)
+- [ ] **Fallback Values**: Always provide fallback for missing translations
+  - Use `default:` parameter in `I18n.t()` calls
+  - Example: `I18n.t("key.#{value}", default: value)`
+- [ ] **Graceful Degradation**: Application should work even if translations are missing
+
+### 4. Resource Cleanup (LOW PRIORITY)
+- [ ] **Temporary File Management**: Implement cleanup for temporary files
+  - Delete files after use or on a schedule
+  - Prevent disk space exhaustion
+  - Example: Cleanup files older than N hours/days
+- [ ] **Error Handling**: Cleanup should not fail the main request
+  - Use `rescue` blocks with logging
+  - Continue processing even if cleanup fails
+
+### 5. Additional Security Checks
+- [ ] **SQL Injection**: Use parameterized queries, never string interpolation
+- [ ] **XSS Prevention**: Sanitize user input displayed in views
+- [ ] **CSRF Protection**: Verify CSRF tokens for state-changing actions
+- [ ] **Mass Assignment**: Use strong parameters for all user input
+- [ ] **Authorization**: Verify user has permission for the action
+
+### 6. Test Coverage Requirements
+- [ ] **Success Cases**: Happy path with valid data
+- [ ] **Edge Cases**: Empty, nil, invalid, boundary values
+- [ ] **Security Cases**: Path traversal, injection attempts, unauthorized access
+- [ ] **Error Handling**: How does controller behave on errors?
+- [ ] **Integration**: Test with mocked external dependencies
+
+---
+
 ## Testing Strategy
 
 ### Phase 1: Simple Controllers (Foundation)
-1. ErrorsController
-2. AudioCaptchaController
-3. ToolsController
-4. ParticipationTeamsController
+1. ✅ ErrorsController - **COMPLETED** (32 tests passing)
+2. ✅ AudioCaptchaController - **COMPLETED** (24 tests passing, 4 issues fixed)
+3. ⏭️ ToolsController
+4. ⏭️ ParticipationTeamsController
 
 ### Phase 2: Medium Controllers
 5. NoticeController
