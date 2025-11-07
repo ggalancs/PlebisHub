@@ -115,10 +115,10 @@ RSpec.describe ErrorsController, type: :controller do
       end
     end
 
-    context "when code parameter is a symbolic string" do
-      it "assigns @code to the string value" do
+    context "when code parameter is an invalid symbolic string" do
+      it "sanitizes to default '500' (SECURITY FIX: prevents symbol table pollution)" do
         get :show, params: { code: "not_found" }
-        expect(assigns(:code)).to eq("not_found")
+        expect(assigns(:code)).to eq("500")
       end
 
       it "renders the show template" do
@@ -126,16 +126,16 @@ RSpec.describe ErrorsController, type: :controller do
         expect(response).to render_template(:show)
       end
 
-      it "converts the string to a symbol for status" do
+      it "returns http status 500 (invalid codes default to 500)" do
         get :show, params: { code: "not_found" }
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_http_status(:internal_server_error)
       end
     end
 
-    context "when code parameter is zero" do
-      it "assigns @code to '0' as string" do
+    context "when code parameter is zero (invalid)" do
+      it "sanitizes to default '500' (SECURITY FIX: invalid code)" do
         get :show, params: { code: 0 }
-        expect(assigns(:code)).to eq("0")
+        expect(assigns(:code)).to eq("500")
       end
 
       it "renders the show template" do
@@ -143,9 +143,9 @@ RSpec.describe ErrorsController, type: :controller do
         expect(response).to render_template(:show)
       end
 
-      it "returns http status 0 as integer" do
+      it "returns http status 500 (invalid codes default to 500)" do
         get :show, params: { code: 0 }
-        expect(response.status).to eq(0)
+        expect(response).to have_http_status(:internal_server_error)
       end
     end
 
@@ -190,8 +190,8 @@ RSpec.describe ErrorsController, type: :controller do
           { input: "500", expected: "500" },
           { input: nil, expected: "500" },
           { input: "", expected: "500" },
-          { input: 0, expected: "0" },
-          { input: "not_found", expected: "not_found" }
+          { input: 0, expected: "500" },  # UPDATED: invalid code defaults to 500
+          { input: "not_found", expected: "500" }  # UPDATED: invalid code defaults to 500
         ]
 
         test_cases.each do |test_case|
@@ -204,8 +204,9 @@ RSpec.describe ErrorsController, type: :controller do
     end
 
     context "http status code conversion" do
-      it "converts numeric string codes to integer status codes" do
-        numeric_codes = [404, 500, 422, 403, 503, 502]
+      it "converts whitelisted numeric codes to integer status codes" do
+        # All codes in the whitelist
+        numeric_codes = [400, 401, 403, 404, 405, 406, 408, 409, 410, 422, 429, 500, 501, 502, 503, 504]
 
         numeric_codes.each do |code|
           get :show, params: { code: code }
@@ -213,18 +214,93 @@ RSpec.describe ErrorsController, type: :controller do
         end
       end
 
-      it "converts symbolic strings to symbol status codes" do
-        symbolic_cases = [
-          { input: "not_found", expected_status: 404 },
-          { input: "internal_server_error", expected_status: 500 },
-          { input: "unprocessable_entity", expected_status: 422 },
-          { input: "forbidden", expected_status: 403 }
+      it "defaults non-whitelisted codes to 500" do
+        invalid_codes = [
+          { input: 999, expected_status: 500 },
+          { input: 100, expected_status: 500 },
+          { input: 200, expected_status: 500 },  # Success codes not in error whitelist
+          { input: 301, expected_status: 500 },  # Redirect codes not in error whitelist
+          { input: -1, expected_status: 500 }
         ]
 
-        symbolic_cases.each do |test_case|
+        invalid_codes.each do |test_case|
           get :show, params: { code: test_case[:input] }
           expect(response.status).to eq(test_case[:expected_status]),
             "Expected status #{test_case[:expected_status]} for '#{test_case[:input]}', got #{response.status}"
+        end
+      end
+    end
+
+    context "security: symbol table pollution prevention" do
+      it "does not convert user input to symbols (HIGH PRIORITY FIX)" do
+        # Before the fix, this code would call .to_sym on user input:
+        # @code.to_sym
+        # This would create new symbols that never get garbage collected.
+
+        # Verify that user input is NOT converted to symbols by checking
+        # that invalid codes are rejected and default to '500'
+        malicious_attempts = [
+          "malicious_symbol_1",
+          "malicious_symbol_2",
+          "malicious_symbol_3"
+        ]
+
+        malicious_attempts.each do |malicious_code|
+          get :show, params: { code: malicious_code }
+
+          # All should default to '500' (sanitized)
+          expect(assigns(:code)).to eq("500")
+
+          # Verify the malicious symbol was NOT created
+          # (If it was converted to symbol, it would exist in Symbol table)
+          expect(Symbol.all_symbols).not_to include(malicious_code.to_sym),
+            "Symbol :#{malicious_code} should not exist - this indicates a security vulnerability"
+        end
+      end
+
+      it "sanitizes all malicious codes to default '500'" do
+        malicious_inputs = [
+          "../../../../etc/passwd",
+          "<script>alert('xss')</script>",
+          "'; DROP TABLE users; --",
+          "../config/secrets",
+          "random_unique_string_12345",
+          "malicious_symbol_attack"
+        ]
+
+        malicious_inputs.each do |malicious_code|
+          get :show, params: { code: malicious_code }
+          expect(assigns(:code)).to eq("500"),
+            "Expected '500' for malicious input '#{malicious_code}', got '#{assigns(:code)}'"
+          expect(response).to have_http_status(:internal_server_error)
+        end
+      end
+    end
+
+    context "security: I18n key injection prevention" do
+      it "only allows whitelisted error codes to prevent I18n key injection (HIGH PRIORITY FIX)" do
+        # These attempts should all default to '500' to prevent accessing arbitrary I18n keys
+        injection_attempts = [
+          "../../config/secrets",
+          "../../../database",
+          "activerecord.errors.messages",
+          "devise.sessions.new"
+        ]
+
+        injection_attempts.each do |injection_code|
+          get :show, params: { code: injection_code }
+          expect(assigns(:code)).to eq("500"),
+            "I18n key injection attempt '#{injection_code}' should default to '500'"
+        end
+      end
+    end
+
+    context "all whitelisted error codes work correctly" do
+      it "accepts all codes from ALLOWED_ERROR_CODES constant" do
+        ErrorsController::ALLOWED_ERROR_CODES.each do |code_str, _symbol|
+          get :show, params: { code: code_str }
+          expect(assigns(:code)).to eq(code_str)
+          expect(response.status).to eq(code_str.to_i)
         end
       end
     end
