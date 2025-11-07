@@ -8,6 +8,11 @@ RSpec.describe 'Collaborations Confirm', type: :request do
   let(:user) { create(:user, :with_dni) }
   let(:other_user) { create(:user, :with_dni) }
 
+  # Bypass unresolved_issues before_action check in ApplicationController
+  before do
+    allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)
+  end
+
   describe 'GET /es/colabora/confirmar' do
     describe 'A. AUTENTICACIÓN Y REDIRECTS' do
       context 'usuario no autenticado' do

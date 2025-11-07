@@ -885,6 +885,8 @@ class User < ApplicationRecord
     MicrocreditLoan.renewables.where(document_vatid: self.document_vatid).exists?
   end
 
+  public
+
   def recurrent_collaboration
     collaborations.where.not(frequency: 0).last
   end
