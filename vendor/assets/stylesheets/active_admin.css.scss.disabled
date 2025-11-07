@@ -1,0 +1,76 @@
+// SASS variable overrides must be declared before loading up Active Admin's styles.
+//
+// To view the variables that Active Admin provides, take a look at
+// `app/assets/stylesheets/active_admin/mixins/_variables.css.scss` in the
+// Active Admin source.
+//
+// For example, to change the sidebar width:
+// $sidebar-width: 242px;
+// Active Admin's got SASS!
+@import "active_admin/mixins";
+@import "active_admin/base";
+@import "codemirror";
+
+$skinActiveColor: #000;
+$skinHeaderBck: #612D62;
+$panelHeaderBck: #612D62;
+$skinLogo: inherit;
+@import "active_skin";
+#header h1.site_title {
+    text-indent: -118px;
+}
+table.index_table td {
+    color: #000;
+}
+.sidebar_section.panel .filter_form_field label {
+    color: #000;
+}
+
+table.index_table th a {
+  white-space: normal !important;
+}
+
+.attributes_table table {
+  th, td {
+    color: #666;
+  }
+  th {
+    padding-left:10px;
+  }
+}
+.row.review {
+  background: #ccc;
+  border-bottom: 1px solid #999;
+  .label {
+    color: #612d62;
+  }
+  &.remark {
+    background: #f5bfc9;
+  }
+}
+.row.error {
+  background: red;
+  th, td {
+    color: white;
+  }
+}
+.evaluation {
+  .readonly {
+    padding-top: 7px;
+  }
+  .input {
+    padding-top:0px;
+    padding-bottom:0px;
+  }
+  .input.input_1 {
+    margin-top: 20px;
+    padding-top: inherit;
+  }
+  .input.full {
+    clear: both;
+    margin-top: 15px;
+    label {
+      width: 100%;
+    }
+  }
+}
