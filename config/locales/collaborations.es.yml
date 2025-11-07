@@ -1,0 +1,17 @@
+es:
+  collaborations:
+    create:
+      success: "Por favor revisa y confirma tu colaboración."
+      error: "No se pudo crear la colaboración. Por favor, revisa los datos e inténtalo de nuevo."
+      already_has_recurrent: "Ya tienes una colaboración recurrente, solo puedes añadir colaboraciones puntuales"
+    modify:
+      success: "Los cambios han sido guardados"
+      error: "No se pudieron guardar los cambios. Por favor, inténtalo de nuevo."
+    destroy:
+      success: "Hemos dado de baja tu colaboración."
+      success_single: "Hemos dado de baja tu colaboración puntual."
+      error: "No se pudo dar de baja la colaboración. Por favor, inténtalo de nuevo."
+      invalid_id: "El identificador de la colaboración no es válido."
+      not_found: "No se encontró la colaboración o no tienes permisos para eliminarla."
+    ok:
+      credit_card_warning: "Marcada como alerta porque se ha visitado la página de que la colaboración está pagada pero no consta el pago."
