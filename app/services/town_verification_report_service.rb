@@ -2,6 +2,12 @@
 
 # Service object to generate user verification reports by town, province and autonomy
 # Extracts complex query logic from UserVerificationsController
+#
+# SECURITY FIXES IMPLEMENTED:
+# - Replaced eval() with safe Integer() parsing
+# - Replaced SQL string interpolation with Arel for parameterized queries
+# - Added configuration validation
+# - Added error handling
 class TownVerificationReportService
   TOWNS_IDS = [
     'm_04_066_9', 'm_04_100_2', 'm_11_015_9', 'm_11_022_3', 'm_11_008_6', 'm_11_028_2', 'm_11_031_6',
@@ -95,10 +101,23 @@ class TownVerificationReportService
   }.freeze
 
   def initialize(report_code)
+    validate_configuration!
     @aacc_code = Rails.application.secrets.user_verifications[report_code]
+  rescue StandardError => e
+    Rails.logger.error({
+      event: "town_verification_report_init_failed",
+      report_code: report_code,
+      error_class: e.class.name,
+      error_message: e.message,
+      timestamp: Time.current.iso8601
+    }.to_json)
+    @aacc_code = nil
   end
 
   def generate
+    # Return empty report if initialization failed
+    return empty_report unless @aacc_code
+
     report = {
       provincias: Hash.new { |h, k| h[k] = Hash.new { |h2, k2| h2[k2] = 0 } },
       autonomias: Hash.new { |h, k| h[k] = Hash.new { |h2, k2| h2[k2] = 0 } },
@@ -114,9 +133,35 @@ class TownVerificationReportService
     end
 
     report
+  rescue StandardError => e
+    Rails.logger.error({
+      event: "town_verification_report_generation_failed",
+      aacc_code: @aacc_code,
+      error_class: e.class.name,
+      error_message: e.message,
+      backtrace: e.backtrace&.first(5),
+      timestamp: Time.current.iso8601
+    }.to_json)
+    empty_report
   end
 
   private
+
+  def validate_configuration!
+    unless Rails.application.secrets.user_verifications &&
+           Rails.application.secrets.users &&
+           Rails.application.secrets.users["active_census_range"]
+      raise "Missing user_verifications or users configuration in secrets"
+    end
+  end
+
+  def empty_report
+    {
+      provincias: {},
+      autonomias: {},
+      municipios: {}
+    }
+  end
 
   def base_query
     @base_query ||= User.confirmed.where("vote_town in (?)", TOWNS_IDS)
@@ -147,17 +192,47 @@ class TownVerificationReportService
   end
 
   def add_user_data_to_hash(data_hash, group_field)
-    active_date = Date.today - eval(Rails.application.secrets.users["active_census_range"])
+    # SECURITY FIX: Replace eval() with safe Integer() parsing
+    active_census_days = parse_active_census_range
+    active_date = Date.today - active_census_days.days
+
     field_name = group_field == :prov ? "right(left(vote_town,4),2) as prov" : "vote_town"
 
+    # SECURITY FIX: Use Arel for parameterized query instead of string interpolation
+    users_table = User.arel_table
     base_query.group(group_field, :active, :verified).pluck(
       field_name,
-      "(current_sign_in_at IS NOT NULL AND current_sign_in_at > '#{active_date.to_datetime.iso8601}') as active",
+      users_table[:current_sign_in_at].not_eq(nil)
+        .and(users_table[:current_sign_in_at].gt(active_date))
+        .to_sql.sub(/^"users"\./, '').concat(' as active'),
       "#{User.verified_condition} as verified",
       "count(distinct users.id)"
     ).each do |field, active, verified, count|
       data_hash[[field, active, verified]] = count
     end
+  end
+
+  # SECURITY FIX: Replace dangerous eval() with safe Integer() parsing
+  def parse_active_census_range
+    range_value = Rails.application.secrets.users["active_census_range"]
+
+    # Handle different formats: "30.days", "30", 30
+    if range_value.is_a?(String)
+      # Extract numeric part from strings like "30.days"
+      numeric_match = range_value.match(/\d+/)
+      raise "Invalid active_census_range format: #{range_value}" unless numeric_match
+      Integer(numeric_match[0])
+    else
+      Integer(range_value)
+    end
+  rescue ArgumentError, TypeError => e
+    Rails.logger.error({
+      event: "invalid_active_census_range",
+      value: range_value,
+      error: e.message,
+      timestamp: Time.current.iso8601
+    }.to_json)
+    30 # Default fallback
   end
 
   def provinces

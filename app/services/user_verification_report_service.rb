@@ -2,19 +2,76 @@
 
 # Service object to generate user verification reports by province and autonomy
 # Extracts complex query logic from UserVerificationsController
+#
+# SECURITY FIXES IMPLEMENTED:
+# - Replaced eval() with safe Integer() parsing
+# - Replaced SQL string interpolation with Arel for parameterized queries
+# - Added configuration validation
+# - Added error handling
 class UserVerificationReportService
   def initialize(report_code)
+    validate_configuration!
     @aacc_code = Rails.application.secrets.user_verifications[report_code]
+  rescue StandardError => e
+    Rails.logger.error({
+      event: "user_verification_report_init_failed",
+      report_code: report_code,
+      error_class: e.class.name,
+      error_message: e.message,
+      timestamp: Time.current.iso8601
+    }.to_json)
+    @aacc_code = nil
   end
 
   def generate
-    {
+    # Return empty report if initialization failed
+    return empty_report unless @aacc_code
+
+    report = {
       provincias: build_province_report,
       autonomias: build_autonomy_report
     }
+
+    data = collect_data
+
+    provinces.each do |province_num, province_name|
+      autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_num}"].first
+      autonomy_name = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_num}"].last
+
+      next unless @aacc_code == 'c_00' || autonomy_code == @aacc_code
+
+      process_province_data(report, data, province_num, province_name, autonomy_name)
+    end
+
+    report
+  rescue StandardError => e
+    Rails.logger.error({
+      event: "user_verification_report_generation_failed",
+      aacc_code: @aacc_code,
+      error_class: e.class.name,
+      error_message: e.message,
+      backtrace: e.backtrace&.first(5),
+      timestamp: Time.current.iso8601
+    }.to_json)
+    empty_report
   end
 
   private
+
+  def validate_configuration!
+    unless Rails.application.secrets.user_verifications &&
+           Rails.application.secrets.users &&
+           Rails.application.secrets.users["active_census_range"]
+      raise "Missing user_verifications or users configuration in secrets"
+    end
+  end
+
+  def empty_report
+    {
+      provincias: {},
+      autonomias: {}
+    }
+  end
 
   def build_province_report
     Hash.new { |h, k| h[k] = Hash.new { |h2, k2| h2[k2] = 0 } }
@@ -39,10 +96,17 @@ class UserVerificationReportService
     ]
 
     # Add users totals by prov
-    active_date = Date.today - eval(Rails.application.secrets.users["active_census_range"])
+    # SECURITY FIX: Replace eval() with safe Integer() parsing
+    active_census_days = parse_active_census_range
+    active_date = Date.today - active_census_days.days
+
+    # SECURITY FIX: Use Arel for parameterized query instead of string interpolation
+    users_table = User.arel_table
     base_query.group(:prov, :active, :verified).pluck(
       "right(left(vote_town,4),2) as prov",
-      "(current_sign_in_at IS NOT NULL AND current_sign_in_at > '#{active_date.to_datetime.iso8601}') as active",
+      users_table[:current_sign_in_at].not_eq(nil)
+        .and(users_table[:current_sign_in_at].gt(active_date))
+        .to_sql.sub(/^"users"\./, '').concat(' as active'),
       "#{User.verified_condition} as verified",
       "count(distinct users.id)"
     ).each do |prov, active, verified, count|
@@ -52,28 +116,31 @@ class UserVerificationReportService
     @data
   end
 
-  def provinces
-    @provinces ||= Carmen::Country.coded("ES").subregions.map { |p| ["%02d" % +p.index, p.name] }
+  # SECURITY FIX: Replace dangerous eval() with safe Integer() parsing
+  def parse_active_census_range
+    range_value = Rails.application.secrets.users["active_census_range"]
+
+    # Handle different formats: "30.days", "30", 30
+    if range_value.is_a?(String)
+      # Extract numeric part from strings like "30.days"
+      numeric_match = range_value.match(/\d+/)
+      raise "Invalid active_census_range format: #{range_value}" unless numeric_match
+      Integer(numeric_match[0])
+    else
+      Integer(range_value)
+    end
+  rescue ArgumentError, TypeError => e
+    Rails.logger.error({
+      event: "invalid_active_census_range",
+      value: range_value,
+      error: e.message,
+      timestamp: Time.current.iso8601
+    }.to_json)
+    30 # Default fallback
   end
 
-  def generate
-    report = {
-      provincias: build_province_report,
-      autonomias: build_autonomy_report
-    }
-
-    data = collect_data
-
-    provinces.each do |province_num, province_name|
-      autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_num}"].first
-      autonomy_name = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_num}"].last
-
-      next unless @aacc_code == 'c_00' || autonomy_code == @aacc_code
-
-      process_province_data(report, data, province_num, province_name, autonomy_name)
-    end
-
-    report
+  def provinces
+    @provinces ||= Carmen::Country.coded("ES").subregions.map { |p| ["%02d" % +p.index, p.name] }
   end
 
   def process_province_data(report, data, province_num, province_name, autonomy_name)

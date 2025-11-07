@@ -94,4 +94,22 @@ class UserVerification < ApplicationRecord
     u.update(militant: u.still_militant?)
     u.process_militant_data
   end
+
+  # Determine appropriate status when creating/updating verification
+  # Extracts business logic from controller
+  def determine_initial_status
+    # If photos are not necessary, automatically accept by email
+    return :accepted_by_email if user.photos_unnecessary?
+
+    # If previously rejected or had issues, reset to pending for resubmission
+    return :pending if rejected? || issues?
+
+    # Otherwise keep current status
+    status
+  end
+
+  # Apply the determined status
+  def apply_initial_status!
+    self.status = determine_initial_status
+  end
 end
