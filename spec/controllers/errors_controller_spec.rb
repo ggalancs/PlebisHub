@@ -3,6 +3,22 @@
 require 'rails_helper'
 
 RSpec.describe ErrorsController, type: :controller do
+  # Skip ApplicationController filters that may cause issues in testing
+  before do
+    allow(controller).to receive(:banned_user).and_return(true)
+    allow(controller).to receive(:unresolved_issues).and_return(true)
+    allow(controller).to receive(:allow_iframe_requests).and_return(true)
+    allow(controller).to receive(:admin_logger).and_return(true)
+    allow(controller).to receive(:set_metas).and_return(true)
+    allow(controller).to receive(:set_locale).and_return(true)
+
+    # Define a simple route for testing
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+    @routes.draw do
+      get '/show' => 'errors#show'
+    end
+  end
+
   describe "GET #show" do
     context "when no code parameter is provided" do
       it "assigns @code to default value '500' as string" do

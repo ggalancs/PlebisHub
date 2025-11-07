@@ -1,5 +1,25 @@
 # frozen_string_literal: true
 
+# SimpleCov must be loaded BEFORE any application code
+require 'simplecov'
+SimpleCov.start 'rails' do
+  add_filter '/bin/'
+  add_filter '/db/'
+  add_filter '/spec/'
+  add_filter '/config/'
+  add_filter '/vendor/'
+
+  add_group 'Controllers', 'app/controllers'
+  add_group 'Models', 'app/models'
+  add_group 'Services', 'app/services'
+  add_group 'Helpers', 'app/helpers'
+  add_group 'Mailers', 'app/mailers'
+
+  # Set minimum coverage percentages
+  minimum_coverage 95
+  minimum_coverage_by_file 80
+end
+
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
@@ -7,6 +27,7 @@ require_relative '../config/environment'
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require 'rspec/rails'
+require 'rails-controller-testing' # Add support for assigns() and assert_template
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -34,7 +55,8 @@ end
 
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
-  config.fixture_path = "#{Rails.root}/spec/fixtures"
+  # Note: fixture_path= was removed in rspec-rails 6.1+, fixtures are loaded from spec/fixtures by default
+  # config.fixture_path = "#{Rails.root}/spec/fixtures"
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
@@ -95,24 +117,4 @@ RSpec.configure do |config|
   # Webmock configuration - allow connections to localhost for Capybara
   require 'webmock/rspec'
   WebMock.disable_net_connect!(allow_localhost: true)
-end
-
-# SimpleCov configuration for code coverage
-require 'simplecov'
-SimpleCov.start 'rails' do
-  add_filter '/bin/'
-  add_filter '/db/'
-  add_filter '/spec/'
-  add_filter '/config/'
-  add_filter '/vendor/'
-
-  add_group 'Controllers', 'app/controllers'
-  add_group 'Models', 'app/models'
-  add_group 'Services', 'app/services'
-  add_group 'Helpers', 'app/helpers'
-  add_group 'Mailers', 'app/mailers'
-
-  # Set minimum coverage percentages
-  minimum_coverage 95
-  minimum_coverage_by_file 80
 end

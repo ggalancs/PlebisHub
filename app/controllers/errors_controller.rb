@@ -1,7 +1,7 @@
 class ErrorsController < ApplicationController
 
   def show
-    @code = (params[:code] || 500).to_s
+    @code = (params[:code].presence || 500).to_s
     render status: http_status_code
   end
 
