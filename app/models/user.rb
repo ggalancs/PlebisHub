@@ -917,6 +917,8 @@ class User < ApplicationRecord
     self.vote_circle_id.present?
   end
 
+  public
+
   def has_min_monthly_collaboration?
     self.collaborations.where.not(frequency:0).where("amount >= ?", MIN_MILITANT_AMOUNT).where(status:3).exists?
   end
