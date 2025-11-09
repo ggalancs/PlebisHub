@@ -25,6 +25,10 @@ Rails.application.configure do
   config.action_controller.perform_caching = false
   config.cache_store = :null_store
 
+  # Compile assets on the fly in test environment
+  config.assets.compile = true
+  config.assets.check_precompiled_asset = false
+
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
 

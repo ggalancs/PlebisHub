@@ -16,9 +16,9 @@ class BlogController < ApplicationController
   # Display paginated list of blog posts
   def index
     @posts = if current_user&.is_admin?
-               Post.index.page(params[:page]).per(5)
+               Post.recent.page(params[:page]).per(5)
              else
-               Post.published.index.page(params[:page]).per(5)
+               Post.published.recent.page(params[:page]).per(5)
              end
 
     log_security_event('blog_index_viewed', admin: current_user&.is_admin? || false)
@@ -48,9 +48,9 @@ class BlogController < ApplicationController
   def category
     @category = Category.find(params[:id])
     @posts = if current_user&.is_admin?
-               @category.posts.index.page(params[:page]).per(5)
+               @category.posts.recent.page(params[:page]).per(5)
              else
-               @category.posts.published.index.page(params[:page]).per(5)
+               @category.posts.published.recent.page(params[:page]).per(5)
              end
 
     log_security_event('blog_category_viewed', category_id: @category.id, admin: current_user&.is_admin? || false)

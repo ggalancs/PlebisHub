@@ -885,6 +885,8 @@ class User < ApplicationRecord
     MicrocreditLoan.renewables.where(document_vatid: self.document_vatid).exists?
   end
 
+  public
+
   def recurrent_collaboration
     collaborations.where.not(frequency: 0).last
   end
@@ -916,6 +918,8 @@ class User < ApplicationRecord
   def in_vote_circle?
     self.vote_circle_id.present?
   end
+
+  public
 
   def has_min_monthly_collaboration?
     self.collaborations.where.not(frequency:0).where("amount >= ?", MIN_MILITANT_AMOUNT).where(status:3).exists?

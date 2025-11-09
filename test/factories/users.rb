@@ -68,5 +68,36 @@ FactoryBot.define do
         user.update_column(:flags, user.flags | 2) # superadmin flag
       end
     end
+
+    trait :with_dni do
+      document_type { 1 } # DNI
+      sequence(:document_vatid) do |n|
+        letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
+        number = 12345670 + (n % 99)
+        checksum = letters[number % 23]
+        "#{number}#{checksum}"
+      end
+      country { "ES" }
+      province { "08" } # Barcelona
+      postal_code { "08001" }
+      town { "Barcelona" }
+    end
+
+    trait :with_nie do
+      document_type { 2 } # NIE
+      sequence(:document_vatid) do |n|
+        letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
+        prefix = 'X'
+        number_str = (n % 9999999).to_s.rjust(7, '0')
+        # For NIE, replace X with 0, Y with 1, Z with 2 for checksum calculation
+        calc_number = "0#{number_str}".to_i
+        checksum = letters[calc_number % 23]
+        "#{prefix}#{number_str}#{checksum}"
+      end
+      country { "ES" }
+      province { "08" } # Barcelona
+      postal_code { "08001" }
+      town { "Barcelona" }
+    end
   end
 end
