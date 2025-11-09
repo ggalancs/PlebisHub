@@ -5,6 +5,10 @@ require 'rails_helper'
 RSpec.describe Devise::Mailer, type: :mailer do
   let(:user) { create(:user, :with_dni, email: 'test@example.com') }
 
+  before do
+    I18n.locale = :es
+  end
+
   describe 'confirmation_instructions' do
     let(:token) { 'fake_confirmation_token' }
     let(:mail) { described_class.confirmation_instructions(user, token) }

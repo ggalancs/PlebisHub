@@ -7,6 +7,10 @@ RSpec.describe ImpulsaMailer, type: :mailer do
   let(:impulsa_edition_category) { create(:impulsa_edition_category, :with_votings) }
   let(:project) { create(:impulsa_project, user: user, impulsa_edition_category: impulsa_edition_category) }
 
+  before do
+    I18n.locale = :es
+  end
+
   describe 'on_spam' do
     let(:mail) { described_class.on_spam(project) }
 

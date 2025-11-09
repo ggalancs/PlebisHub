@@ -5,6 +5,16 @@ require 'rails_helper'
 RSpec.describe UsersMailer, type: :mailer do
   let(:user) { create(:user, :with_dni, email: 'test@example.com') }
 
+  # Mock Rails.application.secrets
+  before do
+    I18n.locale = :es
+    allow(Rails.application).to receive(:secrets).and_return(
+      OpenStruct.new(
+        default_from_email: 'noreply@plebisbrand.info'
+      )
+    )
+  end
+
   describe 'cancel_account_email' do
     let(:mail) { described_class.cancel_account_email(user.id) }
 

@@ -5,6 +5,10 @@ require 'rails_helper'
 RSpec.describe UserVerificationMailer, type: :mailer do
   let(:user) { create(:user, :with_dni, email: 'test@example.com') }
 
+  before do
+    I18n.locale = :es
+  end
+
   describe 'on_accepted' do
     let(:mail) { described_class.on_accepted(user.id) }
 
