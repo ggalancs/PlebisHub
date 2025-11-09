@@ -7,6 +7,7 @@ RSpec.describe Devise::Mailer, type: :mailer do
 
   before do
     I18n.locale = :es
+    ActionMailer::Base.default_url_options = { host: 'www.example.com', protocol: 'http' }
   end
 
   describe 'confirmation_instructions' do
@@ -26,11 +27,11 @@ RSpec.describe Devise::Mailer, type: :mailer do
     end
 
     it 'incluye el email del usuario' do
-      expect(mail.body.encoded).to include(user.email)
+      expect(mail.html_part.body.decoded).to include(user.email)
     end
 
     it 'incluye el token de confirmación en el enlace' do
-      expect(mail.body.encoded).to match(/confirmation_token=#{token}/)
+      expect(mail.html_part.body.decoded).to match(/confirmation_token=#{token}/)
     end
   end
 
@@ -51,15 +52,15 @@ RSpec.describe Devise::Mailer, type: :mailer do
     end
 
     it 'incluye el email del usuario' do
-      expect(mail.body.encoded).to include(user.email)
+      expect(mail.html_part.body.decoded).to include(user.email)
     end
 
     it 'incluye el token de reset en el enlace' do
-      expect(mail.body.encoded).to match(/reset_password_token=#{token}/)
+      expect(mail.html_part.body.decoded).to match(/reset_password_token=#{token}/)
     end
 
     it 'incluye información sobre cambio de contraseña' do
-      expect(mail.body.encoded).to match(/password|contraseña/i)
+      expect(mail.html_part.body.decoded).to match(/password|contraseña/i)
     end
   end
 
@@ -80,15 +81,15 @@ RSpec.describe Devise::Mailer, type: :mailer do
     end
 
     it 'incluye el email del usuario' do
-      expect(mail.body.encoded).to include(user.email)
+      expect(mail.html_part.body.decoded).to include(user.email)
     end
 
     it 'incluye el token de desbloqueo en el enlace' do
-      expect(mail.body.encoded).to match(/unlock_token=#{token}/)
+      expect(mail.html_part.body.decoded).to match(/unlock_token=#{token}/)
     end
 
     it 'incluye información sobre desbloqueo' do
-      expect(mail.body.encoded).to match(/unlock|desbloqueo/i)
+      expect(mail.html_part.body.decoded).to match(/unlock|desbloqueo/i)
     end
   end
 end

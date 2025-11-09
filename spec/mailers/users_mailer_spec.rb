@@ -8,6 +8,7 @@ RSpec.describe UsersMailer, type: :mailer do
   # Mock Rails.application.secrets
   before do
     I18n.locale = :es
+    ActionMailer::Base.default_url_options = { host: 'www.example.com', protocol: 'http' }
     allow(Rails.application).to receive(:secrets).and_return(
       OpenStruct.new(
         default_from_email: 'noreply@plebisbrand.info'
@@ -67,15 +68,15 @@ RSpec.describe UsersMailer, type: :mailer do
     end
 
     it 'incluye mensaje de bienvenida como militante' do
-      expect(mail.body.encoded).to match(/ya eres militante/)
+      expect(mail.html_part.body.decoded).to match(/ya eres militante/)
     end
 
     it 'incluye información sobre derechos como militante' do
-      expect(mail.body.encoded).to match(/derechos|Círculo/)
+      expect(mail.html_part.body.decoded).to match(/derechos|Círculo/)
     end
 
     it 'incluye enlace a información de militantes' do
-      expect(mail.body.encoded).to include('plebisbrand.info/militantes')
+      expect(mail.html_part.body.decoded).to include('plebisbrand.info/militantes')
     end
   end
 
@@ -148,16 +149,16 @@ RSpec.describe UsersMailer, type: :mailer do
     end
 
     it 'incluye el nombre del suscriptor' do
-      expect(mail.body.encoded).to include(loan.first_name)
-      expect(mail.body.encoded).to include(loan.last_name)
+      expect(mail.html_part.body.decoded).to include(loan.first_name)
+      expect(mail.html_part.body.decoded).to include(loan.last_name)
     end
 
     it 'incluye el importe suscrito' do
-      expect(mail.body.encoded).to include("#{loan.amount}€")
+      expect(mail.html_part.body.decoded).to include("#{loan.amount}€")
     end
 
     it 'incluye información sobre plazo de ingreso' do
-      expect(mail.body.encoded).to match(/48 horas/)
+      expect(mail.html_part.body.decoded).to match(/48 horas/)
     end
 
     it 'adjunta un PDF con información de transferencia' do
