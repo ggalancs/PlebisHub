@@ -352,7 +352,7 @@ RSpec.describe Collaboration, type: :model do
 
     describe '#is_bank_national?' do
       it 'returns true for Spanish IBAN' do
-        collaboration = create(:collaboration, :with_iban)
+        collaboration = create(:collaboration, :with_spanish_iban)
         expect(collaboration.is_bank_national?).to be true
       end
     end
@@ -598,7 +598,7 @@ RSpec.describe Collaboration, type: :model do
     end
 
     it 'returns non_user when user is nil' do
-      collaboration = create(:collaboration, :non_user)
+      collaboration = create(:collaboration, :non_user, non_user_email: 'nonuser@example.com')
       non_user = collaboration.get_user
 
       expect(non_user).not_to be_nil

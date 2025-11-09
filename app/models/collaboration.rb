@@ -5,7 +5,7 @@ class Collaboration < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
 
-  belongs_to :user, -> { with_deleted }
+  belongs_to :user, -> { with_deleted }, optional: true
 
   # FIXME: this should be orders for the inflextions
   # http://guides.rubyonrails.org/association_basics.html#the-has-many-association
@@ -81,7 +81,7 @@ class Collaboration < ApplicationRecord
   after_commit :verify_user_militant_status
 
   def only_have_single_collaborations?
-    (self.frequency == 0) || :skip_queries_validations
+    (self.frequency == 0) || self.skip_queries_validations
   end
   def territorial_assignment= value
     self.for_town_cc = self.for_island_cc = self.for_autonomy_cc = false
@@ -137,6 +137,7 @@ class Collaboration < ApplicationRecord
   end
 
   def iban_valid?
+    return false if self.iban_account.nil?
     self.iban_account.strip!
     iban_validation = IBANTools::IBAN.valid?(self.iban_account)
     ccc_validation = self.iban_account&.start_with?("ES") ? BankCccValidator.validate(self.iban_account[4..-1]) : true
@@ -207,7 +208,7 @@ class Collaboration < ApplicationRecord
 
   def calculate_bic
     clean_iban = calculate_iban
-    bic = PlebisBrand::SpanishBIC[clean_iban[4..7].to_i] if !bic && clean_iban.present? and clean_iban[0..1]=="ES"
+    bic = Podemos::SpanishBIC[clean_iban[4..7].to_i] if !bic && clean_iban.present? and clean_iban[0..1]=="ES"
     bic = iban_bic.gsub(" ","") if !bic && iban_bic.present?
     bic
   end
@@ -747,6 +748,7 @@ class Collaboration < ApplicationRecord
 
   def verify_user_militant_status
     u = self.user
+    return if u.nil?
     u.update(militant: u.still_militant?)
     u.process_militant_data
   end
