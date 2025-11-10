@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :microcredit_loan do
+  factory :microcredit_loan, class: 'PlebisMicrocredit::MicrocreditLoan' do
     association :microcredit
     association :user, :with_dni
     association :microcredit_option

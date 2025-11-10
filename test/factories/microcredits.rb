@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :microcredit do
+  factory :microcredit, class: 'PlebisMicrocredit::Microcredit' do
     sequence(:title) { |n| "Microcredit #{n}" }
     starts_at { 1.month.ago }
     ends_at { 1.month.from_now }

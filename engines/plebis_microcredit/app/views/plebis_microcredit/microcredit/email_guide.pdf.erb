@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= t('microcredit.common.title', name: @brand_config["name"])%></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <%= wicked_pdf_stylesheet_link_tag "microcredit.print.css" %>
+    <style type="text/css">
+        .grey {background: #ddd;}
+        div {padding:10px; line-height:2;}
+        .microcreditos {font-size:17px;padding:30px;}
+    </style>
+  <body>
+        <div class="microcreditos">
+            <div style="width:100%;">
+                <%= wicked_pdf_image_tag @brand_config["logo"], style: "float:left; width:40%;"%>
+            </div>
+            <p style="clear:both"><%=t 'microcredit.email.intro'%></p>
+            <%if @loan.microcredit_option.present? %>
+            <div><strong><%=t 'microcredit.email.concept'%></strong><br><%=@loan.id%> <%=@loan.microcredit_option.name%></div>
+            <% else %>
+            <div><strong><%=t 'microcredit.email.concept'%></strong><br><%=@loan.id%> <%=@microcredit.title%></div>
+            <% end %>
+            <div><strong><%=t 'microcredit.email.account_number'%></strong><br><%=@microcredit.account_number%></div>
+            <div><strong><%=t 'microcredit.email.bank'%></strong><br>Caja de Ingenieros</div>
+            <div class="grey"><strong>SWIFT</strong><br>CDENESBBXXX Solo para transferencias transnacionales</div>
+            <div><strong><%=t 'microcredit.email.recipient'%></strong><br><%=@brand_config["name"].upcase%></div>
+            <div><strong><%=t 'microcredit.common.amount'%></strong><br><%=@loan.amount%>€</div>
+
+            <br>
+            <p><br><%=t 'microcredit.email.thanks'%></p>
+        </div>
+  </body>
+</html>

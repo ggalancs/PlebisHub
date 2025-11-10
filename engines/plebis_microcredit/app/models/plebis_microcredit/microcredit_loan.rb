@@ -1,0 +1,342 @@
+# frozen_string_literal: true
+
+module PlebisMicrocredit
+  class MicrocreditLoan < ApplicationRecord
+    apply_simple_captcha
+    acts_as_paranoid
+
+    self.table_name = 'microcredit_loans'
+
+    belongs_to :microcredit, class_name: "PlebisMicrocredit::Microcredit"
+    belongs_to :user, -> { with_deleted }, optional: true
+    belongs_to :microcredit_option, class_name: "PlebisMicrocredit::MicrocreditOption"
+
+    belongs_to :transferred_to, inverse_of: :original_loans, class_name: "PlebisMicrocredit::MicrocreditLoan", optional: true
+    has_many :original_loans, inverse_of: :transferred_to, class_name: "PlebisMicrocredit::MicrocreditLoan", foreign_key: :transferred_to_id
+
+    attr_accessor :first_name, :last_name, :email, :address, :postal_code, :town, :province, :country
+
+    validates :document_vatid, valid_spanish_id: true, if: :has_not_user?
+    validates :first_name, :last_name, :email, :address, :postal_code, :town, :province, :country, presence: true, if: :has_not_user?
+
+    validates :email, email: true, if: :has_not_user?
+
+    validates :amount, presence: true
+    validates :terms_of_service, acceptance: true
+    validates :minimal_year_old, acceptance: true
+
+    validate :amount, :check_amount, on: :create
+    validate :user, :check_user_limits, on: :create
+    validate :microcredit, :check_microcredit_active, on: :create
+    validate :validates_not_passport
+    validate :validates_age_over
+
+    validate :microcredit_option_without_children
+
+    validates :iban_account, presence: true, on: :create
+    validates :iban_bic, presence: true, on: :create, if: :is_bank_international?
+    validate :validates_iban, :validates_non_brand_account , if: :iban_account
+    validate :validates_bic, if: :iban_bic
+
+    scope :not_counted, -> { where(counted_at:nil) }
+    scope :counted, -> { where.not(counted_at:nil) }
+    scope :not_confirmed, -> { where(confirmed_at:nil) }
+    scope :confirmed, -> { where.not(confirmed_at:nil) }
+    scope :not_discarded, -> { where(discarded_at:nil) }
+    scope :discarded, -> { where.not(discarded_at:nil) }
+    scope :not_returned, -> { confirmed.where(returned_at:nil) }
+    scope :returned, -> { where.not(returned_at:nil) }
+    scope :transferred, -> { where.not(transferred_to_id:nil)}
+    scope :renewal, -> { joins(:original_loans).distinct(:microcredit_id)}
+
+    scope :renewables, -> { confirmed.not_discarded.not_returned.joins(:microcredit).merge(PlebisMicrocredit::Microcredit.renewables).distinct }
+
+    scope :recently_renewed, -> { confirmed.where.not(transferred_to:nil).where("returned_at>?",30.days.ago) }
+    scope :ignore_discarded, -> { where("discarded_at is null or counted_at is not null") }
+
+    scope :phase, -> { joins(:microcredit).where("microcredits.reset_at is null or (microcredit_loans.counted_at IS NULL and microcredit_loans.created_at>microcredits.reset_at) or microcredit_loans.counted_at>microcredits.reset_at") }
+    scope :upcoming_finished, -> { joins(:microcredit).merge(PlebisMicrocredit::Microcredit.upcoming_finished) }
+
+    after_initialize do |microcredit|
+      if user
+        set_user_data user
+        self.document_vatid = user.document_vatid
+      elsif user_data
+        set_user_data YAML.unsafe_load(self.user_data)
+      else
+        self.country = "ES"
+      end
+    end
+
+    before_validation :set_bic_for_spanish_iban
+
+    before_save do
+      self.iban_account.upcase! if self.iban_account.present?
+    end
+
+    def set_user_data(_user)
+      self.first_name = _user[:first_name]
+      self.last_name = _user[:last_name]
+      self.email = _user[:email]
+      self.address = _user[:address]
+      self.postal_code = _user[:postal_code]
+      self.town = _user[:town]
+      self.province = _user[:province]
+      self.country = _user[:country]
+    end
+
+    def country_name
+      _country = Carmen::Country.coded(self.country)
+      if _country
+        _country.name
+      else
+        self.country
+      end
+    end
+
+    def province_name
+      _country = Carmen::Country.coded(self.country)
+      _prov = _country.subregions.coded(self.province) if _country and self.province and not _country.subregions.empty?
+      if _prov
+        _prov.name
+      else
+        self.province
+      end
+    end
+
+    def town_name
+      _country = Carmen::Country.coded(self.country)
+      _prov = _country.subregions.coded(self.province) if _country and self.province and not _country.subregions.empty?
+      _town = _prov.subregions.coded(self.town) if _prov and not _prov.subregions.empty?
+      if _town
+        _town.name
+      else
+        self.town
+      end
+    end
+
+    before_save do
+      if user
+        self.user_data = nil
+      else
+        self.user_data = {first_name: first_name, last_name: last_name, email: email, address: address, postal_code: postal_code, town: town, province: province, country: country}.to_yaml
+      end
+      if self.document_vatid
+        self.document_vatid.upcase!
+        self.document_vatid.strip!
+      end
+    end
+
+    def update_counted_at
+      must_count = false
+      replacement = nil
+      if self.counted_at.nil? and self.discarded_at.nil?
+        replacement = self.microcredit.loans.where(amount: self.amount).counted.discarded.order(created_at: :asc).first
+        if not replacement and not self.confirmed_at.nil?
+          replacement = self.microcredit.loans.where(amount: self.amount).counted.not_confirmed.order(created_at: :asc).first
+        end
+        if replacement
+          must_count = true
+        else
+          must_count = self.microcredit.should_count?(amount, !self.confirmed_at.nil?)
+        end
+      end
+
+      if must_count
+        if replacement
+          self.counted_at = replacement.counted_at
+          replacement.counted_at = nil
+          PlebisMicrocredit::MicrocreditLoan.transaction do
+            self.save if replacement.save
+          end
+        else
+          self.counted_at = DateTime.now
+          self.save
+        end
+        self.microcredit.clear_cache
+      end
+    end
+
+    def has_not_user?
+      user.nil?
+    end
+
+    def validates_not_passport
+      if self.user&.is_passport?
+        self.errors.add(:user, "No puedes suscribir un microcrédito si no dispones de DNI o NIE.")
+      end
+    end
+
+    def validates_age_over
+      if self.user and self.user.born_at > Date.today-18.years
+        self.errors.add(:user, "No puedes suscribir un microcrédito si eres menor de edad.")
+      end
+    end
+
+    def microcredit_option_without_children
+      if self.microcredit.microcredit_options.any?
+        errors.add(:microcredit_option_id, "Debes elegir algún elemento") if microcredit_option.blank? || microcredit_option.children.any?
+      end
+    end
+
+    def is_bank_international?
+      self.iban_account && self.iban_valid? && !self.iban_account.start_with?("ES")
+    end
+
+    def iban_valid?
+      self.iban_account.strip!
+      iban_validation = IBANTools::IBAN.valid?(self.iban_account)
+      ccc_validation = self.iban_account&.start_with?("ES") ? BankCccValidator.validate(self.iban_account[4..-1]) : true
+      iban_validation && ccc_validation
+    end
+    def validates_iban
+      unless iban_valid?
+        self.errors.add(:iban_account, "Cuenta corriente inválida. Dígito de control erroneo. Por favor revísala.")
+        self.iban_bic = nil
+      end
+    end
+
+    def calculate_bic
+      bic = Podemos::SpanishBIC[iban_account[4..7].to_i] if iban_account && !iban_account.empty? && iban_account[0..1]=="ES"
+      bic = iban_bic.gsub(" ","") if !bic && iban_bic && !iban_bic.empty?
+      bic
+    end
+
+    def validates_bic
+      self.iban_bic =  calculate_bic if self.iban_account && self.iban_account.start_with?("ES")
+      true
+    end
+
+    def validates_non_brand_account
+       unless self.iban_account.upcase.strip.gsub(' ','') != self.microcredit.account_number.upcase.strip.gsub(' ','')
+         brand_name = begin
+           Rails.application.secrets.microcredits&.dig("brands", Rails.application.secrets.microcredits["default_brand"], "name") || "la organización"
+         rescue
+           "la organización"
+         end
+         self.errors.add(:iban_account, "Cuenta corriente inválida. Debes de consignar tu cuenta corriente, no la de #{brand_name}.")
+         self.iban_bic = nil
+       end
+    end
+
+    def check_amount
+      if self.confirmed_at.nil? && self.amount && !self.microcredit.has_amount_available?(amount)
+        self.errors.add(:amount, "Lamentablemente, ya no quedan préstamos por esa cantidad.")
+      end
+    end
+
+    def check_user_limits
+      limit = self.microcredit.loans.not_discarded.not_returned.where(ip:self.ip).count > microcredit_loan_config("max_loans_per_ip")
+      unless limit
+        loans = self.microcredit.loans.not_discarded.not_returned.where(document_vatid: self.document_vatid).pluck(:amount)
+        limit = ((loans.length >= microcredit_loan_config("max_loans_per_user")) or (loans.sum + self.amount > microcredit_loan_config("max_loans_sum_amount"))) if not limit and self.amount
+      end
+
+      self.errors.add(:user, "Lamentablemente, no es posible suscribir este microcrédito.") if limit
+    end
+
+    def check_microcredit_active
+      self.errors.add(:microcredit, "La campaña de microcréditos no está activa en este momento.") if self.confirmed_at.nil? && !self.microcredit.is_active?
+    end
+
+    def self.get_loans_stats(ids)
+      base = PlebisMicrocredit::MicrocreditLoan.where(microcredit_id: ids)
+      query = base.ignore_discarded
+      query_discarded = base.discarded
+      {
+        count: query.count,
+        count_confirmed: query.confirmed.count,
+        count_counted: query.counted.count,
+        count_discarded: query_discarded.count,
+        amount: query.sum(:amount),
+        amount_confirmed: query.confirmed.sum(:amount),
+        amount_counted: query.counted.sum(:amount),
+        amount_discarded: query_discarded.sum(:amount),
+        amount_discarded_counted: query_discarded.counted.sum(:amount),
+        unique: query.distinct(:document_vatid).count(:document_vatid),
+        unique_confirmed: query.confirmed.distinct(:document_vatid).count(:document_vatid),
+        unique_counted: query.counted.distinct(:document_vatid).count(:document_vatid)
+      }
+    end
+
+    def possible_user
+      @possible_user ||= self.user.nil? && User.find_by_document_vatid(self.document_vatid)
+    end
+
+    def unique_hash
+       Digest::SHA1.hexdigest "#{id}-#{created_at}-#{document_vatid.upcase}"
+    end
+
+    def renew!(new_campaign)
+      ActiveRecord::Base.transaction do
+        new_loan = self.dup
+        new_loan.microcredit = new_campaign
+        new_loan.counted_at = DateTime.now
+        self.transferred_to = new_loan
+        self.returned_at = DateTime.now
+        save!
+        new_loan.save!
+      end
+    end
+
+    def renewable?
+      !self.confirmed_at.nil? && self.returned_at.nil? && self.microcredit.renewable?
+    end
+
+    def return!
+      return false if self.confirmed_at.nil? || !self.returned_at.nil?
+      self.returned_at = DateTime.now
+      save!
+      true
+    end
+
+    def confirm!
+      return false unless self.confirmed_at.nil?
+      self.discarded_at = nil
+      self.confirmed_at = DateTime.now
+      self.save!
+      self.update_counted_at
+      true
+    end
+
+    def unconfirm!
+      return false if self.confirmed_at.nil?
+      self.confirmed_at = nil
+      save!
+      true
+    end
+
+    def discard!
+      return false unless self.discarded_at.nil?
+      self.discarded_at = DateTime.now
+      self.confirmed_at = nil
+      self.save!
+      true
+    end
+
+    private
+
+    def set_bic_for_spanish_iban
+      if self.iban_account && self.iban_account.upcase.start_with?("ES") && self.iban_bic.blank?
+        self.iban_bic = calculate_bic
+      end
+    end
+
+    # Helper method to safely get microcredit_loan configuration with default values
+    def microcredit_loan_config(key)
+      config = Rails.application.secrets.microcredit_loans
+      return nil unless config
+
+      case key
+      when "max_loans_per_ip"
+        config["max_loans_per_ip"] || 50
+      when "max_loans_per_user"
+        config["max_loans_per_user"] || 30
+      when "max_loans_sum_amount"
+        config["max_loans_sum_amount"] || 10000
+      else
+        config[key]
+      end
+    end
+  end
+end
