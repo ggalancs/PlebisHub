@@ -172,26 +172,26 @@ RSpec.describe User, type: :model do
       it 'requires first_name' do
         user = build(:user, first_name: nil)
         expect(user).not_to be_valid
-        expect(user.errors[:first_name]).to include("can't be blank")
+        expect(user.errors[:first_name]).to include("Tu nombre no puede estar en blanco")
       end
 
       it 'requires last_name' do
         user = build(:user, last_name: nil)
         expect(user).not_to be_valid
-        expect(user.errors[:last_name]).to include("can't be blank")
+        expect(user.errors[:last_name]).to include("Tu apellido no puede estar en blanco")
       end
 
       it 'requires document_type' do
         user = build(:user, document_type: nil)
         expect(user).not_to be_valid
-        expect(user.errors[:document_type]).to include("can't be blank")
+        expect(user.errors[:document_type]).to include("Tu tipo de documento no puede estar en blanco")
       end
 
       it 'requires document_vatid' do
         user = build(:user)
         user[:document_vatid] = nil  # Set directly to bypass setter that calls upcase on nil
         expect(user).not_to be_valid
-        expect(user.errors[:document_vatid]).to include("can't be blank")
+        expect(user.errors[:document_vatid]).to include("Tu documento no puede estar en blanco")
       end
 
       it 'validates document_type inclusion' do
@@ -203,7 +203,7 @@ RSpec.describe User, type: :model do
       it 'requires born_at' do
         user = build(:user, born_at: nil)
         expect(user).not_to be_valid
-        expect(user.errors[:born_at]).to include("can't be blank")
+        expect(user.errors[:born_at]).to include("Tu fecha de nacimiento no puede estar en blanco")
       end
 
       it 'validates user is over 18 years old' do
@@ -222,31 +222,31 @@ RSpec.describe User, type: :model do
       it 'requires address' do
         user = build(:user, address: nil)
         expect(user).not_to be_valid
-        expect(user.errors[:address]).to include("can't be blank")
+        expect(user.errors[:address]).to include("Tu dirección no puede estar en blanco")
       end
 
       it 'requires postal_code' do
         user = build(:user, postal_code: nil)
         expect(user).not_to be_valid
-        expect(user.errors[:postal_code]).to include("can't be blank")
+        expect(user.errors[:postal_code]).to include("Tu código postal no puede estar en blanco")
       end
 
       it 'requires town' do
         user = build(:user, town: nil)
         expect(user).not_to be_valid
-        expect(user.errors[:town]).to include("can't be blank")
+        expect(user.errors[:town]).to include("Tu municipio no puede estar en blanco")
       end
 
       it 'requires province' do
         user = build(:user, province: nil)
         expect(user).not_to be_valid
-        expect(user.errors[:province]).to include("can't be blank")
+        expect(user.errors[:province]).to include("Tu provincia no puede estar en blanco")
       end
 
       it 'requires country' do
         user = build(:user, country: nil)
         expect(user).not_to be_valid
-        expect(user.errors[:country]).to include("can't be blank")
+        expect(user.errors[:country]).to include("Tu país no puede estar en blanco")
       end
     end
 
@@ -258,7 +258,7 @@ RSpec.describe User, type: :model do
       it 'requires email confirmation on create' do
         user = build(:user, email_confirmation: nil)
         expect(user).not_to be_valid
-        expect(user.errors[:email_confirmation]).to include("can't be blank")
+        expect(user.errors[:email_confirmation]).to include("no puede estar en blanco")
       end
 
       it 'validates email confirmation matches' do
@@ -271,7 +271,7 @@ RSpec.describe User, type: :model do
         existing_user = create(:user, email: "unique@example.com")
         user = build(:user, email: "unique@example.com")
         expect(user).not_to be_valid
-        expect(user.errors[:email]).to include("has already been taken")
+        expect(user.errors[:email]).to include("Hubo un error al guardar este dato. Inténtalo de nuevo")
       end
     end
 
@@ -280,7 +280,7 @@ RSpec.describe User, type: :model do
         existing_user = create(:user, document_vatid: "UNIQUE123")
         user = build(:user, document_vatid: "UNIQUE123")
         expect(user).not_to be_valid
-        expect(user.errors[:document_vatid]).to include("has already been taken")
+        expect(user.errors[:document_vatid]).to include("Hubo un error al guardar este dato. Inténtalo de nuevo")
       end
     end
 
@@ -288,19 +288,19 @@ RSpec.describe User, type: :model do
       it 'requires terms_of_service acceptance' do
         user = build(:user, terms_of_service: false)
         expect(user).not_to be_valid
-        expect(user.errors[:terms_of_service]).to include("must be accepted")
+        expect(user.errors[:terms_of_service]).to include("debe ser aceptado")
       end
 
       it 'requires over_18 acceptance' do
         user = build(:user, over_18: false)
         expect(user).not_to be_valid
-        expect(user.errors[:over_18]).to include("must be accepted")
+        expect(user.errors[:over_18]).to include("debe ser aceptado")
       end
 
       it 'requires checked_vote_circle acceptance' do
         user = build(:user, checked_vote_circle: false)
         expect(user).not_to be_valid
-        expect(user.errors[:checked_vote_circle]).to include("must be accepted")
+        expect(user.errors[:checked_vote_circle]).to include("debe ser aceptado")
       end
     end
   end

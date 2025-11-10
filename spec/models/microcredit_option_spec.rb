@@ -27,7 +27,7 @@ RSpec.describe MicrocreditOption, type: :model do
     it 'requires name' do
       option = build(:microcredit_option, name: nil)
       expect(option).not_to be_valid
-      expect(option.errors[:name]).to include("can't be blank")
+      expect(option.errors[:name]).to include("no puede estar en blanco")
     end
 
     it 'requires microcredit' do
@@ -228,8 +228,8 @@ RSpec.describe MicrocreditOption, type: :model do
       root = create(:microcredit_option)
       leaf = create(:microcredit_option, parent: root)
 
-      expect(root.children.any?).to be true, "Root should have children"
-      expect(leaf.children.empty?).to be true, "Leaf should have no children"
+      expect(root.children.any?).to be(true), "Root should have children"
+      expect(leaf.children.empty?).to be(true), "Leaf should have no children"
     end
   end
 
