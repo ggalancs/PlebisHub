@@ -1,4 +1,4 @@
-class AddMoreFieldsToCircles < ActiveRecord::Migration
+class AddMoreFieldsToCircles < ActiveRecord::Migration[4.2]
   def change
     add_column :circles, :code, :string
     add_column :circles, :name, :string

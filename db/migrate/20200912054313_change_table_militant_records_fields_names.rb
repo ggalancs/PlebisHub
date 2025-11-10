@@ -1,4 +1,4 @@
-class ChangeTableMilitantRecordsFieldsNames < ActiveRecord::Migration
+class ChangeTableMilitantRecordsFieldsNames < ActiveRecord::Migration[4.2]
   def change
     remove_column :militant_records, :circle_name, :string
     add_column :militant_records, :vote_circle_name, :string

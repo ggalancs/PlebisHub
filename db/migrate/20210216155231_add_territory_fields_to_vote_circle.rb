@@ -1,4 +1,4 @@
-class AddTerritoryFieldsToVoteCircle < ActiveRecord::Migration
+class AddTerritoryFieldsToVoteCircle < ActiveRecord::Migration[4.2]
   def change
     add_column :vote_circles, :kind, :integer
     add_column :vote_circles, :country_code, :string

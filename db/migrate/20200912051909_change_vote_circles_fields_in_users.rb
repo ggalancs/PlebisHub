@@ -1,4 +1,4 @@
-class ChangeVoteCirclesFieldsInUsers < ActiveRecord::Migration
+class ChangeVoteCirclesFieldsInUsers < ActiveRecord::Migration[4.2]
   def change
     remove_column :users, :circle_id, :integer
     add_column :users, :vote_circle_id, :integer
