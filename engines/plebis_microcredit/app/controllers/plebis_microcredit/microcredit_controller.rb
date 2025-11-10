@@ -25,7 +25,7 @@ module PlebisMicrocredit
     def provinces
       # SECURITY: Validate and sanitize country parameter
       country = validate_country_param(params[:microcredit_loan_country])
-      render partial: 'plebis_microcredit/microcredit/subregion_select', locals: {
+      render partial: 'subregion_select', locals: {
         country: country,
         province: params[:microcredit_loan_province],
         disabled: false,
@@ -40,7 +40,7 @@ module PlebisMicrocredit
     def towns
       # SECURITY: Validate and sanitize country parameter
       country = validate_country_param(params[:microcredit_loan_country])
-      render partial: 'plebis_microcredit/microcredit/municipies_select', locals: {
+      render partial: 'municipies_select', locals: {
         country: country,
         province: params[:microcredit_loan_province],
         town: params[:microcredit_loan_town],

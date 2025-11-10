@@ -16,4 +16,11 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "rails", "~> 7.2.3"
   spec.add_dependency "iban-tools"  # IBAN validation
+
+  # Note: This engine also requires the following gems to be in the main Gemfile:
+  # - norma43 (git: 'https://github.com/podemos-info/norma43.git') - Spanish bank file format parser
+  # - paperclip - File attachment management
+  # - acts_as_paranoid - Soft deletes
+  # - friendly_id - URL slugs
+  # - flag_shih_tzu - Bit flags
 end

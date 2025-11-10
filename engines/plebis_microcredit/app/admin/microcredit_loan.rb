@@ -349,11 +349,11 @@ ActiveAdmin.register PlebisMicrocredit::MicrocreditLoan, as: "MicrocreditLoan" d
     @microcredit = @loan.microcredit
     @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
 
-    render pdf: 'IngresoMicrocreditosPlebisBrand.pdf', template: 'plebis_microcredit/microcredit/email_guide.pdf.erb', encoding: "UTF-8"
+    render pdf: 'IngresoMicrocreditosPlebisBrand.pdf', template: 'microcredit/email_guide.pdf.erb', encoding: "UTF-8"
   end
 
   controller do
-    before_filter :multiple_id_search, :only => :index
+    before_action :multiple_id_search, only: :index
 
     def multiple_id_search
       params[:q][:id_in] = params[:q][:id_in].split unless params[:q].nil? or params[:q][:id_in].nil?

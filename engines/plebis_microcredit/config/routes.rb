@@ -8,7 +8,8 @@ PlebisMicrocredit::Engine.routes.draw do
   get '/microcreditos/municipios', to: 'microcredit#towns'
   get '/microcreditos/informacion', to: 'microcredit#info', as: 'microcredits_info'
   get '/microcreditos/informacion/papeletas_con_futuro', to: 'microcredit#info_mailing', as: 'microcredits_info_mailing'
-  get '/microcreditos/informacion/euskera', to: 'microcredit#info_euskera', as: 'microcredits_info_euskera'
+  # Note: info_euskera route exists but action/view not implemented - uncomment if needed
+  # get '/microcreditos/informacion/euskera', to: 'microcredit#info_euskera', as: 'microcredits_info_euskera'
   get '/microcreditos/renovar(/:loan_id/:hash)', to: 'microcredit#renewal', as: :renewal_microcredit_loan
   get '/microcreditos/:id', to: 'microcredit#new_loan', as: :new_microcredit_loan
   get '/microcreditos/:id/detalle', to: 'microcredit#show_options', as: :show_microcredit_options_detail
