@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :microcredit_option do
+  factory :microcredit_option, class: 'PlebisMicrocredit::MicrocreditOption' do
     association :microcredit
     sequence(:name) { |n| "Option #{n}" }
 

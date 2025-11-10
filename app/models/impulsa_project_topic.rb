@@ -1,8 +1,5 @@
-class ImpulsaProjectTopic < ApplicationRecord
-  belongs_to :impulsa_project
-  belongs_to :impulsa_edition_topic
+# frozen_string_literal: true
 
-  def slug
-    self.name.parametrize
-  end
+# Backward compatibility alias for PlebisImpulsa::ImpulsaProjectTopic
+class ImpulsaProjectTopic < PlebisImpulsa::ImpulsaProjectTopic
 end

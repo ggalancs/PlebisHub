@@ -32,5 +32,10 @@ module PlebisHub
     # Restore Rails.application.secrets for Rails 7.2+ compatibility
     # secrets.yml support was removed in Rails 7.2
     config.secrets = config_for(:secrets)
+
+    # Rails 7.2 compatibility: Allow engines to modify autoload_paths
+    # Some legacy engines attempt to modify autoload_paths during initialization
+    # This prevents FrozenError by keeping paths mutable
+    config.add_autoload_paths_to_load_path = true
   end
 end

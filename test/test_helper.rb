@@ -5,6 +5,7 @@ require 'rails/test_help'
 require 'simplecov'
 require 'webmock/minitest'
 require 'minitest/reporters'
+require 'mocha/minitest'
 
 # Explicitly require validators to ensure they're loaded before models
 require Rails.root.join('app', 'validators', 'email_validator')

@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :user_verification do
+  factory :user_verification, class: 'PlebisVerification::UserVerification' do
     association :user
     status { :pending }
     terms_of_service { true }

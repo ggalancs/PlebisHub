@@ -1,0 +1,226 @@
+<% content_for :title, t('microcredit.common.title', name: @brand_config["name"]) %>
+<% if @brand_config["color1"] %>
+<style>
+h2, label, fieldset legend span { color: <%=@brand_config["color1"]%> !important; }
+form a { color: <%=@brand_config["color2"]%> !important; }
+input.button, a.button { background-color: <%=@brand_config["color2"]%> !important; }
+.microcredits-wrapper .radio_options input:checked + div, .microcredits-wrapper .radio_options input:checked:hover + div { border: 1px solid <%=@brand_config["color2"]%> }
+.microcredits-wrapper .radio_options input:checked + div i, .microcredits-wrapper .radio_options input:checked:hover + div i { visibility: visible; color: <%=@brand_config["color2"]%> }
+</style>
+<% end %>
+<div class="content-content microcredits-wrapper<%= " completed" if @microcredit.completed%>">
+<% if !current_user && @brand_config["allow_login"] && !request.post? %>
+  <div class="modal-dialog">
+    <div>    
+      <h2><%= t 'microcredit.common.title', name: @brand_config["name"]%> - <%=@microcredit.title%></h2>
+      <p>Te recomendamos que <%= link_to "accedas con tu usuario del Portal de PlebisHubción", microcredit_login_path%> para que no tengas que rellenar nuevamente estos datos y para que puedas consultar el estado del préstamo en el futuro.</p>
+      <div class="buttonbox"><a class="close button">Continuar sin identificarse</a>&nbsp;&nbsp; &nbsp;&nbsp;<%= link_to "Acceder con tu usuario", microcredit_login_path, class:"button"%></div>
+    </div>
+  </div>
+<% end %>
+
+<h2><%= t 'microcredit.common.title', name: @brand_config["name"]%> - <%=@microcredit.title%></h2>
+<p><%= t 'microcredit.common.help_us', name: @brand_config["name"]%> <%= link_to t('microcredit.common.more_info'), (@brand_config["info_link"] || microcredits_info_path), target: "_top" %></p>
+<% if @microcredit.completed %>
+  <div>
+    <%=fa_icon "check-circle"%>
+    <div class="microcredit-ended">
+      <h3><%= t 'microcredit.common.has_finished' %></h3>
+      <p><%= t 'microcredit.common.campaign_results', total: number_to_euro(@finished_microcredits.map {|m| m.campaign_confirmed_amount*100 } .sum, 0) %></p>
+    </div>
+  </div>
+<% else %>
+  <% if @microcredit.contact_phone and not @microcredit.contact_phone.empty?%>
+  <p><%=fa_icon "phone-square"%> <%= t('.help_phone', phone: @microcredit.contact_phone).html_safe %></p>
+  <% end %>
+  <%= errors_in_form @loan %>
+  <%= semantic_form_for @loan, url: create_microcredit_loan_path(@url_params), html: {method: :post, autocomplete: 'off'} do |f| %>
+
+    <% if current_user && @brand_config["allow_login"] %>
+      <% if @user_loans.length > 0 %>
+        <%= alert_box "Información" do %>
+          <% if @user_loans.length == 1 %>
+          <p><%= t '.has_microcredit', total: number_to_euro(@user_loans.map { |l| l.amount*100 } .sum)%></p>
+          <% else %>
+          <p><%= t '.has_microcredits', count: @user_loans.length, total: number_to_euro(@user_loans.map { |l| l.amount*100 } .sum)%></p>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% else %>
+      <fieldset>
+        <div class="inputlabel-box">
+          <% if @loan.errors.include?(:first_name) %>
+            <%= field_notice_box %>
+          <% end %>
+          <%= f.input :first_name, required: true, input_html: {autofocus: true, required: true, class: 'input-xl'} %>
+        </div>
+
+        <div class="inputlabel-box">
+          <% if @loan.errors.include?(:last_name) %>
+              <%= field_notice_box %>
+          <% end %>
+          <%= f.input :last_name, required: true, input_html: {required: true, class: 'input-xl'} %>
+        </div>
+
+        <div class="inputlabel-box">
+          <% if @loan.errors.include?(:document_vatid) %>
+              <%= field_notice_box %>
+          <% end %>
+          <%= f.input :document_vatid,
+                      required: true %>
+        </div>
+
+        <div class="inputlabel-box">
+          <% if @loan.errors.include?(:email) %>
+              <%= field_notice_box %>
+          <% end %>
+          <%= f.input :email,
+                      required: true %>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend><span><%= t '.home_address' %></span></legend>
+        <div class="inputlabel-box">
+          <% if @loan.errors.include?(:country) %>
+              <%= field_notice_box %>
+          <% end %>
+          <%= label @loan, :country, class: "control-label", required: :required do %>
+            <%= t '.country' %><abbr title="<%= t '.required' %>">*</abbr>
+          <% end %>
+          <%= select_tag "microcredit_loan[country]", options_from_collection_for_select(get_countries, "code", "name", @loan.country), { disabled: false, required: true, data: { allowClear: true } } %>
+        </div>
+        <div class="inputlabel-box">
+          <% if @loan.errors.include?(:province) %>
+              <%= field_notice_box %>
+          <% end %>
+          <%= render partial: 'subregion_select', locals:{ country: @loan.country, province: @loan.province, disabled: false, required: true, title: t('.province') } %>
+        </div>
+        <div class="inputlabel-box">
+          <% if @loan.errors.include?(:town) %>
+              <%= field_notice_box %>
+          <% end %>
+          <%= render partial: 'municipies_select', locals: { country: @loan.country, province: @loan.province, town:  @loan.town, disabled: false, required: true, title: t('.town') } %>
+        </div>
+        <div class="inputlabel-box">
+          <% if @loan.errors.include?(:postal_code) %>
+              <%= field_notice_box %>
+          <% end %>
+          <%= f.input :postal_code, required: true, input_html: {required: true, class: 'input-s'} %>
+        </div>
+        <div class="inputlabel-box">
+          <% if @loan.errors.include?(:address) %>
+              <%= field_notice_box %>
+          <% end %>
+          <%= f.input :address, required: true, input_html: {required: true, class: 'input-xl'} %>
+        </div>
+      </fieldset>
+    <% end %>
+    <fieldset class="with-tos">
+      <div>
+        <% if @loan.errors.include?(:amount) %>
+            <%= field_notice_box %>
+        <% end %>
+          <%= label @loan, :amount, class: "control-label", required: :required do %>
+            <%= t 'microcredit.common.amount' %><abbr title="<%= t '.required' %>">*</abbr>
+          <% end %>
+        <div class="radio_options">
+          <% @microcredit.phase_remaining.each do |amount,remaining| %>
+          <input id="microcredit_loan_amount_<%=amount%>" name="microcredit_loan[amount]" value="<%=amount%>" type="radio"<%=" checked" if amount==@loan.amount%><%=' disabled class=disabled' if remaining==0%> />
+          <label onclick="javascript:$('#microcredit_loan_amount_<%=amount%>').attr('checked', true)" for="microcredit_loan_amount_<%=amount%>"><%=fa_icon "#{remaining==0 ? "times" : "check"}-circle", text: "#{number_to_euro amount*100,0}"%><span><%=t '.remaining_count', total: remaining%></span></label>
+          <% end %>
+          <span>Marca además la siguiente opción si deseas suscribir una cantidad superior a la elegida (300€, 700€, ...)<br/>Te permitirá suscribir varios microcréditos seguidos hasta alcanzar dicha cantidad.</span>
+          <%= check_box_tag :reload, "1", !params[:reload].blank?, class: 'checkbox' %>
+          <%= label_tag :reload, class: 'text-xl' do %><%=fa_icon "check-circle", text: "Suscribir otro"%><% end %>
+        </div>
+        <div>
+          
+        </div>
+      </div>
+
+      <% if @microcredit.microcredit_options.any? %>
+        <div id="microcredit-options">
+          <div class="inputlabel-box">
+            <p>Elige aquí el destino de tu préstamo:</p>
+          </div>
+          <div >
+            <% if @microcredit.errors.include? :microcredit_option %>
+              <%= field_notice_box %>
+            <% end %>
+          </div>
+          <%=f.collection_radio_buttons :microcredit_option_id, @microcredit.microcredit_options.where(parent: nil).order('id ASC'), :id, :name do |op|%>
+            <div>
+              <%= op.radio_button %>
+              <%= op.label({:class =>"microcredit-options-radio-button"}) { op.text } %>
+              <%= select_tag "microcredit_loan[microcredit_option_id_#{op.value}]", options_from_collection_for_select(op.object.children, :id, :name), {prompt: "Elige una opcion", class: "microcredit-options-select2"}  if op.object.children.any? %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div class="inputlabel-box">
+        <p>Cuenta en la que deseas que se te devuelva el microcrédito</p>
+      </div>
+        <div class="inputlabel-box">
+          <% if @microcredit.errors.include? :iban_account %>
+            <%= field_notice_box %>
+          <% end %>
+          <%= f.input :iban_account, input_html: { class: 'input-m form-control' } %>
+        </div>
+      <div class="with-border">
+        <div class="inputlabel-box">
+          <p>Sólo necesario en el caso de que tu cuenta bancaria no sea española</p>
+        </div>
+        <div class="inputlabel-box">
+          <% if @microcredit.errors.include? :iban_bic %>
+            <%= field_notice_box %>
+          <% end %>
+
+          <%= f.input :iban_bic %>
+        </div>
+      </div>
+
+      <div>
+        <p><br/></p>
+        <h3>Recuerda hacer el ingreso en la cuenta de PlebisBrand: <br/>
+          <%=@microcredit.account_number %> (Caja de Ingenieros) indicando en el concepto el número que recibirás en tu correo electrónico</h3>
+      </div>
+    <% if !current_user %>
+      <div class="inputlabel-box">
+        <%= f.label :captcha %>
+        <div class="input-box">
+          <%= f.input :captcha, as: :simple_captcha, input_html: {class: "input-m"} %>
+        </div>
+      </div>
+    <% end %>
+
+      <div class="inputlabel-box">
+        <% if @loan.errors.include?(:minimal_year_old) %>
+            <%= field_notice_box %>
+        <% end %>
+        <div class="input-box">
+          <%= f.check_box :minimal_year_old, class: 'checkbox' %>
+          <%= f.label :minimal_year_old, class: 'text-xl' do %>
+            <%= t '.over_age_message', name: @brand_config["name"]%>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="inputlabel-box">
+        <% if @loan.errors.include?(:terms_of_service) %>
+            <%= field_notice_box %>
+        <% end %>
+        <div class="input-box">
+          <%= f.check_box :terms_of_service, class: 'checkbox' %>
+          <%= f.label :terms_of_service, class: 'text-xl' do %>
+            <%= t '.terms_of_service_message', name: @brand_config["name"]%>
+            <%= link_to t('.terms_of_service_link', name: @brand_config["name"]), @microcredit.agreement_link, target: "_blank"%>
+          <% end %>
+        </div>
+      </div>
+    </fieldset>
+    <%= f.actions class: 'enter' do %>
+      <%= f.action :submit, label: t(".subscribe"), as: :input, button_html: {class: 'button'} %>
+    <% end %>
+  <% end %>
+<% end %>
+</div>

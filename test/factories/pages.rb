@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :page do
+  factory :page, class: 'PlebisCms::Page' do
     sequence(:title) { |n| "Page Title #{n}" }
     sequence(:id_form) { |n| n }
     sequence(:slug) { |n| "page-slug-#{n}" }

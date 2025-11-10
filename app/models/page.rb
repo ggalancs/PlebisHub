@@ -1,20 +1,9 @@
-# http://codeconnoisseur.org/ramblings/creating-dynamic-routes-at-runtime-in-rails-4
-class Page < ApplicationRecord
+# frozen_string_literal: true
 
-  validates :id_form, presence: true, :numericality => { :greater_than_or_equal_to => 0 }
-  validates :slug, uniqueness: { case_sensitive: false, scope: :deleted_at }, presence: true
-  validates :title, presence: true
-
-  acts_as_paranoid
-
-  # Scopes
-  scope :promoted, -> { where(promoted: true) }
-  scope :ordered_by_priority, -> { order(priority: :desc) }
-  scope :promoted_ordered, -> { promoted.ordered_by_priority }
-
-  # Instance methods
-  def external_plebisbrand_link?
-    return false if link.blank?
-    /https:\/\/[^\/]*\.plebisbrand.info\/.*/.match?(link)
-  end
+# DEPRECATED: This class is deprecated and will be removed in a future version.
+# Use PlebisCms::Page directly instead.
+#
+# This alias maintains backward compatibility with existing code that references
+# the Page model without the PlebisCms namespace.
+class Page < PlebisCms::Page
 end

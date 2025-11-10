@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+require "<%= @engine_name %>/version"
+require "<%= @engine_name %>/engine"
+
+module <%= @module_name %>
+  # Your engine's main module
+  #
+  # Add shared functionality here that can be used across the engine.
+end

@@ -1,37 +1,9 @@
-class Category < ApplicationRecord
-  extend FriendlyId
-  friendly_id :slug_candidates, use: [:slugged, :finders]
+# frozen_string_literal: true
 
-  # Associations
-  has_and_belongs_to_many :posts
-
-  # Validations
-  validates :name, presence: true, uniqueness: { case_sensitive: false }
-  validates :slug, uniqueness: { case_sensitive: false }, allow_blank: true
-
-  # Scopes
-  scope :active, -> { joins(:posts).distinct }
-  scope :inactive, -> { where.missing(:posts) }
-  scope :alphabetical, -> { order(name: :asc) }
-  scope :by_post_count, -> { left_joins(:posts).group(:id).order('COUNT(posts.id) DESC') }
-
-  # Instance methods
-  def active?
-    posts.exists?
-  end
-
-  def inactive?
-    !active?
-  end
-
-  def posts_count
-    posts.count
-  end
-
-  def slug_candidates
-    [
-      :name,
-      [:name, :id]
-    ]
-  end
+# DEPRECATED: This class is deprecated and will be removed in a future version.
+# Use PlebisCms::Category directly instead.
+#
+# This alias maintains backward compatibility with existing code that references
+# the Category model without the PlebisCms namespace.
+class Category < PlebisCms::Category
 end

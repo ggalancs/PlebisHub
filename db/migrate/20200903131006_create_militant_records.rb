@@ -1,4 +1,4 @@
-class CreateMilitantRecords < ActiveRecord::Migration
+class CreateMilitantRecords < ActiveRecord::Migration[4.2]
   def change
     create_table :militant_records do |t|
       t.integer :user_id

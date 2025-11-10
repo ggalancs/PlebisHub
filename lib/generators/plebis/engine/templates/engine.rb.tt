@@ -1,0 +1,38 @@
+# frozen_string_literal: true
+
+module <%= @module_name %>
+  # <%= @module_name %> Engine
+  #
+  # Rails engine for <%= @engine_name %> functionality.
+  #
+  class Engine < ::Rails::Engine
+    isolate_namespace <%= @module_name %>
+
+    # Configure generators
+    config.generators do |g|
+      g.test_framework :rspec
+      g.fixture_replacement :factory_bot
+      g.factory_bot dir: 'spec/factories'
+    end
+
+    # TODO: Implement ability loading mechanism
+    # The Ability.register_abilities method does not exist in CanCanCan
+    # Each engine should define its abilities in: app/models/<engine_name>/ability.rb
+    # and they will be automatically loaded by CanCanCan's standard mechanism
+
+    # Check if engine is activated before loading routes
+    initializer "<%= @engine_name %>.check_activation", before: :set_routes_reloader do
+      unless EngineActivation.enabled?('<%= @engine_name %>')
+        Rails.logger.info "[<%= @module_name %>] Engine disabled, skipping routes"
+        config.paths["config/routes.rb"].skip_if { true }
+      end
+    end
+
+    # Subscribe to events if needed
+    # initializer "<%= @engine_name %>.subscribe_events" do
+    #   PlebisCore::EventBus.subscribe('some.event') do |event|
+    #     # Handle event
+    #   end
+    # end
+  end
+end

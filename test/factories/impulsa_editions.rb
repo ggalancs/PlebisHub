@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :impulsa_edition do
+  factory :impulsa_edition, class: 'PlebisImpulsa::ImpulsaEdition' do
     sequence(:name) { |n| "Impulsa Edition #{n}" }
     sequence(:email) { |n| "impulsa#{n}@example.com" }
     start_at { 2.months.ago }

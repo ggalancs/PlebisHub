@@ -98,8 +98,17 @@ group :development, :test do
   gem 'selenium-webdriver' # Modern driver for Capybara
   gem 'launchy'
   gem 'database_cleaner'
+  gem 'mocha', require: false
   gem 'minitest-rails', '~> 7.1' # Rails 7.2 compatible
   # gem 'minitest-rails-capybara' # Temporarily disabled for upgrade
   gem 'rails-controller-testing' # Required for assigns() and assert_template in controller specs
 end
 
+
+# PlebisHub Engines
+gem 'plebis_cms', path: 'engines/plebis_cms'
+gem 'plebis_participation', path: 'engines/plebis_participation'
+gem 'plebis_proposals', path: 'engines/plebis_proposals'
+gem 'plebis_impulsa', path: 'engines/plebis_impulsa'
+gem 'plebis_verification', path: 'engines/plebis_verification'
+gem 'plebis_microcredit', path: 'engines/plebis_microcredit'
