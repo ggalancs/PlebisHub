@@ -108,3 +108,4 @@ end
 # PlebisHub Engines
 gem 'plebis_cms', path: 'engines/plebis_cms'
 gem 'plebis_participation', path: 'engines/plebis_participation'
+gem 'plebis_proposals', path: 'engines/plebis_proposals'

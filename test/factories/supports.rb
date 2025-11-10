@@ -1,5 +1,5 @@
-FactoryBot.define do
-  factory :support do
+ FactoryBot.define do
+  factory :support, class: 'PlebisProposals::Support' do
     association :user
     association :proposal
 

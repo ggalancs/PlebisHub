@@ -47,6 +47,7 @@ Rails.application.routes.draw do
     # Mount PlebisParticipation Engine - handles participation teams
     # Routes are only loaded when engine is activated via EngineActivation
     mount PlebisParticipation::Engine, at: '/'
+    mount PlebisProposals::Engine, at: '/'
 
     # Legacy redirect
     get '/gente-por-el-cambio', to: redirect('/equipos-de-accion-participativa')
