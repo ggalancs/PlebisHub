@@ -8,13 +8,10 @@ module PlebisCollaborations
 
     belongs_to :user, -> { with_deleted }, class_name: "::User", optional: true
 
-    # FIXME: this should be orders for the inflextions
-    # http://guides.rubyonrails.org/association_basics.html#the-has-many-association
-    # should have a solid test base before doing this change and review where .order
-    # is called.
-    #
-    # has_many :orders, as: :parent
-    has_many :order, as: :parent, class_name: "PlebisCollaborations::Order"
+    # Association properly named as plural per Rails conventions
+    # Changed from :order to :orders to follow standard has_many naming
+    # Where ordering is needed, use explicit .order(column: :direction) syntax
+    has_many :orders, as: :parent, class_name: "PlebisCollaborations::Order"
 
     attr_accessor :skip_queries_validations
     validates :payment_type, :amount, :frequency, presence: true
@@ -239,11 +236,11 @@ module PlebisCollaborations
     end
 
     def first_order
-      self.order.sort {|a,b| a.payable_at <=> b.payable_at }.detect {|o| o.is_payable? or o.is_paid? }
+      self.orders.sort {|a,b| a.payable_at <=> b.payable_at }.detect {|o| o.is_payable? or o.is_paid? }
     end
 
     def last_order_for date
-      self.order.sort {|a,b| b.payable_at <=> a.payable_at }.detect {|o| o.payable_at.unique_month <= date.unique_month and (o.is_payable? or o.is_paid?) }
+      self.orders.sort {|a,b| b.payable_at <=> a.payable_at }.detect {|o| o.payable_at.unique_month <= date.unique_month and (o.is_payable? or o.is_paid?) }
     end
 
     def create_order date, maybe_first=false,add_amount=true
@@ -264,7 +261,7 @@ module PlebisCollaborations
         month = date_aux.month
         year = date_aux.year
         min_date = DateTime.parse("#{year}-#{month}-01 00:00")
-        last_returned_order = self.order.where("payed_at > ?",'2020-09-30').where("payed_at >= ?",(min_date)).returned.order(payed_at:'ASC').last
+        last_returned_order = self.orders.where("payed_at > ?",'2020-09-30').where("payed_at >= ?",(min_date)).returned.order(payed_at:'ASC').last
 
         if last_returned_order && add_amount
           amount = last_returned_order.amount if last_returned_order.present?
@@ -354,8 +351,8 @@ module PlebisCollaborations
       # should have a solid test base before doing this change and review where .order
       # is called.
 
-      oids= self.order.pluck(:id).last(MAX_RETURNED_ORDERS)
-      returned_orders = self.order.where(id:oids).returned.count
+      oids= self.orders.pluck(:id).last(MAX_RETURNED_ORDERS)
+      returned_orders = self.orders.where(id:oids).returned.count
       militant = self.get_user.militant? || false
 
       if self.is_payable?
@@ -448,7 +445,7 @@ module PlebisCollaborations
 
     def get_orders date_start=Date.today, date_end=Date.today, create_orders = true
       saved_orders = Hash.new {|h,k| h[k] = [] }
-      self.order.select {|o| o.payable_at > date_start.beginning_of_month and o.payable_at < date_end.end_of_month and !o.parent.nil?} .each do |o|
+      self.orders.select {|o| o.payable_at > date_start.beginning_of_month and o.payable_at < date_end.end_of_month and !o.parent.nil?} .each do |o|
         saved_orders[o.payable_at.unique_month] << o
       end
 

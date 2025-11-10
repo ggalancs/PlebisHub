@@ -51,7 +51,7 @@ module PlebisCollaborations
     def order_returned_militant(collaboration)
       @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
       @user = collaboration.get_user
-      @order = collaboration.order.returned.last
+      @order = collaboration.orders.returned.last
       @payment_day = PlebisCollaborations::Order.payment_day
       @month = I18n.localize(@order.created_at, :format => "%B")
       @date = I18n.localize(@order.created_at, :format => "%B %Y")
@@ -65,7 +65,7 @@ module PlebisCollaborations
     def order_returned_user(collaboration)
       @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
       @user = collaboration.get_user
-      @order = collaboration.order.returned.last
+      @order = collaboration.orders.returned.last
       @payment_day = PlebisCollaborations::Order.payment_day
       @month = I18n.localize(@order.created_at, :format => "%B")
       @date = I18n.localize(@order.created_at, :format => "%B %Y")

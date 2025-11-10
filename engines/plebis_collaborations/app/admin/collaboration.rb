@@ -359,7 +359,7 @@ ActiveAdmin.register PlebisCollaborations::Collaboration, namespace: :admin do
       end
     end
     panel "Órdenes de pago" do
-      table_for collaboration.order.sort { |a,b| b.payable_at <=> a.payable_at } do
+      table_for collaboration.orders.sort { |a,b| b.payable_at <=> a.payable_at } do
         column :id do |order|
           link_to order.id, admin_order_path(order.id)
         end
