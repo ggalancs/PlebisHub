@@ -1,5 +1,5 @@
-class ImpulsaEditionTopic < ApplicationRecord
-  belongs_to :impulsa_edition
-  has_many :impulsa_projects
-  has_many :impulsa_project_topics
+# frozen_string_literal: true
+
+# Backward compatibility alias for PlebisImpulsa::ImpulsaEditionTopic
+class ImpulsaEditionTopic < PlebisImpulsa::ImpulsaEditionTopic
 end

@@ -109,3 +109,4 @@ end
 gem 'plebis_cms', path: 'engines/plebis_cms'
 gem 'plebis_participation', path: 'engines/plebis_participation'
 gem 'plebis_proposals', path: 'engines/plebis_proposals'
+gem 'plebis_impulsa', path: 'engines/plebis_impulsa'

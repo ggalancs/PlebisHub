@@ -48,6 +48,7 @@ Rails.application.routes.draw do
     # Routes are only loaded when engine is activated via EngineActivation
     mount PlebisParticipation::Engine, at: '/'
     mount PlebisProposals::Engine, at: '/'
+    mount PlebisImpulsa::Engine, at: '/'
 
     # Legacy redirect
     get '/gente-por-el-cambio', to: redirect('/equipos-de-accion-participativa')
