@@ -1,0 +1,62 @@
+<% @election_location.has_voting_info = params[:has_voting_info] if params[:has_voting_info] %>
+<%= semantic_form_for [:admin, @election_location.election, @election_location], builder: Formtastic::FormBuilder do |f| %>
+  <%= f.inputs "Identificación" do %>
+    <%= f.input :election, as: :string, input_html: { disabled: true } %>
+    
+    <% spain = Carmen::Country.coded("ES") 
+      case @election_location.election.scope
+          when 0 then %>
+            <%= f.input :location, as: :select, collection: [[ "Estatal", "00"]] %>
+        <% when 1 then %>
+            <%= f.input :location, as: :select, collection: PlebisBrand::GeoExtra::AUTONOMIES.values.uniq.map {|u| [ u[1], u[0][2..-1] ]} %>
+        <% when 2 then %>
+            <%= f.input :location, as: :select, collection: spain.subregions.map {|r| [ r.name, r.index.to_s.rjust(2,"0") ]} %>
+        <% when 3 then %>
+            <%= f.input :location, as: :select, collection: spain.subregions.map {|r| r.subregions.map {|sr| [ "#{sr.name} (#{r.name})", sr.code.scan(/\d/).join("") ] } } .flatten(1).sort_by(&:first) %>
+        <% when 4 then %>
+            <%= f.input :location, as: :select, collection: PlebisBrand::GeoExtra::ISLANDS.values.uniq.map {|u| [ u[1], u[0][2..-1] ]} %>
+        <% when 5 then %>
+            <%= f.input :location, as: :select, collection: [[ "Exterior", "00"]] %>
+        <% when 6 then %>
+            <%= f.input :location, as: :select, collection: VoteCircle.all.order('original_name ASC').pluck(:original_name, :id), data: {allowClear: true, placeholder: "Selecciona tu círculo (Listado de Círculos que estaban activos hasta la entrada en vigor de los nuevos documentos.)"} %>
+      <% end %>
+    <%= f.input :agora_version %>
+    <%= f.input :new_agora_version %>
+    <%= f.input :override %>
+    <%= f.input :has_voting_info, as: :hidden %>
+    <li><% if @election_location.has_voting_info %>
+      <%= link_to "Eliminar información de votación", params.merge(has_voting_info:false), class: 'button', data: { confirm: "Esto borrará la información necesaria para generar el TSV de la votación. ¿Estas segura de borrar la información de esta votación?" } %>
+    <% else %>
+      <%= link_to "Añadir información de votación", params.merge(has_voting_info:true), class: 'button' %>
+    <% end %></li>
+  <% end %>
+
+  <% if @election_location.has_voting_info %>
+    <%= f.inputs "Votación", style: "padding-right:320px" do %>
+      <% ElectionLocation::LAYOUTS.keys.each do |layout| %>
+        <%= image_tag("layout-#{layout}.png", width:300, class:"layout_preview #{layout}", alt: layout, style: "position:absolute; right:20px") %>
+      <%end%>
+        <%= f.input :title %>
+    
+        <%= f.input :layout, as: :select, collection: ElectionLocation::LAYOUTS.invert, input_html: {
+            onclick: "$('.layout_preview').hide();$('.layout_preview.'+$(this).val()).show()" } %>
+        
+        <%= f.input :description %>
+        <%= f.input :share_text %>
+        <%= f.input :theme, as: :select, collection: ElectionLocation.themes %>
+    <% end %>
+
+    <%= f.inputs "Preguntas" do %>
+      <%= f.semantic_fields_for :election_location_questions do |felq| %>
+        <%= render 'election_location_question_fields', f: felq %>
+      <% end %>
+      
+      <li><%= link_to_add_association 'Añadir pregunta', f, :election_location_questions, class: 'button' %>
+      </li>
+    <% end %>
+  <% end %>
+  <%= f.actions do %>
+    <%= f.action :submit %>
+    <li class="cancel"><%= link_to "Cancel", [:admin, @election_location.election ] %></li>
+  <% end %>
+<% end %>

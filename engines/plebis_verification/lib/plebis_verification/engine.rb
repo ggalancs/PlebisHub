@@ -19,9 +19,14 @@ module PlebisVerification
     end
 
     initializer "plebis_verification.check_activation", before: :set_routes_reloader do
-      unless EngineActivation.enabled?('plebis_verification')
-        Rails.logger.info "[PlebisVerification] Engine disabled, skipping routes"
-        config.paths["config/routes.rb"].skip_if { true }
+      begin
+        unless ::EngineActivation.enabled?('plebis_verification')
+          Rails.logger.info "[PlebisVerification] Engine disabled, skipping routes"
+          config.paths["config/routes.rb"].skip_if { true }
+        end
+      rescue => e
+        # If EngineActivation is not available (no DB, table doesn't exist, etc.), enable by default
+        Rails.logger.warn "[PlebisVerification] Could not check activation status (#{e.message}), enabling by default"
       end
     end
   end

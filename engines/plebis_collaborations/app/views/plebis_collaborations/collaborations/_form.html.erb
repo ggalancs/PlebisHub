@@ -1,0 +1,114 @@
+<fieldset>
+  <legend class="invisible">Datos de la colaboración</legend>
+
+  <div class="inputlabel-box">
+    <% if @collaboration.errors.include?(:amount) %>
+        <%= field_notice_box %>
+    <% end %>
+    <%= f.input :amount,
+                required: true,
+                as: :select,
+                collection: Collaboration::AMOUNTS.to_a,
+                input_html: {required: true, class: 'js-collaboration-amount'} %>
+  </div>
+
+  <div class="inputlabel-box">
+    <% if @collaboration.errors.include?(:frequency) %>
+        <%= field_notice_box %>
+    <% end %>
+    <%= f.input :frequency,
+                required: true,
+                as: :select,
+                collection: active_frequencies,
+                input_html: {required: true, class: 'js-collaboration-frequency'} %>
+  </div>
+
+  <div class="inputlabel-box">
+    <% if @collaboration.errors.include?(:payment_type) %>
+        <%= field_notice_box %>
+    <% end %>
+    <%= f.input :payment_type,
+                required: true,
+                as: :select,
+                collection: payment_types,
+                input_html: {required: true, class: 'js-collaboration-type'} %>
+  </div>
+
+  <div class="inputlabel-box js-collaboration-type-form-2">
+    <% if @collaboration.errors.include?(:ccc_entity) ||
+            @collaboration.errors.include?(:ccc_office) ||
+            @collaboration.errors.include?(:ccc_dc) ||
+            @collaboration.errors.include?(:ccc_account) %>
+        <%= field_notice_box %>
+    <% end %>
+
+    <div class="input required form-group">
+      <label class="control-label" for="account">
+        CCC<abbr title="requerido">*</abbr>
+      </label>
+      <span class="form-wrapper">
+        <%= f.text_field :ccc_entity, maxlength: 4, class: 'input-account-4 form-control', placeholder: 'xxxx' %>
+        <%= f.text_field :ccc_office, maxlength: 4, class: 'input-account-4 form-control', placeholder: 'xxxx' %>
+        <%= f.text_field :ccc_dc, maxlength: 2, class: 'input-account-2 form-control', placeholder: 'xx' %>
+        <%= f.text_field :ccc_account, maxlength: 10, class: 'input-account-10 form-control', placeholder: 'xxxxxxxxxx' %>
+      </span>
+    </div>
+  </div>
+
+  <div class="js-collaboration-type-form-3">
+    <div class="inputlabel-box">
+      <% if @collaboration.errors.include? :iban_account %>
+          <%= field_notice_box %>
+      <% end %>
+
+      <%= f.input :iban_account, input_html: { class: 'input-m form-control' } %>
+    </div>
+    <div class="inputlabel-box">
+      <% if @collaboration.errors.include? :iban_bic %>
+          <%= field_notice_box %>
+      <% end %>
+
+      <%= f.input :iban_bic, hint:"Solo para cuentas de fuera de España" %>
+    </div>
+  </div>
+
+  <div class="inputlabel-box js-collaboration-alert invisible">
+    <span class="no-label">Aportación económica</span>
+    <span class="no-input"><span id="js-collaboration-alert-amount"></span></span>
+  </div>
+
+  <div class="collaboration-assignment">
+  <%= content_tag(:h3, "Financiación territorial") %>
+    <p>Deseo colaborar con el Consejo Ciudadano</p>
+    <div class="inputlabel-box">
+      <% if current_user.in_spain? || (current_user.vote_circle_id && current_user.vote_circle.in_spain?) then%>
+        <div class="input-box js-collaboration-assignment-town">
+          <label class="text-xl">
+          <%= f.radio_button :territorial_assignment, :town, class:"checkbox"%>
+          <p>Municipal donde estoy inscrito/a</p>
+          </label>
+        </div>
+      <% end %>
+      <% if current_user.vote_in_spanish_island? then%>
+        <div class="input-box js-collaboration-assignment-island">
+          <label class="text-xl">
+          <%= f.radio_button :territorial_assignment, :island, class:"checkbox"%>
+          <p>Insular donde estoy inscrito/a</p>
+          </label>
+        </div>
+      <% end %>
+      <% if current_user.in_spain? || (current_user.vote_circle_id && current_user.vote_circle.in_spain?) then%>
+        <div class="input-box js-collaboration-assignment-autonomy">
+          <label class="text-xl"><%= f.radio_button :territorial_assignment, :autonomy, class:"checkbox"%>
+          <p>Autonómico donde estoy inscrito/a</p>
+          </label>
+        </div>
+      <% end %>>
+      <div class="input-box js-collaboration-assignment-country">
+        <label class="text-xl"><%= f.radio_button :territorial_assignment, :country, class:"checkbox"%>
+        <p>Estatal</p>
+        </label>
+      </div>
+    </div>
+  </div>
+</fieldset>
