@@ -104,3 +104,6 @@ group :development, :test do
   gem 'rails-controller-testing' # Required for assigns() and assert_template in controller specs
 end
 
+
+# PlebisHub Engines
+gem 'plebis_cms', path: 'engines/plebis_cms'
