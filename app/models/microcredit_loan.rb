@@ -3,10 +3,10 @@ class MicrocreditLoan < ApplicationRecord
   acts_as_paranoid
 
   belongs_to :microcredit
-  belongs_to :user, -> { with_deleted }
+  belongs_to :user, -> { with_deleted }, optional: true
   belongs_to :microcredit_option
 
-  belongs_to :transferred_to, inverse_of: :original_loans, class_name: "MicrocreditLoan"
+  belongs_to :transferred_to, inverse_of: :original_loans, class_name: "MicrocreditLoan", optional: true
   has_many :original_loans, inverse_of: :transferred_to, class_name: "MicrocreditLoan", foreign_key: :transferred_to_id
 
   attr_accessor :first_name, :last_name, :email, :address, :postal_code, :town, :province, :country
@@ -57,7 +57,7 @@ class MicrocreditLoan < ApplicationRecord
       set_user_data user
       self.document_vatid = user.document_vatid
     elsif user_data
-      set_user_data YAML.unsafe_load(self.user_data, aliases: true)
+      set_user_data YAML.unsafe_load(self.user_data)
     else
       self.country = "ES"
     end
@@ -202,7 +202,11 @@ class MicrocreditLoan < ApplicationRecord
 
   def validates_non_brand_account
      unless self.iban_account.upcase.strip.gsub(' ','') != self.microcredit.account_number.upcase.strip.gsub(' ','')
-       brand_name = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]["name"]
+       brand_name = begin
+         Rails.application.secrets.microcredits&.dig("brands", Rails.application.secrets.microcredits["default_brand"], "name") || "la organización"
+       rescue
+         "la organización"
+       end
        self.errors.add(:iban_account, "Cuenta corriente inválida. Debes de consignar tu cuenta corriente, no la de #{brand_name}.")
        self.iban_bic = nil
      end
@@ -215,10 +219,10 @@ class MicrocreditLoan < ApplicationRecord
   end
 
   def check_user_limits
-    limit = self.microcredit.loans.not_discarded.not_returned.where(ip:self.ip).count>Rails.application.secrets.microcredit_loans["max_loans_per_ip"]
+    limit = self.microcredit.loans.not_discarded.not_returned.where(ip:self.ip).count > microcredit_loan_config("max_loans_per_ip")
     unless limit
       loans = self.microcredit.loans.not_discarded.not_returned.where(document_vatid: self.document_vatid).pluck(:amount)
-      limit = ((loans.length >= Rails.application.secrets.microcredit_loans["max_loans_per_user"]) or (loans.sum + self.amount > Rails.application.secrets.microcredit_loans["max_loans_sum_amount"])) if not limit and self.amount
+      limit = ((loans.length >= microcredit_loan_config("max_loans_per_user")) or (loans.sum + self.amount > microcredit_loan_config("max_loans_sum_amount"))) if not limit and self.amount
     end
 
     self.errors.add(:user, "Lamentablemente, no es posible suscribir este microcrédito.") if limit
@@ -301,5 +305,24 @@ class MicrocreditLoan < ApplicationRecord
     self.confirmed_at = nil
     self.save!
     true
+  end
+
+  private
+
+  # Helper method to safely get microcredit_loan configuration with default values
+  def microcredit_loan_config(key)
+    config = Rails.application.secrets.microcredit_loans
+    return nil unless config
+
+    case key
+    when "max_loans_per_ip"
+      config["max_loans_per_ip"] || 50
+    when "max_loans_per_user"
+      config["max_loans_per_user"] || 30
+    when "max_loans_sum_amount"
+      config["max_loans_sum_amount"] || 10000
+    else
+      config[key]
+    end
   end
 end
