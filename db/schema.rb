@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_11_06_120000) do
+ActiveRecord::Schema[7.2].define(version: 2025_11_10_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -128,6 +128,18 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_06_120000) do
     t.string "census_file_content_type"
     t.integer "census_file_file_size"
     t.datetime "census_file_updated_at"
+  end
+
+  create_table "engine_activations", force: :cascade do |t|
+    t.string "engine_name", null: false
+    t.boolean "enabled", default: false, null: false
+    t.jsonb "configuration", default: {}
+    t.text "description"
+    t.integer "load_priority", default: 100
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["enabled"], name: "index_engine_activations_on_enabled"
+    t.index ["engine_name"], name: "index_engine_activations_on_engine_name", unique: true
   end
 
   create_table "friendly_id_slugs", force: :cascade do |t|

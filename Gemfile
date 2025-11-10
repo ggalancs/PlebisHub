@@ -98,6 +98,7 @@ group :development, :test do
   gem 'selenium-webdriver' # Modern driver for Capybara
   gem 'launchy'
   gem 'database_cleaner'
+  gem 'mocha', require: false
   gem 'minitest-rails', '~> 7.1' # Rails 7.2 compatible
   # gem 'minitest-rails-capybara' # Temporarily disabled for upgrade
   gem 'rails-controller-testing' # Required for assigns() and assert_template in controller specs
