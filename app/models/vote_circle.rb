@@ -8,6 +8,10 @@ class VoteCircle < ApplicationRecord
 
   attr_accessor :circle_type
 
+  def self.ransackable_attributes(auth_object = nil)
+    ["autonomy_code", "code", "country_code", "created_at", "id", "id_value", "island_code", "kind", "name", "original_code", "original_name", "province_code", "region_area_id", "town", "updated_at", "vote_circle_autonomy_id", "vote_circle_province_id"]
+  end
+
   ransacker :vote_circle_province_id, formatter: proc { |value|
     VoteCircle.where("code like ?", value).map { |vote_circle| vote_circle.code }.uniq
   } do |parent|

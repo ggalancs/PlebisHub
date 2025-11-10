@@ -182,19 +182,20 @@ class Report < ApplicationRecord
     # Equivalent to: uniq -w#{width+main_width+1} -c
     # Group by first N characters and count occurrences
     compare_width = width + main_width + 1
-    grouped = Hash.new(0)
+    grouped = Hash.new { |h, k| h[k] = { count: 0, line: nil } }
     lines.each do |line|
       key = line[0..compare_width-1] || line
-      grouped[key] += 1
+      grouped[key][:count] += 1
+      grouped[key][:line] ||= line.chomp  # Store first occurrence of full line
     end
 
     # Equivalent to: sort -rn (reverse numeric sort by count)
-    sorted_counts = grouped.sort_by { |_, count| -count }
+    sorted_counts = grouped.sort_by { |_, data| -data[:count] }
 
     # Write to rank file
     File.open(rank_file, 'w:UTF-8') do |f|
-      sorted_counts.each do |line, count|
-        f.puts "#{count} #{line}"
+      sorted_counts.each do |_, data|
+        f.puts "#{data[:count]} #{data[:line]}"
       end
     end
   rescue => e

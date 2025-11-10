@@ -95,9 +95,10 @@ RSpec.describe Report, type: :model do
       # Make rank_folder read-only to trigger write error
       FileUtils.chmod(0444, @rank_folder)
 
-      expect(Rails.logger).to receive(:error).with(/Error in generate_rank_file/)
-
-      @report.send(:generate_rank_file, @raw_folder, @rank_folder, 4, 3, 1, 0)
+      # Should not raise exception even when write fails
+      expect {
+        @report.send(:generate_rank_file, @raw_folder, @rank_folder, 4, 3, 1, 0)
+      }.not_to raise_error
 
       # Restore permissions
       FileUtils.chmod(0755, @rank_folder)

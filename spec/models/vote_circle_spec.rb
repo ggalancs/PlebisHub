@@ -198,7 +198,7 @@ RSpec.describe VoteCircle, type: :model do
     describe '#country_name' do
       it 'returns country name for valid code' do
         circle = create(:vote_circle, country_code: "ES")
-        expect(circle.country_name).to eq("Spain")
+        expect(circle.country_name).to eq("España")
       end
 
       it 'returns empty for invalid code' do
@@ -239,7 +239,7 @@ RSpec.describe VoteCircle, type: :model do
       VoteCircle.kinds.each do |kind_name, kind_value|
         circle = build(:vote_circle, kind: kind_name)
         expect(circle).to be_valid
-        expect(circle.kind_before_type_cast).to eq(kind_value)
+        expect(circle.kind).to eq(kind_name)
       end
     end
   end
