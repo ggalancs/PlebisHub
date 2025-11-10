@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :notice do
+  factory :notice, class: 'PlebisCms::Notice' do
     sequence(:title) { |n| "Notice Title #{n}" }
     sequence(:body) { |n| "This is the body content for notice #{n}. It contains important information for users." }
 

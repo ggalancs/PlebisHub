@@ -20,4 +20,3 @@ jQuery ->
 	if $('.show_info').length
 		$('.show_teams').hide()
 		$('#participation_teams_info').hide()
-				

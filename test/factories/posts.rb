@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :post do
+  factory :post, class: 'PlebisCms::Post' do
     sequence(:title) { |n| "Post Title #{n}" }
     sequence(:content) { |n| "This is the content for post #{n}." }
     status { 1 } # Published by default
