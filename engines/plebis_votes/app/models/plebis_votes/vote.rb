@@ -53,8 +53,8 @@ module PlebisVotes
 
     def save_voter_id
       if self.election and self.user
-        self.update_attribute(:agora_id, scoped_agora_election_id)
-        self.update_attribute(:voter_id, generate_voter_id)
+        self.agora_id = scoped_agora_election_id
+        self.voter_id = generate_voter_id
       else
         self.errors.add(:voter_id, 'No se pudo generar')
       end

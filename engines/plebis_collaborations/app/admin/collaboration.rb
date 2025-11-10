@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'collaborations_on_paper'
+require_relative '../../../lib/collaborations_on_paper'
 def show_order(o, html_output = true)
   text = if o.has_errors?
            "x"

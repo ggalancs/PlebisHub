@@ -23,7 +23,7 @@ module PlebisVotes
     def layout
       if self.voting_system=="pairwise-beta"
         "simple"
-      elsif ElectionLocation::ELECTION_LAYOUTS.member? election_location.layout
+      elsif PlebisVotes::ElectionLocation::ELECTION_LAYOUTS.member? election_location.layout
         ""
       else
         election_location.layout

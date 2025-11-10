@@ -233,7 +233,7 @@ module PlebisVotes
     end
 
     def get_paper_vote_user_from_csv
-      parser = CensusFileParser.new(election)
+      parser = ::CensusFileParser.new(election)
 
       if params[:validation_token].present?
         parser.find_user_by_validation_token(params[:user_id], params[:validation_token])

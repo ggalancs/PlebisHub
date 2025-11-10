@@ -141,9 +141,9 @@ module PlebisVotes
 
     def current_total_census
       if self.user_created_at_max.nil?
-        base = User.confirmed.not_banned
+        base = ::User.confirmed.not_banned
       else
-        base = User.with_deleted.not_banned.where("deleted_at is null or deleted_at > ?", self.user_created_at_max).where.not(sms_confirmed_at:nil).where("created_at < ?", self.user_created_at_max)
+        base = ::User.with_deleted.not_banned.where("deleted_at is null or deleted_at > ?", self.user_created_at_max).where.not(sms_confirmed_at:nil).where("created_at < ?", self.user_created_at_max)
       end
       if self.ignore_multiple_territories
         base.count
@@ -162,10 +162,10 @@ module PlebisVotes
 
     def current_active_census
       if self.user_created_at_max.nil?
-        base = User.confirmed.not_banned
+        base = ::User.confirmed.not_banned
         base_date = DateTime.now
       else
-        base = User.with_deleted.not_banned.where("deleted_at is null or deleted_at > ?", self.user_created_at_max).where.not(sms_confirmed_at:nil).where("created_at < ?", self.user_created_at_max)
+        base = ::User.with_deleted.not_banned.where("deleted_at is null or deleted_at > ?", self.user_created_at_max).where.not(sms_confirmed_at:nil).where("created_at < ?", self.user_created_at_max)
         base_date = self.user_created_at_max
       end
       base = base.where("current_sign_in_at > ?", base_date - parse_duration_config("active_census_range") )
@@ -218,7 +218,7 @@ module PlebisVotes
     end
 
     def locations= value
-      ElectionLocation.transaction do
+      PlebisVotes::ElectionLocation.transaction do
         value.split("\n").each do |line|
           if not line.strip.empty?
             line_raw = line.strip.split(',')

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
-  menu :parent => "PlebisHubción"
+  menu :parent => "Votación"
 
   permit_params :title, :info_url, :election_type, :agora_election_id, :scope, :census_file, :server, :starts_at, :ends_at, :close_message, :locations,
                 :user_created_at_max, :priority, :info_text, :requires_vatid_check, :requires_sms_check, :show_on_index,
