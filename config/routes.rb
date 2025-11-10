@@ -44,12 +44,12 @@ Rails.application.routes.draw do
     # Routes are only loaded when engine is activated via EngineActivation
     mount PlebisCms::Engine, at: '/'
 
-    # Non-CMS routes that stay in main app
+    # Mount PlebisParticipation Engine - handles participation teams
+    # Routes are only loaded when engine is activated via EngineActivation
+    mount PlebisParticipation::Engine, at: '/'
+
+    # Legacy redirect
     get '/gente-por-el-cambio', to: redirect('/equipos-de-accion-participativa')
-    get '/equipos-de-accion-participativa', to: 'participation_teams#index', as: 'participation_teams'
-    put '/equipos-de-accion-participativa/entrar(/:team_id)', to: 'participation_teams#join', as: 'participation_teams_join'
-    put '/equipos-de-accion-participativa/dejar(/:team_id)', to: 'participation_teams#leave', as: 'participation_teams_leave'
-    patch '/equipos-de-accion-participativa/actualizar', to: 'participation_teams#update_user', as: 'participation_teams_update_user'
 
     #get '/propuestas', to: 'proposals#index', as: 'proposals'
     #get '/propuestas/info', to: 'proposals#info', as: 'proposals_info'
