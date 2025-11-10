@@ -11,31 +11,31 @@ RSpec.describe Election, type: :model do
     it 'validates presence of title' do
       election = build(:election, title: nil)
       expect(election).not_to be_valid
-      expect(election.errors[:title]).to include("can't be blank")
+      expect(election.errors[:title]).to include("no puede estar en blanco")
     end
 
     it 'validates presence of starts_at' do
       election = build(:election, starts_at: nil)
       expect(election).not_to be_valid
-      expect(election.errors[:starts_at]).to include("can't be blank")
+      expect(election.errors[:starts_at]).to include("no puede estar en blanco")
     end
 
     it 'validates presence of ends_at' do
       election = build(:election, ends_at: nil)
       expect(election).not_to be_valid
-      expect(election.errors[:ends_at]).to include("can't be blank")
+      expect(election.errors[:ends_at]).to include("no puede estar en blanco")
     end
 
     it 'validates presence of agora_election_id' do
       election = build(:election, agora_election_id: nil)
       expect(election).not_to be_valid
-      expect(election.errors[:agora_election_id]).to include("can't be blank")
+      expect(election.errors[:agora_election_id]).to include("no puede estar en blanco")
     end
 
     it 'validates presence of scope' do
       election = build(:election, scope: nil)
       expect(election).not_to be_valid
-      expect(election.errors[:scope]).to include("can't be blank")
+      expect(election.errors[:scope]).to include("no puede estar en blanco")
     end
 
     it 'creates valid election with all required attributes' do
