@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 ruby '3.3.10'
 
 # Rails 7.2 - Following official upgrade guide
-gem 'rails', '~> 7.2.0'
+gem 'rails', '~> 7.2.3'
 gem 'json', '>= 2.0' # Ruby 3.3 compatible (old 1.8.6 breaks)
 gem 'sprockets-rails' # Required in Rails 7.0 (no longer bundled)
 gem 'sqlite3', '~> 1.4'
