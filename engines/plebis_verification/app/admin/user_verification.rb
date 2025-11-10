@@ -1,0 +1,284 @@
+ActiveAdmin.register PlebisVerification::UserVerification, as: "UserVerification" do
+  filter :status , label: "Estado"
+  menu :parent => "Users"
+  config.sort_order = 'created_at_asc'
+  permit_params do
+    params = [:user_id, :processed_at, :publisher_id, :front_vatid, :back_vatid, :wants_card]
+    params.push :status, :comment, if: proc {current_user.is_admin?}
+    params
+  end
+
+  actions :index, :show, :edit, :update
+  action_item "Procesar", only: :index do
+    link_to "Procesar", params.merge(:action => :get_first_free)
+  end
+
+  scope "Todas", :all, if: proc {current_user.is_admin?}
+  scope "Pendientes", :pending, default: true
+  scope "Aceptadas", :accepted, if: proc {current_user.is_admin?}
+  scope "Aceptadas por Email", :accepted_by_email, if: proc {current_user.is_admin?}
+  scope "Con Problemas", :issues, if: proc {current_user.is_admin?}
+  scope "Rechazadas", :rejected, if: proc {current_user.is_admin?}
+  scope "Descartadas", :discarded, if: proc {current_user.is_admin?}
+  scope "Pausadas", :paused, if: proc {current_user.is_admin?}
+
+  filter :status , label: "Estado"
+  filter :user_document_vatid, as: :string, label: "Número de documento"
+  filter :user_first_name, as: :string, label: "Nombre"
+  filter :user_last_name, as: :string, label: "Apellidos"
+  filter :user_email, as: :string, label: "Email"
+
+  collection_action :get_first_free, :method => :get do
+    self.clean_redis_hash
+    $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
+
+    ids = $redis.hkeys(:processing)
+    verifications = PlebisVerification::UserVerification.pending.where(id: ids)
+    verification = nil
+    verifications.each do |v|
+      verification = v if v.get_current_verifier == current_user
+    end
+
+    if verification
+      $redis.hset(:processing,verification.id,{author_id: current_user.id,locked_at: DateTime.now.utc.strftime("%d/%m/%Y %H|%M")})
+      redirect_to(edit_admin_user_verification_path(verification.id),data: {confirm: "Parece ser que ya tienes abierto el registro en otra pestaña, ¿realmente deseas editarlo en esta?"})
+    else
+      loop do
+        verification = PlebisVerification::UserVerification.pending.where.not(id: ids).order(priority: :desc, created_at: :asc).first
+        if verification
+          user_exist = User.where(id: verification.user_id).exists?
+          verification.update(status:5) if !user_exist
+        end
+        break if !verification or user_exist
+      end
+      if verification
+        $redis.hset(:processing,verification.id,{author_id: current_user.id,locked_at: DateTime.now.utc.strftime("%d/%m/%Y %H|%M")})
+        redirect_to edit_admin_user_verification_path(verification.id)
+      else
+        redirect_to(admin_user_verifications_path, flash: {warning: t('plebisbrand.user_verification.no_pending_verifications')})
+      end
+    end
+  end
+
+  member_action :cancel_edition, :method => :get do
+    remove_redis_hash params[:id]
+    redirect_to(admin_user_verifications_path)
+  end
+
+  index do |verification|
+    column "persona" do |verification|
+      verification.user.full_name
+    end
+
+    column "fecha petición", :created_at
+
+    column "estado" do |verification|
+      case PlebisVerification::UserVerification.statuses[verification.status]
+        when PlebisVerification::UserVerification.statuses[:pending]
+          status_tag("Pendiente", :warning)
+        when PlebisVerification::UserVerification.statuses[:accepted]
+          status_tag("Verificada", :ok)
+        when PlebisVerification::UserVerification.statuses[:accepted_by_email]
+          status_tag("Verificada por Email", :ok)
+        when PlebisVerification::UserVerification.statuses[:issues]
+          status_tag("con Problemas", :important)
+        when PlebisVerification::UserVerification.statuses[:rejected]
+          status_tag("Rechazada", :error)
+        when PlebisVerification::UserVerification.statuses[:discarded]
+          status_tag("Descartada", :error)
+        when PlebisVerification::UserVerification.statuses[:paused]
+          status_tag("Pausada", :error)
+      end
+    end
+    column "Quiere tarjeta", :wants_card if current_user.is_admin?
+    if params[:scope] == "pendientes" or params[:scope] == nil
+      column "verificando por" do |verification|
+        if verification.active?
+          verification.get_current_verifier.full_name || ""
+        else
+          ""
+        end
+      end
+    end
+
+    actions if current_user.is_admin?
+  end
+
+show do
+  columns do
+    column do
+      render partial: "personal_data"
+    end
+    column class: "column attachments" do
+      [:front, :back].each do |attachment|
+        if user_verification.send("#{attachment}_vatid_file_name")
+          div class: "attachment" do
+            a class: "preview", target: "_blank", href: view_image_admin_user_verification_path(user_verification, attachment: attachment, size: :original) do
+              image_tag view_image_admin_user_verification_path(user_verification, attachment: attachment, size: :thumb)
+            end
+            div class: "rotate" do
+              span "ROTAR"
+              [0, 90, 180, 270].reverse.each do |degrees|
+                a class: "degrees-#{degrees}", href: rotate_admin_user_verification_path(user_verification, attachment: attachment, degrees: degrees), "data-method" => :patch do
+                  fa_icon "id-card-o"
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+  form title: "Verificar Identidad", decorate: true do |f|
+    columns do
+      column do
+        render partial: "personal_data"
+        panel "verificar" do
+          f.inputs :class => "remove-padding-top" do
+            f.input :status, :label => "Estado", :as => :radio, :collection => current_user.is_admin? ? {
+                "Pendiente": PlebisVerification::UserVerification.statuses.keys[ PlebisVerification::UserVerification.statuses[:pending]],
+                "Aceptado": PlebisVerification::UserVerification.statuses.keys[ PlebisVerification::UserVerification.statuses[:accepted]],
+                "Con problemas": PlebisVerification::UserVerification.statuses.keys[ PlebisVerification::UserVerification.statuses[:issues]],
+                "Rechazado": PlebisVerification::UserVerification.statuses.keys[ PlebisVerification::UserVerification.statuses[:rejected]]} : {
+                "Pendiente": PlebisVerification::UserVerification.statuses.keys[ PlebisVerification::UserVerification.statuses[:pending]],
+                "Aceptado": PlebisVerification::UserVerification.statuses.keys[ PlebisVerification::UserVerification.statuses[:accepted]],
+                "Con problemas": PlebisVerification::UserVerification.statuses.keys[ PlebisVerification::UserVerification.statuses[:issues]]}
+            f.input :comment, :label => "Comentarios", as: :text, :input_html => {:rows => 2}
+          end
+          f.actions do
+            f.action :submit
+            f.cancel_link({action: :cancel_edition})
+          end
+        end
+      end
+      column class: "column attachments" do
+        more_pending = PlebisVerification::UserVerification.not_discarded.where("user_id = ?",resource.user.id)
+        if more_pending.any? { |verification| verification!=resource }
+          div class: "flash flash_error" do
+            "ATENCIÓN: Este usuario ha enviado varias solicitudes de verificación. Si se acepta esta solicitud, se descartará el resto."
+          end
+          table_for more_pending do
+            column "fecha creación", :created_at
+            column "estado" do |verification|
+              t("plebisbrand.user_verification.status.#{verification.status}")
+            end
+            column :descartable?
+            column do |verification|
+              if verification.id == resource.id
+                span "actual"
+              else
+                link_to "procesar", edit_admin_user_verification_path(verification.id)
+              end
+            end
+          end
+        end
+        current_verifier =user_verification.get_current_verifier
+
+        if user_verification.active?
+          if current_verifier != current_user
+            div class: "flash flash_error" do
+              "ATENCIÓN: Esta persona ya esta siendo verificada por #{current_verifier.full_name}"
+            end
+          end
+        else
+          $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
+          $redis.hset(:processing,user_verification.id,{author_id: current_user.id,locked_at: DateTime.now.utc.strftime("%d/%m/%Y %H|%M")})
+        end
+
+        [:front, :back].each do |attachment|
+          div class: "attachment" do
+            a class: "preview", target: "_blank", href: view_image_admin_user_verification_path(user_verification, attachment: attachment, size: :original) do
+              image_tag view_image_admin_user_verification_path(user_verification, attachment: attachment, size: :thumb)
+            end
+            f.input "#{attachment}_vatid".to_sym, :as => :file , required: false unless PlebisVerification::UserVerification.statuses[resource.status] == PlebisVerification::UserVerification.statuses[:accepted]
+            div class: "rotate" do
+              span "ROTAR"
+              [0, 90, 180, 270].reverse.each do |degrees|
+                a class: "degrees-#{degrees}", href: rotate_admin_user_verification_path(user_verification, attachment: attachment, degrees: degrees), "data-method" => :patch do
+                  fa_icon "id-card-o"
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  member_action :rotate, method: :patch do
+    verification = PlebisVerification::UserVerification.find(params[:id])
+    attachment = "#{params[:attachment]}_vatid"
+    degrees = params[:degrees].to_i
+    verification.rotate[attachment] = degrees
+    verification.send(attachment).reprocess!
+    redirect_to :back
+  end
+
+  member_action :view_image do
+    return unless params[:attachment].present? && params[:size].present? && params[:id].present?
+    verification = PlebisVerification::UserVerification.find(params[:id])
+    attachment = "#{params[:attachment]}_vatid"
+    filename =  verification.send("#{params[:attachment]}_vatid_file_name")
+    return unless filename
+    size = params[:size].to_sym
+    file = verification.send(attachment).path(size)
+    send_file file, disposition: 'inline' if file
+  end
+
+  controller do
+
+    def capture_redish_hash id
+      if current_user.is_admin?
+
+      end
+    end
+
+    def remove_redis_hash id
+      $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
+      current = $redis.hget(:processing,id)
+      $redis.hdel(:processing,id)
+    end
+
+    def clean_redis_hash
+      $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
+      ids = $redis.hkeys :processing
+      ids.each do |i|
+        verification = PlebisVerification::UserVerification.find_by_id(i)
+        $redis.hdel(:processing, i) if !verification || (verification && !verification.active?)
+      end
+    end
+
+    def update
+      verification = resource
+      current_verifier = verification.get_current_verifier
+      if (current_user.verifier? || current_user.is_admin?) && verification.active? && current_user == current_verifier
+        super do |format|
+          # PlebisVerification::UserVerification.discardable.where('user_id = ?',resource.user.id).each do |verification|
+          #   verification.status = :discarded
+          #   verification.save!
+          # end
+          case PlebisVerification::UserVerification.statuses[verification.status]
+          when PlebisVerification::UserVerification.statuses[:accepted]
+            if current_user.is_admin? || current_user.verifier?
+              u = User.find(verification.user_id)
+              u.update_flag!(:verified, true, true)
+              u.update_flag!(:banned, false, true)
+              UserVerificationMailer.on_accepted(verification.user_id).deliver_now
+            end
+          when PlebisVerification::UserVerification.statuses[:rejected]
+            UserVerificationMailer.on_rejected(verification.user_id).deliver_now if current_user.is_admin?
+          end
+          verification.author_id = current_user.id
+          verification.save!
+          remove_redis_hash verification.id
+          redirect_to(get_first_free_admin_user_verifications_path)
+          return
+        end
+      elsif (current_user.verifier? or current_user.is_admin?) and !verification.active?
+        redirect_to(admin_user_verifications_path,flash: {error: "Has perdido el derecho de Verificar este usuario. Pulsa en Procesar para verificar uno nuevo." })
+      end
+    end
+  end
+end

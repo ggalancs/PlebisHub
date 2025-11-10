@@ -49,6 +49,7 @@ Rails.application.routes.draw do
     mount PlebisParticipation::Engine, at: '/'
     mount PlebisProposals::Engine, at: '/'
     mount PlebisImpulsa::Engine, at: '/'
+    mount PlebisVerification::Engine, at: '/'
 
     # Legacy redirect
     get '/gente-por-el-cambio', to: redirect('/equipos-de-accion-participativa')
