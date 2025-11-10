@@ -6,9 +6,14 @@ module PlebisParticipation
 
     # Only load routes when engine is activated
     initializer "plebis_participation.check_activation", before: :set_routes_reloader do
-      unless EngineActivation.enabled?('plebis_participation')
-        Rails.logger.info "[PlebisParticipation] Engine disabled, skipping routes"
-        config.paths["config/routes.rb"].skip_if { true }
+      begin
+        unless ::EngineActivation.enabled?('plebis_participation')
+          Rails.logger.info "[PlebisParticipation] Engine disabled, skipping routes"
+          config.paths["config/routes.rb"].skip_if { true }
+        end
+      rescue => e
+        # If EngineActivation is not available (no DB, table doesn't exist, etc.), enable by default
+        Rails.logger.warn "[PlebisParticipation] Could not check activation status (#{e.message}), enabling by default"
       end
     end
 
