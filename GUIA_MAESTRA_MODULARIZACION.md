@@ -23,7 +23,7 @@
 ## 1. RESUMEN EJECUTIVO
 
 ### 1.1 Situación Actual
-- **Aplicación monolítica** Rails 7.2 con 118 archivos Ruby
+- **Aplicación monolítica** Rails 7.2.3 con 118 archivos Ruby
 - **27 controladores**, **37 modelos**, **151 archivos de test**
 - Dominio: Participación democrática, votaciones, crowdfunding, propuestas ciudadanas
 - Sin modularización actual (0 engines Rails)
@@ -52,6 +52,64 @@ Transformar PlebisHub en una **plataforma modular** donde:
 - **Fase 2 (Engines medios)**: 3-4 meses
 - **Fase 3 (Engines complejos)**: 6-9 meses
 - **Total**: 12-18 meses para completar toda la modularización
+
+### 1.5 ⚠️ REQUISITOS OBLIGATORIOS DE VERSIONES
+
+**CRÍTICO**: En todas las fases del desarrollo de esta modularización es **OBLIGATORIO** usar las versiones de Ruby y Rails establecidas por la aplicación:
+
+```ruby
+Ruby: 3.3.10
+Rails: 7.2.3
+```
+
+**Razones para mantener estas versiones**:
+- ✅ **Compatibilidad garantizada**: Toda la aplicación actual funciona con estas versiones
+- ✅ **Evitar breaking changes**: Cambiar versiones puede introducir incompatibilidades
+- ✅ **Gems y dependencias**: Todas las gemas están testeadas con estas versiones
+- ✅ **Entornos consistentes**: Dev, staging, y producción deben usar las mismas versiones
+- ✅ **Reducción de riesgos**: La modularización ya es suficientemente compleja
+
+**Verificación en cada engine**:
+
+Cada engine debe especificar en su `.gemspec`:
+
+```ruby
+# engines/plebis_cms/plebis_cms.gemspec
+Gem::Specification.new do |spec|
+  spec.name        = "plebis_cms"
+  spec.version     = "1.0.0"
+
+  # VERSIONES OBLIGATORIAS
+  spec.required_ruby_version = "~> 3.3.10"
+
+  spec.add_dependency "rails", "~> 7.2.3"
+  # ... otras dependencias
+end
+```
+
+**Comandos de verificación**:
+
+```bash
+# Verificar versión de Ruby en uso
+ruby --version  # Debe mostrar: ruby 3.3.x
+
+# Verificar versión de Rails
+bundle exec rails --version  # Debe mostrar: Rails 7.2.3
+
+# Verificar antes de cada fase
+rake environment
+```
+
+**Actualización futura de versiones**:
+
+Si en el futuro se decide actualizar Ruby o Rails:
+1. ⚠️ **DETENER** el proceso de modularización
+2. Crear un **proyecto separado** para la actualización de versiones
+3. Actualizar **primero** el core y **todos** los engines ya extraídos
+4. Ejecutar **suite completa** de tests
+5. **Solo entonces** continuar con la modularización
+
+**NO mezclar** la modularización con actualizaciones de versiones. Son dos proyectos independientes y críticos.
 
 ---
 
@@ -1316,6 +1374,24 @@ Usar esta checklist para cada engine:
 
 Esta fase es crítica. Sin ella, la extracción de engines será caótica.
 
+### ⚠️ RECORDATORIO: Versiones Obligatorias
+
+**ANTES DE COMENZAR** cualquier trabajo en esta fase, verificar:
+
+```bash
+# Verificar Ruby 3.3.10
+ruby --version
+
+# Verificar Rails 7.2.3
+bundle exec rails --version
+
+# Si no coinciden, DETENER y configurar el entorno correcto
+```
+
+Ver sección 1.5 para detalles completos sobre requisitos de versiones.
+
+---
+
 ### 5.1 Refactorización del User Model
 
 **Problema actual**: User tiene 15+ asociaciones directas a todos los dominios.
@@ -2186,6 +2262,13 @@ open coverage/index.html
 ### 8.1 Fase 0: Preparación (2-3 semanas)
 
 ```markdown
+- [ ] **PREREQUISITO: Verificar Versiones (Día 0)**
+  - [ ] Verificar Ruby 3.3.10 instalado y activo
+  - [ ] Verificar Rails 7.2.3 en Gemfile.lock
+  - [ ] Verificar entorno de desarrollo configurado correctamente
+  - [ ] Ejecutar `bundle install` exitosamente
+  - [ ] Ejecutar suite de tests actual (baseline)
+
 - [ ] **Semana 1: User Model & Activación**
   - [ ] Auditar User model actual
   - [ ] Crear concerns EngineUser::*
