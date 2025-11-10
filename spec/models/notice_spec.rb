@@ -3,6 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Notice, type: :model do
+  include ActiveSupport::Testing::TimeHelpers
   # ====================
   # FACTORY TESTS
   # ====================
@@ -35,7 +36,7 @@ RSpec.describe Notice, type: :model do
       it 'requires title' do
         notice = build(:notice, title: nil)
         expect(notice).not_to be_valid
-        expect(notice.errors[:title]).to include("can't be blank")
+        expect(notice.errors[:title]).to include("no puede estar en blanco")
       end
 
       it 'accepts valid title' do
@@ -46,7 +47,7 @@ RSpec.describe Notice, type: :model do
       it 'rejects empty string title' do
         notice = build(:notice, title: "")
         expect(notice).not_to be_valid
-        expect(notice.errors[:title]).to include("can't be blank")
+        expect(notice.errors[:title]).to include("no puede estar en blanco")
       end
     end
 
@@ -54,7 +55,7 @@ RSpec.describe Notice, type: :model do
       it 'requires body' do
         notice = build(:notice, body: nil)
         expect(notice).not_to be_valid
-        expect(notice.errors[:body]).to include("can't be blank")
+        expect(notice.errors[:body]).to include("no puede estar en blanco")
       end
 
       it 'accepts valid body' do
@@ -65,7 +66,7 @@ RSpec.describe Notice, type: :model do
       it 'rejects empty string body' do
         notice = build(:notice, body: "")
         expect(notice).not_to be_valid
-        expect(notice.errors[:body]).to include("can't be blank")
+        expect(notice.errors[:body]).to include("no puede estar en blanco")
       end
     end
 

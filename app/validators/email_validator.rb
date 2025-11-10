@@ -3,7 +3,7 @@ require 'mail'
 module ActiveModel::Validations
   module EmailValidatorHelpers
     def validate_email value
-      return false if value.length==0
+      return false if value.nil? || value.length==0
 
       # First check, with the whole string
       if (value.downcase =~ /[ÁÉÍÓÚàèìòùÀÈÍÓÚáéíóúñÑçÇ]/) != nil

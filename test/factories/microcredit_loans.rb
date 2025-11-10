@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :microcredit_loan do
     association :microcredit
-    association :user
+    association :user, :with_dni
     association :microcredit_option
 
     amount { 100 }

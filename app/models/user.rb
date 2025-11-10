@@ -790,8 +790,8 @@ class User < ApplicationRecord
     when /^(\d+)\.year(s)?$/
       $1.to_i.years
     else
-      # Fallback: try to parse as integer seconds
-      config_value.to_i.seconds
+      # Fallback to safe default for invalid input
+      5.minutes
     end
   rescue => e
     Rails.logger.error("Failed to parse duration config '#{key}': #{config_value} - #{e.message}")

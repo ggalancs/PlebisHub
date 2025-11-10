@@ -151,6 +151,8 @@ FactoryBot.define do
           country: "ES",
           ine_town: "m_28_079_6"
         ))
+        # Call format_non_user to serialize @non_user to non_user_data before validation
+        collab.send(:format_non_user)
       end
 
       # Skip uniqueness validations for non-user collaborations

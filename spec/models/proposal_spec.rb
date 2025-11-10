@@ -37,13 +37,13 @@ RSpec.describe Proposal, type: :model do
       it 'requires title' do
         proposal = build(:proposal, title: nil)
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:title]).to include("can't be blank")
+        expect(proposal.errors[:title]).to include("no puede estar en blanco")
       end
 
       it 'rejects empty string title' do
         proposal = build(:proposal, title: "")
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:title]).to include("can't be blank")
+        expect(proposal.errors[:title]).to include("no puede estar en blanco")
       end
 
       it 'accepts valid title' do
@@ -56,13 +56,13 @@ RSpec.describe Proposal, type: :model do
       it 'requires description' do
         proposal = build(:proposal, description: nil)
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:description]).to include("can't be blank")
+        expect(proposal.errors[:description]).to include("no puede estar en blanco")
       end
 
       it 'rejects empty string description' do
         proposal = build(:proposal, description: "")
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:description]).to include("can't be blank")
+        expect(proposal.errors[:description]).to include("no puede estar en blanco")
       end
 
       it 'accepts valid description' do
