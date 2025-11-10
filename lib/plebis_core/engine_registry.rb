@@ -189,7 +189,8 @@ module PlebisCore
     #
     def self.dependents_of(engine_name)
       ENGINES.select do |_name, metadata|
-        metadata[:dependencies].include?(engine_name)
+        # Use safe navigation to avoid NoMethodError if dependencies is nil
+        metadata[:dependencies]&.include?(engine_name)
       end.keys
     end
 

@@ -15,14 +15,10 @@ module <%= @module_name %>
       g.factory_bot dir: 'spec/factories'
     end
 
-    # Load abilities when the engine is loaded
-    initializer "<%= @engine_name %>.load_abilities" do
-      config.to_prepare do
-        if defined?(Ability) && defined?(<%= @module_name %>::Ability)
-          Ability.register_abilities(<%= @module_name %>::Ability)
-        end
-      end
-    end
+    # TODO: Implement ability loading mechanism
+    # The Ability.register_abilities method does not exist in CanCanCan
+    # Each engine should define its abilities in: app/models/<engine_name>/ability.rb
+    # and they will be automatically loaded by CanCanCan's standard mechanism
 
     # Check if engine is activated before loading routes
     initializer "<%= @engine_name %>.check_activation", before: :set_routes_reloader do

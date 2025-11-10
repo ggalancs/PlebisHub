@@ -98,21 +98,22 @@ puts "="*80
 begin
   EngineActivation.seed_all
 
-  # Optionally enable basic engines by default
-  # These are low-risk engines with minimal dependencies
-  basic_engines = ['plebis_cms', 'plebis_participation']
+  # Enable ALL engines by default
+  # IMPORTANT: User model has concerns that depend on all engines being active
+  # Until dependencies are refactored, all engines must be enabled
+  all_engines = PlebisCore::EngineRegistry.available_engines
 
-  basic_engines.each do |engine|
+  all_engines.each do |engine|
     activation = EngineActivation.find_by(engine_name: engine)
     if activation && !activation.enabled?
       activation.update!(enabled: true)
-      puts "  ✓ #{engine} enabled by default"
+      puts "  ✓ #{engine} enabled"
     end
   end
 
   puts "\nEngineActivations seeded: #{EngineActivation.count} total"
-  puts "  - Enabled: #{EngineActivation.where(enabled: true).count}"
-  puts "  - Disabled: #{EngineActivation.where(enabled: false).count}"
+  puts "  - All engines enabled by default (required by User model)"
+  puts "  - To disable engines, see doc/PHASE_0_FIX_ACTION_PLAN.md"
   puts "="*80
 rescue => e
   puts "  ⚠ Warning: Could not seed EngineActivations: #{e.message}"

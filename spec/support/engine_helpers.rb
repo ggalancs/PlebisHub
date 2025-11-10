@@ -4,15 +4,49 @@
 #
 # Utilities for testing engine activation and behavior
 #
+# IMPORTANT LIMITATIONS:
+# ----------------------
+# These helpers change the activation STATUS in the database, but they
+# CANNOT dynamically load/unload concerns at runtime.
+#
+# WHY: ActiveSupport::Concern modules are included at class definition time
+# (when the User class is first loaded), not at runtime. Once a concern is
+# included, it cannot be removed without reloading the entire class.
+#
+# WHAT THIS MEANS FOR TESTS:
+# - These helpers are useful for testing ROUTES and CONTROLLERS (which check enabled?)
+# - These helpers CANNOT test model concerns being added/removed dynamically
+# - If you need to test concerns, separate your test suite by engine and
+#   use shared_contexts like "with all engines disabled" to set initial state
+#   BEFORE the test suite loads
+#
+# CORRECT USAGE:
+#   # Testing routes (works correctly)
+#   with_engine_enabled('plebis_cms') do
+#     expect(get: '/blog').to route_to(controller: 'blog', action: 'index')
+#   end
+#
+# INCORRECT USAGE:
+#   # Testing concerns (does NOT work as expected)
+#   with_engine_enabled('plebis_voting') do
+#     user = User.new
+#     user.votes # This will fail if concern wasn't loaded at class definition time
+#   end
+#
 module EngineHelpers
   # Temporarily enable an engine for the duration of a test
+  #
+  # WARNING: This only changes the database state. It does NOT load concerns.
+  # Use for testing routes/controllers, not for testing model concerns.
   #
   # @param engine_name [String] The engine name to enable
   # @yield Block to execute with engine enabled
   #
   # Example:
   #   with_engine_enabled('plebis_cms') do
-  #     # Test code that requires CMS engine
+  #     # Test routes/controllers (works correctly)
+  #     get '/blog'
+  #     expect(response).to be_successful
   #   end
   #
   def with_engine_enabled(engine_name)
@@ -27,6 +61,9 @@ module EngineHelpers
   end
 
   # Temporarily disable an engine for the duration of a test
+  #
+  # WARNING: This only changes the database state. It does NOT unload concerns.
+  # Use for testing routes/controllers, not for testing model concerns.
   #
   # @param engine_name [String] The engine name to disable
   # @yield Block to execute with engine disabled

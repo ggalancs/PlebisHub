@@ -37,10 +37,14 @@ namespace :engines do
     if PlebisCore::EngineRegistry.can_enable?(engine_name)
       EngineActivation.enable!(engine_name)
       puts "✓ Engine '#{engine_name}' enabled"
-      puts "\n⚠ Note: You may need to restart the application for changes to take effect"
+      puts "\n⚠️ IMPORTANT: You MUST restart the application for changes to take effect"
+      puts "   Run: touch tmp/restart.txt  (Passenger)"
+      puts "   Or restart your Rails server manually"
     else
+      # Cache enabled engines to avoid N+1 queries
+      enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
       deps = PlebisCore::EngineRegistry.dependencies_for(engine_name)
-      missing = deps.reject { |d| d == 'User' || EngineActivation.enabled?(d) }
+      missing = deps.reject { |d| d == 'User' || enabled_engines.include?(d) }
       puts "✗ Cannot enable '#{engine_name}'. Missing dependencies: #{missing.join(', ')}"
       puts "\nPlease enable the following engines first:"
       missing.each { |d| puts "  - #{d}" }
@@ -57,9 +61,12 @@ namespace :engines do
       exit 1
     end
 
+    # Cache enabled engines to avoid N+1 queries
+    enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
+
     # Check if any enabled engine depends on this one
     dependents = PlebisCore::EngineRegistry.dependents_of(engine_name)
-    enabled_dependents = dependents.select { |d| EngineActivation.enabled?(d) }
+    enabled_dependents = dependents.select { |d| enabled_engines.include?(d) }
 
     if enabled_dependents.any?
       puts "✗ Cannot disable '#{engine_name}'. These engines depend on it:"
@@ -70,7 +77,9 @@ namespace :engines do
 
     EngineActivation.disable!(engine_name)
     puts "✓ Engine '#{engine_name}' disabled"
-    puts "\n⚠ Note: You may need to restart the application for changes to take effect"
+    puts "\n⚠️ IMPORTANT: You MUST restart the application for changes to take effect"
+    puts "   Run: touch tmp/restart.txt  (Passenger)"
+    puts "   Or restart your Rails server manually"
   end
 
   desc "Show engine info"
@@ -105,8 +114,10 @@ namespace :engines do
     if deps.empty?
       puts "  None"
     else
+      # Cache enabled engines to avoid N+1 queries
+      enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
       deps.each do |dep|
-        status = (dep == 'User' || EngineActivation.enabled?(dep)) ? '✓' : '✗'
+        status = (dep == 'User' || enabled_engines.include?(dep)) ? '✓' : '✗'
         puts "  #{status} #{dep}"
       end
     end
@@ -131,9 +142,12 @@ namespace :engines do
 
     has_errors = false
 
+    # Cache enabled engines to avoid N+1 queries
+    enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
+
     EngineActivation.where(enabled: true).each do |ea|
       deps = PlebisCore::EngineRegistry.dependencies_for(ea.engine_name)
-      missing = deps.reject { |d| d == 'User' || EngineActivation.enabled?(d) }
+      missing = deps.reject { |d| d == 'User' || enabled_engines.include?(d) }
 
       if missing.any?
         puts "✗ #{ea.engine_name}: MISSING #{missing.join(', ')}"
@@ -171,16 +185,20 @@ namespace :engines do
     puts "\nEngine Dependency Graph:"
     puts "=" * 80
 
+    # Cache all activations to avoid N+1 queries
+    activations_by_name = EngineActivation.all.index_by(&:engine_name)
+    enabled_engines = activations_by_name.select { |_, a| a.enabled? }.keys.to_set
+
     PlebisCore::EngineRegistry.available_engines.sort.each do |engine_name|
       info = PlebisCore::EngineRegistry.info(engine_name)
       deps = info[:dependencies] || []
-      activation = EngineActivation.find_by(engine_name: engine_name)
+      activation = activations_by_name[engine_name]
       status = activation&.enabled? ? '✓' : '✗'
 
       puts "\n#{status} #{engine_name}"
       if deps.any? && deps != ['User']
         deps.reject { |d| d == 'User' }.each do |dep|
-          dep_status = EngineActivation.enabled?(dep) ? '✓' : '✗'
+          dep_status = enabled_engines.include?(dep) ? '✓' : '✗'
           puts "  └─> #{dep_status} #{dep}"
         end
       else
@@ -192,7 +210,7 @@ namespace :engines do
       if dependents.any?
         puts "  ┌─< Required by:"
         dependents.each do |dependent|
-          dep_status = EngineActivation.enabled?(dependent) ? '✓' : '✗'
+          dep_status = enabled_engines.include?(dependent) ? '✓' : '✗'
           puts "  │   #{dep_status} #{dependent}"
         end
       end

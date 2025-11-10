@@ -40,7 +40,8 @@ module EngineUser
     # @return [Boolean] Whether the user has voted
     #
     def has_already_voted_in?(election_id)
-      Vote.where(election_id: election_id).where(user_id: self.id).present?
+      # Use exists? instead of present? to avoid loading records (performance)
+      Vote.where(election_id: election_id, user_id: self.id).exists?
     end
 
     # Check if user can vote in a specific election
@@ -50,7 +51,7 @@ module EngineUser
     # @return [Boolean] Whether the user can vote
     #
     def can_vote_in?(election)
-      verified? && vote_circle.present? && election.has_valid_location_for?(self)
+      verified? && vote_circle&.present? && election&.has_valid_location_for?(self)
     end
   end
 end

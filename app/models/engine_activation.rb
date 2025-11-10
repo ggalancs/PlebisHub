@@ -3,7 +3,8 @@
 # EngineActivation Model
 #
 # Manages the activation state and configuration of engines in the application.
-# Engines can be enabled/disabled dynamically without redeployment.
+# Engines can be enabled/disabled, but requires application restart for concerns to load.
+# Routes will reload automatically, but model concerns require: touch tmp/restart.txt
 #
 # Attributes:
 #   - engine_name: String - Unique identifier for the engine
@@ -20,6 +21,12 @@
 class EngineActivation < ApplicationRecord
   # Validations
   validates :engine_name, presence: true, uniqueness: true
+  validates :engine_name, format: {
+    with: /\A[a-z][a-z0-9_]*\z/,
+    message: "must start with a letter and contain only lowercase letters, numbers, and underscores"
+  }
+  validates :engine_name, length: { minimum: 3, maximum: 50 }
+  validate :engine_must_exist_in_registry, on: :create
 
   # Cache para evitar queries repetidas
   # @param engine_name [String] The engine name to check
@@ -40,11 +47,16 @@ class EngineActivation < ApplicationRecord
   # @return [EngineActivation] The activation record
   #
   def self.enable!(engine_name)
-    activation = find_or_create_by!(engine_name: engine_name)
-    activation.update!(enabled: true)
+    # Use find_or_initialize_by to avoid race condition with find_or_create_by!
+    activation = find_or_initialize_by(engine_name: engine_name)
+    activation.enabled = true
+    activation.save!
     clear_cache(engine_name)
     reload_routes!
     activation
+  rescue ActiveRecord::RecordNotUnique
+    # Race condition: another thread created the record, retry
+    retry
   end
 
   # Disable an engine
@@ -71,7 +83,9 @@ class EngineActivation < ApplicationRecord
   end
 
   # Reload application routes
-  # This allows dynamic engine loading without server restart
+  # NOTE: Routes are reloaded, but concerns require application restart.
+  # After enabling/disabling engines, run: touch tmp/restart.txt
+  # or restart your Rails server manually.
   #
   def self.reload_routes!
     Rails.application.reload_routes!
@@ -87,10 +101,20 @@ class EngineActivation < ApplicationRecord
     return unless defined?(PlebisCore::EngineRegistry)
 
     PlebisCore::EngineRegistry.available_engines.each do |engine_name|
-      find_or_create_by!(engine_name: engine_name) do |ea|
+      # Use find_or_initialize_by to avoid race condition
+      activation = find_or_initialize_by(engine_name: engine_name)
+
+      if activation.new_record?
         info = PlebisCore::EngineRegistry.info(engine_name)
-        ea.description = info[:description]
-        ea.enabled = false # Disabled by default
+        activation.description = info[:description]
+        activation.enabled = false # Disabled by default
+
+        begin
+          activation.save!
+        rescue ActiveRecord::RecordNotUnique
+          # Race condition: another process created it, skip
+          Rails.logger.debug "[EngineActivation] #{engine_name} already seeded by another process"
+        end
       end
     end
   rescue => e
@@ -129,5 +153,22 @@ class EngineActivation < ApplicationRecord
   #
   def status
     enabled? ? "Active" : "Inactive"
+  end
+
+  private
+
+  # Custom validation: ensure engine exists in registry
+  # Only applies on create to allow seeding before registry is loaded
+  #
+  def engine_must_exist_in_registry
+    return unless defined?(PlebisCore::EngineRegistry)
+
+    available_engines = PlebisCore::EngineRegistry.available_engines
+    unless available_engines.include?(engine_name)
+      errors.add(:engine_name, "is not a registered engine. Available: #{available_engines.join(', ')}")
+    end
+  rescue => e
+    # If registry fails to load, skip validation
+    Rails.logger.warn "[EngineActivation] Could not validate engine_name against registry: #{e.message}"
   end
 end

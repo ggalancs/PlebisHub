@@ -64,6 +64,9 @@ ActiveAdmin.register EngineActivation do
       if defined?(PlebisCore::EngineRegistry)
         engine_info = PlebisCore::EngineRegistry.info(resource.engine_name)
 
+        # Cache enabled engines to avoid N+1 queries
+        enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
+
         attributes_table_for OpenStruct.new(engine_info) do
           row("Name") { engine_info[:name] }
           row("Version") { engine_info[:version] }
@@ -75,7 +78,7 @@ ActiveAdmin.register EngineActivation do
               "None"
             else
               deps.map do |dep|
-                if dep == 'User' || EngineActivation.enabled?(dep)
+                if dep == 'User' || enabled_engines.include?(dep)
                   status_tag(dep, :ok)
                 else
                   status_tag(dep, :error)
@@ -141,8 +144,10 @@ ActiveAdmin.register EngineActivation do
       redirect_to admin_engine_activations_path,
                   notice: "Engine '#{resource.engine_name}' enabled. Application reload may be required."
     else
+      # Cache enabled engines to avoid N+1 queries
+      enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
       deps = PlebisCore::EngineRegistry.dependencies_for(resource.engine_name)
-      missing = deps.reject { |d| d == 'User' || EngineActivation.enabled?(d) }
+      missing = deps.reject { |d| d == 'User' || enabled_engines.include?(d) }
       redirect_to admin_engine_activations_path,
                   alert: "Cannot enable '#{resource.engine_name}'. Missing dependencies: #{missing.join(', ')}"
     end
@@ -151,8 +156,11 @@ ActiveAdmin.register EngineActivation do
   member_action :disable, method: :post do
     # Check if any enabled engine depends on this one
     if defined?(PlebisCore::EngineRegistry)
+      # Cache enabled engines to avoid N+1 queries
+      enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
+
       dependents = PlebisCore::EngineRegistry.dependents_of(resource.engine_name)
-      enabled_dependents = dependents.select { |d| EngineActivation.enabled?(d) }
+      enabled_dependents = dependents.select { |d| enabled_engines.include?(d) }
 
       if enabled_dependents.any?
         redirect_to admin_engine_activations_path,

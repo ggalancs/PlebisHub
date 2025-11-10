@@ -14,7 +14,7 @@ La Fase 0 de modularización de PlebisHub ha sido completada exitosamente. Se ha
 ### Objetivos Cumplidos
 
 ✅ **Sistema de Concerns EngineUser** implementado
-✅ **Modelo EngineActivation** con gestión dinámica
+✅ **Modelo EngineActivation** con gestión de activación (requiere reinicio)
 ✅ **Event Bus** para desacoplamiento de engines
 ✅ **Engine Registry** con metadata de 9 engines
 ✅ **Generator de engines** funcional
@@ -38,7 +38,7 @@ La Fase 0 de modularización de PlebisHub ha sido completada exitosamente. Se ha
 
 **Ubicación:** `app/models/concerns/engine_user/`
 
-Creados 8 concerns para extensión dinámica del modelo User:
+Creados 8 concerns para extensión modular del modelo User:
 
 1. **Votable** - Asociaciones y métodos de votación
 2. **Collaborator** - Gestión de colaboraciones económicas
@@ -72,7 +72,7 @@ app/models/concerns/
 - Cache de 5 minutos para performance
 - Métodos `enable!` y `disable!`
 - Validación de dependencias
-- Recarga dinámica de rutas
+- Recarga de rutas (concerns requieren reinicio de aplicación)
 - Seed automático desde registry
 
 **Migración:** `db/migrate/20251110120000_create_engine_activations.rb`
@@ -191,7 +191,7 @@ rake engines:graph             # Ver grafo de dependencias
 - Incluye `EngineUser` concern
 - Registra 8 concerns de engines
 - Mantiene compatibilidad backward
-- Sistema de carga dinámica basado en activación
+- Sistema de carga condicional basado en activación (cargado al inicio)
 
 ---
 
@@ -317,7 +317,7 @@ PlebisHub/
 - [x] **Semana 1: User Model & Activación**
   - [x] Auditar User model
   - [x] Crear concerns EngineUser
-  - [x] Refactorizar User con concerns dinámicos
+  - [x] Refactorizar User con concerns condicionales
   - [x] Tests de User refactorizado
   - [x] Crear migración engine_activations
   - [x] Implementar modelo EngineActivation
@@ -430,14 +430,14 @@ bundle exec rspec spec/support/
 ### Logros Principales
 
 1. ✅ **Infraestructura completa** para modularización
-2. ✅ **Sistema de activación dinámica** funcional
+2. ✅ **Sistema de activación de engines** funcional (requiere reinicio para concerns)
 3. ✅ **Generator automatiza** creación de engines
 4. ✅ **Tests preparados** para validar cada engine
 5. ✅ **Documentación exhaustiva** del proceso
 
 ### Lecciones Aprendidas
 
-- El sistema de concerns permite carga dinámica sin breaking changes
+- El sistema de concerns permite carga condicional al inicio sin breaking changes
 - El Event Bus será clave para desacoplar engines complejos
 - El generator ahorra ~2 horas por engine nuevo
 - La estrategia gradual de tests es más práctica

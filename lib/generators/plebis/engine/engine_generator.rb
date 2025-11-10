@@ -20,11 +20,44 @@ module Plebis
     class EngineGenerator < Rails::Generators::NamedBase
       source_root File.expand_path('templates', __dir__)
 
-      def create_engine_structure
+      def validate_engine_name
+        # Validate name format
+        unless name =~ /\A[a-z][a-z0-9_]*\z/
+          say "Error: Engine name must start with a lowercase letter and contain only lowercase letters, numbers, and underscores", :red
+          say "Example: rails generate plebis:engine cms", :yellow
+          raise Thor::Error, "Invalid engine name: #{name}"
+        end
+
+        # Validate name length
+        if name.length < 2
+          say "Error: Engine name must be at least 2 characters long", :red
+          raise Thor::Error, "Engine name too short: #{name}"
+        end
+
+        if name.length > 30
+          say "Error: Engine name must be 30 characters or less", :red
+          raise Thor::Error, "Engine name too long: #{name}"
+        end
+
+        # Check if engine already exists
         @module_name = name.camelize
         @engine_name = "plebis_#{name}"
         @engine_path = "engines/#{@engine_name}"
 
+        if File.directory?(@engine_path)
+          say "Error: Engine directory already exists: #{@engine_path}", :red
+          raise Thor::Error, "Engine already exists: #{@engine_name}"
+        end
+
+        # Check for reserved names
+        reserved_names = %w[test spec app lib config db public tmp log]
+        if reserved_names.include?(name)
+          say "Error: '#{name}' is a reserved name and cannot be used for an engine", :red
+          raise Thor::Error, "Reserved name: #{name}"
+        end
+      end
+
+      def create_engine_structure
         say "Creating engine: #{@engine_name}", :green
         say "Module name: #{@module_name}", :green
 

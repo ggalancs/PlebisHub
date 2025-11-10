@@ -45,7 +45,7 @@ module EngineUser
       collaborator_at = nil
 
       # Check vote circle
-      if self.vote_circle_id.present?
+      if self.vote_circle_id.present? && self.vote_circle_changed_at.present?
         in_circle_at = Time.zone.parse(self.vote_circle_changed_at.to_s)
       end
 
@@ -66,7 +66,8 @@ module EngineUser
                                 .where(status: [0, 2, 3])
 
       if valid_collaboration.exists?
-        collaborator_at = Time.zone.parse(valid_collaboration.last.created_at.to_s)
+        last_collab = valid_collaboration.last
+        collaborator_at = Time.zone.parse(last_collab.created_at.to_s) if last_collab
       end
 
       # Check exempt from payment
@@ -147,7 +148,7 @@ module EngineUser
 
       # Track vote circle membership
       if self.in_vote_circle?
-        if self.vote_circle && self.vote_circle.name.present? &&
+        if self.vote_circle&.name.present? &&
            last_record.vote_circle_name.present? &&
            self.vote_circle.name.downcase.strip == last_record.vote_circle_name.downcase.strip
           new_record.begin_in_vote_circle = last_record.begin_in_vote_circle unless
@@ -155,12 +156,12 @@ module EngineUser
           new_record.begin_in_vote_circle ||= self.vote_circle_changed_at
           new_record.vote_circle_name = last_record.vote_circle_name if
             last_record.vote_circle_name.present? && last_record.end_in_vote_circle.nil?
-          new_record.vote_circle_name ||= self.vote_circle.name
+          new_record.vote_circle_name ||= self.vote_circle&.name
           new_record.end_in_vote_circle = nil
         else
-          last_record.update(end_in_vote_circle: self.vote_circle_changed_at)
+          last_record.update(end_in_vote_circle: self.vote_circle_changed_at) if self.vote_circle_changed_at.present?
           new_record.begin_in_vote_circle = self.vote_circle_changed_at
-          new_record.vote_circle_name = self.vote_circle.name
+          new_record.vote_circle_name = self.vote_circle&.name
           new_record.end_in_vote_circle = nil
         end
       else
@@ -191,9 +192,9 @@ module EngineUser
                                           .where.not(frequency: 0)
                                           .where(status: [0, 2])
                                           .last
-          date_collaboration ||= last_valid_collaboration.created_at
+          date_collaboration ||= last_valid_collaboration&.created_at
           new_record.payment_type ||= 1
-          new_record.amount = last_valid_collaboration.amount
+          new_record.amount = last_valid_collaboration&.amount || 0
         end
 
         new_record.begin_payment = date_collaboration

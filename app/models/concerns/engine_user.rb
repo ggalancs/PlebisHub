@@ -24,7 +24,7 @@ module EngineUser
 
   class_methods do
     # Registers an engine-specific concern to be included in the User model
-    # only if the engine is currently enabled.
+    # only if the engine is currently enabled AND all its dependencies are met.
     #
     # @param engine_name [String] The name of the engine (e.g., 'plebis_voting')
     # @param concern_module [Module] The concern module to include (e.g., EngineUser::Votable)
@@ -35,13 +35,35 @@ module EngineUser
     def register_engine_concern(engine_name, concern_module)
       # Check if EngineActivation exists before trying to use it
       # During initial migrations, this model might not exist yet
-      if defined?(EngineActivation) && EngineActivation.table_exists?
-        include concern_module if EngineActivation.enabled?(engine_name)
+      return unless defined?(EngineActivation)
+      return unless EngineActivation.table_exists?
+
+      # Check if the engine is enabled
+      return unless EngineActivation.enabled?(engine_name)
+
+      # CRITICAL: Verify dependencies before including concern
+      # This prevents NoMethodError when concerns call methods from other concerns
+      if defined?(PlebisCore::EngineRegistry)
+        deps = PlebisCore::EngineRegistry.dependencies_for(engine_name)
+        missing_deps = deps.reject do |dep|
+          dep == 'User' || EngineActivation.enabled?(dep)
+        end
+
+        if missing_deps.any?
+          Rails.logger.error "[EngineUser] Cannot load #{engine_name}: missing dependencies #{missing_deps.join(', ')}"
+          Rails.logger.error "[EngineUser] Enable these engines first: #{missing_deps.join(', ')}"
+          return
+        end
       end
-    rescue ActiveRecord::NoDatabaseError, ActiveRecord::StatementInvalid
+
+      # All checks passed, include the concern
+      include concern_module
+      Rails.logger.info "[EngineUser] Successfully loaded #{engine_name} concern"
+
+    rescue ActiveRecord::NoDatabaseError, ActiveRecord::StatementInvalid => e
       # Database doesn't exist yet or table not created
       # This is expected during initial setup
-      Rails.logger.debug "[EngineUser] Database not ready, skipping engine concern registration for #{engine_name}"
+      Rails.logger.warn "[EngineUser] Database not ready (#{e.class}), skipping #{engine_name}"
     end
   end
 

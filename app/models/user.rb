@@ -41,17 +41,21 @@ class User < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
 
-  has_many :votes, dependent: :destroy
-  has_many :paper_authority_votes, dependent: :nullify, class_name: "Vote", inverse_of: :paper_authority
+  # NOTE: Associations are defined in engine-specific concerns
+  # See app/models/concerns/engine_user/*.rb
+  # Each concern is loaded only when the corresponding engine is active
+  #
+  # Associations now in concerns:
+  # - votes, paper_authority_votes → EngineUser::Votable
+  # - supports → EngineUser::Proposer
+  # - collaborations → EngineUser::Collaborator
+  # - participation_teams → EngineUser::TeamMember
+  # - microcredit_loans → EngineUser::Microcreditor
+  # - user_verifications → EngineUser::Verifiable
+  # - militant_records → EngineUser::Militant
 
-  has_many :supports, dependent: :destroy
-  has_many :collaborations, dependent: :destroy
-  has_and_belongs_to_many :participation_teams
-  has_many :microcredit_loans
-  has_many :user_verifications
-  has_many :militant_records
-
-  belongs_to :vote_circle
+  # Core association (not in any engine)
+  belongs_to :vote_circle, optional: true
 
   validates :first_name, :last_name, :document_type, :document_vatid, presence: true
   validates :address, :postal_code, :town, :province, :country, :born_at, presence: true
