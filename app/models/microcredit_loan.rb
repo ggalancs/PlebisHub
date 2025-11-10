@@ -63,6 +63,8 @@ class MicrocreditLoan < ApplicationRecord
     end
   end
 
+  before_validation :set_bic_for_spanish_iban
+
   before_save do
     self.iban_account.upcase! if self.iban_account.present?
   end
@@ -308,6 +310,12 @@ class MicrocreditLoan < ApplicationRecord
   end
 
   private
+
+  def set_bic_for_spanish_iban
+    if self.iban_account && self.iban_account.upcase.start_with?("ES") && self.iban_bic.blank?
+      self.iban_bic = calculate_bic
+    end
+  end
 
   # Helper method to safely get microcredit_loan configuration with default values
   def microcredit_loan_config(key)
