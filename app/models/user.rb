@@ -5,6 +5,9 @@ class User < ApplicationRecord
 
   include Rails.application.routes.url_helpers
 
+  # Engine User concerns - dynamically loaded based on active engines
+  include EngineUser
+
   has_flags  1 => :banned,
              2 => :superadmin,
              3 => :verified,
@@ -20,6 +23,16 @@ class User < ApplicationRecord
   # :omniauthable
   devise :database_authenticatable, :registerable, :confirmable, :timeoutable,
          :recoverable, :rememberable, :trackable, :validatable, :lockable
+
+  # Register engine-specific concerns (loaded only when engines are active)
+  register_engine_concern('plebis_voting', EngineUser::Votable)
+  register_engine_concern('plebis_collaborations', EngineUser::Collaborator)
+  register_engine_concern('plebis_verification', EngineUser::Verifiable)
+  register_engine_concern('plebis_microcredit', EngineUser::Microcreditor)
+  register_engine_concern('plebis_impulsa', EngineUser::ImpulsaAuthor)
+  register_engine_concern('plebis_proposals', EngineUser::Proposer)
+  register_engine_concern('plebis_participation', EngineUser::TeamMember)
+  register_engine_concern('plebis_militant', EngineUser::Militant)
 
   before_validation :check_unconfirmed_phone
   before_update :_clear_caches

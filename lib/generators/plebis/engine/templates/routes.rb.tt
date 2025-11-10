@@ -1,0 +1,9 @@
+# frozen_string_literal: true
+
+<%= @module_name %>::Engine.routes.draw do
+  # Add your engine routes here
+  #
+  # Example:
+  # resources :posts
+  # get '/about', to: 'pages#about'
+end

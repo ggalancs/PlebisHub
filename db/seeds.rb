@@ -88,3 +88,34 @@ end
    order.target_territory = order.generate_target_territory
    order.save!
  end
+
+# Seed EngineActivations
+# Creates disabled activation records for all available engines
+puts "\n" + "="*80
+puts "Seeding EngineActivations..."
+puts "="*80
+
+begin
+  EngineActivation.seed_all
+
+  # Optionally enable basic engines by default
+  # These are low-risk engines with minimal dependencies
+  basic_engines = ['plebis_cms', 'plebis_participation']
+
+  basic_engines.each do |engine|
+    activation = EngineActivation.find_by(engine_name: engine)
+    if activation && !activation.enabled?
+      activation.update!(enabled: true)
+      puts "  ✓ #{engine} enabled by default"
+    end
+  end
+
+  puts "\nEngineActivations seeded: #{EngineActivation.count} total"
+  puts "  - Enabled: #{EngineActivation.where(enabled: true).count}"
+  puts "  - Disabled: #{EngineActivation.where(enabled: false).count}"
+  puts "="*80
+rescue => e
+  puts "  ⚠ Warning: Could not seed EngineActivations: #{e.message}"
+  puts "  This is expected if migrations haven't been run yet."
+  puts "="*80
+end

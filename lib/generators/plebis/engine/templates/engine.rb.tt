@@ -1,0 +1,42 @@
+# frozen_string_literal: true
+
+module <%= @module_name %>
+  # <%= @module_name %> Engine
+  #
+  # Rails engine for <%= @engine_name %> functionality.
+  #
+  class Engine < ::Rails::Engine
+    isolate_namespace <%= @module_name %>
+
+    # Configure generators
+    config.generators do |g|
+      g.test_framework :rspec
+      g.fixture_replacement :factory_bot
+      g.factory_bot dir: 'spec/factories'
+    end
+
+    # Load abilities when the engine is loaded
+    initializer "<%= @engine_name %>.load_abilities" do
+      config.to_prepare do
+        if defined?(Ability) && defined?(<%= @module_name %>::Ability)
+          Ability.register_abilities(<%= @module_name %>::Ability)
+        end
+      end
+    end
+
+    # Check if engine is activated before loading routes
+    initializer "<%= @engine_name %>.check_activation", before: :set_routes_reloader do
+      unless EngineActivation.enabled?('<%= @engine_name %>')
+        Rails.logger.info "[<%= @module_name %>] Engine disabled, skipping routes"
+        config.paths["config/routes.rb"].skip_if { true }
+      end
+    end
+
+    # Subscribe to events if needed
+    # initializer "<%= @engine_name %>.subscribe_events" do
+    #   PlebisCore::EventBus.subscribe('some.event') do |event|
+    #     # Handle event
+    #   end
+    # end
+  end
+end

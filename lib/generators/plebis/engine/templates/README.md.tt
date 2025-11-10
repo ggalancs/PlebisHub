@@ -1,0 +1,85 @@
+# <%= @module_name %> Engine
+
+Rails engine providing <%= name %> functionality for PlebisHub.
+
+## Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+gem '<%= @engine_name %>', path: 'engines/<%= @engine_name %>'
+```
+
+And then execute:
+
+```bash
+bundle install
+```
+
+## Usage
+
+### Enabling the Engine
+
+```ruby
+# In Rails console or seeds
+EngineActivation.enable!('<%= @engine_name %>')
+```
+
+Or using rake:
+
+```bash
+rake engines:enable[<%= @engine_name %>]
+```
+
+### Configuration
+
+Configure the engine in an initializer or through EngineActivation:
+
+```ruby
+EngineActivation.find_by(engine_name: '<%= @engine_name %>').set_config('key', 'value')
+```
+
+## Features
+
+- TODO: List main features
+- TODO: Document key functionality
+- TODO: Add usage examples
+
+## Models
+
+- TODO: List models provided by this engine
+
+## Controllers
+
+- TODO: List controllers and their routes
+
+## Dependencies
+
+- User (core model)
+- TODO: List other engine dependencies
+
+## Development
+
+### Running Tests
+
+```bash
+cd engines/<%= @engine_name %>
+bundle exec rspec
+```
+
+### Adding Migrations
+
+```bash
+rails generate migration CreateSomething
+```
+
+## Contributing
+
+1. Create your feature branch
+2. Commit your changes
+3. Push to the branch
+4. Create a Pull Request
+
+## License
+
+The gem is available as open source under the terms of the MIT License.
