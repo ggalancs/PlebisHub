@@ -1,4 +1,4 @@
-ActiveAdmin.register Page do
+ActiveAdmin.register PlebisCms::Page, as: "Page" do
 
   permit_params :id_form, :title, :slug, :link, :require_login, :meta_description, :meta_image, :promoted, :priority, :text_button
 

@@ -1,7 +1,7 @@
-ActiveAdmin.register Post do
+ActiveAdmin.register PlebisCms::Post, as: "Post" do
   menu :parent => "Blog"
 
-  scope_to Post, association_method: :with_deleted
+  scope_to PlebisCms::Post, association_method: :with_deleted
 
   scope :created, default: true
   scope :published
@@ -48,9 +48,9 @@ ActiveAdmin.register Post do
 
   form do |f|
     f.inputs "Posts" do
-      f.input :status, as: :select, collection: Post::STATUS.to_a
+      f.input :status, as: :select, collection: PlebisCms::Post::STATUS.to_a
       f.input :media_url
-      f.input :categories, as: :check_boxes, collection: Category.all
+      f.input :categories, as: :check_boxes, collection: PlebisCms::Category.all
       f.input :title
       f.input :content, :hint => """Importante:<br/>
         - El primer párrafo (hasta el primer salto de línea) aparecerá en el listado, el resto del contenido se verá en la pagina de la entrada al hacer clic en 'Seguir leyendo'.<br/>
@@ -59,7 +59,7 @@ ActiveAdmin.register Post do
         - Las direcciones de YouTube, Vimeo y Twitter permiten embeber en la página videos o tuits.<br/>
         - También es posible dar formato básico al texto utilizando <a href='http://es.wikipedia.org/wiki/Markdown' target='_blank'>Markdown</a>.""".html_safe
     end
-    
+
     f.actions
   end
 

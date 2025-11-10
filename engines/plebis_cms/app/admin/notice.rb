@@ -1,4 +1,4 @@
-ActiveAdmin.register Notice do
+ActiveAdmin.register PlebisCms::Notice, as: "Notice" do
   menu :parent => "Users"
 
   permit_params :title, :body, :link, :created_at
@@ -24,7 +24,7 @@ ActiveAdmin.register Notice do
         if notice.has_sent
           link_to "Ya se ha enviado", "#", disabled: :disabled, class: "button disabled"
         else
-          link_to "Enviar a #{NoticeRegistrar.all.count} usuario móviles y #{User.all.count} usuarios web", broadcast_admin_notice_path(notice), class: "button", method: :post
+          link_to "Enviar a #{PlebisCms::NoticeRegistrar.all.count} usuario móviles y #{User.all.count} usuarios web", broadcast_admin_notice_path(notice), class: "button", method: :post
         end
       end
       row :sent_at
@@ -33,7 +33,7 @@ ActiveAdmin.register Notice do
   end
 
   member_action :broadcast, :method => :post do
-    notice = Notice.find(params[:id])
+    notice = PlebisCms::Notice.find(params[:id])
     notice.broadcast!
     redirect_to({action: :show }, {:notice => "Se ha enviado el Aviso"})
   end
