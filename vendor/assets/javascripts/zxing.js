@@ -9012,7 +9012,7 @@
           this.startEnd = startEnd;
           this.value = value;
           this.startEnd = startEnd;
-          this.resultPoints = new Array();
+          this.resultPoints = [];
           this.resultPoints.push(new ResultPoint(start, rowNumber));
           this.resultPoints.push(new ResultPoint(end, rowNumber));
       }
@@ -10230,7 +10230,7 @@
       constructor() {
           super(...arguments);
           this.pairs = new Array(RSSExpandedReader.MAX_PAIRS);
-          this.rows = new Array();
+          this.rows = [];
           this.startEnd = [2];
       }
       decodeRow(rowNumber, row, hints) {
@@ -10314,7 +10314,7 @@
           }
           let ps = null;
           try {
-              ps = this.checkRows(new Array(), 0);
+              ps = this.checkRows([], 0);
           }
           catch (e) {
               // OK
@@ -12213,7 +12213,7 @@
           const bits = new BitSource(bytes);
           const result = new StringBuilder();
           const resultTrailer = new StringBuilder();
-          const byteSegments = new Array();
+          const byteSegments = [];
           let mode = Mode.ASCII_ENCODE;
           do {
               if (mode === Mode.ASCII_ENCODE) {
@@ -14227,7 +14227,7 @@
       static decode(bytes, version, ecLevel, hints) {
           const bits = new BitSource(bytes);
           let result = new StringBuilder();
-          const byteSegments = new Array(); // 1
+          const byteSegments = []; // 1
           // TYPESCRIPTPORT: I do not use constructor with size 1 as in original Java means capacity and the array length is checked below
           let symbolSequence = -1;
           let parityData = -1;
@@ -16221,7 +16221,7 @@
           return (x - leftTopBlack[0]) / 7.0;
       }
   }
-  QRCodeReader.NO_POINTS = new Array();
+  QRCodeReader.NO_POINTS = [];
 
   /*
   * Copyright 2009 ZXing authors
@@ -16765,7 +16765,7 @@
        * @return List of ResultPoint arrays containing the coordinates of found barcodes
        */
       static detect(multiple, bitMatrix) {
-          const barcodeCoordinates = new Array();
+          const barcodeCoordinates = [];
           let row = 0;
           let column = 0;
           let foundBarcodeInRow = false;
@@ -17912,7 +17912,7 @@
        */
       getValue() {
           let maxConfidence = -1;
-          let result = new Array();
+          let result = [];
           for (const [key, value] of this.values.entries()) {
               const entry = {
                   getKey: () => key,
@@ -20188,10 +20188,10 @@
       static createDecoderResult(detectionResult) {
           let barcodeMatrix = PDF417ScanningDecoder.createBarcodeMatrix(detectionResult);
           PDF417ScanningDecoder.adjustCodewordCount(detectionResult, barcodeMatrix);
-          let erasures /*Collection<Integer>*/ = new Array();
+          let erasures /*Collection<Integer>*/ = [];
           let codewords = new Int32Array(detectionResult.getBarcodeRowCount() * detectionResult.getBarcodeColumnCount());
           let ambiguousIndexValuesList = /*List<int[]>*/ [];
-          let ambiguousIndexesList = /*Collection<Integer>*/ new Array();
+          let ambiguousIndexesList = /*Collection<Integer>*/ [];
           for (let row /*int*/ = 0; row < detectionResult.getBarcodeRowCount(); row++) {
               for (let column /*int*/ = 0; column < detectionResult.getBarcodeColumnCount(); column++) {
                   let values = barcodeMatrix[row][column + 1].getValue();
@@ -20614,7 +20614,7 @@
        * @throws ChecksumException
        */
       static decode(image, hints, multiple) {
-          const results = new Array();
+          const results = [];
           const detectorResult = Detector$3.detectMultiple(image, hints, multiple);
           for (const points of detectorResult.getPoints()) {
               const decoderResult = PDF417ScanningDecoder.decode(detectorResult.getBits(), points[4], points[5], points[6], points[7], PDF417Reader.getMinCodewordWidth(points), PDF417Reader.getMaxCodewordWidth(points));
@@ -20745,7 +20745,7 @@
           const tryHarder = hints !== null && hints !== undefined && undefined !== hints.get(DecodeHintType$1.TRY_HARDER);
           /*@SuppressWarnings("unchecked")*/
           const formats = hints === null || hints === undefined ? null : hints.get(DecodeHintType$1.POSSIBLE_FORMATS);
-          const readers = new Array();
+          const readers = [];
           if (formats !== null && formats !== undefined) {
               const addOneDReader = formats.some(f => f === BarcodeFormat$1.UPC_A ||
                   f === BarcodeFormat$1.UPC_E ||
@@ -22240,7 +22240,7 @@
           let maxNumDataBytes = 0;
           let maxNumEcBytes = 0;
           // Since, we know the number of reedsolmon blocks, we can initialize the vector with the number.
-          const blocks = new Array(); // new Array<BlockPair>(numRSBlocks)
+          const blocks = []; // new Array<BlockPair>(numRSBlocks)
           for (let i = 0; i < numRSBlocks; ++i) {
               const numDataBytesInBlock = new Int32Array(1);
               const numEcBytesInBlock = new Int32Array(1);

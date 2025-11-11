@@ -1,0 +1,24 @@
+# Build outputs
+node_modules/
+dist/
+build/
+public/vite/
+public/vite-dev/
+public/vite-test/
+
+# Coverage
+coverage/
+
+# Storybook
+storybook-static/
+
+# Legacy code (don't lint jQuery/CoffeeScript)
+app/assets/javascripts/
+vendor/
+
+# Rails engines legacy code
+engines/**/app/assets/javascripts/
+
+# Test output
+test-results/
+playwright-report/
