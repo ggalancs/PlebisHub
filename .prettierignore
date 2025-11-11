@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+public/vite/
+public/vite-dev/
+public/vite-test/
+dist/
+build/
+
+# Coverage
+coverage/
+
+# Logs
+*.log
+
+# Temp files
+tmp/
+.cache/
+
+# Storybook
+storybook-static/
+
+# Rails
+*.sqlite3
+db/schema.rb

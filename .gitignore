@@ -42,3 +42,26 @@ config/secrets-local.yml
 /.ruby-version
 /.rbenv-gemsets
 app/assets/fonts/
+
+# Frontend (Node.js / Vite)
+node_modules/
+pnpm-lock.yaml
+public/vite/
+public/vite-dev/
+public/vite-test/
+.vite/
+dist/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Storybook
+storybook-static/
+
+# Playwright
+test-results/
+playwright-report/
+
+# TypeScript
+*.tsbuildinfo

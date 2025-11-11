@@ -1,0 +1,134 @@
+/**
+ * Main CSS entry point
+ * Includes Tailwind CSS and custom CSS variables from Design Tokens
+ */
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* CSS Custom Properties from Design Tokens */
+:root {
+  /* Primary Colors - Morado PlebisHub */
+  --color-primary-50: #faf5fb;
+  --color-primary-100: #f4ebf6;
+  --color-primary-200: #ead7ee;
+  --color-primary-300: #dab9e0;
+  --color-primary-400: #c491cd;
+  --color-primary-500: #a96bb6;
+  --color-primary-600: #8a4f98;
+  --color-primary-700: #612d62;
+  --color-primary-800: #5a2a59;
+  --color-primary-900: #4c244a;
+
+  /* Secondary Colors - Verde */
+  --color-secondary-50: #f0fdfa;
+  --color-secondary-100: #ccfbf1;
+  --color-secondary-200: #99f6e4;
+  --color-secondary-300: #5eead4;
+  --color-secondary-400: #2dd4bf;
+  --color-secondary-500: #14b8a6;
+  --color-secondary-600: #269283;
+  --color-secondary-700: #0f766e;
+  --color-secondary-800: #115e59;
+  --color-secondary-900: #134e4a;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Montserrat', sans-serif;
+
+  /* Font Sizes - Major Third Scale (1.250) */
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.563rem; /* 25px */
+  --font-size-3xl: 1.953rem; /* 31px */
+  --font-size-4xl: 2.441rem; /* 39px */
+  --font-size-5xl: 3.052rem; /* 49px */
+
+  /* Spacing - 8px base grid */
+  --spacing-0: 0;
+  --spacing-1: 0.25rem; /* 4px */
+  --spacing-2: 0.5rem; /* 8px */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-5: 1.25rem; /* 20px */
+  --spacing-6: 1.5rem; /* 24px */
+  --spacing-8: 2rem; /* 32px */
+  --spacing-10: 2.5rem; /* 40px */
+  --spacing-12: 3rem; /* 48px */
+  --spacing-16: 4rem; /* 64px */
+  --spacing-20: 5rem; /* 80px */
+  --spacing-24: 6rem; /* 96px */
+
+  /* Border Radius */
+  --radius-sm: 0.25rem; /* 4px */
+  --radius-md: 0.5rem; /* 8px */
+  --radius-lg: 0.75rem; /* 12px */
+  --radius-xl: 1rem; /* 16px */
+  --radius-2xl: 1.5rem; /* 24px */
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 2px 8px 0 rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 4px 12px 0 rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 8px 24px 0 rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 16px 48px 0 rgb(0 0 0 / 0.15);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base styles */
+@layer base {
+  body {
+    @apply font-sans text-base text-gray-900 antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading font-bold;
+  }
+
+  h1 {
+    @apply text-5xl;
+  }
+  h2 {
+    @apply text-4xl;
+  }
+  h3 {
+    @apply text-3xl;
+  }
+  h4 {
+    @apply text-2xl;
+  }
+  h5 {
+    @apply text-xl;
+  }
+  h6 {
+    @apply text-lg;
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2;
+  }
+
+  .btn-focus {
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+}
+
+/* Google Fonts - Inter & Montserrat */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap');
