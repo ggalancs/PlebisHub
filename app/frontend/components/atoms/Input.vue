@@ -159,6 +159,14 @@ defineExpose({
 
     <!-- Input wrapper (for password toggle) -->
     <div class="relative">
+      <!-- Prefix slot -->
+      <div
+        v-if="$slots.prefix"
+        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+      >
+        <slot name="prefix" />
+      </div>
+
       <!-- Input -->
       <input
         :id="inputId"
@@ -176,7 +184,11 @@ defineExpose({
         :step="step"
         :pattern="pattern"
         :maxlength="maxlength"
-        :class="inputClasses"
+        :class="[
+          inputClasses,
+          $slots.prefix ? 'pl-10' : '',
+          $slots.suffix && type !== 'password' ? 'pr-10' : '',
+        ]"
         :aria-invalid="!!error"
         :aria-describedby="
           error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined
@@ -186,6 +198,14 @@ defineExpose({
         @focus="handleFocus"
         @change="handleChange"
       />
+
+      <!-- Suffix slot (if not password type with toggle) -->
+      <div
+        v-if="$slots.suffix && !(type === 'password' && showPasswordToggle)"
+        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3"
+      >
+        <slot name="suffix" />
+      </div>
 
       <!-- Password toggle button -->
       <button
