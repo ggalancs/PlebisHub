@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import DOMPurify from 'dompurify'
 import Button from '@/components/atoms/Button.vue'
 import Icon from '@/components/atoms/Icon.vue'
 import Tabs from '@/components/molecules/Tabs.vue'
@@ -203,12 +204,30 @@ const renderMarkdown = (text: string): string => {
   return html
 }
 
-// Preview HTML
+// Preview HTML with sanitization
 const previewHtml = computed(() => {
+  let rawHtml = ''
+
   if (props.mode === 'markdown') {
-    return renderMarkdown(content.value)
+    rawHtml = renderMarkdown(content.value)
+  } else {
+    rawHtml = content.value
   }
-  return content.value
+
+  // Sanitize HTML to prevent XSS attacks
+  return DOMPurify.sanitize(rawHtml, {
+    ALLOWED_TAGS: [
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'p', 'br', 'strong', 'em', 'u', 's',
+      'a', 'img',
+      'ul', 'ol', 'li',
+      'blockquote', 'code', 'pre',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'div', 'span'
+    ],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel'],
+    ALLOW_DATA_ATTR: false,
+  })
 })
 
 // View tabs

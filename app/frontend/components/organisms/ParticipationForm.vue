@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import Card from '@/components/molecules/Card.vue'
 import Button from '@/components/atoms/Button.vue'
 import Input from '@/components/atoms/Input.vue'
@@ -68,6 +68,9 @@ const currentTag = ref('')
 
 // Errors
 const errors = ref<Record<string, string>>({})
+
+// Keep track of object URL for cleanup
+const previousObjectUrl = ref<string | null>(null)
 
 // Status options
 const statusOptions = [
@@ -207,13 +210,26 @@ const handleRemoveTag = (index: number) => {
 
 const handleImageUpload = (files: File[]) => {
   if (files.length > 0) {
+    // Revoke previous URL if exists to prevent memory leak
+    if (previousObjectUrl.value) {
+      URL.revokeObjectURL(previousObjectUrl.value)
+    }
+
     formData.value.imageFile = files[0]
     // Create preview URL
-    formData.value.imageUrl = URL.createObjectURL(files[0])
+    const newUrl = URL.createObjectURL(files[0])
+    formData.value.imageUrl = newUrl
+    previousObjectUrl.value = newUrl
   }
 }
 
 const handleRemoveImage = () => {
+  // Revoke object URL to prevent memory leak
+  if (previousObjectUrl.value) {
+    URL.revokeObjectURL(previousObjectUrl.value)
+    previousObjectUrl.value = null
+  }
+
   formData.value.imageFile = undefined
   formData.value.imageUrl = ''
 }
@@ -224,6 +240,13 @@ const handleTagKeydown = (event: KeyboardEvent) => {
     handleAddTag()
   }
 }
+
+// Cleanup on unmount to prevent memory leaks
+onUnmounted(() => {
+  if (previousObjectUrl.value) {
+    URL.revokeObjectURL(previousObjectUrl.value)
+  }
+})
 </script>
 
 <template>

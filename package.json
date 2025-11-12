@@ -26,8 +26,10 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@types/dompurify": "^3.0.5",
     "@vueuse/core": "^10.9.0",
     "axios": "^1.6.7",
+    "dompurify": "^3.3.0",
     "lucide-vue-next": "^0.344.0",
     "pinia": "^2.1.7",
     "style-dictionary-utils": "^4.1.1",

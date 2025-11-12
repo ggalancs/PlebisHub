@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import Card from '@/components/molecules/Card.vue'
 import Button from '@/components/atoms/Button.vue'
 import Input from '@/components/atoms/Input.vue'
@@ -48,7 +48,9 @@ const inputRefs = ref<HTMLInputElement[]>([])
 // Countdown timer
 const countdown = ref(props.resendTimeout)
 const isCountdownActive = ref(false)
-let intervalId: number | undefined
+
+// Validation debounce
+const isValidating = ref(false)
 
 // Error message
 const errorMessage = ref('')
@@ -77,26 +79,33 @@ const canResend = computed(() => {
   return !isCountdownActive.value && !props.loading
 })
 
-// Start countdown
+// Countdown management with automatic cleanup
+watchEffect((onCleanup) => {
+  if (isCountdownActive.value && countdown.value > 0) {
+    const intervalId = window.setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0) {
+        isCountdownActive.value = false
+      }
+    }, 1000)
+
+    // Automatic cleanup when component unmounts or countdown stops
+    onCleanup(() => {
+      clearInterval(intervalId)
+    })
+  }
+})
+
+// Start countdown function
 const startCountdown = () => {
   countdown.value = props.resendTimeout
   isCountdownActive.value = true
-
-  intervalId = window.setInterval(() => {
-    countdown.value--
-    if (countdown.value <= 0) {
-      stopCountdown()
-    }
-  }, 1000)
 }
 
-// Stop countdown
+// Stop countdown function
 const stopCountdown = () => {
   isCountdownActive.value = false
-  if (intervalId) {
-    clearInterval(intervalId)
-    intervalId = undefined
-  }
+  countdown.value = 0
 }
 
 // Format countdown
@@ -170,8 +179,15 @@ const handlePaste = (event: ClipboardEvent) => {
 
 // Actions
 const handleValidate = () => {
-  if (isComplete.value && !props.loading) {
+  // Prevent multiple concurrent validations (race condition)
+  if (isComplete.value && !props.loading && !isValidating.value) {
+    isValidating.value = true
     emit('validate', fullCode.value)
+
+    // Reset validating flag after a delay to prevent spam
+    setTimeout(() => {
+      isValidating.value = false
+    }, 1000)
   }
 }
 
@@ -201,9 +217,7 @@ onMounted(() => {
   startCountdown()
 })
 
-onUnmounted(() => {
-  stopCountdown()
-})
+// Note: onUnmounted cleanup is now handled automatically by watchEffect
 
 // State indicators
 const stateConfig = {
