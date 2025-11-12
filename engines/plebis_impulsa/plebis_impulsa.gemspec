@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   end
 
   # REQUIRED VERSIONS (from modularization guide)
-  spec.required_ruby_version = "~> 3.3.10"
+  spec.required_ruby_version = ">= 3.3.6"
 
   spec.add_dependency "rails", "~> 7.2.3"
 

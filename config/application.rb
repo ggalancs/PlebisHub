@@ -37,5 +37,16 @@ module PlebisHub
     # Some legacy engines attempt to modify autoload_paths during initialization
     # This prevents FrozenError by keeping paths mutable
     config.add_autoload_paths_to_load_path = true
+
+    # ========================================
+    # SECURITY & PERFORMANCE MIDDLEWARES
+    # ========================================
+
+    # Rack::Attack - Rate limiting and throttling
+    # Configuration in config/initializers/rack_attack.rb
+    config.middleware.use Rack::Attack
+
+    # Note: SecureHeaders configuration is in config/initializers/secure_headers.rb
+    # It's automatically applied when the gem is loaded
   end
 end

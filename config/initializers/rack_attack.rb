@@ -14,12 +14,30 @@
 class Rack::Attack
   ### Configure Cache ###
 
-  # Use Redis for production, memory store for development
-  # In production, configure Redis:
-  # Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(url: ENV['REDIS_URL'])
+  # Configure Redis connection with fallback to memory store
+  redis_url = ENV.fetch('REDIS_URL', 'redis://localhost:6379/0')
 
-  # For development/test
-  if Rails.env.development? || Rails.env.test?
+  begin
+    if Rails.env.production?
+      # Production: Use Redis for distributed rate limiting
+      Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(
+        url: redis_url,
+        reconnect_attempts: 3,
+        error_handler: lambda { |method:, returning:, exception:|
+          Rails.logger.error("[Rack::Attack] Redis error: #{exception.message}")
+          Rails.logger.error("[Rack::Attack] Falling back to memory store")
+        }
+      )
+      Rails.logger.info("[Rack::Attack] Configured with Redis cache store")
+    else
+      # Development/Test: Use memory store
+      Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
+      Rails.logger.info("[Rack::Attack] Configured with memory store (development)")
+    end
+  rescue => e
+    # Fallback to memory store if Redis connection fails
+    Rails.logger.warn("[Rack::Attack] Failed to connect to Redis: #{e.message}")
+    Rails.logger.warn("[Rack::Attack] Falling back to memory store")
     Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
   end
 
