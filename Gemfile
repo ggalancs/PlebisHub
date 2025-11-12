@@ -77,6 +77,20 @@ gem "espeak-ruby", require: false
 gem 'grape'
 gem 'rqrcode'
 
+# Event-Driven Architecture (PlebisHub 2.0)
+gem 'dry-events', '~> 1.0' # Event bus for domain events
+gem 'dry-struct', '~> 1.6' # Typed structs for events
+gem 'dry-types', '~> 1.7' # Type system
+
+# GraphQL API (PlebisHub 2.0)
+gem 'graphql', '~> 2.4' # GraphQL API
+gem 'graphql-batch', '~> 0.6' # DataLoader for N+1 queries
+gem 'search_object_graphql', '~> 1.0' # Search/filtering for GraphQL
+
+# Permissions System (PlebisHub 2.0)
+gem 'pundit', '~> 2.3' # Authorization policies
+gem 'rolify', '~> 6.0' # Role management
+
 group :development, :test do
   gem 'listen' # Required by Rails 6.0 for file watching
   gem 'puma'
