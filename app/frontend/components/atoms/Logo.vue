@@ -1,240 +1,242 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+/**
+ * Logo - Modular PlebisHub logo component
+ * Refactored for better performance and maintainability
+ */
 
-interface Props {
-  variant?: 'horizontal' | 'vertical' | 'mark' | 'type'
-  theme?: 'color' | 'monochrome' | 'inverted'
-  size?: 'sm' | 'md' | 'lg' | 'xl'
-  customColors?: {
-    primary?: string
-    secondary?: string
-  }
-}
+import { computed, onMounted } from 'vue'
+import type { LogoProps, LogoDimensions, HexColor } from '@/types/brand'
+import { generateComponentId } from '@/utils/id'
+import LogoMark from './LogoMark.vue'
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<LogoProps>(), {
   variant: 'horizontal',
   theme: 'color',
   size: 'md',
 })
 
-// Size mappings
-const sizeMap = {
+// Generate stable IDs for gradients (SSR-safe)
+const componentId = generateComponentId('logo')
+const primaryGradientId = computed(() => `${componentId}-primary`)
+const secondaryGradientId = computed(() => `${componentId}-secondary`)
+
+// Size mappings - centralized configuration
+const SIZE_CONFIG: Record<Required<LogoProps>['size'], LogoDimensions> = {
   sm: { width: 120, height: 32 },
   md: { width: 180, height: 48 },
   lg: { width: 260, height: 64 },
   xl: { width: 360, height: 88 },
 }
 
-const dimensions = computed(() => {
-  const base = sizeMap[props.size]
+// Theme color mappings - centralized configuration
+const THEME_COLORS = {
+  color: {
+    primary: '#612d62' as HexColor,
+    primaryLight: '#8a4f98' as HexColor,
+    secondary: '#269283' as HexColor,
+    secondaryLight: '#14b8a6' as HexColor,
+  },
+  monochrome: {
+    primary: '#1a1a1a' as HexColor,
+    primaryLight: '#1a1a1a' as HexColor,
+    secondary: '#1a1a1a' as HexColor,
+    secondaryLight: '#1a1a1a' as HexColor,
+  },
+  inverted: {
+    primary: '#c491cd' as HexColor,
+    primaryLight: '#a96bb6' as HexColor,
+    secondary: '#5eead4' as HexColor,
+    secondaryLight: '#2dd4bf' as HexColor,
+  },
+} as const
 
-  // Adjust dimensions based on variant
-  if (props.variant === 'vertical') {
-    return { width: base.height * 2.5, height: base.height * 2.5 }
-  }
-  if (props.variant === 'mark') {
-    return { width: base.height, height: base.height }
-  }
-  if (props.variant === 'type') {
-    return { width: base.width * 0.7, height: base.height * 0.8 }
-  }
+// Computed: dimensions based on variant and size
+const dimensions = computed<LogoDimensions>(() => {
+  const base = SIZE_CONFIG[props.size]
 
-  return base
+  switch (props.variant) {
+    case 'vertical':
+      return { width: base.height * 2.5, height: base.height * 2.5 }
+    case 'mark':
+      return { width: base.height, height: base.height }
+    case 'type':
+      return { width: base.width * 0.7, height: base.height * 0.8 }
+    default: // 'horizontal'
+      return base
+  }
 })
 
-// Color scheme based on theme
+// Computed: ViewBox for proper SVG scaling
+const viewBox = computed<string>(() => {
+  const { width, height } = dimensions.value
+  return `0 0 ${width} ${height}`
+})
+
+// Computed: Color scheme based on theme and custom colors
 const colors = computed(() => {
+  // Custom colors take precedence
   if (props.customColors) {
+    const themeBase = THEME_COLORS[props.theme]
     return {
-      primary: props.customColors.primary || '#612d62',
-      primaryLight: props.customColors.primary || '#8a4f98',
-      secondary: props.customColors.secondary || '#269283',
-      secondaryLight: props.customColors.secondary || '#14b8a6',
+      primary: props.customColors.primary ?? themeBase.primary,
+      primaryLight: props.customColors.primaryLight ?? themeBase.primaryLight,
+      secondary: props.customColors.secondary ?? themeBase.secondary,
+      secondaryLight: props.customColors.secondaryLight ?? themeBase.secondaryLight,
     }
   }
 
-  if (props.theme === 'monochrome') {
-    return {
-      primary: '#1a1a1a',
-      primaryLight: '#1a1a1a',
-      secondary: '#1a1a1a',
-      secondaryLight: '#1a1a1a',
-    }
-  }
-
-  if (props.theme === 'inverted') {
-    return {
-      primary: '#c491cd',
-      primaryLight: '#a96bb6',
-      secondary: '#5eead4',
-      secondaryLight: '#2dd4bf',
-    }
-  }
-
-  // Default color theme
-  return {
-    primary: '#612d62',
-    primaryLight: '#8a4f98',
-    secondary: '#269283',
-    secondaryLight: '#14b8a6',
-  }
+  return THEME_COLORS[props.theme]
 })
 
-// Generate gradient IDs (unique per instance)
-const gradientId = computed(() => `logo-gradient-${Math.random().toString(36).substr(2, 9)}`)
+// Computed: Font size for text variants
+const textFontSize = computed<number>(() => {
+  const baseSize = SIZE_CONFIG[props.size].height * 0.75
+  return Math.max(20, baseSize) // Minimum 20px for readability
+})
+
+// Load web fonts on mount (non-blocking)
+onMounted(() => {
+  if (typeof document !== 'undefined' && 'fonts' in document) {
+    ;(document as any).fonts.load('700 1em Montserrat').catch(() => {
+      // Silently fail if font loading fails
+    })
+  }
+})
 </script>
 
 <template>
   <svg
     :width="dimensions.width"
     :height="dimensions.height"
-    :viewBox="`0 0 ${dimensions.width} ${dimensions.height}`"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
+    :viewBox="viewBox"
     class="logo"
     :class="[`logo--${variant}`, `logo--${theme}`, `logo--${size}`]"
     role="img"
     aria-label="PlebisHub Logo"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
   >
     <defs>
-      <linearGradient :id="`${gradientId}-primary`" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" :style="`stop-color:${colors.primary};stop-opacity:1`" />
-        <stop offset="100%" :style="`stop-color:${colors.primaryLight};stop-opacity:1`" />
+      <!-- Primary gradient -->
+      <linearGradient :id="primaryGradientId" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" :stop-color="colors.primary" stop-opacity="1" />
+        <stop offset="100%" :stop-color="colors.primaryLight" stop-opacity="1" />
       </linearGradient>
-      <linearGradient :id="`${gradientId}-secondary`" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" :style="`stop-color:${colors.secondary};stop-opacity:1`" />
-        <stop offset="100%" :style="`stop-color:${colors.secondaryLight};stop-opacity:1`" />
+
+      <!-- Secondary gradient -->
+      <linearGradient :id="secondaryGradientId" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" :stop-color="colors.secondary" stop-opacity="1" />
+        <stop offset="100%" :stop-color="colors.secondaryLight" stop-opacity="1" />
       </linearGradient>
-      <style>
-        .logo-text {
-          font-family: 'Montserrat', sans-serif;
-          font-weight: 700;
-        }
-      </style>
     </defs>
 
     <!-- Horizontal Variant -->
-    <g v-if="variant === 'horizontal'">
-      <!-- Logo Mark -->
-      <g class="logo-mark">
-        <circle cx="32" cy="32" r="12" :fill="`url(#${gradientId}-primary)`"/>
+    <template v-if="variant === 'horizontal'">
+      <LogoMark
+        :primary-gradient-id="primaryGradientId"
+        :secondary-gradient-id="secondaryGradientId"
+        :secondary-color="colors.secondary"
+      />
 
-        <!-- Orbital elements -->
-        <circle cx="32" cy="8" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M32 12 L32 20" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="49" cy="15" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M47 17 L40 26" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="56" cy="32" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M52 32 L44 32" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="49" cy="49" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M47 47 L40 38" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="32" cy="56" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M32 52 L32 44" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="15" cy="49" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M17 47 L24 38" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="8" cy="32" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M12 32 L20 32" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="15" cy="15" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M17 17 L24 26" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-      </g>
-
-      <!-- Logo Type -->
       <g class="logo-type" transform="translate(80, 0)">
-        <text x="0" y="40" class="logo-text" font-size="36" :fill="colors.primary">
+        <text
+          x="0"
+          y="40"
+          :font-size="textFontSize"
+          :fill="colors.primary"
+          font-family="Montserrat, sans-serif"
+          font-weight="700"
+        >
           Plebis
         </text>
-        <text x="110" y="40" class="logo-text" font-size="36" :fill="colors.secondary">
+        <text
+          :x="textFontSize * 3"
+          y="40"
+          :font-size="textFontSize"
+          :fill="colors.secondary"
+          font-family="Montserrat, sans-serif"
+          font-weight="700"
+        >
           Hub
         </text>
       </g>
-    </g>
-
-    <!-- Mark Only Variant -->
-    <g v-else-if="variant === 'mark'">
-      <circle cx="32" cy="32" r="12" :fill="`url(#${gradientId}-primary)`"/>
-
-      <circle cx="32" cy="8" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-      <path d="M32 12 L32 20" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-      <circle cx="49" cy="15" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-      <path d="M47 17 L40 26" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-      <circle cx="56" cy="32" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-      <path d="M52 32 L44 32" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-      <circle cx="49" cy="49" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-      <path d="M47 47 L40 38" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-      <circle cx="32" cy="56" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-      <path d="M32 52 L32 44" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-      <circle cx="15" cy="49" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-      <path d="M17 47 L24 38" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-      <circle cx="8" cy="32" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-      <path d="M12 32 L20 32" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-      <circle cx="15" cy="15" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-      <path d="M17 17 L24 26" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-    </g>
-
-    <!-- Type Only Variant -->
-    <g v-else-if="variant === 'type'">
-      <text x="0" y="34" class="logo-text" font-size="32" :fill="colors.primary">
-        Plebis
-      </text>
-      <text x="98" y="34" class="logo-text" font-size="32" :fill="colors.secondary">
-        Hub
-      </text>
-      <line x1="0" y1="42" x2="180" y2="42" :stroke="colors.primary" stroke-width="3" opacity="0.2"/>
-    </g>
+    </template>
 
     <!-- Vertical Variant -->
-    <g v-else-if="variant === 'vertical'">
-      <!-- Logo Mark centered at top -->
+    <template v-else-if="variant === 'vertical'">
       <g transform="translate(58, 8)">
-        <circle cx="32" cy="32" r="12" :fill="`url(#${gradientId}-primary)`"/>
-
-        <circle cx="32" cy="8" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M32 12 L32 20" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="49" cy="15" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M47 17 L40 26" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="56" cy="32" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M52 32 L44 32" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="49" cy="49" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M47 47 L40 38" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="32" cy="56" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M32 52 L32 44" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="15" cy="49" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M17 47 L24 38" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="8" cy="32" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M12 32 L20 32" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
-
-        <circle cx="15" cy="15" r="4" :fill="`url(#${gradientId}-secondary)`"/>
-        <path d="M17 17 L24 26" :stroke="colors.secondary" stroke-width="2" stroke-linecap="round"/>
+        <LogoMark
+          :primary-gradient-id="primaryGradientId"
+          :secondary-gradient-id="secondaryGradientId"
+          :secondary-color="colors.secondary"
+        />
       </g>
 
-      <!-- Logo Type centered below mark -->
-      <text x="90" y="105" class="logo-text" font-size="32" :fill="colors.primary" text-anchor="middle">
+      <text
+        x="90"
+        y="105"
+        :font-size="textFontSize"
+        :fill="colors.primary"
+        font-family="Montserrat, sans-serif"
+        font-weight="700"
+        text-anchor="middle"
+      >
         Plebis
       </text>
-      <text x="90" y="132" class="logo-text" font-size="32" :fill="colors.secondary" text-anchor="middle">
+      <text
+        x="90"
+        y="132"
+        :font-size="textFontSize"
+        :fill="colors.secondary"
+        font-family="Montserrat, sans-serif"
+        font-weight="700"
+        text-anchor="middle"
+      >
         Hub
       </text>
-    </g>
+    </template>
+
+    <!-- Mark Only Variant -->
+    <template v-else-if="variant === 'mark'">
+      <LogoMark
+        :primary-gradient-id="primaryGradientId"
+        :secondary-gradient-id="secondaryGradientId"
+        :secondary-color="colors.secondary"
+      />
+    </template>
+
+    <!-- Type Only Variant -->
+    <template v-else-if="variant === 'type'">
+      <text
+        x="0"
+        y="34"
+        :font-size="textFontSize * 0.8"
+        :fill="colors.primary"
+        font-family="Montserrat, sans-serif"
+        font-weight="700"
+      >
+        Plebis
+      </text>
+      <text
+        :x="textFontSize * 2.4"
+        y="34"
+        :font-size="textFontSize * 0.8"
+        :fill="colors.secondary"
+        font-family="Montserrat, sans-serif"
+        font-weight="700"
+      >
+        Hub
+      </text>
+      <line
+        x1="0"
+        :y1="textFontSize + 8"
+        :x2="dimensions.width"
+        :y2="textFontSize + 8"
+        :stroke="colors.primary"
+        stroke-width="3"
+        opacity="0.2"
+      />
+    </template>
   </svg>
 </template>
 
@@ -249,7 +251,7 @@ const gradientId = computed(() => `logo-gradient-${Math.random().toString(36).su
   opacity: 0.9;
 }
 
-/* Size variants */
+/* Size constraints */
 .logo--sm {
   max-width: 120px;
 }
@@ -267,8 +269,13 @@ const gradientId = computed(() => `logo-gradient-${Math.random().toString(36).su
 }
 
 /* Ensure text renders properly */
-.logo-text {
+.logo text {
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* Optimize SVG rendering */
+.logo {
+  shape-rendering: geometricPrecision;
 }
 </style>

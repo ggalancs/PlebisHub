@@ -1,20 +1,27 @@
-import { ref, computed, watch } from 'vue'
+/**
+ * Brand management composable
+ * Refactored for better performance, SSR safety, and maintainability
+ */
 
-export interface BrandColors {
-  primary: string
-  primaryLight: string
-  primaryDark: string
-  secondary: string
-  secondaryLight: string
-  secondaryDark: string
-}
+import { ref, computed, watch, readonly } from 'vue'
+import type {
+  BrandColors,
+  BrandTheme,
+  PartialBrandColors,
+  BrandStorageData,
+  BrandExportData,
+  ContrastValidation,
+  HexColor,
+} from '@/types/brand'
+import { BrandError, BrandErrorType } from '@/types/brand'
+import { validateContrast, generateColorPalette, isValidHexColor } from '@/utils/color'
+import { safeLocalStorage, getDocumentElement, isBrowser } from '@/utils/ssr'
+import { debounce } from '@/utils/performance'
 
-export interface BrandTheme {
-  id: string
-  name: string
-  colors: BrandColors
-  description?: string
-}
+// Constants
+const STORAGE_KEY = 'plebishub-brand'
+const STORAGE_VERSION = '1.0.0'
+const APPLY_COLORS_DEBOUNCE = 150 // ms
 
 // Default PlebisHub brand theme
 const defaultTheme: BrandTheme = {
@@ -32,7 +39,7 @@ const defaultTheme: BrandTheme = {
 }
 
 // Pre-defined brand themes
-const predefinedThemes: BrandTheme[] = [
+const predefinedThemes: readonly BrandTheme[] = [
   defaultTheme,
   {
     id: 'ocean',
@@ -86,24 +93,29 @@ const predefinedThemes: BrandTheme[] = [
       secondaryDark: '#333333',
     },
   },
-]
+] as const
 
-// Reactive state
-const currentTheme = ref<BrandTheme>(defaultTheme)
-const customColors = ref<Partial<BrandColors> | null>(null)
-const isLoading = ref(false)
+// Singleton state - ensures single source of truth
+let instance: ReturnType<typeof createBrandComposable> | null = null
 
 /**
- * Composable for managing brand customization
+ * Internal composable factory
+ * Creates the actual composable logic
  */
-export function useBrand() {
+function createBrandComposable() {
+  // Reactive state
+  const currentTheme = ref<BrandTheme>(defaultTheme)
+  const customColors = ref<PartialBrandColors | null>(null)
+  const isLoading = ref(false)
+  const error = ref<BrandError | null>(null)
+
   // Computed: current brand colors (custom or theme)
   const brandColors = computed<BrandColors>(() => {
     if (customColors.value) {
       return {
         ...currentTheme.value.colors,
         ...customColors.value,
-      }
+      } as BrandColors
     }
     return currentTheme.value.colors
   })
@@ -112,192 +124,370 @@ export function useBrand() {
   const isCustomTheme = computed(() => customColors.value !== null)
 
   /**
+   * Apply brand colors to CSS custom properties
+   * Debounced for performance
+   */
+  const applyBrandColorsToDOM = debounce((colors: BrandColors) => {
+    const root = getDocumentElement()
+    if (!root) return
+
+    try {
+      // Apply CSS variables
+      root.style.setProperty('--brand-primary', colors.primary)
+      root.style.setProperty('--brand-primary-light', colors.primaryLight)
+      root.style.setProperty('--brand-primary-dark', colors.primaryDark)
+      root.style.setProperty('--brand-secondary', colors.secondary)
+      root.style.setProperty('--brand-secondary-light', colors.secondaryLight)
+      root.style.setProperty('--brand-secondary-dark', colors.secondaryDark)
+
+      // Also update Tailwind custom properties if they exist
+      root.style.setProperty('--color-primary-700', colors.primary)
+      root.style.setProperty('--color-primary-600', colors.primaryLight)
+      root.style.setProperty('--color-primary-800', colors.primaryDark)
+      root.style.setProperty('--color-secondary-600', colors.secondary)
+      root.style.setProperty('--color-secondary-500', colors.secondaryLight)
+      root.style.setProperty('--color-secondary-700', colors.secondaryDark)
+    } catch (err) {
+      error.value = new BrandError(
+        BrandErrorType.VALIDATION_ERROR,
+        'Failed to apply brand colors to DOM',
+        err
+      )
+    }
+  }, APPLY_COLORS_DEBOUNCE)
+
+  /**
+   * Validate and sanitize color object
+   */
+  function validateColors(colors: PartialBrandColors): boolean {
+    const colorKeys = Object.keys(colors) as Array<keyof BrandColors>
+
+    for (const key of colorKeys) {
+      const color = colors[key]
+      if (color && !isValidHexColor(color)) {
+        error.value = new BrandError(
+          BrandErrorType.INVALID_COLOR,
+          `Invalid hex color for ${key}: ${color}`
+        )
+        return false
+      }
+    }
+
+    return true
+  }
+
+  /**
    * Set a predefined theme
    */
-  const setTheme = (themeId: string) => {
-    const theme = predefinedThemes.find((t) => t.id === themeId)
-    if (theme) {
+  function setTheme(themeId: string): boolean {
+    try {
+      const theme = predefinedThemes.find((t) => t.id === themeId)
+      if (!theme) {
+        error.value = new BrandError(
+          BrandErrorType.VALIDATION_ERROR,
+          `Theme not found: ${themeId}`
+        )
+        return false
+      }
+
       currentTheme.value = theme
       customColors.value = null
-      applyBrandColors(theme.colors)
+      applyBrandColorsToDOM(theme.colors)
       saveBrandToStorage(theme)
+      error.value = null
+
+      return true
+    } catch (err) {
+      error.value = new BrandError(
+        BrandErrorType.VALIDATION_ERROR,
+        'Failed to set theme',
+        err
+      )
+      return false
     }
   }
 
   /**
    * Set custom colors
    */
-  const setCustomColors = (colors: Partial<BrandColors>) => {
-    customColors.value = {
-      ...customColors.value,
-      ...colors,
+  function setCustomColors(colors: PartialBrandColors): boolean {
+    if (!validateColors(colors)) {
+      return false
     }
-    applyBrandColors(brandColors.value)
-    saveBrandToStorage({ ...currentTheme.value, colors: brandColors.value })
+
+    try {
+      customColors.value = {
+        ...customColors.value,
+        ...colors,
+      }
+
+      applyBrandColorsToDOM(brandColors.value)
+      saveBrandToStorage({ ...currentTheme.value, colors: brandColors.value })
+      error.value = null
+
+      return true
+    } catch (err) {
+      error.value = new BrandError(
+        BrandErrorType.VALIDATION_ERROR,
+        'Failed to set custom colors',
+        err
+      )
+      return false
+    }
+  }
+
+  /**
+   * Generate color variants from a base color
+   */
+  function setColorWithVariants(
+    type: 'primary' | 'secondary',
+    baseColor: HexColor
+  ): boolean {
+    if (!isValidHexColor(baseColor)) {
+      error.value = new BrandError(
+        BrandErrorType.INVALID_COLOR,
+        `Invalid hex color: ${baseColor}`
+      )
+      return false
+    }
+
+    try {
+      const palette = generateColorPalette(baseColor)
+
+      const colorUpdates: PartialBrandColors = {
+        [type]: palette.primary,
+        [`${type}Light`]: palette.primaryLight,
+        [`${type}Dark`]: palette.primaryDark,
+      } as PartialBrandColors
+
+      return setCustomColors(colorUpdates)
+    } catch (err) {
+      error.value = new BrandError(
+        BrandErrorType.VALIDATION_ERROR,
+        'Failed to generate color variants',
+        err
+      )
+      return false
+    }
   }
 
   /**
    * Reset to default theme
    */
-  const resetToDefault = () => {
+  function resetToDefault(): void {
     currentTheme.value = defaultTheme
     customColors.value = null
-    applyBrandColors(defaultTheme.colors)
-    localStorage.removeItem('plebishub-brand')
-  }
-
-  /**
-   * Apply brand colors to CSS custom properties
-   */
-  const applyBrandColors = (colors: BrandColors) => {
-    const root = document.documentElement
-
-    // Apply CSS variables
-    root.style.setProperty('--brand-primary', colors.primary)
-    root.style.setProperty('--brand-primary-light', colors.primaryLight)
-    root.style.setProperty('--brand-primary-dark', colors.primaryDark)
-    root.style.setProperty('--brand-secondary', colors.secondary)
-    root.style.setProperty('--brand-secondary-light', colors.secondaryLight)
-    root.style.setProperty('--brand-secondary-dark', colors.secondaryDark)
-
-    // Also update Tailwind custom properties if they exist
-    root.style.setProperty('--color-primary-700', colors.primary)
-    root.style.setProperty('--color-primary-600', colors.primaryLight)
-    root.style.setProperty('--color-primary-800', colors.primaryDark)
-    root.style.setProperty('--color-secondary-600', colors.secondary)
-    root.style.setProperty('--color-secondary-500', colors.secondaryLight)
-    root.style.setProperty('--color-secondary-700', colors.secondaryDark)
+    applyBrandColorsToDOM(defaultTheme.colors)
+    safeLocalStorage.removeItem(STORAGE_KEY)
+    error.value = null
   }
 
   /**
    * Save brand to localStorage
    */
-  const saveBrandToStorage = (theme: BrandTheme) => {
+  function saveBrandToStorage(theme: BrandTheme): boolean {
     try {
-      localStorage.setItem('plebishub-brand', JSON.stringify({
+      const data: BrandStorageData = {
         themeId: theme.id,
-        customColors: customColors.value,
-      }))
-    } catch (error) {
-      console.error('Failed to save brand to localStorage:', error)
+        customColors: customColors.value ?? undefined,
+        timestamp: Date.now(),
+      }
+
+      const success = safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+
+      if (!success) {
+        error.value = new BrandError(
+          BrandErrorType.STORAGE_ERROR,
+          'Failed to save brand to localStorage'
+        )
+      }
+
+      return success
+    } catch (err) {
+      error.value = new BrandError(
+        BrandErrorType.STORAGE_ERROR,
+        'Failed to save brand to localStorage',
+        err
+      )
+      return false
     }
   }
 
   /**
    * Load brand from localStorage
    */
-  const loadBrandFromStorage = () => {
+  function loadBrandFromStorage(): boolean {
+    if (!isBrowser) return false
+
     try {
-      const stored = localStorage.getItem('plebishub-brand')
-      if (stored) {
-        isLoading.value = true
-        const data = JSON.parse(stored)
+      isLoading.value = true
+      const stored = safeLocalStorage.getItem(STORAGE_KEY)
 
-        if (data.themeId) {
-          const theme = predefinedThemes.find((t) => t.id === data.themeId)
-          if (theme) {
-            currentTheme.value = theme
-          }
-        }
-
-        if (data.customColors) {
-          customColors.value = data.customColors
-        }
-
-        applyBrandColors(brandColors.value)
+      if (!stored) {
         isLoading.value = false
+        return false
       }
-    } catch (error) {
-      console.error('Failed to load brand from localStorage:', error)
+
+      const data: BrandStorageData = JSON.parse(stored)
+
+      if (data.themeId) {
+        const theme = predefinedThemes.find((t) => t.id === data.themeId)
+        if (theme) {
+          currentTheme.value = theme
+        }
+      }
+
+      if (data.customColors && validateColors(data.customColors)) {
+        customColors.value = data.customColors
+      }
+
+      applyBrandColorsToDOM(brandColors.value)
+      error.value = null
       isLoading.value = false
+
+      return true
+    } catch (err) {
+      error.value = new BrandError(
+        BrandErrorType.STORAGE_ERROR,
+        'Failed to load brand from localStorage',
+        err
+      )
+      isLoading.value = false
+      return false
     }
   }
 
   /**
    * Export brand configuration as JSON
    */
-  const exportBrandConfig = (): string => {
-    return JSON.stringify({
-      theme: currentTheme.value,
-      customColors: customColors.value,
-    }, null, 2)
+  function exportBrandConfig(): string | null {
+    try {
+      const data: BrandExportData = {
+        theme: currentTheme.value,
+        customColors: customColors.value,
+        version: STORAGE_VERSION,
+        exportedAt: new Date().toISOString(),
+      }
+
+      return JSON.stringify(data, null, 2)
+    } catch (err) {
+      error.value = new BrandError(
+        BrandErrorType.VALIDATION_ERROR,
+        'Failed to export brand config',
+        err
+      )
+      return null
+    }
   }
 
   /**
    * Import brand configuration from JSON
    */
-  const importBrandConfig = (json: string): boolean => {
+  function importBrandConfig(json: string): boolean {
     try {
-      const data = JSON.parse(json)
+      const data: BrandExportData = JSON.parse(json)
 
-      if (data.theme) {
-        currentTheme.value = data.theme
+      // Validate data structure
+      if (!data.theme || !data.theme.colors) {
+        throw new Error('Invalid brand configuration format')
       }
 
-      if (data.customColors) {
-        customColors.value = data.customColors
+      // Validate colors
+      if (data.customColors && !validateColors(data.customColors)) {
+        return false
       }
 
-      applyBrandColors(brandColors.value)
+      currentTheme.value = data.theme
+      customColors.value = data.customColors
+
+      applyBrandColorsToDOM(brandColors.value)
       saveBrandToStorage(currentTheme.value)
+      error.value = null
 
       return true
-    } catch (error) {
-      console.error('Failed to import brand config:', error)
+    } catch (err) {
+      error.value = new BrandError(
+        BrandErrorType.IMPORT_ERROR,
+        'Failed to import brand config',
+        err
+      )
       return false
     }
   }
 
   /**
-   * Validate color contrast for accessibility (WCAG AA)
-   * Returns true if contrast ratio is >= 4.5:1
+   * Validate color contrast (wrapper for utility function)
    */
-  const validateColorContrast = (foreground: string, background: string): boolean => {
-    const getLuminance = (hex: string): number => {
-      const rgb = parseInt(hex.slice(1), 16)
-      const r = (rgb >> 16) & 0xff
-      const g = (rgb >> 8) & 0xff
-      const b = (rgb >> 0) & 0xff
-
-      const rsRGB = r / 255
-      const gsRGB = g / 255
-      const bsRGB = b / 255
-
-      const rLinear = rsRGB <= 0.03928 ? rsRGB / 12.92 : Math.pow((rsRGB + 0.055) / 1.055, 2.4)
-      const gLinear = gsRGB <= 0.03928 ? gsRGB / 12.92 : Math.pow((gsRGB + 0.055) / 1.055, 2.4)
-      const bLinear = bsRGB <= 0.03928 ? bsRGB / 12.92 : Math.pow((bsRGB + 0.055) / 1.055, 2.4)
-
-      return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear
+  function validateColorContrast(
+    foreground: HexColor,
+    background: HexColor
+  ): ContrastValidation | null {
+    try {
+      return validateContrast(foreground, background)
+    } catch (err) {
+      error.value = new BrandError(
+        BrandErrorType.VALIDATION_ERROR,
+        'Failed to validate contrast',
+        err
+      )
+      return null
     }
+  }
 
-    const l1 = getLuminance(foreground)
-    const l2 = getLuminance(background)
-    const contrast = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05)
-
-    return contrast >= 4.5
+  /**
+   * Clear any errors
+   */
+  function clearError(): void {
+    error.value = null
   }
 
   // Watch for changes and apply
-  watch(brandColors, (newColors) => {
-    applyBrandColors(newColors)
-  })
+  watch(
+    brandColors,
+    (newColors) => {
+      applyBrandColorsToDOM(newColors)
+    },
+    { immediate: false }
+  )
 
   return {
-    // State
-    currentTheme,
-    brandColors,
-    customColors,
-    isCustomTheme,
-    isLoading,
+    // State (readonly to prevent external mutation)
+    currentTheme: readonly(currentTheme),
+    brandColors: readonly(brandColors),
+    customColors: readonly(customColors),
+    isCustomTheme: readonly(isCustomTheme),
+    isLoading: readonly(isLoading),
+    error: readonly(error),
     predefinedThemes,
 
     // Methods
     setTheme,
     setCustomColors,
+    setColorWithVariants,
     resetToDefault,
     loadBrandFromStorage,
     exportBrandConfig,
     importBrandConfig,
     validateColorContrast,
+    clearError,
   }
+}
+
+/**
+ * Use brand composable
+ * Implements singleton pattern for global state
+ */
+export function useBrand() {
+  if (!instance) {
+    instance = createBrandComposable()
+  }
+
+  return instance
+}
+
+/**
+ * Reset brand instance (useful for testing)
+ */
+export function resetBrandInstance(): void {
+  instance = null
 }
