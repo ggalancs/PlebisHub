@@ -17,8 +17,12 @@
 #  updated_at       :datetime
 #
 class ThemeSetting < ApplicationRecord
-  validates :name, presence: true
-  validates :primary_color, :secondary_color, format: { with: /\A#[0-9A-F]{6}\z/i }, allow_blank: true
+  validates :name, presence: true, uniqueness: true
+  validates :primary_color, :secondary_color, :accent_color,
+            format: { with: /\A#[0-9A-F]{6}\z/i },
+            allow_blank: true
+  validates :logo_url, :favicon_url, length: { maximum: 500 }, allow_blank: true
+  validate :sanitize_custom_css
 
   # Callback para asegurar que solo un tema está activo a la vez
   before_save :deactivate_other_themes, if: :is_active?
@@ -102,7 +106,7 @@ class ThemeSetting < ApplicationRecord
 
   # Importa un tema desde JSON
   def self.from_theme_json(json_data)
-    create!(
+    theme = new(
       name: json_data[:name] || json_data['name'],
       primary_color: json_data.dig(:colors, :primary) || json_data.dig('colors', 'primary'),
       secondary_color: json_data.dig(:colors, :secondary) || json_data.dig('colors', 'secondary'),
@@ -113,6 +117,11 @@ class ThemeSetting < ApplicationRecord
       favicon_url: json_data.dig(:assets, :favicon) || json_data.dig('assets', 'favicon'),
       custom_css: json_data[:customCSS] || json_data['customCSS']
     )
+
+    raise ArgumentError, "Invalid theme data: #{theme.errors.full_messages.join(', ')}" unless theme.valid?
+
+    theme.save!
+    theme
   end
 
   # Encuentra el tema activo actual
@@ -124,7 +133,39 @@ class ThemeSetting < ApplicationRecord
 
   # Desactiva todos los otros temas cuando éste se activa
   def deactivate_other_themes
-    self.class.where.not(id: id).update_all(is_active: false) if is_active?
+    return unless is_active? && persisted?
+
+    self.class.transaction do
+      self.class.lock.where.not(id: id).update_all(is_active: false)
+    end
+  end
+
+  # Sanitiza el CSS personalizado para prevenir XSS
+  def sanitize_custom_css
+    return if custom_css.blank?
+
+    # Eliminar contenido peligroso
+    dangerous_patterns = [
+      /javascript:/i,
+      /expression\(/i,
+      /<script/i,
+      /<iframe/i,
+      /on\w+\s*=/i,  # onclick, onload, etc
+      /url\(\s*['"]?javascript:/i
+    ]
+
+    dangerous_patterns.each do |pattern|
+      if custom_css.match?(pattern)
+        errors.add(:custom_css, 'contiene contenido potencialmente peligroso')
+        return
+      end
+    end
+
+    # Remover automáticamente contenido peligroso
+    self.custom_css = custom_css.gsub(/javascript:/i, '')
+                                  .gsub(/expression\(/i, '')
+                                  .gsub(/<script/i, '')
+                                  .gsub(/<iframe/i, '')
   end
 
   # Convierte hex a RGB

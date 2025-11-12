@@ -9,11 +9,28 @@ module Api
       before_action :require_admin, only: [:activate]
 
       # GET /api/v1/themes
-      # Retorna todos los temas disponibles
+      # Retorna todos los temas disponibles con paginación
       def index
-        @themes = ThemeSetting.all.order(created_at: :desc)
+        page = params[:page] || 1
+        per_page = [params[:per_page].to_i, 100].min
+        per_page = 20 if per_page <= 0
 
-        render json: @themes.map(&:to_theme_json)
+        @themes = ThemeSetting.all
+                              .order(created_at: :desc)
+                              .offset((page.to_i - 1) * per_page)
+                              .limit(per_page)
+
+        total_count = ThemeSetting.count
+
+        render json: {
+          themes: @themes.map(&:to_theme_json),
+          meta: {
+            current_page: page.to_i,
+            per_page: per_page,
+            total_count: total_count,
+            total_pages: (total_count.to_f / per_page).ceil
+          }
+        }
       end
 
       # GET /api/v1/themes/:id
@@ -25,19 +42,32 @@ module Api
       # POST /api/v1/themes/:id/activate
       # Activa un tema específico (solo admins)
       def activate
-        ThemeSetting.update_all(is_active: false)
-        @theme.update!(is_active: true)
+        ActiveRecord::Base.transaction do
+          ThemeSetting.lock.update_all(is_active: false)
+          @theme.lock!
+          @theme.update!(is_active: true)
+        end
+
+        # Invalidar cache
+        Rails.cache.delete('active_theme')
 
         render json: {
           success: true,
           message: "Tema '#{@theme.name}' activado exitosamente",
           theme: @theme.to_theme_json
         }
-      rescue StandardError => e
+      rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
         render json: {
           success: false,
-          error: e.message
+          error: e.message,
+          details: e.record&.errors&.full_messages
         }, status: :unprocessable_entity
+      rescue StandardError => e
+        Rails.logger.error "Theme activation failed: #{e.class} - #{e.message}"
+        render json: {
+          success: false,
+          error: 'Error al activar el tema'
+        }, status: :internal_server_error
       end
 
       # GET /api/v1/themes/active

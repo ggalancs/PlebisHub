@@ -8,7 +8,7 @@
         class="dark-mode-toggle"
         aria-label="Cambiar a modo claro"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -24,7 +24,7 @@
         class="dark-mode-toggle"
         aria-label="Cambiar a modo oscuro"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -163,9 +163,12 @@ onMounted(async () => {
 
 .dark-mode-toggle:focus {
   outline: none;
-  ring: 2px;
-  ring-color: #3b82f6;
-  ring-offset: 2px;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6;
+}
+
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .theme-switcher-loading {

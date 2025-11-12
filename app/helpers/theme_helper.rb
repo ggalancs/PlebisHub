@@ -10,7 +10,9 @@ module ThemeHelper
   def theme_css_variables
     return if current_theme.nil?
 
-    content_tag(:style, current_theme.to_css.html_safe, id: 'custom-theme-styles')
+    # Sanitizar el CSS antes de marcarlo como seguro
+    css = sanitize_theme_css(current_theme.to_css)
+    content_tag(:style, css.html_safe, id: 'custom-theme-styles')
   end
 
   # Retorna el atributo data-theme para el HTML tag
@@ -74,8 +76,11 @@ module ThemeHelper
 
     return if fonts.empty?
 
-    # Construir URL de Google Fonts
-    font_families = fonts.uniq.map { |font| "#{font}:wght@400;500;600;700" }.join('&family=')
+    # Construir URL de Google Fonts con encoding correcto
+    font_families = fonts.uniq.map do |font|
+      "#{ERB::Util.url_encode(font)}:wght@400;500;600;700"
+    end.join('&family=')
+
     tag.link(
       rel: 'stylesheet',
       href: "https://fonts.googleapis.com/css2?family=#{font_families}&display=swap"
@@ -83,6 +88,18 @@ module ThemeHelper
   end
 
   private
+
+  # Sanitiza el CSS para prevenir XSS
+  def sanitize_theme_css(css)
+    return '' if css.blank?
+
+    # Remover patrones peligrosos
+    css.gsub(/javascript:/i, '')
+       .gsub(/expression\(/i, '')
+       .gsub(/<script/i, '')
+       .gsub(/<iframe/i, '')
+       .gsub(/on\w+\s*=/i, '')
+  end
 
   # Tema por defecto cuando no hay ninguno activo
   def default_theme

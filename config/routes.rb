@@ -22,6 +22,9 @@ Rails.application.routes.draw do
     # Theme Management API
     namespace :v1 do
       resources :themes, only: [:index, :show] do
+        collection do
+          get :active
+        end
         member do
           post :activate
         end
