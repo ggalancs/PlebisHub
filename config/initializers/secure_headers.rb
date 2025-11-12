@@ -50,8 +50,8 @@ SecureHeaders::Configuration.default do |config|
     # Enforcement mode (report-only in development)
     report_only: Rails.env.development?,
 
-    # CSP violation reporting endpoint (uncomment to enable)
-    # report_uri: %w[/api/csp-violations],
+    # CSP violation reporting endpoint
+    report_uri: %w[/api/csp-violations],
 
     # Preserve schemes
     preserve_schemes: true,

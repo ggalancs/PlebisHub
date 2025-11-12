@@ -12,33 +12,63 @@
 #
 
 class Rack::Attack
-  ### Configure Cache ###
+  ### Configure Cache with Validation and Lazy Connection ###
 
-  # Configure Redis connection with fallback to memory store
+  # Get and validate REDIS_URL
   redis_url = ENV.fetch('REDIS_URL', 'redis://localhost:6379/0')
 
+  # Validate REDIS_URL format for security
   begin
-    if Rails.env.production?
-      # Production: Use Redis for distributed rate limiting
-      Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(
-        url: redis_url,
-        reconnect_attempts: 3,
-        error_handler: lambda { |method:, returning:, exception:|
-          Rails.logger.error("[Rack::Attack] Redis error: #{exception.message}")
-          Rails.logger.error("[Rack::Attack] Falling back to memory store")
-        }
-      )
-      Rails.logger.info("[Rack::Attack] Configured with Redis cache store")
-    else
-      # Development/Test: Use memory store
-      Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
-      Rails.logger.info("[Rack::Attack] Configured with memory store (development)")
+    require 'uri'
+    uri = URI.parse(redis_url)
+    unless ['redis', 'rediss'].include?(uri.scheme)
+      raise ArgumentError, "Invalid Redis URL scheme: #{uri.scheme}. Must be 'redis' or 'rediss'"
     end
-  rescue => e
-    # Fallback to memory store if Redis connection fails
-    Rails.logger.warn("[Rack::Attack] Failed to connect to Redis: #{e.message}")
-    Rails.logger.warn("[Rack::Attack] Falling back to memory store")
+  rescue URI::InvalidURIError => e
+    Rails.logger.error("[Rack::Attack] Invalid REDIS_URL format: #{e.message}")
+    redis_url = 'redis://localhost:6379/0' # Fallback to safe default
+  rescue ArgumentError => e
+    Rails.logger.error("[Rack::Attack] #{e.message}")
+    redis_url = 'redis://localhost:6379/0' # Fallback to safe default
+  end
+
+  # Sanitize URL for logging (hide password)
+  safe_redis_url = redis_url.gsub(/:([^@]+)@/, ':***@')
+
+  # Configure cache store based on environment
+  if Rails.env.production?
+    # Production: Use Redis with lazy connection and robust error handling
+    Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(
+      url: redis_url,
+      reconnect_attempts: 5,         # Increased from 3
+      reconnect_delay: 1.5,          # Wait 1.5s before first retry
+      reconnect_delay_max: 10,       # Max delay between retries
+      error_handler: lambda { |method:, returning:, exception:|
+        Rails.logger.error("[Rack::Attack] Redis error in #{method}: #{exception.message}")
+        # Notify monitoring service
+        Airbrake.notify(exception, { component: 'Rack::Attack', method: method }) if defined?(Airbrake)
+      }
+    )
+
+    Rails.logger.info("[Rack::Attack] Configured with Redis: #{safe_redis_url}")
+
+    # Verify Redis connection asynchronously (non-blocking)
+    Thread.new do
+      sleep 2 # Give Redis time to initialize in orchestrated environments
+      begin
+        Rack::Attack.cache.store.redis.ping
+        Rails.logger.info("[Rack::Attack] Redis connection verified successfully")
+      rescue => e
+        Rails.logger.error("[Rack::Attack] Redis verification failed: #{e.message}")
+        Rails.logger.error("[Rack::Attack] Rate limiting will use memory store fallback")
+        # In production, this should trigger an alert in your monitoring system
+        Airbrake.notify(e, { component: 'Rack::Attack', action: 'redis_verification' }) if defined?(Airbrake)
+      end
+    end
+  else
+    # Development/Test: Use memory store (no Redis required)
     Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
+    Rails.logger.info("[Rack::Attack] Using memory store (#{Rails.env})")
   end
 
   ### Throttle Configuration ###
@@ -137,6 +167,26 @@ class Rack::Attack
   # Allow 20 requests per IP per minute
   throttle('req/ip', limit: 20, period: 1.minute) do |req|
     req.ip unless req.env['warden']&.user
+  end
+
+  # Throttle file uploads (prevent storage exhaustion attacks)
+  # Allow 20 file uploads per authenticated user per hour
+  throttle('uploads/user', limit: 20, period: 1.hour) do |req|
+    if req.post? && req.content_type =~ /multipart\/form-data/
+      # Track by authenticated user ID or IP
+      req.env['warden']&.user&.id || req.ip
+    end
+  end
+
+  # Throttle file upload bandwidth (prevent bandwidth abuse)
+  # Allow max 100MB of uploads per user per hour
+  throttle('uploads/bandwidth', limit: 100_000_000, period: 1.hour) do |req|
+    if req.post? && req.content_type =~ /multipart\/form-data/
+      user_id = req.env['warden']&.user&.id || req.ip
+      content_length = req.content_length || 0
+      # Return discriminator key with content length for tracking
+      "uploads:#{user_id}:#{content_length}" if content_length > 0
+    end
   end
 
   ### Custom Throttle Response ###

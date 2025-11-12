@@ -14,13 +14,14 @@ Rails.application.routes.draw do
         delete 'registrars/:registrar_id', to: 'v1#gcm_unregister'
       end
     end
-  end
 
-  namespace :api do
     scope :v2 do
       get 'get_data', to: 'v2#get_data'
-
     end
+
+    # CSP Violation Reporting Endpoint
+    # Receives automatic reports from browsers when Content Security Policy is violated
+    post 'csp-violations', to: 'csp_violations#create'
   end
   scope "/(:locale)", locale: /es|ca|eu/ do
 

@@ -190,18 +190,30 @@ export function useVirtualScroll<T>(
   onMounted(() => {
     updateContainerHeight()
 
-    // Watch for container size changes
+    // Watch for container size changes with ResizeObserver
     if (containerRef.value && typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(() => {
         updateContainerHeight()
       })
       resizeObserver.observe(containerRef.value)
     }
+
+    // Watch for window resize when container height is automatic
+    // This handles cases where window resize affects the container but ResizeObserver doesn't fire
+    if (!options.containerHeight) {
+      window.addEventListener('resize', updateContainerHeight)
+    }
   })
 
   onUnmounted(() => {
+    // Cleanup ResizeObserver
     if (resizeObserver) {
       resizeObserver.disconnect()
+    }
+
+    // Cleanup window resize listener
+    if (!options.containerHeight) {
+      window.removeEventListener('resize', updateContainerHeight)
     }
   })
 

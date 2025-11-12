@@ -2,11 +2,12 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import RubyPlugin from 'vite-plugin-ruby'
 import { resolve } from 'path'
-import { viteSecurityHeadersPlugin } from './app/frontend/config/security-headers'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), RubyPlugin(), viteSecurityHeadersPlugin()],
+  // Security headers are managed by Rails SecureHeaders gem (config/initializers/secure_headers.rb)
+  // Removed viteSecurityHeadersPlugin to avoid duplicate CSP headers
+  plugins: [vue(), RubyPlugin()],
   resolve: {
     alias: {
       '@': resolve(__dirname, './app/frontend'),
@@ -29,51 +30,41 @@ export default defineConfig({
     chunkSizeWarningLimit: 150,
     rollupOptions: {
       output: {
-        // Manual chunking strategy for optimal code splitting
+        // Optimized chunking strategy: ~8 chunks for better HTTP/2 performance
+        // Reduced from 15+ chunks to minimize request overhead
         manualChunks: (id) => {
-          // Vendor chunks
+          // Vendor chunks (large, stable dependencies)
           if (id.includes('node_modules')) {
+            // Core Vue ecosystem
             if (id.includes('vue') || id.includes('pinia') || id.includes('@vueuse')) {
               return 'vue-vendor'
             }
-            if (id.includes('lucide-vue-next')) {
+            // UI + Security vendors combined (both are UI-related)
+            if (id.includes('lucide-vue-next') || id.includes('dompurify')) {
               return 'ui-vendor'
-            }
-            if (id.includes('dompurify')) {
-              return 'security-vendor'
             }
             // Other node_modules go to default vendor chunk
             return 'vendor'
           }
 
-          // Split organisms by engine for better lazy loading
+          // Group organisms by type (forms vs display) instead of by engine
           if (id.includes('/components/organisms/')) {
-            if (id.includes('Proposal')) return 'organisms-proposals'
-            if (id.includes('Microcredit')) return 'organisms-microcredit'
-            if (id.includes('Collaboration')) return 'organisms-collaborations'
-            if (id.includes('Verification') || id.includes('SMS')) return 'organisms-verification'
-            if (id.includes('Participation')) return 'organisms-participation'
-            if (id.includes('Vote') || id.includes('Comment')) return 'organisms-voting'
-            if (id.includes('User') || id.includes('Profile')) return 'organisms-user'
+            // All forms together (heavy, interactive)
+            if (id.includes('Form')) return 'organisms-forms'
+            // Display components (cards, stats) together
+            if (id.includes('Stats') || id.includes('Card') || id.includes('List')) return 'organisms-display'
+            // Common organisms
             return 'organisms-common'
           }
 
-          // Split atoms and molecules into separate chunks
-          if (id.includes('/components/atoms/')) {
-            return 'atoms'
-          }
-          if (id.includes('/components/molecules/')) {
-            return 'molecules'
+          // Combine atoms + molecules (both are small, frequently used together)
+          if (id.includes('/components/atoms/') || id.includes('/components/molecules/')) {
+            return 'components'
           }
 
-          // Composables
-          if (id.includes('/composables/')) {
-            return 'composables'
-          }
-
-          // Types and utilities
-          if (id.includes('/types/')) {
-            return 'types'
+          // Combine composables + types (both are utilities, small size)
+          if (id.includes('/composables/') || id.includes('/types/')) {
+            return 'utils'
           }
         },
       },

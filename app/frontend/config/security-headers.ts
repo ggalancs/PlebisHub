@@ -5,7 +5,14 @@
  * and other code injection attacks.
  *
  * Implements OWASP security best practices.
+ *
+ * Note: This file is kept for reference but CSP is now managed by Rails SecureHeaders gem.
+ * See config/initializers/secure_headers.rb for active CSP configuration.
  */
+
+// Use Node.js environment variables for portability (works in Vite, Node.js, and tests)
+const isDevelopment = process.env.NODE_ENV === 'development'
+const isProduction = process.env.NODE_ENV === 'production'
 
 export interface CSPConfig {
   directives: {
@@ -42,7 +49,7 @@ export const defaultCSPConfig: CSPConfig = {
       // Add your CDN domains if needed
       // "https://cdn.jsdelivr.net",
       // Vite dev server in development
-      ...(import.meta.env.DEV ? ["'unsafe-eval'", "'unsafe-inline'"] : []),
+      ...(isDevelopment ? ["'unsafe-eval'", "'unsafe-inline'"] : []),
     ],
 
     // Styles - self and inline styles (for Tailwind, Vue scoped styles)
@@ -70,7 +77,7 @@ export const defaultCSPConfig: CSPConfig = {
       "'self'",
       // Add your API domains
       // "https://api.plebis-hub.com",
-      ...(import.meta.env.DEV ? ["ws://localhost:*", "http://localhost:*"] : []),
+      ...(isDevelopment ? ["ws://localhost:*", "http://localhost:*"] : []),
     ],
 
     // Media sources (audio/video)
@@ -102,7 +109,7 @@ export const defaultCSPConfig: CSPConfig = {
   },
 
   // Set to true during testing, false in production
-  reportOnly: import.meta.env.DEV,
+  reportOnly: isDevelopment,
 
   // Optional: Report violations to this endpoint
   // reportUri: "/api/csp-violations",
@@ -164,7 +171,7 @@ export const securityHeaders = {
   ].join(', '),
 
   // HSTS (HTTP Strict Transport Security) - only in production
-  ...(import.meta.env.PROD
+  ...(isProduction
     ? {
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
       }
