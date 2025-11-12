@@ -508,16 +508,18 @@ export default defineComponent({
           <button
             v-if="comment.canEdit && editingCommentId !== comment.id"
             class="text-xs text-gray-600 dark:text-gray-400 hover:text-primary"
+            aria-label="Editar comentario"
             @click="$emit('start-edit', comment)"
           >
-            <Icon name="edit" class="w-4 h-4" />
+            <Icon name="edit" class="w-4 h-4" aria-hidden="true" />
           </button>
           <button
             v-if="comment.canDelete"
             class="text-xs text-gray-600 dark:text-gray-400 hover:text-error"
+            aria-label="Eliminar comentario"
             @click="$emit('delete', comment.id)"
           >
-            <Icon name="trash" class="w-4 h-4" />
+            <Icon name="trash" class="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       </div>
