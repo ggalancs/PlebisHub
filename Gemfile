@@ -51,6 +51,8 @@ gem 'unicode'
 gem 'rack-openid'
 gem 'ruby-openid'
 gem "secure_headers"
+gem 'rack-attack', '~> 6.7' # Rate limiting and throttling
+gem 'redis', '~> 5.0' # Redis client for Rack::Attack cache
 gem 'rake-progressbar'
 gem 'rails_autolink'
 gem 'flag_shih_tzu'

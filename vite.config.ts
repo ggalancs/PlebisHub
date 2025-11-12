@@ -5,6 +5,8 @@ import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // Security headers are managed by Rails SecureHeaders gem (config/initializers/secure_headers.rb)
+  // Removed viteSecurityHeadersPlugin to avoid duplicate CSP headers
   plugins: [vue(), RubyPlugin()],
   resolve: {
     alias: {
@@ -28,10 +30,42 @@ export default defineConfig({
     chunkSizeWarningLimit: 150,
     rollupOptions: {
       output: {
-        // Manual chunking strategy for optimal code splitting
-        manualChunks: {
-          'vue-vendor': ['vue', 'pinia', '@vueuse/core'],
-          'ui-vendor': ['lucide-vue-next'],
+        // Optimized chunking strategy: ~8 chunks for better HTTP/2 performance
+        // Reduced from 15+ chunks to minimize request overhead
+        manualChunks: (id) => {
+          // Vendor chunks (large, stable dependencies)
+          if (id.includes('node_modules')) {
+            // Core Vue ecosystem
+            if (id.includes('vue') || id.includes('pinia') || id.includes('@vueuse')) {
+              return 'vue-vendor'
+            }
+            // UI + Security vendors combined (both are UI-related)
+            if (id.includes('lucide-vue-next') || id.includes('dompurify')) {
+              return 'ui-vendor'
+            }
+            // Other node_modules go to default vendor chunk
+            return 'vendor'
+          }
+
+          // Group organisms by type (forms vs display) instead of by engine
+          if (id.includes('/components/organisms/')) {
+            // All forms together (heavy, interactive)
+            if (id.includes('Form')) return 'organisms-forms'
+            // Display components (cards, stats) together
+            if (id.includes('Stats') || id.includes('Card') || id.includes('List')) return 'organisms-display'
+            // Common organisms
+            return 'organisms-common'
+          }
+
+          // Combine atoms + molecules (both are small, frequently used together)
+          if (id.includes('/components/atoms/') || id.includes('/components/molecules/')) {
+            return 'components'
+          }
+
+          // Combine composables + types (both are utilities, small size)
+          if (id.includes('/composables/') || id.includes('/types/')) {
+            return 'utils'
+          }
         },
       },
     },
