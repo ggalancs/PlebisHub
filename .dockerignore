@@ -1,0 +1,80 @@
+# ========================================
+# Docker Ignore File
+# ========================================
+# Files and directories to exclude from Docker build context
+# ========================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+doc/
+docs/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Development
+.env*
+!.env.example
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Dependencies
+node_modules/
+bower_components/
+
+# Logs
+log/*
+logs/
+*.log
+
+# Temporary files
+tmp/*
+!tmp/.keep
+storage/*
+!storage/.keep
+
+# Test files
+test/
+spec/
+.rspec
+coverage/
+.coverage
+
+# Build artifacts
+public/assets/*
+public/packs/*
+public/vite/*
+
+# Database
+*.sqlite3
+*.sqlite3-*
+db/*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Backups
+backups/
+*.backup
+*.dump
