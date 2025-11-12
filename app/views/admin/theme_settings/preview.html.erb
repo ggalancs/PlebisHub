@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html data-theme="custom-<%= @theme.id %>" lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vista Previa: <%= @theme.name %></title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <style>
+    /* CSS del tema */
+    <%= @theme.to_css.html_safe %>
+
+    /* Estilos base para la preview */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-family-primary, 'Inter', sans-serif);
+      background: #f5f5f5;
+      padding: 2rem;
+    }
+
+    .preview-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h1, h2, h3 {
+      font-family: var(--font-family-display, 'Montserrat', sans-serif);
+      color: var(--color-primary-600, #612d62);
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h2 {
+      font-size: 1.875rem;
+      margin-top: 2rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    p {
+      line-height: 1.6;
+      color: #374151;
+      margin-bottom: 1rem;
+    }
+
+    .color-palette {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .color-swatch {
+      height: 100px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .color-label {
+      font-size: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin: 1.5rem 0;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background-color: var(--color-primary-600, #612d62);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--color-primary-700, #4a2249);
+    }
+
+    .btn-secondary {
+      background-color: var(--color-secondary-500, #269283);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--color-secondary-600, #1e7269);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 2px solid var(--color-primary-600, #612d62);
+      color: var(--color-primary-600, #612d62);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--color-primary-600, #612d62);
+      color: white;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--color-primary-600, #612d62);
+      margin-bottom: 0.75rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-primary-600, #612d62);
+      box-shadow: 0 0 0 3px rgba(97, 45, 98, 0.1);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      background-color: var(--color-primary-100, #ede7ee);
+      color: var(--color-primary-800, #351933);
+    }
+
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      margin: 1rem 0;
+      border-left: 4px solid;
+    }
+
+    .alert-info {
+      background-color: #dbeafe;
+      border-color: #3b82f6;
+      color: #1e40af;
+    }
+
+    .alert-success {
+      background-color: #d1fae5;
+      border-color: var(--color-secondary-500, #269283);
+      color: #065f46;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-container">
+    <h1>Vista Previa: <%= @theme.name %></h1>
+    <p style="color: #6b7280; font-size: 1.125rem;">
+      Esta es una vista previa de cómo se verá el tema en la aplicación
+    </p>
+
+    <h2>Paleta de Colores</h2>
+
+    <h3>Colores Primarios</h3>
+    <div class="color-palette">
+      <% @theme.color_variants(@theme.primary_color).each do |tone, hex| %>
+        <div class="color-swatch" style="background-color: <%= hex %>; color: <%= tone < 500 ? '#000' : '#fff' %>;">
+          <%= tone %>
+          <div class="color-label" style="color: <%= tone < 500 ? '#000' : '#fff' %>;"><%= hex %></div>
+        </div>
+      <% end %>
+    </div>
+
+    <h3>Colores Secundarios</h3>
+    <div class="color-palette">
+      <% @theme.color_variants(@theme.secondary_color).each do |tone, hex| %>
+        <div class="color-swatch" style="background-color: <%= hex %>; color: <%= tone < 500 ? '#000' : '#fff' %>;">
+          <%= tone %>
+          <div class="color-label" style="color: <%= tone < 500 ? '#000' : '#fff' %>;"><%= hex %></div>
+        </div>
+      <% end %>
+    </div>
+
+    <h2>Componentes</h2>
+
+    <h3>Botones</h3>
+    <div class="buttons">
+      <button class="btn btn-primary">Botón Primario</button>
+      <button class="btn btn-secondary">Botón Secundario</button>
+      <button class="btn btn-outline">Botón Outline</button>
+    </div>
+
+    <h3>Badges</h3>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+      <span class="badge">Nuevo</span>
+      <span class="badge">En Progreso</span>
+      <span class="badge">Completado</span>
+    </div>
+
+    <h3>Alertas</h3>
+    <div class="alert alert-info">
+      <strong>Información:</strong> Este es un mensaje informativo.
+    </div>
+    <div class="alert alert-success">
+      <strong>Éxito:</strong> La operación se completó exitosamente.
+    </div>
+
+    <h3>Cards</h3>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">Propuesta #1</div>
+        <p>Esta es una propuesta de ejemplo que muestra cómo se verían las cards con el tema aplicado.</p>
+        <button class="btn btn-primary">Ver Más</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Propuesta #2</div>
+        <p>Otra propuesta de ejemplo para demostrar el diseño de las tarjetas en el sistema.</p>
+        <button class="btn btn-secondary">Ver Más</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Propuesta #3</div>
+        <p>Una tercera propuesta para completar la vista previa de las cards.</p>
+        <button class="btn btn-outline">Ver Más</button>
+      </div>
+    </div>
+
+    <h3>Formularios</h3>
+    <div class="card">
+      <div class="card-title">Formulario de Ejemplo</div>
+      <form>
+        <div class="form-group">
+          <label class="form-label" for="name">Nombre</label>
+          <input class="form-input" type="text" id="name" placeholder="Ingresa tu nombre">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input class="form-input" type="email" id="email" placeholder="tu@email.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="message">Mensaje</label>
+          <textarea class="form-input" id="message" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar</button>
+      </form>
+    </div>
+
+    <h2>Tipografía</h2>
+    <div class="card">
+      <h1 style="margin-top: 0;">Título H1 - <%= @theme.font_display || 'Montserrat' %></h1>
+      <h2>Título H2 - <%= @theme.font_display || 'Montserrat' %></h2>
+      <h3>Título H3 - <%= @theme.font_display || 'Montserrat' %></h3>
+      <p style="font-size: 1.125rem;">
+        Texto de cuerpo grande - <%= @theme.font_primary || 'Inter' %>
+      </p>
+      <p>
+        Texto de cuerpo normal - <%= @theme.font_primary || 'Inter' %>. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+      </p>
+      <p style="font-size: 0.875rem; color: #6b7280;">
+        Texto pequeño / secundario - <%= @theme.font_primary || 'Inter' %>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

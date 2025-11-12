@@ -19,6 +19,15 @@ Rails.application.routes.draw do
       get 'get_data', to: 'v2#get_data'
     end
 
+    # Theme Management API
+    namespace :v1 do
+      resources :themes, only: [:index, :show] do
+        member do
+          post :activate
+        end
+      end
+    end
+
     # CSP Violation Reporting Endpoint
     # Receives automatic reports from browsers when Content Security Policy is violated
     post 'csp-violations', to: 'csp_violations#create'

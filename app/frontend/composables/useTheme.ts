@@ -266,24 +266,34 @@ export function useTheme(): UseThemeReturn {
     isLoading.value = true
 
     try {
-      // In a real implementation, this would fetch from an API
-      // Example: const response = await fetch('/api/themes')
-      // const data = await response.json()
-
-      // For now, just use default themes
-      // themes.value = data.themes
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 100))
-
-      // You can uncomment this when API is ready:
-      /*
-      const response = await fetch('/api/themes')
+      const response = await fetch('/api/v1/themes')
       if (response.ok) {
         const data = await response.json()
-        themes.value = [defaultLightTheme, defaultDarkTheme, ...data.themes]
+
+        // Convert API themes to our Theme interface
+        const apiThemes = data.map((apiTheme: any): Theme => ({
+          id: `custom-${apiTheme.id || apiTheme.name}`,
+          name: apiTheme.name,
+          colors: {
+            primary: apiTheme.colors?.primary,
+            secondary: apiTheme.colors?.secondary,
+            success: '#10b981',
+            warning: '#f59e0b',
+            error: '#ef4444',
+            info: '#3b82f6',
+            background: '#ffffff',
+            surface: '#f3f4f6',
+            text: '#1f2937',
+            textSecondary: '#6b7280',
+            border: '#e5e7eb',
+          },
+          fontFamily: apiTheme.typography?.fontPrimary ?
+            `${apiTheme.typography.fontPrimary}, system-ui, sans-serif` :
+            'Inter, system-ui, sans-serif',
+        }))
+
+        themes.value = [defaultLightTheme, defaultDarkTheme, ...apiThemes]
       }
-      */
     } catch (error) {
       console.error('Failed to load themes:', error)
     } finally {
