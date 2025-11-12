@@ -86,6 +86,7 @@ gem 'dry-types', '~> 1.7' # Type system
 gem 'graphql', '~> 2.4' # GraphQL API
 gem 'graphql-batch', '~> 0.6' # DataLoader for N+1 queries
 gem 'search_object_graphql', '~> 1.0' # Search/filtering for GraphQL
+gem 'graphiql-rails', '~> 1.10', group: :development # GraphQL IDE
 
 # Permissions System (PlebisHub 2.0)
 gem 'pundit', '~> 2.3' # Authorization policies

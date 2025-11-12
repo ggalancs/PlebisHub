@@ -10,10 +10,12 @@ module Mutations
     field :errors, [String], null: false
 
     def resolve(id:)
-      proposal = Proposal.find(id)
+      proposal = PlebisProposals::Proposal.find(id)
       authorize!(proposal)
 
       if proposal.destroy
+        publish_event('proposal.deleted', { proposal_id: id })
+
         { success: true, errors: [] }
       else
         { success: false, errors: proposal.errors.full_messages }

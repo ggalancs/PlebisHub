@@ -7,15 +7,15 @@ module Mutations
     argument :proposal_id, ID, required: true
     argument :option, String, required: true
 
-    field :vote, Types::VoteType, null: true
+    field :vote, Types::ProposalVoteType, null: true
     field :errors, [String], null: false
 
     def resolve(proposal_id:, option:)
       authorize!
 
-      proposal = Proposal.find(proposal_id)
+      proposal = PlebisProposals::Proposal.find(proposal_id)
 
-      vote = proposal.votes.build(
+      vote = proposal.proposal_votes.build(
         user: current_user,
         option: option
       )

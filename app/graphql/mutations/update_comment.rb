@@ -2,14 +2,16 @@
 
 module Mutations
   class UpdateComment < BaseMutation
+    description "Update a comment"
+
     argument :id, ID, required: true
     argument :body, String, required: true
 
-    field :comment, Types::CommentType, null: true
+    field :comment, Types::ProposalCommentType, null: true
     field :errors, [String], null: false
 
     def resolve(id:, body:)
-      comment = Comment.find(id)
+      comment = ProposalComment.find(id)
       authorize!(comment)
 
       if comment.update(body: body)

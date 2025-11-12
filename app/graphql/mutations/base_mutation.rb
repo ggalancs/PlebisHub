@@ -42,5 +42,10 @@ module Mutations
         errors: resource.errors.full_messages
       }
     end
+
+    # Publish domain events using EventBus
+    def publish_event(event_name, payload = {})
+      EventBus.instance.publish(event_name, payload)
+    end
   end
 end

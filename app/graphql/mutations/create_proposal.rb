@@ -15,11 +15,11 @@ module Mutations
     def resolve(title:, body:, category: nil, summary: nil)
       authorize!
 
-      proposal = current_user.proposals.build(
+      proposal = PlebisProposals::Proposal.new(
         title: title,
-        body: body,
+        description: body, # V1 uses 'description', V2 has 'body' alias
         category: category,
-        summary: summary
+        author: current_user
       )
 
       if proposal.save

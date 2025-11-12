@@ -28,7 +28,7 @@ module Types
       description "Distribution of votes by option"
     end
 
-    field :current_user_vote, Types::VoteType, null: true do
+    field :current_user_vote, Types::ProposalVoteType, null: true do
       description "Current user's vote on this proposal"
     end
 
@@ -37,25 +37,25 @@ module Types
       description "Number of comments on this proposal"
     end
 
-    field :comments, [Types::CommentType], null: false do
+    field :comments, [Types::ProposalCommentType], null: false do
       description "Comments on this proposal"
       argument :limit, Integer, required: false, default_value: 10
     end
 
     # Resolvers
     def votes_distribution
-      # Calculate vote distribution
-      object.votes.group(:option).count
+      # Calculate vote distribution from proposal_votes (V2)
+      object.proposal_votes.group(:option).count
     end
 
     def current_user_vote
       return nil unless context[:current_user]
 
-      object.votes.find_by(user: context[:current_user])
+      object.proposal_votes.find_by(user: context[:current_user])
     end
 
     def comments(limit:)
-      object.comments.order(created_at: :desc).limit(limit)
+      object.proposal_comments.order(created_at: :desc).limit(limit)
     end
   end
 end

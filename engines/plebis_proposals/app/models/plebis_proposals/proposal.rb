@@ -9,6 +9,12 @@ module PlebisProposals
     # Associations
     has_many :supports, class_name: 'PlebisProposals::Support', dependent: :destroy
 
+    # V2.0 Associations
+    belongs_to :author, class_name: 'User', optional: true # V2 author field
+    has_many :proposal_votes, dependent: :destroy, foreign_key: :proposal_id
+    has_many :proposal_comments, dependent: :destroy, foreign_key: :proposal_id
+    has_many :voters, through: :proposal_votes, source: :user
+
     # Validations
     validates :title, presence: true
     validates :description, presence: true
@@ -105,6 +111,61 @@ module PlebisProposals
 
     def supports_count
       supports.where("created_at<?", finishes_at).count
+    end
+
+    # ================================================================
+    # V2.0 Methods - Backward Compatibility & New Features
+    # ================================================================
+
+    # Alias for GraphQL compatibility (body maps to description for V1)
+    def body
+      description
+    end
+
+    def body=(value)
+      self.description = value
+    end
+
+    # V2 Category handling (will use actual column when migration is run)
+    def category
+      read_attribute(:category) if has_attribute?(:category)
+    end
+
+    # V2 Status handling (will use actual column when migration is run)
+    def status
+      return read_attribute(:status) if has_attribute?(:status)
+
+      # Fallback to calculated status based on V1 logic
+      return 'finished' if finished?
+      return 'discarded' if discarded?
+      'active'
+    end
+
+    # V2 Organization handling (will use actual column when migration is run)
+    def organization_id
+      read_attribute(:organization_id) if has_attribute?(:organization_id)
+    end
+
+    # V2 Published date handling (will use actual column when migration is run)
+    def published_at
+      read_attribute(:published_at) || created_at if has_attribute?(:published_at)
+    end
+
+    # V2 Votes counter cache (will use actual column when migration is run)
+    def votes_count
+      return read_attribute(:votes_count) if has_attribute?(:votes_count)
+      proposal_votes.count
+    end
+
+    # V2 Comments counter cache (will use actual column when migration is run)
+    def comments_count
+      return read_attribute(:comments_count) if has_attribute?(:comments_count)
+      proposal_comments.count
+    end
+
+    # Check if attribute exists in schema
+    def has_attribute?(attr_name)
+      self.class.column_names.include?(attr_name.to_s)
     end
   end
 end

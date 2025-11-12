@@ -2,13 +2,15 @@
 
 module Mutations
   class DeleteComment < BaseMutation
+    description "Delete a comment"
+
     argument :id, ID, required: true
 
     field :success, Boolean, null: false
     field :errors, [String], null: false
 
     def resolve(id:)
-      comment = Comment.find(id)
+      comment = ProposalComment.find(id)
       authorize!(comment)
 
       if comment.destroy

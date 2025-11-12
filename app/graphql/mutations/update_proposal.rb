@@ -13,10 +13,18 @@ module Mutations
     field :errors, [String], null: false
 
     def resolve(id:, **attributes)
-      proposal = Proposal.find(id)
+      proposal = PlebisProposals::Proposal.find(id)
       authorize!(proposal)
 
+      # Map 'body' to 'description' for V1 compatibility
+      attributes[:description] = attributes.delete(:body) if attributes[:body]
+
       if proposal.update(attributes.compact)
+        publish_event('proposal.updated', {
+          proposal_id: proposal.id,
+          changes: attributes.keys
+        })
+
         { proposal: proposal, errors: [] }
       else
         { proposal: nil, errors: proposal.errors.full_messages }

@@ -13,31 +13,23 @@ module PlebisHub
       # ================================================================
 
       module CollaborationEvents
-        extend ApplicationEvent
-
-        # Register all collaboration events
-        register_event('collaboration.created')
-        register_event('collaboration.confirmed')
-        register_event('collaboration.cancelled')
-        register_event('collaboration.refunded')
-
         class << self
           def collaboration_created(collaboration)
-            publish_event('collaboration.created', collaboration_payload(collaboration))
+            EventBus.instance.publish('collaboration.created', collaboration_payload(collaboration))
           end
 
           def collaboration_confirmed(collaboration)
-            publish_event('collaboration.confirmed', collaboration_payload(collaboration))
+            EventBus.instance.publish('collaboration.confirmed', collaboration_payload(collaboration))
           end
 
           def collaboration_cancelled(collaboration, reason: nil)
-            publish_event('collaboration.cancelled', collaboration_payload(collaboration).merge(
+            EventBus.instance.publish('collaboration.cancelled', collaboration_payload(collaboration).merge(
               reason: reason
             ))
           end
 
           def collaboration_refunded(collaboration, amount:)
-            publish_event('collaboration.refunded', collaboration_payload(collaboration).merge(
+            EventBus.instance.publish('collaboration.refunded', collaboration_payload(collaboration).merge(
               refunded_amount: amount
             ))
           end

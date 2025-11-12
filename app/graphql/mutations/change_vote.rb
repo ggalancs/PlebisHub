@@ -7,11 +7,11 @@ module Mutations
     argument :vote_id, ID, required: true
     argument :option, String, required: true
 
-    field :vote, Types::VoteType, null: true
+    field :vote, Types::ProposalVoteType, null: true
     field :errors, [String], null: false
 
     def resolve(vote_id:, option:)
-      vote = Vote.find(vote_id)
+      vote = ProposalVote.find(vote_id)
       authorize!(vote)
 
       old_option = vote.option
