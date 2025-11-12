@@ -7,6 +7,7 @@ import Dropdown from '@/components/molecules/Dropdown.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import Spinner from '@/components/atoms/Spinner.vue'
 import { useForm, validators } from '@/composables'
+import DOMPurify from 'dompurify'
 
 export interface Comment {
   id: number | string
@@ -259,6 +260,14 @@ const handleSortChange = (sort: string) => {
 const getNestingLevel = (comment: Comment, level = 0): number => {
   if (!comment.replies || comment.replies.length === 0) return level
   return Math.max(...comment.replies.map((reply) => getNestingLevel(reply, level + 1)))
+}
+
+// Sanitize content
+const sanitizedContent = (content: string) => {
+  return DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: [],
+    KEEP_CONTENT: true
+  })
 }
 </script>
 
@@ -531,7 +540,7 @@ export default defineComponent({
       </div>
       <div v-else class="mb-3">
         <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-          {{ comment.content }}
+          {{ sanitizedContent(comment.content) }}
         </p>
       </div>
 

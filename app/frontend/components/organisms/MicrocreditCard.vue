@@ -69,55 +69,58 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+// Badge variant type
+type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info'
+
 // Status configuration
-const statusConfig = {
+const statusConfig: Record<MicrocreditStatus, { label: string; color: BadgeVariant; icon: string }> = {
   pending: {
     label: 'Pendiente',
-    color: 'gray',
+    color: 'default',
     icon: 'clock',
   },
   funding: {
     label: 'En Financiación',
-    color: 'blue',
+    color: 'info',
     icon: 'trending-up',
   },
   funded: {
     label: 'Financiado',
-    color: 'green',
+    color: 'success',
     icon: 'check-circle',
   },
   repaying: {
     label: 'En Repago',
-    color: 'indigo',
+    color: 'primary',
     icon: 'refresh-cw',
   },
   completed: {
     label: 'Completado',
-    color: 'green',
+    color: 'success',
     icon: 'check-circle',
   },
   defaulted: {
     label: 'Impagado',
-    color: 'red',
+    color: 'error',
     icon: 'x-circle',
   },
 }
 
 // Risk level configuration
-const riskLevelConfig = {
+const riskLevelConfig: Record<RiskLevel, { label: string; color: BadgeVariant; icon: string }> = {
   low: {
     label: 'Riesgo Bajo',
-    color: 'green',
+    color: 'success',
     icon: 'shield',
   },
   medium: {
     label: 'Riesgo Medio',
-    color: 'yellow',
+    color: 'warning',
     icon: 'shield',
   },
   high: {
     label: 'Riesgo Alto',
-    color: 'red',
+    color: 'error',
     icon: 'alert-triangle',
   },
 }
@@ -233,7 +236,7 @@ const handleContactBorrower = () => {
             {{ microcredit.description }}
           </p>
         </div>
-        <Badge :variant="currentStatus.color as any" size="sm" class="ml-2 flex-shrink-0">
+        <Badge :variant="currentStatus.color" size="sm" class="ml-2 flex-shrink-0">
           <Icon :name="currentStatus.icon" class="w-3 h-3 mr-1" />
           {{ currentStatus.label }}
         </Badge>
@@ -348,7 +351,7 @@ const handleContactBorrower = () => {
 
       <!-- Risk Level -->
       <div v-if="currentRiskLevel && !compact" class="mb-4">
-        <Badge :variant="currentRiskLevel.color as any" size="sm">
+        <Badge :variant="currentRiskLevel.color" size="sm">
           <Icon :name="currentRiskLevel.icon" class="w-3 h-3 mr-1" />
           {{ currentRiskLevel.label }}
         </Badge>

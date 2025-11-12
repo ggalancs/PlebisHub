@@ -39,13 +39,23 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Calculate percentages
 const upvotePercentage = computed(() => {
-  if (props.stats.totalVotes === 0) return 0
-  return Math.round((props.stats.upvotes / props.stats.totalVotes) * 100)
+  const total = props.stats.totalVotes || 0
+  const upvotes = props.stats.upvotes || 0
+
+  if (total === 0) return 0
+
+  const percentage = (upvotes / total) * 100
+  return Math.round(Math.max(0, Math.min(100, percentage)))
 })
 
 const downvotePercentage = computed(() => {
-  if (props.stats.totalVotes === 0) return 0
-  return Math.round((props.stats.downvotes / props.stats.totalVotes) * 100)
+  const total = props.stats.totalVotes || 0
+  const downvotes = props.stats.downvotes || 0
+
+  if (total === 0) return 0
+
+  const percentage = (downvotes / total) * 100
+  return Math.round(Math.max(0, Math.min(100, percentage)))
 })
 
 const abstentionPercentage = computed(() => {

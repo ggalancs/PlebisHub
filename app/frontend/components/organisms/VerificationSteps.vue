@@ -156,9 +156,22 @@ const validatePersonal = (): boolean => {
   } else {
     const birthDate = new Date(formData.value.personal.dateOfBirth)
     const today = new Date()
-    const age = today.getFullYear() - birthDate.getFullYear()
+
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+
     if (age < 18) {
       errors.value.dateOfBirth = 'Debes ser mayor de 18 años'
+      isValid = false
+    }
+
+    // Validar fechas futuras
+    if (birthDate > today) {
+      errors.value.dateOfBirth = 'La fecha de nacimiento no puede ser futura'
       isValid = false
     }
   }
@@ -200,6 +213,20 @@ const validateDocument = (): boolean => {
   return isValid
 }
 
+const validatePostalCode = (postalCode: string, country: string): boolean => {
+  const patterns: Record<string, RegExp> = {
+    ES: /^\d{5}$/,
+    GB: /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i,
+    US: /^\d{5}(-\d{4})?$/,
+    CA: /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i,
+    FR: /^\d{5}$/,
+    DE: /^\d{5}$/,
+  }
+
+  const pattern = patterns[country] || /^[\w\s-]{3,10}$/
+  return pattern.test(postalCode)
+}
+
 const validateAddress = (): boolean => {
   errors.value = {}
   let isValid = true
@@ -214,8 +241,11 @@ const validateAddress = (): boolean => {
     isValid = false
   }
 
-  if (!formData.value.address.postalCode || formData.value.address.postalCode.length !== 5) {
-    errors.value.postalCode = 'El código postal debe tener 5 dígitos'
+  if (!formData.value.address.postalCode) {
+    errors.value.postalCode = 'El código postal es requerido'
+    isValid = false
+  } else if (!validatePostalCode(formData.value.address.postalCode, formData.value.personal.nationality || 'ES')) {
+    errors.value.postalCode = 'El código postal no es válido para tu país'
     isValid = false
   }
 
@@ -232,6 +262,25 @@ const validateAddress = (): boolean => {
   return isValid
 }
 
+const validatePhoneNumber = (phone: string, countryCode: string): boolean => {
+  const cleaned = phone.replace(/[\s\-\(\)]/g, '')
+
+  if (!/^\d+$/.test(cleaned)) {
+    return false
+  }
+
+  const lengths: Record<string, { min: number; max: number }> = {
+    '+34': { min: 9, max: 9 },
+    '+33': { min: 9, max: 9 },
+    '+44': { min: 10, max: 10 },
+    '+49': { min: 10, max: 11 },
+    '+1': { min: 10, max: 10 },
+  }
+
+  const range = lengths[countryCode] || { min: 8, max: 15 }
+  return cleaned.length >= range.min && cleaned.length <= range.max
+}
+
 const validatePhone = (): boolean => {
   errors.value = {}
   let isValid = true
@@ -241,8 +290,11 @@ const validatePhone = (): boolean => {
     isValid = false
   }
 
-  if (!formData.value.phone.phoneNumber || formData.value.phone.phoneNumber.length < 9) {
-    errors.value.phoneNumber = 'El número de teléfono debe tener al menos 9 dígitos'
+  if (!formData.value.phone.phoneNumber) {
+    errors.value.phoneNumber = 'El número de teléfono es requerido'
+    isValid = false
+  } else if (!validatePhoneNumber(formData.value.phone.phoneNumber, formData.value.phone.countryCode || '+34')) {
+    errors.value.phoneNumber = 'El número de teléfono no es válido'
     isValid = false
   }
 
@@ -300,13 +352,16 @@ const handleCancel = () => {
   emit('cancel')
 }
 
+// Badge variant type
+type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info'
+
 // Status badge
-const statusConfig = {
-  not_started: { label: 'No Iniciado', color: 'gray' },
-  in_progress: { label: 'En Progreso', color: 'blue' },
-  pending_review: { label: 'Pendiente de Revisión', color: 'yellow' },
-  verified: { label: 'Verificado', color: 'green' },
-  rejected: { label: 'Rechazado', color: 'red' },
+const statusConfig: Record<VerificationStatus, { label: string; color: BadgeVariant }> = {
+  not_started: { label: 'No Iniciado', color: 'default' },
+  in_progress: { label: 'En Progreso', color: 'info' },
+  pending_review: { label: 'Pendiente de Revisión', color: 'warning' },
+  verified: { label: 'Verificado', color: 'success' },
+  rejected: { label: 'Rechazado', color: 'error' },
 }
 
 const currentStatus = computed(() => statusConfig[props.verificationStatus])
@@ -323,7 +378,7 @@ const currentStatus = computed(() => statusConfig[props.verificationStatus])
             Completa todos los pasos para verificar tu identidad
           </p>
         </div>
-        <Badge :variant="currentStatus.color as any" size="lg">
+        <Badge :variant="currentStatus.color" size="lg">
           {{ currentStatus.label }}
         </Badge>
       </div>
