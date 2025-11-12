@@ -1,0 +1,343 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Composables/Overview" />
+
+# Composables
+
+Composables are reusable Vue 3 composition functions that encapsulate and share stateful logic across components.
+
+## Available Composables
+
+### useDebounce
+
+Debounces reactive values or functions to prevent excessive updates or API calls.
+
+```ts
+import { ref } from 'vue'
+import { useDebounce } from '@/composables'
+
+// Debounce a reactive value
+const searchQuery = ref('')
+const debouncedQuery = useDebounce(searchQuery, 500)
+
+watch(debouncedQuery, (value) => {
+  // Triggers 500ms after user stops typing
+  fetchSearchResults(value)
+})
+```
+
+**Features:**
+- Debounce reactive values with configurable delay
+- Debounce function calls
+- Cancel or flush pending debounces
+- TypeScript support
+
+---
+
+### usePagination
+
+Complete pagination logic for lists and tables.
+
+```ts
+import { usePagination } from '@/composables'
+
+const items = ref([...]) // 100 items
+
+const pagination = usePagination({
+  total: items.value.length,
+  pageSize: 10,
+  currentPage: 1
+})
+
+// Get current page items
+const paginatedItems = computed(() => {
+  return pagination.paginateArray(items.value)
+})
+
+// Navigate
+pagination.nextPage()
+pagination.prevPage()
+pagination.goToPage(5)
+```
+
+**Features:**
+- Client-side and server-side pagination support
+- Page range generation (with dots: 1 ... 5 6 7 ... 20)
+- Array slicing helper
+- Reactive total pages calculation
+- Navigation methods (next, prev, first, last)
+- Page size changer
+
+---
+
+### useForm
+
+Complete form management with validation, error handling, and submission.
+
+```ts
+import { useForm, validators } from '@/composables'
+
+const form = useForm(
+  {
+    email: '',
+    password: '',
+    age: 18
+  },
+  {
+    email: [
+      validators.required(),
+      validators.email()
+    ],
+    password: [
+      validators.required(),
+      validators.minLength(8)
+    ],
+    age: [
+      validators.min(18, 'Must be 18 or older')
+    ]
+  }
+)
+
+const onSubmit = form.handleSubmit(async (values) => {
+  await api.post('/register', values)
+})
+```
+
+**Features:**
+- Field-level validation with custom rules
+- Async validation support
+- Touched and dirty state tracking
+- Form-level and field-level error management
+- Built-in validators (required, email, minLength, pattern, etc.)
+- Submit handler with validation
+- Reset and clear methods
+
+**Built-in Validators:**
+- `validators.required()` - Field is required
+- `validators.email()` - Valid email format
+- `validators.minLength(n)` - Minimum string length
+- `validators.maxLength(n)` - Maximum string length
+- `validators.min(n)` - Minimum numeric value
+- `validators.max(n)` - Maximum numeric value
+- `validators.pattern(regex)` - Pattern matching
+- `validators.url()` - Valid URL format
+- `validators.match(fieldName)` - Match another field
+
+---
+
+### useTheme
+
+Application-wide theme management with dark mode and persistence.
+
+```ts
+import { useTheme } from '@/composables'
+
+const theme = useTheme()
+
+// Access current colors
+const primaryColor = theme.colors.value.primary
+
+// Switch theme
+theme.setTheme('corporate-blue')
+
+// Toggle dark mode
+theme.toggleDarkMode()
+
+// Check dark mode status
+if (theme.isDark.value) {
+  console.log('Dark mode is active')
+}
+
+// Load custom themes from API
+await theme.loadThemes()
+
+// Export/Import themes
+const exported = theme.exportTheme()
+theme.importTheme(exported)
+```
+
+**Features:**
+- Default light and dark themes
+- Custom theme support
+- CSS custom properties generation
+- LocalStorage persistence
+- System color scheme detection
+- Theme export/import as JSON
+- Reactive color access
+- Font family and spacing customization
+
+**Theme Structure:**
+```ts
+interface Theme {
+  id: string
+  name: string
+  colors: {
+    primary?: string
+    secondary?: string
+    success?: string
+    warning?: string
+    error?: string
+    info?: string
+    background?: string
+    surface?: string
+    text?: string
+    textSecondary?: string
+    border?: string
+  }
+  fontFamily?: string
+  borderRadius?: string
+  spacing?: string
+}
+```
+
+---
+
+## Usage in Components
+
+### With Script Setup
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useDebounce, useForm, validators } from '@/composables'
+
+// Debounced search
+const searchQuery = ref('')
+const debouncedQuery = useDebounce(searchQuery, 300)
+
+watch(debouncedQuery, (value) => {
+  performSearch(value)
+})
+
+// Form with validation
+const form = useForm(
+  { username: '', email: '' },
+  {
+    username: [validators.required(), validators.minLength(3)],
+    email: [validators.required(), validators.email()]
+  }
+)
+
+const handleSubmit = form.handleSubmit(async (values) => {
+  await api.post('/users', values)
+})
+</script>
+
+<template>
+  <div>
+    <!-- Search -->
+    <input v-model="searchQuery" placeholder="Search..." />
+
+    <!-- Form -->
+    <form @submit="handleSubmit">
+      <input
+        v-model="form.values.username"
+        @blur="form.setFieldTouched('username')"
+      />
+      <span v-if="form.errors.value.username">
+        {{ form.errors.value.username }}
+      </span>
+
+      <button type="submit" :disabled="form.isSubmitting.value">
+        {{ form.isSubmitting.value ? 'Submitting...' : 'Submit' }}
+      </button>
+    </form>
+  </div>
+</template>
+```
+
+---
+
+## Testing Composables
+
+All composables come with comprehensive test suites. Example:
+
+```ts
+import { describe, it, expect } from 'vitest'
+import { ref, nextTick } from 'vue'
+import { useDebounce } from '@/composables'
+
+describe('useDebounce', () => {
+  it('should debounce value changes', async () => {
+    const value = ref('initial')
+    const debounced = useDebounce(value, 300)
+
+    value.value = 'updated'
+    await nextTick()
+
+    // Should not update immediately
+    expect(debounced.value).toBe('initial')
+
+    // Wait for debounce
+    await vi.advanceTimersByTime(300)
+
+    // Should update now
+    expect(debounced.value).toBe('updated')
+  })
+})
+```
+
+---
+
+## Best Practices
+
+### 1. Debouncing
+
+- Use `useDebounce` for search inputs (300-500ms delay)
+- Use `useDebouncedFn` for expensive operations
+- Use `useDebouncedFnWithCancel` when you need to cancel pending operations
+
+### 2. Pagination
+
+- Always set `total` correctly for accurate page calculation
+- Use `paginateArray` for client-side pagination
+- Watch `currentPage` and `pageSize` for server-side pagination
+- Display `pageRange` for pagination UI
+
+### 3. Forms
+
+- Mark fields as touched on blur: `@blur="form.setFieldTouched('field')"`
+- Use built-in validators for common cases
+- Create custom validators for business logic
+- Handle async validation for API checks (username availability, etc.)
+- Always handle submission errors
+
+### 4. Theming
+
+- Load themes early in app initialization
+- Use CSS custom properties in your styles: `var(--color-primary)`
+- Provide theme selector in user settings
+- Test both light and dark modes
+- Export themes for user customization
+
+---
+
+## TypeScript Support
+
+All composables are fully typed with TypeScript. Import types when needed:
+
+```ts
+import type {
+  PaginationReturn,
+  UseFormReturn,
+  Theme,
+  ValidationRule
+} from '@/composables'
+```
+
+---
+
+## Performance Considerations
+
+- **useDebounce**: Minimal overhead, cleans up timers automatically
+- **usePagination**: O(1) for calculations, O(n) for array slicing
+- **useForm**: Validates only touched fields by default
+- **useTheme**: Caches theme in localStorage, applies CSS variables once
+
+---
+
+## Related
+
+- [Components](/docs/components-overview--docs)
+- [Design Tokens](/docs/design-tokens--docs)
+- [Testing Guide](/docs/testing-guide--docs)
