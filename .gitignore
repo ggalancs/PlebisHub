@@ -65,3 +65,12 @@ playwright-report/
 
 # TypeScript
 *.tsbuildinfo
+# Docker
+.env
+.env.local
+.env.*.local
+backups/
+docker/nginx/ssl/*.pem
+docker/nginx/ssl/*.key
+docker/postgres/init/*.sql
+!docker/postgres/init/.gitkeep

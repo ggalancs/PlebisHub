@@ -1,4 +1,4 @@
-<!-- PlebisHub Icon - Logo Mark for favicons and app icons -->
+<!-- PlebisHub Logo Mark - Ícono modular -->
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -11,8 +11,7 @@
     </linearGradient>
   </defs>
 
-  <!-- Background (optional, for better visibility) -->
-  <rect width="64" height="64" fill="#ffffff" rx="8"/>
+  <!-- Concepto: Círculo central (el plebs/pueblo) rodeado de elementos conectados (participación) -->
 
   <!-- Círculo central - representa el pueblo/comunidad -->
   <circle cx="32" cy="32" r="12" fill="url(#primaryGradient)"/>

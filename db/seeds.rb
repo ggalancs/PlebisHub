@@ -120,3 +120,108 @@ rescue => e
   puts "  This is expected if migrations haven't been run yet."
   puts "="*80
 end
+
+# Seed BrandSettings
+# Creates default brand settings with all predefined themes
+puts "\n" + "="*80
+puts "Seeding BrandSettings..."
+puts "="*80
+
+begin
+  # Only seed if table exists and is empty
+  if ActiveRecord::Base.connection.table_exists?('brand_settings')
+    if BrandSetting.count.zero?
+      # Create global default brand setting (active)
+      default_setting = BrandSetting.create!(
+        name: 'PlebisHub Default Theme',
+        description: 'Official PlebisHub brand colors - active by default',
+        scope: 'global',
+        theme_id: 'default',
+        active: true,
+        metadata: {
+          created_by: 'seed',
+          notes: 'Default brand theme for the platform'
+        }
+      )
+      puts "  ✓ Created default brand setting (active)"
+
+      # Create example brand settings for each predefined theme (inactive)
+      example_themes = [
+        {
+          name: 'Ocean Blue Theme',
+          description: 'Cool blue tones for a professional look',
+          theme_id: 'ocean',
+          active: false
+        },
+        {
+          name: 'Forest Green Theme',
+          description: 'Natural green palette for environmental campaigns',
+          theme_id: 'forest',
+          active: false
+        },
+        {
+          name: 'Sunset Orange Theme',
+          description: 'Warm orange and red tones for energy and passion',
+          theme_id: 'sunset',
+          active: false
+        },
+        {
+          name: 'Monochrome Theme',
+          description: 'Classic black and white for formal events',
+          theme_id: 'monochrome',
+          active: false
+        }
+      ]
+
+      example_themes.each do |theme_attrs|
+        BrandSetting.create!(
+          name: theme_attrs[:name],
+          description: theme_attrs[:description],
+          scope: 'global',
+          theme_id: theme_attrs[:theme_id],
+          active: theme_attrs[:active],
+          metadata: {
+            created_by: 'seed',
+            notes: 'Example theme for demonstration'
+          }
+        )
+        puts "  ✓ Created #{theme_attrs[:name]} (inactive)"
+      end
+
+      # Create an example with custom colors
+      custom_setting = BrandSetting.create!(
+        name: 'Custom Purple & Gold',
+        description: 'Example of custom color overrides',
+        scope: 'global',
+        theme_id: 'default',
+        primary_color: '#6B46C1',
+        primary_light_color: '#9F7AEA',
+        primary_dark_color: '#553C9A',
+        secondary_color: '#D69E2E',
+        secondary_light_color: '#ECC94B',
+        secondary_dark_color: '#B7791F',
+        active: false,
+        metadata: {
+          created_by: 'seed',
+          notes: 'Example showing custom color overrides'
+        }
+      )
+      puts "  ✓ Created custom color example (inactive)"
+
+      puts "\nBrandSettings seeded: #{BrandSetting.count} total"
+      puts "  - 1 active global theme (default)"
+      puts "  - #{BrandSetting.inactive.count} inactive example themes"
+      puts "  - Access at /admin/brand_settings to manage themes"
+    else
+      puts "  ⚠ BrandSettings already exist (#{BrandSetting.count} found), skipping seed"
+    end
+  else
+    puts "  ⚠ brand_settings table doesn't exist yet"
+    puts "  Run migrations first: rails db:migrate"
+  end
+  puts "="*80
+rescue => e
+  puts "  ⚠ Warning: Could not seed BrandSettings: #{e.message}"
+  puts "  This is expected if migrations haven't been run yet."
+  puts "="*80
+end

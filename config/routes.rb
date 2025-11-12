@@ -29,6 +29,13 @@ Rails.application.routes.draw do
           post :activate
         end
       end
+
+      # Brand Settings API
+      resources :brand_settings, only: [:show] do
+        collection do
+          get :current
+        end
+      end
     end
 
     # CSP Violation Reporting Endpoint
