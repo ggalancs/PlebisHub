@@ -10,6 +10,7 @@ class User < ApplicationRecord
 
   # V2.0 features
   include Gamifiable
+  include HasPermissions
 
   has_flags  1 => :banned,
              2 => :superadmin,
@@ -59,6 +60,51 @@ class User < ApplicationRecord
 
   # Core association (not in any engine)
   belongs_to :vote_circle, optional: true
+
+  # V2.0 Associations - Social Features
+  has_many :follower_relationships,
+           class_name: 'SocialFollow',
+           foreign_key: :followee_id,
+           dependent: :destroy
+
+  has_many :followers,
+           through: :follower_relationships,
+           source: :follower
+
+  has_many :following_relationships,
+           class_name: 'SocialFollow',
+           foreign_key: :follower_id,
+           dependent: :destroy
+
+  has_many :following,
+           through: :following_relationships,
+           source: :followee
+
+  # V2.0 Associations - Proposal Voting & Comments
+  has_many :proposal_votes, dependent: :destroy
+  has_many :voted_proposals, through: :proposal_votes, source: :proposal
+  has_many :proposal_comments, foreign_key: :author_id, dependent: :destroy
+
+  # V2.0 Associations - Notifications
+  has_many :notifications, dependent: :destroy
+
+  # V2.0 Associations - Messaging
+  has_many :conversation_participants,
+           class_name: 'Messaging::ConversationParticipant',
+           dependent: :destroy
+
+  has_many :conversations,
+           through: :conversation_participants,
+           class_name: 'Messaging::Conversation'
+
+  has_many :sent_messages,
+           class_name: 'Messaging::Message',
+           foreign_key: :sender_id,
+           dependent: :destroy
+
+  # Alias for backward compatibility with V2 architecture
+  alias_attribute :organization_id, :vote_circle_id
+  alias_method :organization, :vote_circle
 
   validates :first_name, :last_name, :document_type, :document_vatid, presence: true
   validates :address, :postal_code, :town, :province, :country, :born_at, presence: true
@@ -1175,5 +1221,54 @@ class User < ApplicationRecord
 
     encrypted = cipher.update(data)+ cipher.final
     Base64.encode64([encrypted].pack('m').chomp)
+  end
+
+  # ================================================================
+  # V2.0 Social Features Methods
+  # ================================================================
+
+  def following?(user)
+    following.include?(user)
+  end
+
+  def follow!(user)
+    return false if following?(user)
+    return false if user == self
+
+    following << user
+    true
+  rescue ActiveRecord::RecordInvalid
+    false
+  end
+
+  def unfollow!(user)
+    return false unless following?(user)
+
+    following.delete(user)
+    true
+  end
+
+  def followers_count
+    followers.count
+  end
+
+  def following_count
+    following.count
+  end
+
+  # ================================================================
+  # V2.0 Notification Methods
+  # ================================================================
+
+  def notify!(type, options = {})
+    Notification.notify!(self, type, options)
+  end
+
+  def unread_notifications
+    notifications.unread
+  end
+
+  def unread_notifications_count
+    unread_notifications.count
   end
 end

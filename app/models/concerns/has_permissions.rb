@@ -67,7 +67,7 @@ module HasPermissions
   # @return [Boolean]
   def can?(action, resource, context: {})
     # Superadmin can do everything
-    return true if superadmin?
+    return true if is_superadmin?
 
     resource_type = extract_resource_type(resource)
     scope_level = determine_scope_level(resource, context)
@@ -87,10 +87,13 @@ module HasPermissions
     end
   end
 
-  # Check if user is superadmin (legacy support)
-  def superadmin?
-    has_role?('superadmin') || super_admin?
+  # Check if user is superadmin (supports both V2 role and V1 flag)
+  def is_superadmin?
+    has_role?('superadmin') || superadmin  # superadmin is the flag from FlagShihTzu
   end
+
+  # Alias for backward compatibility
+  alias_method :super_admin?, :is_superadmin?
 
   # Check if user is admin
   def admin?
@@ -121,7 +124,7 @@ module HasPermissions
   end
 
   def determine_scope_level(resource, context)
-    return 'global' if superadmin?
+    return 'global' if is_superadmin?
 
     case resource
     when String, Symbol, Class
