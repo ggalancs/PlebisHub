@@ -255,7 +255,10 @@ const handleClickOutside = (e: MouseEvent) => {
   if (!isOpen.value) return
 
   const target = e.target as Node
-  const comboboxElement = inputRef.value?.closest('.combobox-container')
+  // Get the actual DOM element (handles both HTMLElement and Vue component wrapper)
+  const element = inputRef.value as any
+  const domElement = element?.$el || element
+  const comboboxElement = domElement?.closest ? domElement.closest('.combobox-container') : null
 
   if (comboboxElement && !comboboxElement.contains(target)) {
     closeDropdown()
@@ -267,7 +270,10 @@ watch(isOpen, async (newValue) => {
   if (newValue) {
     await nextTick()
     if (props.searchable && inputRef.value) {
-      const input = inputRef.value.querySelector('input')
+      // Get the actual DOM element (handles both HTMLElement and Vue component wrapper)
+      const element = inputRef.value as any
+      const domElement = element?.$el || element
+      const input = domElement?.querySelector ? domElement.querySelector('input') : null
       input?.focus()
     }
   }
