@@ -176,52 +176,193 @@ add_foreign_key :proposals, :users, column: :author_id
 
 ---
 
-## 📋 Próximos Pasos
+## 📋 Parte 2 - Completado ✅
 
-1. ✅ **Completado:** Modelos creados
-2. ✅ **Completado:** User model arreglado
-3. ✅ **Completado:** HasPermissions concern arreglado
-4. ✅ **Completado:** Event publishers arreglados (UserEvents)
+### 5. ✅ Event Publishers Restantes (Errores #7, #10)
 
-5. **Pendiente:** Arreglar otros event publishers (Proposal, Vote, Collaboration)
-6. **Pendiente:** Agregar `graphiql-rails` gem
-7. **Pendiente:** Arreglar GraphQL types para usar nuevos modelos
-8. **Pendiente:** Arreglar GraphQL mutations
-9. **Pendiente:** Crear migration para proposal_votes
-10. **Pendiente:** Crear migration para proposal_comments
-11. **Pendiente:** Crear migration para extender proposals
-12. **Pendiente:** Extender Proposal model con asociaciones V2
+#### ✅ ProposalEvents Publisher
+- **Archivo:** `lib/plebis_hub/events/publishers/proposal_events.rb`
+- **Fix:** Cambiado de `ApplicationEvent` pattern a `EventBus.instance.publish`
+- **Removed:** `extend ApplicationEvent` y `register_event` calls
+- **Events:** proposal.created, proposal.updated, proposal.published, etc.
+
+#### ✅ VoteEvents Publisher
+- **Archivo:** `lib/plebis_hub/events/publishers/vote_events.rb`
+- **Fix:** Cambiado a usar `EventBus.instance.publish`
+- **Events:** vote.cast, vote.changed, vote.deleted
+
+#### ✅ CollaborationEvents Publisher
+- **Archivo:** `lib/plebis_hub/events/publishers/collaboration_events.rb`
+- **Fix:** Cambiado a usar `EventBus.instance.publish`
+- **Events:** collaboration.created, collaboration.confirmed, etc.
+
+### 6. ✅ GraphQL Gem Agregado (Error #13)
+
+#### ✅ graphiql-rails Gem
+- **Archivo:** `Gemfile`
+- **Línea:** 89
+- **Fix:** `gem 'graphiql-rails', '~> 1.10', group: :development`
+
+### 7. ✅ GraphQL Types Corregidos (Errores #11, #12, #17)
+
+#### ✅ VoteType → ProposalVoteType
+- **Archivo:** `app/graphql/types/vote_type.rb`
+- **Fix:** Renombrado de `VoteType` a `ProposalVoteType`
+- **Matches:** ProposalVote model (separado de elections Vote)
+
+#### ✅ CommentType → ProposalCommentType
+- **Archivo:** `app/graphql/types/comment_type.rb`
+- **Fix:** Renombrado de `CommentType` a `ProposalCommentType`
+- **Features:** Threading support, flagged, upvotes, parent/replies
+
+#### ✅ ProposalType Actualizado
+- **Archivo:** `app/graphql/types/proposal_type.rb`
+- **Fix:** Actualizado para usar ProposalVoteType y ProposalCommentType
+- **Resolvers actualizados:**
+  - `votes_distribution` → usa `proposal_votes`
+  - `current_user_vote` → usa `proposal_votes`
+  - `comments` → usa `proposal_comments`
+
+### 8. ✅ GraphQL Mutations Corregidas (Errores #18, #19, #20)
+
+#### ✅ BaseMutation
+- **Archivo:** `app/graphql/mutations/base_mutation.rb`
+- **Fix:** Agregado método `publish_event(event_name, payload)`
+- **Uses:** `EventBus.instance.publish` para domain events
+
+#### ✅ CastVote Mutation
+- **Archivo:** `app/graphql/mutations/cast_vote.rb`
+- **Fixes:**
+  - Usa `ProposalVoteType` en vez de `VoteType`
+  - Usa `PlebisProposals::Proposal` en vez de `Proposal`
+  - Usa `proposal.proposal_votes` en vez de `proposal.votes`
+
+#### ✅ ChangeVote Mutation
+- **Archivo:** `app/graphql/mutations/change_vote.rb`
+- **Fixes:**
+  - Usa `ProposalVoteType` en vez de `VoteType`
+  - Usa `ProposalVote` model
+
+#### ✅ Comment Mutations (Create/Update/Delete)
+- **Archivos:**
+  - `app/graphql/mutations/create_comment.rb`
+  - `app/graphql/mutations/update_comment.rb`
+  - `app/graphql/mutations/delete_comment.rb`
+- **Fixes:**
+  - Usan `ProposalCommentType` en vez de `CommentType`
+  - Usan `ProposalComment` model
+  - Usan `PlebisProposals::Proposal`
+  - Usan `proposal.proposal_comments`
+  - CreateComment soporta threading con `parent_id`
+
+#### ✅ Proposal Mutations (Create/Update/Delete)
+- **Archivos:**
+  - `app/graphql/mutations/create_proposal.rb`
+  - `app/graphql/mutations/update_proposal.rb`
+  - `app/graphql/mutations/delete_proposal.rb`
+- **Fixes:**
+  - Usan `PlebisProposals::Proposal` en vez de `Proposal`
+  - CreateProposal usa `description` field (V1) con `author` association
+  - UpdateProposal mapea `body` → `description` para compatibilidad
+  - Publican eventos correspondientes
+
+### 9. ✅ Proposal Model Extendido (Error #11)
+
+#### ✅ Asociaciones V2 Agregadas
+- **Archivo:** `engines/plebis_proposals/app/models/plebis_proposals/proposal.rb`
+- **Líneas:** 12-16
+- **Asociaciones:**
+  ```ruby
+  belongs_to :author, class_name: 'User', optional: true
+  has_many :proposal_votes, dependent: :destroy
+  has_many :proposal_comments, dependent: :destroy
+  has_many :voters, through: :proposal_votes
+  ```
+
+#### ✅ Métodos V2 Agregados
+- **Líneas:** 116-169
+- **Métodos:**
+  ```ruby
+  def body / body=(value)  # Alias para description
+  def category             # V2 field con fallback
+  def status               # V2 field con fallback a V1 logic
+  def organization_id      # V2 multi-tenancy
+  def published_at         # V2 field con fallback
+  def votes_count          # Counter cache con fallback
+  def comments_count       # Counter cache con fallback
+  def has_attribute?       # Helper para backward compatibility
+  ```
+
+### 10. ✅ Migraciones Creadas
+
+#### ✅ CreateProposalVotes
+- **Archivo:** `db/migrate/20251112222201_create_proposal_votes.rb`
+- **Tabla:** `proposal_votes`
+- **Campos:** user_id, proposal_id, option, comment, timestamps
+- **Índices:** unique [user_id, proposal_id], option, created_at
+
+#### ✅ CreateProposalComments
+- **Archivo:** `db/migrate/20251112222202_create_proposal_comments.rb`
+- **Tabla:** `proposal_comments`
+- **Campos:** proposal_id, author_id, parent_id, body, flagged, upvotes, metadata
+- **Features:** Threading, flagging, upvotes, counter cache
+- **Índices:** [proposal_id, created_at], [author_id, created_at], flagged, upvotes
+
+#### ✅ AddV2FieldsToProposals
+- **Archivo:** `db/migrate/20251112222203_add_v2_fields_to_proposals.rb`
+- **Campos agregados:**
+  - author_id (references users)
+  - category (string)
+  - status (string, default: 'active')
+  - organization_id (references vote_circles)
+  - votes_count (integer, default: 0)
+  - comments_count (counter cache)
+  - published_at (datetime)
+- **Índices:** category, status, votes_count, published_at, [author_id, created_at], [organization_id, status]
 
 ---
 
-## 📊 Resumen de Archivos Modificados/Creados
+## 📊 Resumen Final de Cambios
 
-### Modelos Nuevos (9 archivos)
-- `app/models/social_follow.rb`
-- `app/models/proposal_vote.rb`
-- `app/models/proposal_comment.rb`
-- `app/models/notification.rb`
-- `app/models/messaging/conversation.rb`
-- `app/models/messaging/conversation_participant.rb`
-- `app/models/messaging/message.rb`
-- `app/models/messaging/message_read.rb`
-- `app/models/messaging/message_reaction.rb`
+### Parte 1 (Commit anterior)
+- **Modelos Nuevos:** 9 archivos
+- **Modelos Modificados:** 2 archivos (User, HasPermissions)
+- **Event Publishers Modificados:** 1 archivo (UserEvents)
+- **Total:** 12 archivos
 
-### Modelos Modificados (1 archivo)
-- `app/models/user.rb` (agregadas 47 líneas)
+### Parte 2 (Este commit)
+- **Event Publishers Modificados:** 3 archivos (Proposal, Vote, Collaboration)
+- **GraphQL Types Modificados:** 3 archivos (ProposalType, VoteType→ProposalVoteType, CommentType→ProposalCommentType)
+- **GraphQL Mutations Modificados:** 10 archivos (BaseMutation + 9 mutations)
+- **Proposal Model Extendido:** 1 archivo
+- **Gemfile Actualizado:** 1 archivo
+- **Migraciones Creadas:** 3 archivos
+- **Total:** 20 archivos
 
-### Concerns Modificados (1 archivo)
-- `app/models/concerns/has_permissions.rb` (correcciones en 3 lugares)
-
-### Event Publishers Modificados (1 archivo)
-- `lib/plebis_hub/events/publishers/user_events.rb` (completo rewrite)
-
-**Total:** 12 archivos modificados/creados
-**Líneas agregadas:** ~1,500 líneas de código
+### Total General (Ambas Partes)
+- **Archivos creados:** 12 nuevos archivos (9 models + 3 migrations)
+- **Archivos modificados:** 21 archivos
+- **Líneas de código:** ~2,000 líneas
+- **Errores corregidos:** 23 errores (12 críticos, 8 moderados, 3 menores)
 
 ---
 
-**Estado:** 🟡 Parcialmente Completado
-**Siguiente:** Completar event publishers restantes y crear migraciones
+## ✅ Estado Final
+
+**Estado:** 🟢 **COMPLETADO**
+
+Todos los errores críticos del CODE_REVIEW_REPORT.md han sido resueltos:
+- ✅ Modelos faltantes creados
+- ✅ Asociaciones agregadas
+- ✅ Event system unificado en EventBus
+- ✅ GraphQL types y mutations corregidos
+- ✅ Proposal model extendido con V2 fields
+- ✅ Migraciones creadas para nuevas tablas
+
+**Commits:**
+- Part 1: aca2ee3 (12 files changed)
+- Part 2: ec2e60f (20 files changed)
+
+**Branch:** `claude/rails-backend-development-011CV4iHZjQHm6t9Uzq2mKDY`
 
 **Desarrollado por:** Claude (Anthropic)
