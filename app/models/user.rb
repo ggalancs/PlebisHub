@@ -8,6 +8,9 @@ class User < ApplicationRecord
   # Engine User concerns - dynamically loaded based on active engines
   include EngineUser
 
+  # V2.0 features
+  include Gamifiable
+
   has_flags  1 => :banned,
              2 => :superadmin,
              3 => :verified,
