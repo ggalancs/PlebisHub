@@ -48,7 +48,8 @@ SecureHeaders::Configuration.default do |config|
 
   config.csp = {
     # Enforcement mode (report-only in development)
-    report_only: Rails.env.development?,
+    # NOTE: report_only has been moved to csp_report_only config in newer secure_headers versions
+    # report_only: Rails.env.development?,
 
     # CSP violation reporting endpoint
     report_uri: %w[/api/csp-violations],
@@ -144,15 +145,17 @@ SecureHeaders::Configuration.default do |config|
   # ========================================
   # EXPECT-CT (Certificate Transparency)
   # ========================================
+  # NOTE: expect_ct has been deprecated in newer versions of secure_headers gem
+  # Browsers have deprecated this feature, see: https://developer.chrome.com/blog/ct-update/
 
-  if Rails.env.production?
-    config.expect_ct = {
-      max_age: 86_400, # 24 hours
-      enforce: true,
-    }
-  else
-    config.expect_ct = SecureHeaders::OPT_OUT
-  end
+  # if Rails.env.production?
+  #   config.expect_ct = {
+  #     max_age: 86_400, # 24 hours
+  #     enforce: true,
+  #   }
+  # else
+  #   config.expect_ct = SecureHeaders::OPT_OUT
+  # end
 end
 
 # ========================================
