@@ -1,5 +1,7 @@
 module Podemos
-  SpanishBIC = {
+  # Skip definition if already defined (e.g., by engine initializer)
+  unless defined?(SpanishBIC)
+    SpanishBIC = {
     3 => "BDEPESM1XXX",
     4 => "BANDESSSXXX",
     11 => "ALLFESMMXXX",
@@ -234,5 +236,6 @@ module Podemos
     3190 => "BCOEESMM190",
     3191 => "BCOEESMM191",
     9000 => "ESPBESMMXXX"
-  }
-end
+    }
+  end # unless defined?
+end # module Podemos

@@ -42,6 +42,15 @@ Rails.application.routes.draw do
     # Receives automatic reports from browsers when Content Security Policy is violated
     post 'csp-violations', to: 'csp_violations#create'
   end
+
+  # GraphQL API - PlebisHub 2.0
+  # Flexible, powerful API with queries, mutations, and real-time subscriptions
+  post '/graphql', to: 'graphql#execute'
+
+  # GraphQL IDE for development (GraphiQL)
+  if Rails.env.development? || Rails.env.staging?
+    mount GraphiQL::Rails::Engine, at: '/graphiql', graphql_path: '/graphql'
+  end
   scope "/(:locale)", locale: /es|ca|eu/ do
 
     if Rails.application.secrets.openid.try(:[], "enabled")
