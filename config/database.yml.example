@@ -1,53 +1,47 @@
-# SQLite version 3.x
-#   gem install sqlite3
+# ========================================
+# PlebisHub Database Configuration
+# ========================================
+# Always use PostgreSQL for all environments
+# Development uses Docker container or local PostgreSQL
+# ========================================
 #
-#   Ensure the SQLite 3 gem is defined in your Gemfile
-#   gem 'sqlite3'
-#
-#default: &default
-#  adapter: sqlite3
-#  pool: 5
-#  timeout: 5000
-
-#development:
-#  <<: *default
-#  database: db/development.sqlite3
-
-# Warning: The database defined as "test" will be erased and
-# re-generated from your development database when you run "rake".
-# Do not set this db to the same as development or production.
-#test:
-#  <<: *default
-#  database: db/test.sqlite3
-
-#production:
-#  <<: *default
-#  database: db/production.sqlite3
-
-# PostgreSQL version 9.6
-#   gem install pg
-#
-#   Ensure the postgreSQL gem is defined in your Gemfile
-#   gem 'pg'
-#
+# Copy this file to database.yml and configure with your credentials
+# cp config/database.yml.example config/database.yml
 
 default: &default
   adapter: postgresql
   encoding: unicode
-  pool: 5
-  host: localhost
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
 
 development:
   <<: *default
-  database: participa_db
-  username: changeme
-  password: changeme
+  database: <%= ENV.fetch("POSTGRES_DB") { "plebishub_development" } %>
+  username: <%= ENV.fetch("POSTGRES_USER") { "postgres" } %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD") { "changeme" } %>
+  host: <%= ENV.fetch("POSTGRES_HOST") { "localhost" } %>
+  port: <%= ENV.fetch("POSTGRES_PORT") { "5432" } %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: participa_test
+  database: <%= ENV.fetch("POSTGRES_TEST_DB") { "plebishub_test" } %>
+  username: <%= ENV.fetch("POSTGRES_USER") { "postgres" } %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD") { "changeme" } %>
+  host: <%= ENV.fetch("POSTGRES_HOST") { "localhost" } %>
+  port: <%= ENV.fetch("POSTGRES_PORT") { "5432" } %>
 
+staging:
+  <<: *default
+  database: <%= ENV.fetch("POSTGRES_DB") { "plebishub_staging" } %>
+  username: <%= ENV.fetch("POSTGRES_USER") { "postgres" } %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD") %>
+  host: <%= ENV.fetch("POSTGRES_HOST") { "localhost" } %>
+  port: <%= ENV.fetch("POSTGRES_PORT") { "5432" } %>
+
+production:
+  # Use DATABASE_URL environment variable in production
+  url: <%= ENV['DATABASE_URL'] %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
