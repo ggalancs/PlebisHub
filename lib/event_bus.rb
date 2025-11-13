@@ -132,7 +132,8 @@ end
 
 # Background worker for async event processing
 class EventBusWorker
-  include Resque::Plugins::UniqueJob
+  # TODO: Add resque-unique_job gem or use alternative
+  # include Resque::Plugins::UniqueJob if defined?(Resque::Plugins::UniqueJob)
 
   @queue = :events
 
