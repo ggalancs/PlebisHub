@@ -38,6 +38,16 @@ module PlebisHub
     # This prevents FrozenError by keeping paths mutable
     config.add_autoload_paths_to_load_path = true
 
+    # Paper Trail / YAML Serialization Compatibility (Rails 7+)
+    # Required for Paper Trail changesets to work properly with YAML serialization
+    # See: https://github.com/paper-trail-gem/paper_trail/blob/master/CHANGELOG.md
+    config.active_record.yaml_column_permitted_classes = [
+      Symbol, Date, Time, DateTime,
+      ActiveSupport::TimeWithZone,
+      ActiveSupport::TimeZone,
+      BigDecimal
+    ]
+
     # ========================================
     # SECURITY & PERFORMANCE MIDDLEWARES
     # ========================================
