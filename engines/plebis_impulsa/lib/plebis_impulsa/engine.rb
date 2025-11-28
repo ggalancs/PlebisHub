@@ -5,7 +5,10 @@ module PlebisImpulsa
     isolate_namespace PlebisImpulsa
 
     # Add concerns directory to autoload paths (Zeitwerk compatibility)
-    config.autoload_paths << root.join('app/models/plebis_impulsa/concerns')
+    # Use before_initialize to avoid modifying frozen arrays in Rails 7.2+
+    config.before_initialize do
+      config.autoload_paths += [root.join('app/models/plebis_impulsa/concerns')]
+    end
 
     config.generators do |g|
       g.test_framework :rspec
