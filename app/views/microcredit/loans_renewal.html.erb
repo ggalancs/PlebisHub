@@ -13,7 +13,7 @@
       <%end %>.</p>
   <% end %>
   <%= errors_in_form @renewal %>
-  <%= semantic_form_for @renewal, as: :renewals, url: loans_renew_microcredit_loan_path(@microcredit.id, @renewal.loan.id, @renewal.loan.unique_hash, brand: @brand), html: {method: :post, autocomplete: 'off'} do |f| %>
+  <%= semantic_form_with model: @renewal, scope: :renewals, url: loans_renew_microcredit_loan_path(@microcredit.id, @renewal.loan.id, @renewal.loan.unique_hash, brand: @brand), method: :post, html: { autocomplete: 'off' } do |f| %>
     <fieldset>
       <div class="inputlabel-box">
         <% if @renewal.errors.include?(:loan_renewals) %>

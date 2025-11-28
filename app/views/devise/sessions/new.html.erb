@@ -6,7 +6,7 @@
     <div class="row">
       <div class="col-bhome-9a12">
         <div class="login-box">
-          <%= form_for resource, as: resource_name, url: session_path(resource_name) do |f| %>
+          <%= form_with model: resource, scope: resource_name, url: session_path(resource_name) do |f| %>
             <fieldset>
               <legend>
               ¿Ya eres inscrita o inscrito?

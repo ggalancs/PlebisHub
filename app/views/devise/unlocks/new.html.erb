@@ -8,7 +8,7 @@
       </h2>
 
 
-      <%= semantic_form_for(resource, as: resource_name, url: unlock_path(resource_name), html: {method: :post}) do |f| %>
+      <%= semantic_form_with model: resource, scope: resource_name, url: unlock_path(resource_name), method: :post do |f| %>
 
           <fieldset>
             <legend class="invisible">

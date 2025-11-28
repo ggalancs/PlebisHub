@@ -34,7 +34,7 @@ input.button, a.button { background-color: <%=@brand_config["color2"]%> !importa
   <p><%=fa_icon "phone-square"%> <%= t('.help_phone', phone: @microcredit.contact_phone).html_safe %></p>
   <% end %>
   <%= errors_in_form @loan %>
-  <%= semantic_form_for @loan, url: create_microcredit_loan_path(@url_params), html: {method: :post, autocomplete: 'off'} do |f| %>
+  <%= semantic_form_with model: @loan, url: create_microcredit_loan_path(@url_params), method: :post, html: { autocomplete: 'off' } do |f| %>
 
     <% if current_user && @brand_config["allow_login"] %>
       <% if @user_loans.length > 0 %>

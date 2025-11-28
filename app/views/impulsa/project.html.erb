@@ -51,7 +51,7 @@
         <h3>Datos del proyecto</h3>
         <%= errors_in_form @project %>
 
-        <%= semantic_form_for @project, url: update_impulsa_path, html: { method: :post, autocomplete: 'off'} do |f| %>
+        <%= semantic_form_with model: @project, url: update_impulsa_path, method: :post, html: { autocomplete: 'off' } do |f| %>
           <fieldset>
             <div class="inputlabel-box">
               <% if @project.errors.include?(:impulsa_edition_category) %>

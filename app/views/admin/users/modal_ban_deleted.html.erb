@@ -1,4 +1,4 @@
-<%= semantic_form_for :users, :url => { :action => "ban_deleted" } do |f| %>
+<%= semantic_form_with scope: :users, url: { action: "ban_deleted" } do |f| %>
   <fieldset>
     <%= label :manual_comment, class: "control-label", required: true do %>
       <%= "Comentario"%>

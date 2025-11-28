@@ -9,7 +9,7 @@
 
       <%= errors_in_form current_user %>
 
-      <%= semantic_form_for(current_user, url: sms_validator_valid_path, html: {method: :post}) do |f| %>
+      <%= semantic_form_with model: current_user, url: sms_validator_valid_path, method: :post do |f| %>
 
           <fieldset>
             <legend class="invisible">Código SMS</legend>

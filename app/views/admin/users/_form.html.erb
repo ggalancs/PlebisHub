@@ -1,4 +1,4 @@
-<%= semantic_form_for([:admin, @user], builder: Formtastic::FormBuilder) do |f| %>
+<%= semantic_form_with model: [:admin, @user], builder: Formtastic::FormBuilder do |f| %>
   <%= f.inputs "Admin Details" do %>
     <%= f.input :email %>
 	<%= f.input :phone, label: 'Teléfono móvil (confirmado)' %>

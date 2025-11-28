@@ -3,9 +3,9 @@
 <% elsif proposal.supported?(current_user) %>
     <span class="supported">Ya has apoyado esta propuesta. ¡Muchas gracias!</span>
 <% else %>
-  <%= form_for [proposal, Support.new], 
-               html: {id: "support_proposal_#{proposal.id}", remote: true,
-                      style: "display: inline;"} do |f| %>
+  <%= form_with model: [proposal, Support.new],
+               id: "support_proposal_#{proposal.id}", local: false,
+               style: "display: inline;" do |f| %>
       <%= f.submit "Apoyar propuesta", :class => button_class %>
   <% end %>
 <% end %>

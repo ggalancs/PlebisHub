@@ -18,7 +18,7 @@
           <% end %>
       <% end %>
 
-      <%= semantic_form_for(current_user, url: update_legacy_password_path, html: {method: :post}) do |f| %>
+      <%= semantic_form_with model: current_user, url: update_legacy_password_path, method: :post do |f| %>
 
           <fieldset>
             <legend class="invisible">Actualizar contraseña</legend>

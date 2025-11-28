@@ -1,4 +1,4 @@
-<%= semantic_form_for :process_collaborations_on_paper, :url => { :action => "process_collaborations_on_paper" } do |f| %>
+<%= semantic_form_with scope: :process_collaborations_on_paper, url: { action: "process_collaborations_on_paper" } do |f| %>
   <%= f.input :file, :as => :file, :label => false %>
   <p style="margin-top:10px;">Debe:</p>
   <ul style="list-style-type: disc; margin-left: 15px;">

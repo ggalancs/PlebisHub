@@ -1,4 +1,4 @@
-<%= semantic_form_for :fill_csv, :url => { :action => "fill_csv" } do |f| %>
+<%= semantic_form_with scope: :fill_csv, url: { action: "fill_csv" } do |f| %>
     <div class="filter_form_field">
       <%= f.input :file, :as => :file, :label => "Archivo a cargar" %>
       <p style="margin-top:10px;">Debe:</p>

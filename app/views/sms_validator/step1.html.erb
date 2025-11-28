@@ -6,7 +6,7 @@
     <div class="col-b-4a12">
     <%= render partial: "steps", locals: {step: 1} %>
 
-      <%= semantic_form_for(current_user, url: sms_validator_phone_path, html: {method: :post}) do |f| %>
+      <%= semantic_form_with model: current_user, url: sms_validator_phone_path, method: :post do |f| %>
           <fieldset>
             <legend class="invisible">Cambia tu móvil</legend>
             <p><%= t('plebisbrand.valid.phone.p1') %></p>

@@ -1,5 +1,5 @@
 <% @election_location.has_voting_info = params[:has_voting_info] if params[:has_voting_info] %>
-<%= semantic_form_for [:admin, @election_location.election, @election_location], builder: Formtastic::FormBuilder do |f| %>
+<%= semantic_form_with model: [:admin, @election_location.election, @election_location], builder: Formtastic::FormBuilder do |f| %>
   <%= f.inputs "Identificación" do %>
     <%= f.input :election, as: :string, input_html: { disabled: true } %>
     

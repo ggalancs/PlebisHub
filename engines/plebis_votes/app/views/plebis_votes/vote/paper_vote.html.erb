@@ -13,7 +13,7 @@
     <h3>Registrar voto</h3>
     <p><%= paper_vote_user.first_name %>, con <%= paper_vote_user.document_type_name %> <%= paper_vote_user.document_vatid %>, puede emitir su voto.</p>
     <center>
-    <%= form_tag do |f| %>
+    <%= form_with do |f| %>
       <%= hidden_field_tag 'validation_token', validation_token_for_paper_vote_user %>
       <%= hidden_field_tag 'user_id', paper_vote_user.id %>
       <% if election.scope == 6 %>
@@ -27,7 +27,7 @@
     </center>
   <% else %>
     <h3>Localizar votante</h3>
-    <%= form_tag do |f| %>
+    <%= form_with do |f| %>
       <fieldset>
         <div>
           <%= content_tag(:span, "", class: "no-label", style: "display:inline-block") %>

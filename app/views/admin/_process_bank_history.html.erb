@@ -1,4 +1,4 @@
-<%= semantic_form_for :process_bank_history, :url => { :action => "process_bank_history" } do |f| %> 
+<%= semantic_form_with scope: :process_bank_history, url: { action: "process_bank_history" } do |f| %> 
     <%= f.input :file, :as => :file, :label => false %>
     <div class="buttons">
     <%= f.actions do %>

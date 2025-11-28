@@ -11,7 +11,7 @@
           </div>
         <% end %>
         <%= content_tag(:h2, @project.wizard_step_info[:title]) %>
-        <%= semantic_form_for @project, url: update_step_impulsa_path(step: @step), html: {method: :post, autocomplete: 'off'} do |f| %>
+        <%= semantic_form_with model: @project, url: update_step_impulsa_path(step: @step), method: :post, html: { autocomplete: 'off' } do |f| %>
           <%= simple_format(@project.wizard_step_info[:text]) if @project.wizard_step_info[:text].present? %>
           <% 
           saveable = false

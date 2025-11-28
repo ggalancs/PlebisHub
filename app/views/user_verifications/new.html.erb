@@ -11,7 +11,7 @@
         <%= content_tag(:p, t("plebisbrand.user_verification.pending"), style: "font-weight:bold") if @user_verification.persisted? and @user_verification.status !=1 and @user_verification.status !=3 %>
         <%= errors_in_form @user_verification %>
       <% end %>
-      <%= semantic_form_for @user_verification, url: create_user_verification_path, html: {method: :post, autocomplete: 'off'} do |f| %>
+      <%= semantic_form_with model: @user_verification, url: create_user_verification_path, method: :post, html: { autocomplete: 'off' } do |f| %>
         <% if current_user.photos_necessary? %>
           <fieldset >
             <div class="js-user-verification">

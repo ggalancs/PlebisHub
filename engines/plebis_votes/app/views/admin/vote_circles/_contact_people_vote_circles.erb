@@ -1,4 +1,4 @@
-<%= semantic_form_for :vote_circles, :url => { :action => "contact_people_vote_circles" } do |f| %>
+<%= semantic_form_with scope: :vote_circles, url: { action: "contact_people_vote_circles" } do |f| %>
   <span class="form-wrapper">
     <%= label :vote_circle_autonomy, class: "control-label", required: false do %>
         <%="Seleciiona una CCAA" %>

@@ -26,7 +26,7 @@
       <p> Ya tienes una colaboración recurrente. Es la siguiente: </p>
       <%= errors_in_form @collaboration %>
 
-      <%= semantic_form_for @collaboration, url: modify_collaboration_path, html: {method: :post, autocomplete: 'off'} do |f| %>
+      <%= semantic_form_with model: @collaboration, url: modify_collaboration_path, method: :post, html: { autocomplete: 'off' } do |f| %>
       <%= render partial: "form", locals: { f: f } %>
       <%= render partial: "frequency_table" %>
 

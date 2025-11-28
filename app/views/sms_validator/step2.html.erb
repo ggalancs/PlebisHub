@@ -7,7 +7,7 @@
 
       <%= render partial: "steps", locals: {step: 2} %>
 
-      <%= semantic_form_for(:captcha, url: sms_validator_captcha_path, html: {method: :post}) do |f| %>
+      <%= semantic_form_with scope: :captcha, url: sms_validator_captcha_path, method: :post do |f| %>
 
           <fieldset>
             <legend class="invisible">Captcha</legend>
