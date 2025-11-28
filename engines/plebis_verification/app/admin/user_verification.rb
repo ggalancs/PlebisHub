@@ -9,7 +9,7 @@ ActiveAdmin.register PlebisVerification::UserVerification, as: "UserVerification
   end
 
   actions :index, :show, :edit, :update
-  action_item "Procesar", only: :index do
+  action_item :procesar, only: :index do
     link_to "Procesar", params.merge(:action => :get_first_free)
   end
 
@@ -213,7 +213,7 @@ end
     degrees = params[:degrees].to_i
     verification.rotate[attachment] = degrees
     verification.send(attachment).reprocess!
-    redirect_to :back
+    redirect_back(fallback_location: admin_user_verifications_path)
   end
 
   member_action :view_image do

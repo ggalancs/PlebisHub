@@ -54,7 +54,7 @@ ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: "ImpulsaProject" do
     p.mark_as_spam
     p.save
     flash[:notice] = "El proyecto ha sido marcado como spam."
-    redirect_to :back
+    redirect_back(fallback_location: admin_impulsa_projects_path)
   end
 
   action_item(:review, only: :show ) do
@@ -66,7 +66,7 @@ ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: "ImpulsaProject" do
     p.mark_for_review
     p.save
     flash[:notice] = "El proyecto ha sido marcado para revisión."
-    redirect_to :back
+    redirect_back(fallback_location: admin_impulsa_projects_path)
   end
 
   member_action :download_attachment do
@@ -83,7 +83,7 @@ ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: "ImpulsaProject" do
     p.reset_evaluator(current_active_admin_user.id)
     p.save
     flash[:notice] = "Has abandonado la evaluación del proyecto, cualquier usuario podrá realizarla en tu lugar."
-    redirect_to :back
+    redirect_back(fallback_location: admin_impulsa_projects_path)
   end
 
   sidebar "Subir resultados de votación", 'data-panel' => :collapsed, :only => :index, priority: 1 do
@@ -380,8 +380,8 @@ ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: "ImpulsaProject" do
   end
 
   controller do
-    before_filter :update_scopes, :only => :index
-    before_filter :multiple_id_search, :only => :index
+    before_action :update_scopes, only: :index
+    before_action :multiple_id_search, only: :index
 
     def multiple_id_search
       params[:q][:id_in] = params[:q][:id_in].split unless params[:q].nil? or params[:q][:id_in].nil?

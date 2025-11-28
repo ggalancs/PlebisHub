@@ -250,7 +250,7 @@ ActiveAdmin.register MicrocreditLoan do
         flash[:alert] = "El microcrédito no ha sido modificado: #{m.errors.messages.to_s}"
       end
     end
-    redirect_to :back
+    redirect_back(fallback_location: admin_microcredit_loans_path)
   end
 
   member_action :confirm, :method => [:post, :delete] do
@@ -267,7 +267,7 @@ ActiveAdmin.register MicrocreditLoan do
     else
       flash[:alert] = "La recepción del microcrédito no ha sido confirmada: #{m.errors.messages.to_s}"
     end
-    redirect_to :back
+    redirect_back(fallback_location: admin_microcredit_loans_path)
   end
 
   member_action :discard, :method => :post do
@@ -277,7 +277,7 @@ ActiveAdmin.register MicrocreditLoan do
     else
       flash[:alert] = "El microcrédito no ha sido descartado: #{m.errors.messages.to_s}"
     end
-    redirect_to :back
+    redirect_back(fallback_location: admin_microcredit_loans_path)
   end
 
   csv do
@@ -351,7 +351,7 @@ ActiveAdmin.register MicrocreditLoan do
   end
 
   controller do
-    before_filter :multiple_id_search, :only => :index
+    before_action :multiple_id_search, only: :index
 
     def multiple_id_search
       params[:q][:id_in] = params[:q][:id_in].split unless params[:q].nil? or params[:q][:id_in].nil?

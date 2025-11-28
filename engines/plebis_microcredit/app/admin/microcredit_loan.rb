@@ -252,7 +252,7 @@ ActiveAdmin.register PlebisMicrocredit::MicrocreditLoan, as: "MicrocreditLoan" d
         flash[:alert] = "El microcrédito no ha sido modificado: #{m.errors.messages.to_s}"
       end
     end
-    redirect_to :back
+    redirect_back(fallback_location: admin_microcredit_loans_path)
   end
 
   member_action :confirm, :method => [:post, :delete] do
@@ -269,7 +269,7 @@ ActiveAdmin.register PlebisMicrocredit::MicrocreditLoan, as: "MicrocreditLoan" d
     else
       flash[:alert] = "La recepción del microcrédito no ha sido confirmada: #{m.errors.messages.to_s}"
     end
-    redirect_to :back
+    redirect_back(fallback_location: admin_microcredit_loans_path)
   end
 
   member_action :discard, :method => :post do
@@ -279,7 +279,7 @@ ActiveAdmin.register PlebisMicrocredit::MicrocreditLoan, as: "MicrocreditLoan" d
     else
       flash[:alert] = "El microcrédito no ha sido descartado: #{m.errors.messages.to_s}"
     end
-    redirect_to :back
+    redirect_back(fallback_location: admin_microcredit_loans_path)
   end
 
   csv do
