@@ -3,15 +3,42 @@ class Election < ApplicationRecord
 
   SCOPE = [["Estatal", 0], ["Comunidad", 1], ["Provincial", 2], ["Municipal", 3], ["Insular", 4], ["Extranjeros", 5], ["Círculos", 6]]
 
+  # FlagShihTzu: check_for_column: false prevents startup warnings before migrations run
   has_flags 1 => :requires_sms_check,
             2 => :show_on_index,
             3 => :ignore_multiple_territories,
-            4 => :requires_vatid_check
+            4 => :requires_vatid_check,
+            check_for_column: false
 
-  has_attached_file :census_file, path: ":rails_root/non-public/system/:class/:attachment/:id_partition/:filename"
-  validates_attachment_content_type :census_file, content_type:  ["text/plain", "text/csv"], message: "No reconocido como CSV"
-  validates_attachment_size :census_file, less_than: 10.megabyte
+  # ActiveStorage attachment (replaces Paperclip)
+  has_one_attached :census_file
+
+  # Validations for census_file
+  validate :census_file_content_type_validation
+  validate :census_file_size_validation
+
   validates :title, :starts_at, :ends_at, :agora_election_id, :scope, presence: true
+
+  private
+
+  def census_file_content_type_validation
+    return unless census_file.attached?
+
+    allowed_types = ["text/plain", "text/csv", "application/csv"]
+    unless allowed_types.include?(census_file.content_type)
+      errors.add(:census_file, "No reconocido como CSV")
+    end
+  end
+
+  def census_file_size_validation
+    return unless census_file.attached?
+
+    if census_file.byte_size > 10.megabytes
+      errors.add(:census_file, "debe ser menor de 10MB")
+    end
+  end
+
+  public
   has_many :votes
   has_many :election_locations, dependent: :destroy
 
@@ -81,9 +108,9 @@ class Election < ApplicationRecord
   end
 
   def check_valid_location_from_csv(user, valid_locations)
-    return false unless self.census_file.file?
+    return false unless census_file.attached?
     result = false
-    data =CSV.parse(Paperclip.io_adapters.for(self.census_file).read,headers:true)
+    data = CSV.parse(census_file.download, headers: true)
     data.each do |r|
       if user && r["user_id"] == user.id.to_s
         result = r["vote_circle_id"].present? && valid_locations.any? {|l| l.location == r["vote_circle_id"]}
@@ -94,9 +121,9 @@ class Election < ApplicationRecord
   end
 
   def get_user_location_from_csv(user)
-    return false unless self.census_file.file?
+    return false unless census_file.attached?
     result = false
-    data =CSV.parse(Paperclip.io_adapters.for(self.census_file).read,headers:true)
+    data = CSV.parse(census_file.download, headers: true)
     data.each do |r|
       if user && r["user_id"] == user.id.to_s
         result = r["vote_circle_id"] if r["vote_circle_id"]
@@ -123,7 +150,7 @@ class Election < ApplicationRecord
         when 4 then user.has_vote_town? && valid_locations.any? {|l| l.location == user.vote_island_numeric}
         when 5 then user.country!="ES" && valid_locations.any?
       when 6 then
-        if self.census_file.file?
+        if census_file.attached?
           check_valid_location_from_csv user, valid_locations
         else
           user.vote_circle.present? && valid_locations.any? {|l| l.location == user.vote_circle_id.to_s} && user.still_militant?  && (self.user_created_at_max ? user.militant_at?(self.user_created_at_max) : true)
@@ -198,7 +225,7 @@ class Election < ApplicationRecord
       when 4
         user.vote_island_numeric
       when 6
-        if self.census_file.file?
+        if census_file.attached?
           get_user_location_from_csv user
         else
           user.vote_circle_id
@@ -206,7 +233,7 @@ class Election < ApplicationRecord
       else
         "00"
     end
-    election_location = self.election_locations.find_by_location user_location
+    election_location = self.election_locations.find_by(location: user_location)
     election_location.vote_id
   end
 

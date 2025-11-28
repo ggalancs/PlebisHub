@@ -6,7 +6,8 @@ module PlebisImpulsa
 
     self.table_name = 'impulsa_edition_categories'
 
-    has_flags 1 => :has_votings
+    # FlagShihTzu: check_for_column: false prevents startup warnings before migrations run
+    has_flags 1 => :has_votings, check_for_column: false
 
     belongs_to :impulsa_edition, class_name: 'PlebisImpulsa::ImpulsaEdition'
     has_many :impulsa_projects, class_name: 'PlebisImpulsa::ImpulsaProject', foreign_key: 'impulsa_edition_category_id'

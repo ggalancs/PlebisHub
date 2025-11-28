@@ -11,6 +11,7 @@ class User < ApplicationRecord
   # V2.0 features
   include Gamifiable
 
+  # FlagShihTzu: check_for_column: false prevents startup warnings before migrations run
   has_flags  1 => :banned,
              2 => :superadmin,
              3 => :verified,
@@ -20,7 +21,8 @@ class User < ApplicationRecord
              7 => :verifier,
              8 => :paper_authority,
              9 => :militant,
-            10 => :exempt_from_payment
+            10 => :exempt_from_payment,
+            check_for_column: false
 
   # Include default devise modules. Others available are:
   # :omniauthable
@@ -270,7 +272,7 @@ class User < ApplicationRecord
 
   def get_or_create_vote election_id
     v = Vote.new({election_id: election_id, user_id: self.id})
-    if Vote.find_by_voter_id( v.generate_message )
+    if Vote.find_by(voter_id: v.generate_message)
       return v
     else
       v.save

@@ -4,7 +4,8 @@ module PlebisMicrocredit
   class Microcredit < ApplicationRecord
     include FlagShihTzu
 
-    has_flags 1 => :mailing
+    # FlagShihTzu: check_for_column: false prevents startup warnings before migrations run
+    has_flags 1 => :mailing, check_for_column: false
 
     self.table_name = 'microcredits'
 
@@ -15,10 +16,32 @@ module PlebisMicrocredit
     has_many :loans, class_name: "PlebisMicrocredit::MicrocreditLoan", foreign_key: 'microcredit_id'
     has_many :microcredit_options, class_name: "PlebisMicrocredit::MicrocreditOption", foreign_key: 'microcredit_id', dependent: :destroy
 
-    has_attached_file :renewal_terms
+    # ActiveStorage attachment (replaces Paperclip)
+    has_one_attached :renewal_terms
 
-    validates_attachment_content_type :renewal_terms, content_type: ["application/pdf", "application/x-pdf"]
-    validates_attachment_size :renewal_terms, less_than: 2.megabyte
+    validate :validate_renewal_terms_content_type
+    validate :validate_renewal_terms_size
+
+    private
+
+    def validate_renewal_terms_content_type
+      return unless renewal_terms.attached?
+
+      allowed_types = ["application/pdf", "application/x-pdf"]
+      unless allowed_types.include?(renewal_terms.content_type)
+        errors.add(:renewal_terms, "debe ser un archivo PDF")
+      end
+    end
+
+    def validate_renewal_terms_size
+      return unless renewal_terms.attached?
+
+      if renewal_terms.byte_size > 2.megabytes
+        errors.add(:renewal_terms, "debe ser menor de 2MB")
+      end
+    end
+
+    public
  
     # example: "100€: 100\r500€: 22\r1000€: 10"
     validates :limits, format: { with: /\A(\D*\d+\D*\d+\D*)+\z/, message: "Introduce pares (monto, cantidad)"}
@@ -29,7 +52,7 @@ module PlebisMicrocredit
     scope :upcoming_finished, -> { where("ends_at > ? AND starts_at < ?", 7.days.ago, 1.day.from_now).order(:title)}
     scope :upcoming_finished_by_priority, -> { where("ends_at > ? AND starts_at < ?", 7.days.ago, 1.day.from_now).order(priority: :desc, title: :asc)}
     scope :non_finished, -> { where("ends_at > ?", DateTime.now) }
-    scope :renewables, -> { where.not( renewal_terms_file_name: nil ) }
+    scope :renewables, -> { joins(:renewal_terms_attachment) }
     scope :standard, ->{where("flags = 0")}
     scope :mailing, ->{where("flags = 1")}
 
@@ -236,11 +259,12 @@ module PlebisMicrocredit
     end
 
     def subgoals
-      @subgoals ||= YAML.unsafe_load(self[:subgoals], aliases: true) if self[:subgoals]
+      # SECURITY: Use safe_load with permitted classes instead of unsafe_load
+      @subgoals ||= YAML.safe_load(self[:subgoals], permitted_classes: [Symbol, Date, Time], aliases: true) if self[:subgoals]
     end
 
     def renewable?
-      self.has_finished? && self.renewal_terms.exists?
+      self.has_finished? && self.renewal_terms.attached?
     end
 
     def clear_cache
