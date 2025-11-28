@@ -29,5 +29,16 @@ module PlebisMicrocredit
         Rails.logger.warn "[PlebisMicrocredit] Could not check activation status (#{e.message}), enabling by default"
       end
     end
+
+    # Make main app route helpers available in engine views
+    # This allows views to use routes like new_collaboration_path defined in the main app
+    initializer "plebis_microcredit.include_main_app_route_helpers" do
+      config.to_prepare do
+        # Include main app route helpers in all controllers within this engine
+        if defined?(PlebisMicrocredit::MicrocreditController)
+          PlebisMicrocredit::MicrocreditController.helper(Rails.application.routes.url_helpers)
+        end
+      end
+    end
   end
 end

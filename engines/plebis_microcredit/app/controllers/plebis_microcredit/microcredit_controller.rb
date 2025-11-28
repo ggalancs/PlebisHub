@@ -17,6 +17,9 @@ module PlebisMicrocredit
   class MicrocreditController < ApplicationController
     include CollaborationsHelper
 
+    # Include main app route helpers to make them available in engine views
+    helper Rails.application.routes.url_helpers
+
     before_action :init_env
     before_action :validate_microcredit_id, only: [:new_loan, :create_loan, :loans_renewal, :loans_renew, :show_options]
     before_action :check_renewal_authentication, only: [:renewal, :loans_renewal, :loans_renew]
