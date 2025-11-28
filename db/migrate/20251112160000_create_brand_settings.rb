@@ -7,7 +7,7 @@ class CreateBrandSettings < ActiveRecord::Migration[7.0]
       t.string :name, null: false
       t.text :description
       t.string :scope, default: 'global', null: false
-      t.references :organization, foreign_key: true, null: true
+      t.references :organization, null: true # Foreign key omitted - organizations table may not exist yet
 
       # Theme Configuration
       t.string :theme_id, default: 'default', null: false

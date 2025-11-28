@@ -31,7 +31,7 @@ class CreateV2Infrastructure < ActiveRecord::Migration[7.2]
       t.string :name, null: false
       t.string :description
       t.string :scope, default: 'organization', null: false # global, organization, custom
-      t.references :organization, foreign_key: true, null: true
+      t.references :organization, null: true
       t.jsonb :metadata, default: {}, null: false
 
       t.timestamps
@@ -54,7 +54,7 @@ class CreateV2Infrastructure < ActiveRecord::Migration[7.2]
     create_table :user_roles do |t|
       t.references :user, foreign_key: true, null: false
       t.references :role, foreign_key: true, null: false
-      t.references :organization, foreign_key: true, null: true
+      t.references :organization, null: true
       t.datetime :expires_at
 
       t.timestamps
@@ -68,7 +68,7 @@ class CreateV2Infrastructure < ActiveRecord::Migration[7.2]
       t.string :category, null: false, index: true
       t.decimal :value, precision: 20, scale: 5, null: false
       t.jsonb :dimensions, default: {}, null: false
-      t.references :organization, foreign_key: true, null: true
+      t.references :organization, null: true
       t.date :date, null: false, index: true
       t.datetime :timestamp, null: false, index: true
 
@@ -83,7 +83,7 @@ class CreateV2Infrastructure < ActiveRecord::Migration[7.2]
       t.text :description
       t.jsonb :config, default: {}, null: false
       t.references :user, foreign_key: true, null: false
-      t.references :organization, foreign_key: true, null: true
+      t.references :organization, null: true
       t.boolean :shared, default: false
 
       t.timestamps
@@ -104,7 +104,7 @@ class CreateV2Infrastructure < ActiveRecord::Migration[7.2]
     end
 
     create_table :gamification_badges do |t|
-      t.string :key, null: false, unique: true, index: true
+      t.string :key, null: false
       t.string :name, null: false
       t.text :description
       t.string :icon
@@ -114,6 +114,8 @@ class CreateV2Infrastructure < ActiveRecord::Migration[7.2]
       t.string :tier # bronze, silver, gold, platinum
 
       t.timestamps
+
+      t.index :key, unique: true
     end
 
     create_table :gamification_user_badges do |t|
@@ -128,16 +130,18 @@ class CreateV2Infrastructure < ActiveRecord::Migration[7.2]
     end
 
     create_table :gamification_levels do |t|
-      t.integer :level, null: false, unique: true, index: true
+      t.integer :level, null: false
       t.string :name, null: false
       t.integer :xp_required, null: false
       t.jsonb :rewards, default: {}
 
       t.timestamps
+
+      t.index :level, unique: true
     end
 
     create_table :gamification_user_stats do |t|
-      t.references :user, foreign_key: true, null: false, unique: true, index: true
+      t.references :user, foreign_key: true, null: false, index: { unique: true }
       t.integer :total_points, default: 0, null: false
       t.integer :level, default: 1, null: false
       t.integer :xp, default: 0, null: false
@@ -173,7 +177,7 @@ class CreateV2Infrastructure < ActiveRecord::Migration[7.2]
     create_table :messaging_conversations do |t|
       t.string :conversation_type, null: false, default: 'direct' # direct, group
       t.string :name # For group conversations
-      t.references :organization, foreign_key: true, null: true
+      t.references :organization, null: true
       t.datetime :last_message_at
       t.jsonb :metadata, default: {}
 

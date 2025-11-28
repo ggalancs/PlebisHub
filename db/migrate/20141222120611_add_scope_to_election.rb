@@ -3,7 +3,8 @@ class AddScopeToElection < ActiveRecord::Migration[4.2]
     add_column :elections, :scope, :int
 
     # Hasta este momento todas las elecciones habían sido Estatales
-    Election.update_all(scope: 0) 
+    # Use raw SQL to avoid loading the Election model which has dependencies on columns not yet created
+    execute("UPDATE elections SET scope = 0")
   end
 
   def down

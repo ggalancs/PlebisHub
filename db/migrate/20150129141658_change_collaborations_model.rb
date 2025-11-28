@@ -8,7 +8,7 @@ class ChangeCollaborationsModel < ActiveRecord::Migration[4.2]
     remove_column :collaborations, :redsys_response, :text
 
     # collaboration status
-    add_column    :collaborations, :status, :integer, { default: 0 }
+    add_column    :collaborations, :status, :integer, default: 0
 
     # only saves relevant redsys information for collaboration
     add_column    :collaborations, :redsys_identifier, :string

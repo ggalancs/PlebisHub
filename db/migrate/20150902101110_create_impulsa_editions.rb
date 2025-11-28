@@ -11,10 +11,12 @@ class CreateImpulsaEditions < ActiveRecord::Migration[4.2]
       t.timestamps null: false
     end
 
-    add_attachment :impulsa_editions, :legal
-    add_attachment :impulsa_editions, :schedule_model
-    add_attachment :impulsa_editions, :activities_resources_model
-    add_attachment :impulsa_editions, :requested_budget_model
-    add_attachment :impulsa_editions, :monitoring_evaluation_model
+    # Paperclip attachment columns (legacy - for data migration to ActiveStorage)
+    %w[legal schedule_model activities_resources_model requested_budget_model monitoring_evaluation_model].each do |attachment|
+      add_column :impulsa_editions, "#{attachment}_file_name", :string
+      add_column :impulsa_editions, "#{attachment}_content_type", :string
+      add_column :impulsa_editions, "#{attachment}_file_size", :integer
+      add_column :impulsa_editions, "#{attachment}_updated_at", :datetime
+    end
   end
 end
