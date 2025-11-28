@@ -4,9 +4,16 @@ require 'rails_helper'
 
 # Ensure espeak binary is in PATH before requiring the gem
 ENV['PATH'] = "#{ENV['PATH']}:/usr/bin" unless ENV['PATH'].include?('/usr/bin')
-require 'espeak'
 
-RSpec.describe AudioCaptchaController, type: :controller do
+# Check if espeak is available before loading tests
+begin
+  require 'espeak'
+  espeak_available = system('which espeak > /dev/null 2>&1')
+rescue LoadError, Errno::ENOENT
+  espeak_available = false
+end
+
+RSpec.describe AudioCaptchaController, type: :controller, skip: !espeak_available do
   # Skip ApplicationController filters that may cause issues in testing
   before do
     allow(controller).to receive(:banned_user).and_return(true)

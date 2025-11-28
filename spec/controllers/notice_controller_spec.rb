@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe NoticeController, type: :controller do
+RSpec.describe PlebisCms::NoticeController, type: :controller do
   include Devise::Test::ControllerHelpers
 
   let(:user) { create(:user) }

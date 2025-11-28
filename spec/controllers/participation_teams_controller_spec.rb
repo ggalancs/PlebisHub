@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ParticipationTeamsController, type: :controller do
+RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :controller do
   include Devise::Test::ControllerHelpers
 
   let(:user) { create(:user) }

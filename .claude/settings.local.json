@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__filesystem__directory_tree",
+      "Bash(bundle install:*)",
+      "Bash(rbenv versions:*)",
+      "Bash(rvm list:*)",
+      "Bash(asdf list:*)",
+      "Bash(rbenv local:*)",
+      "Bash(ruby:*)",
+      "Bash(RAILS_ENV=development bundle exec rails:*)",
+      "Bash(cat:*)",
+      "Bash(psql:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nchore: update Rails 7.2 framework defaults and configuration\n\n- Consolidate framework defaults into single file (remove 6.0, 6.1, 7.0, 7.1 files)\n- Update new_framework_defaults_7_2.rb with Rails 7.2 settings\n- Fix SecureHeaders configuration for Rails 7 compatibility\n- Update wicked_pdf initializer\n- Update paperclip initializer\n- Fix event_bus initializer\n- Update plebis engine alias initializers for Rails 7 compatibility\n- Update routes and locale files\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(bundle exec rspec:*)",
+      "Bash(RAILS_ENV=test bundle exec rake:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "filesystem",
+    "godot"
+  ]
+}
