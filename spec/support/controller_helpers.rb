@@ -12,9 +12,9 @@ module RequestSpecHelpers
     "/assets/test-placeholder-#{asset_name}"
   end
 
-  # Stub missing route helpers that are referenced but not defined
+  # Stub funding_path route helper from CMS engine
   def funding_path
-    "/funding"
+    "/financiacion"
   end
 end
 
@@ -25,6 +25,30 @@ RSpec.configure do |config|
   # For request specs, stub out problematic ApplicationController before_actions
   # This prevents redirects caused by user validation issues
   config.before(:each, type: :request) do
+    # Add CMS engine route helpers to view context
+    # These are defined in engines/plebis_cms/config/routes.rb
+    ApplicationController.helper do
+      def funding_path
+        "/financiacion"
+      end
+
+      def faq_path
+        "/preguntas-frecuentes"
+      end
+
+      def guarantees_path
+        "/comision-de-garantias-democraticas"
+      end
+
+      def blog_path
+        "/brujula"
+      end
+
+      def notices_path
+        "/notices"
+      end
+    end
+
     # Stub the problematic before_actions to prevent redirects
     allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)
     allow_any_instance_of(ApplicationController).to receive(:banned_user).and_return(nil)
@@ -59,6 +83,5 @@ RSpec.configure do |config|
       options_str = options.map { |k, v| "#{k}=\"#{v}\"" }.join(' ')
       "<img src=\"/assets/test-placeholder-#{source}\" #{options_str} />".html_safe
     end
-
   end
 end

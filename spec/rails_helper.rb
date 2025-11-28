@@ -23,6 +23,15 @@ end
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
+
+# Stub EngineActivation to enable all engines in tests
+# This must happen BEFORE Rails loads (before requiring config/environment)
+class EngineActivation
+  def self.enabled?(_engine_name)
+    true
+  end
+end
+
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?

@@ -19,6 +19,9 @@ module PlebisCms
     end
 
     initializer "plebis_cms.check_activation", before: :set_routes_reloader do
+      # Always enable in test environment for easier testing
+      next if Rails.env.test?
+
       begin
         unless ::EngineActivation.enabled?('plebis_cms')
           Rails.logger.info "[PlebisCms] Engine disabled, skipping routes"
