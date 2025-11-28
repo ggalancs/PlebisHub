@@ -10,20 +10,64 @@ module PlebisImpulsa
     has_many :impulsa_projects, through: :impulsa_edition_categories
     has_many :impulsa_edition_topics, class_name: 'PlebisImpulsa::ImpulsaEditionTopic', foreign_key: 'impulsa_edition_id'
     
-    has_attached_file :schedule_model
-    has_attached_file :activities_resources_model
-    has_attached_file :requested_budget_model
-    has_attached_file :monitoring_evaluation_model
+    # ActiveStorage attachments (replaces Paperclip)
+    has_one_attached :schedule_model
+    has_one_attached :activities_resources_model
+    has_one_attached :requested_budget_model
+    has_one_attached :monitoring_evaluation_model
 
     validates :name, :email, presence: true
     validates :email, email: true
 
     validates *I18n.available_locales.map {|l| "legal_#{l}".to_sym }, allow_blank: true, url: true
 
-    validates_attachment_content_type :schedule_model, content_type: [ "application/vnd.ms-excel", "application/msexcel", "application/x-msexcel", "application/x-ms-excel", "application/x-excel", "application/x-dos_ms_excel", "application/xls", "application/x-xls", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.oasis.opendocument.spreadsheet" ]
-    validates_attachment_content_type :activities_resources_model, content_type: [  "application/vnd.ms-word", "application/msword", "application/x-msword", "application/x-ms-word", "application/x-word", "application/x-dos_ms_word", "application/doc", "application/x-doc", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.oasis.opendocument.text" ]
-    validates_attachment_content_type :requested_budget_model, content_type: [ "application/vnd.ms-excel", "application/msexcel", "application/x-msexcel", "application/x-ms-excel", "application/x-excel", "application/x-dos_ms_excel", "application/xls", "application/x-xls", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.oasis.opendocument.spreadsheet" ]
-    validates_attachment_content_type :monitoring_evaluation_model, content_type: [ "application/vnd.ms-excel", "application/msexcel", "application/x-msexcel", "application/x-ms-excel", "application/x-excel", "application/x-dos_ms_excel", "application/xls", "application/x-xls", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.oasis.opendocument.spreadsheet" ]
+    # Content type validations for attachments
+    SPREADSHEET_CONTENT_TYPES = [
+      "application/vnd.ms-excel", "application/msexcel", "application/x-msexcel",
+      "application/x-ms-excel", "application/x-excel", "application/x-dos_ms_excel",
+      "application/xls", "application/x-xls",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.oasis.opendocument.spreadsheet"
+    ].freeze
+
+    DOCUMENT_CONTENT_TYPES = [
+      "application/vnd.ms-word", "application/msword", "application/x-msword",
+      "application/x-ms-word", "application/x-word", "application/x-dos_ms_word",
+      "application/doc", "application/x-doc",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.oasis.opendocument.text"
+    ].freeze
+
+    validate :validate_attachment_content_types
+
+    private
+
+    def validate_attachment_content_types
+      validate_spreadsheet_attachment(:schedule_model)
+      validate_document_attachment(:activities_resources_model)
+      validate_spreadsheet_attachment(:requested_budget_model)
+      validate_spreadsheet_attachment(:monitoring_evaluation_model)
+    end
+
+    def validate_spreadsheet_attachment(attachment_name)
+      attachment = send(attachment_name)
+      return unless attachment.attached?
+
+      unless SPREADSHEET_CONTENT_TYPES.include?(attachment.content_type)
+        errors.add(attachment_name, "debe ser un archivo de hoja de cálculo (Excel, ODS)")
+      end
+    end
+
+    def validate_document_attachment(attachment_name)
+      attachment = send(attachment_name)
+      return unless attachment.attached?
+
+      unless DOCUMENT_CONTENT_TYPES.include?(attachment.content_type)
+        errors.add(attachment_name, "debe ser un documento (Word, ODT)")
+      end
+    end
+
+    public
 
     scope :active, -> { where("start_at < ? and ends_at > ?", DateTime.now, DateTime.now).order(start_at: :asc) }
     scope :upcoming, -> { where("start_at > ?", DateTime.now).order(start_at: :asc) }

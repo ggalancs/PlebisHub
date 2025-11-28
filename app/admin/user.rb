@@ -204,7 +204,7 @@ ActiveAdmin.register User do
 
     if !user.participation_team_at.nil?
 
-      panel "Equipos de Acción PlebisHubtiva" do
+      panel "Equipos de Acción Participativa" do
         if user.participation_team.any?
           table_for user.participation_team do
             column :name
@@ -267,7 +267,7 @@ ActiveAdmin.register User do
   filter :sms_confirmed_at
   filter :sign_in_count
   filter :wants_participation
-  filter :participation_team_id, as: :select, collection: PlebisHubtionTeam.all
+  filter :participation_team_id, as: :select, collection: ParticipationTeam.all
   filter :votes_election_id, as: :select, collection: Election.all
   filter :user_vote_circle_autonomy_id_in, as: :select, collection: PlebisBrand::GeoExtra::AUTONOMIES.values.uniq.map(&:reverse).map{|c| [c[0],"__#{c[1][2,2]}%"]}, label: "Circle autonomy"
   filter :user_vote_circle_province_id_in, as: :select, collection: Carmen::Country.coded("ES").subregions.map{|x|[x.name, "____#{(x.index).to_s.rjust(2,"0")}%"]}, label: "Circle province"
@@ -550,7 +550,7 @@ ActiveAdmin.register User do
       show! #it seems to need this
     end
 
-    before_filter :multi_values_filter, :only => :index
+    before_action :multi_values_filter, only: :index
     private
 
     def multi_values_filter

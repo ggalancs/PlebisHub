@@ -5,4 +5,7 @@ require File.expand_path('../config/application', __FILE__)
 require 'resque/tasks'
 task 'resque:setup' => :environment
 
+# Load Paperclip migration helper for legacy migrations
+require_relative 'lib/paperclip_migration_helper'
+
 Rails.application.load_tasks

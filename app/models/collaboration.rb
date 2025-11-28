@@ -339,7 +339,7 @@ class Collaboration < ApplicationRecord
       end
 
       if self.is_credit_card? and order.first
-        self.update_attributes redsys_identifier: order.payment_identifier, redsys_expiration: order.redsys_expiration
+        self.update(redsys_identifier: order.payment_identifier, redsys_expiration: order.redsys_expiration)
       end
     elsif self.has_payment?
       self.set_error! "Marcada como error porque se ha producido un error al procesar el pago."
@@ -547,7 +547,11 @@ class Collaboration < ApplicationRecord
   end
 
   def parse_non_user
-    @non_user = if self.non_user_data then YAML.unsafe_load(self.non_user_data, aliases: true) else nil end
+    @non_user = if self.non_user_data
+      YAML.safe_load(self.non_user_data, permitted_classes: [Collaboration::NonUser, Symbol], aliases: true)
+    else
+      nil
+    end
   end
 
   def format_non_user

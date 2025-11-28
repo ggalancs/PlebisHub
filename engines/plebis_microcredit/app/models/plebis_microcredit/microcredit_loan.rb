@@ -62,7 +62,8 @@ module PlebisMicrocredit
         set_user_data user
         self.document_vatid = user.document_vatid
       elsif user_data
-        set_user_data YAML.unsafe_load(self.user_data)
+        # SECURITY: Use safe_load with permitted Symbol class for hash keys
+        set_user_data YAML.safe_load(self.user_data, permitted_classes: [Symbol])
       else
         self.country = "ES"
       end

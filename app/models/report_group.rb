@@ -101,9 +101,11 @@ class ReportGroup < ApplicationRecord
   end
 
   def self.unserialize(value)
-    data = YAML.unsafe_load(value, aliases: true)
+    # SECURITY: Use safe_load with permitted classes instead of unsafe_load
+    permitted = [Symbol, Date, Time, DateTime]
+    data = YAML.safe_load(value, permitted_classes: permitted, aliases: true)
     if data.is_a? Array
-      data.map { |d| ReportGroup.new YAML.unsafe_load(d, aliases: true) }
+      data.map { |d| ReportGroup.new YAML.safe_load(d, permitted_classes: permitted, aliases: true) }
     else
       ReportGroup.new data
     end

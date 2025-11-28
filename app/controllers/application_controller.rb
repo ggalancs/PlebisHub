@@ -54,8 +54,14 @@ class ApplicationController < ActionController::Base
   end
 
   # Allow iframe requests by removing X-Frame-Options header
-  # NOTE: This enables embedding. Consider security implications.
+  # SECURITY: Only allow iframe embedding for public pages, not admin or sensitive endpoints
   def allow_iframe_requests
+    # Skip for admin pages and authenticated-only sections
+    return if params['controller']&.starts_with?('admin/')
+    return if params['controller']&.starts_with?('users/')
+    return if params['controller'] == 'sessions'
+    return if params['controller'] == 'registrations'
+
     response.headers.delete('X-Frame-Options')
   end
 

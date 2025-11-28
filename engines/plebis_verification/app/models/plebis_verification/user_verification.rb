@@ -8,22 +8,65 @@ module PlebisVerification
 
     has_paper_trail
 
-    has_attached_file :front_vatid, path: ":rails_root/non-public/system/:class/:attachment/:id_partition/:style/:filename", styles: { thumb: ["450x300", :png] }, processors: [:rotator]
-    has_attached_file :back_vatid, path: ":rails_root/non-public/system/:class/:attachment/:id_partition/:style/:filename", styles: { thumb: ["450x300", :png] }, processors: [:rotator]
+    # ActiveStorage attachments (replaces Paperclip)
+    has_one_attached :front_vatid
+    has_one_attached :back_vatid
+
+    # For rotation support (compatibility with old Paperclip processor)
+    attr_accessor :front_vatid_rotation, :back_vatid_rotation
 
     def rotate
       @rotate ||= HashWithIndifferentAccess.new
     end
 
-    validates :user, :front_vatid, presence: true, unless: :not_require_photos?
-    validates :back_vatid, presence: true, if: :require_back?, unless: :not_require_photos?
+    # Variant for thumbnail (replaces Paperclip styles)
+    def front_vatid_thumb
+      return nil unless front_vatid.attached?
+      front_vatid.variant(resize_to_limit: [450, 300], format: :png)
+    end
+
+    def back_vatid_thumb
+      return nil unless back_vatid.attached?
+      back_vatid.variant(resize_to_limit: [450, 300], format: :png)
+    end
+
+    validates :user, presence: true, unless: :not_require_photos?
+    validate :front_vatid_presence, unless: :not_require_photos?
+    validate :back_vatid_presence, if: :require_back?, unless: :not_require_photos?
     validates :terms_of_service, acceptance: true
 
-    validates_attachment_content_type :front_vatid, content_type: /\Aimage\/.*\z/
-    validates_attachment_content_type :back_vatid, content_type: /\Aimage\/.*\z/
+    validate :validate_image_content_types
+    validate :validate_image_sizes
 
-    validates_attachment_size :front_vatid, less_than: 6.megabyte
-    validates_attachment_size :back_vatid, less_than: 6.megabyte
+    private
+
+    def front_vatid_presence
+      errors.add(:front_vatid, :blank) unless front_vatid.attached?
+    end
+
+    def back_vatid_presence
+      errors.add(:back_vatid, :blank) unless back_vatid.attached?
+    end
+
+    def validate_image_content_types
+      if front_vatid.attached? && !front_vatid.content_type.start_with?('image/')
+        errors.add(:front_vatid, 'debe ser una imagen')
+      end
+      if back_vatid.attached? && !back_vatid.content_type.start_with?('image/')
+        errors.add(:back_vatid, 'debe ser una imagen')
+      end
+    end
+
+    def validate_image_sizes
+      if front_vatid.attached? && front_vatid.byte_size > 6.megabytes
+        errors.add(:front_vatid, 'debe ser menor de 6MB')
+      end
+      if back_vatid.attached? && back_vatid.byte_size > 6.megabytes
+        errors.add(:back_vatid, 'debe ser menor de 6MB')
+      end
+    end
+
+    public
 
     #after_initialize :push_id_to_processing_list
 

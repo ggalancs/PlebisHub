@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+# Explicitly require concerns (Zeitwerk workaround for nested concerns directory)
+require_relative 'concerns/impulsa_project_states'
+require_relative 'concerns/impulsa_project_wizard'
+require_relative 'concerns/impulsa_project_evaluation'
+
 module PlebisImpulsa
   class ImpulsaProject < ApplicationRecord
     include PlebisImpulsa::ImpulsaProjectStates
