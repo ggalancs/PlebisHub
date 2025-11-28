@@ -248,7 +248,7 @@ class Api::V2Controller < ActionController::Base
     email = params[:email].strip
 
     # Find user by email
-    user = User.find_by_email(email)
+    user = User.find_by(email: email)
 
     # SECURITY FIX: Was checking params[:user] which is never set
     # Changed to check the actual user variable

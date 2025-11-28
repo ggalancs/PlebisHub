@@ -26,7 +26,7 @@ module EngineUser
     #
     def get_or_create_vote(election_id)
       v = Vote.new(election_id: election_id, user_id: self.id)
-      if Vote.find_by_voter_id(v.generate_message)
+      if Vote.find_by(voter_id: v.generate_message)
         return v
       else
         v.save

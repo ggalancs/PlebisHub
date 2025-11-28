@@ -13,7 +13,7 @@ class CensusFileParser
     return nil unless @election.census_file.present?
 
     parse_csv do |row|
-      return User.find_by_id(user_id) if row["user_id"] == user_id
+      return User.find_by(id: user_id) if row["user_id"] == user_id
     end
 
     nil

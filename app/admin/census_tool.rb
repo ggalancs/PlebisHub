@@ -25,7 +25,7 @@ ActiveAdmin.register_page "CensusTool" do
 
   controller do
     def check_verified_user_hash(document_vatid,received_hash)
-      user = User.find_by_document_vatid(document_vatid)
+      user = User.find_by(document_vatid: document_vatid)
       user ? user.is_qr_hash_correct?(received_hash) : false
     end
   end

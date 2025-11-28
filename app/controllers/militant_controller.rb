@@ -37,7 +37,7 @@ class MilitantController < ActionController::Base
     end
 
     # MEDIUM PRIORITY FIX: Single user lookup (eliminates duplicate queries)
-    current_user = User.find_by_id(user_id)
+    current_user = User.find_by(id: user_id)
 
     # CRITICAL FIX: Nil check before using user object
     unless current_user

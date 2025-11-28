@@ -109,7 +109,7 @@ ActiveAdmin.register Election do
 
   member_action :set_election_location_versions, :method => :post do
     version_locations = params["set_election_location_versions"]["version"]
-    @election = Election.find_by_id(params["id"].to_i)
+    @election = Election.find_by(id: params["id"].to_i)
     @election.election_locations.each do |el|
       el.update(agora_version: version_locations,new_agora_version: version_locations)
     end

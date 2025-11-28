@@ -14,11 +14,11 @@ class UsersMailer < ActionMailer::Base
   def remember_email(type, query)
     case type
     when :email
-      @user = User.find_by_email query
+      @user = User.find_by(email: query)
     when :document_vatid
-      @user = User.find_by_document_vatid query
+      @user = User.find_by(document_vatid: query)
     else
-      @user = User.find_by_email query
+      @user = User.find_by(email: query)
     end
     mail(
       from: Rails.application.secrets["default_from_email"],
