@@ -21,8 +21,8 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "rails", "~> 7.2.3"
 
-  # File attachments
-  spec.add_dependency "paperclip"
+  # File attachments - using ActiveStorage (built into Rails)
+  # No additional dependency needed
 
   # Flag management
   spec.add_dependency "flag_shih_tzu"

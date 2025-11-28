@@ -132,7 +132,12 @@ end
 
 # Background worker for async event processing
 class EventBusWorker
-  include Resque::Plugins::UniqueJob
+  # Include UniqueJob plugin if available (optional dependency)
+  begin
+    include Resque::Plugins::UniqueJob if defined?(Resque::Plugins::UniqueJob)
+  rescue NameError
+    # UniqueJob plugin not available, continue without it
+  end
 
   @queue = :events
 

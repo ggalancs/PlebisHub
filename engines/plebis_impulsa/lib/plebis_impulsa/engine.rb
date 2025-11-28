@@ -4,6 +4,9 @@ module PlebisImpulsa
   class Engine < ::Rails::Engine
     isolate_namespace PlebisImpulsa
 
+    # Add concerns directory to autoload paths (Zeitwerk compatibility)
+    config.autoload_paths << root.join('app/models/plebis_impulsa/concerns')
+
     config.generators do |g|
       g.test_framework :rspec
       g.fixture_replacement :factory_bot

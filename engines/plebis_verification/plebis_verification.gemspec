@@ -15,6 +15,6 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.3.6"
 
   spec.add_dependency "rails", "~> 7.2.3"
-  spec.add_dependency "paperclip"  # For document uploads
+  spec.add_dependency "image_processing", "~> 1.12"  # For image variants (ActiveStorage)
   spec.add_dependency "phonelib"   # Phone number validation
 end
