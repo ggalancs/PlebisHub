@@ -20,7 +20,8 @@
       "Bash(bundle exec rspec:*)",
       "Bash(RAILS_ENV=test bundle exec rake:*)",
       "Bash(RAILS_ENV=test bundle exec ruby:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(bundle exec rails:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
