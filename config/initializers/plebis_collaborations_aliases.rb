@@ -4,15 +4,18 @@
 # These aliases allow existing code to reference models without the namespace
 # After full migration, these can be removed
 
-# Models
-Collaboration = PlebisCollaborations::Collaboration unless defined?(Collaboration)
-Order = PlebisCollaborations::Order unless defined?(Order)
+# Wrap in to_prepare to ensure classes are loaded after initialization
+Rails.application.config.to_prepare do
+  # Models
+  Object.const_set(:Collaboration, PlebisCollaborations::Collaboration) unless defined?(Collaboration)
+  Object.const_set(:Order, PlebisCollaborations::Order) unless defined?(Order)
 
-# Services
-RedsysPaymentProcessor = PlebisCollaborations::RedsysPaymentProcessor unless defined?(RedsysPaymentProcessor)
+  # Services
+  Object.const_set(:RedsysPaymentProcessor, PlebisCollaborations::RedsysPaymentProcessor) unless defined?(RedsysPaymentProcessor)
 
-# Mailers
-CollaborationsMailer = PlebisCollaborations::CollaborationsMailer unless defined?(CollaborationsMailer)
+  # Mailers
+  Object.const_set(:CollaborationsMailer, PlebisCollaborations::CollaborationsMailer) unless defined?(CollaborationsMailer)
 
-# Controllers
-CollaborationsController = PlebisCollaborations::CollaborationsController unless defined?(CollaborationsController)
+  # Controllers
+  Object.const_set(:CollaborationsController, PlebisCollaborations::CollaborationsController) unless defined?(CollaborationsController)
+end

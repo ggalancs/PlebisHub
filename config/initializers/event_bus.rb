@@ -15,7 +15,7 @@ Rails.application.config.after_initialize do
   Rails.logger.info "[EventBus] Initialized"
 
   # Register core event listeners
-  if EngineActivation.active?('plebis_gamification')
+  if EngineActivation.enabled?('plebis_gamification')
     require_dependency Rails.root.join('engines/plebis_gamification/app/listeners/gamification/proposal_listener')
 
     Gamification::Listeners::ProposalListener.register!
@@ -23,11 +23,11 @@ Rails.application.config.after_initialize do
   end
 
   # Future listeners will be registered here
-  # if EngineActivation.active?('plebis_analytics')
+  # if EngineActivation.enabled?('plebis_analytics')
   #   Analytics::Listeners::MetricListener.register!
   # end
 
-  # if EngineActivation.active?('plebis_messaging')
+  # if EngineActivation.enabled?('plebis_messaging')
   #   Messaging::Listeners::NotificationListener.register!
   # end
 end

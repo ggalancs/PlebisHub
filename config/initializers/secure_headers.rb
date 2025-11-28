@@ -13,14 +13,10 @@ SecureHeaders::Configuration.default do |config|
   # ========================================
   # COOKIES CONFIGURATION
   # ========================================
-
-  config.cookies = {
-    secure: Rails.env.production?,  # Mark all cookies as "Secure" in production (HTTPS only)
-    httponly: true,                  # Mark all cookies as "HttpOnly" (no JavaScript access)
-    samesite: {
-      lax: true                      # Mark all cookies as SameSite=Lax (CSRF protection)
-    }
-  }
+  # NOTE: Rails 7 handles cookie security natively via ActionDispatch::Cookies
+  # Cookie security is configured in config/initializers/session_store.rb
+  # Opting out of secure_headers cookie management to avoid conflicts
+  config.cookies = SecureHeaders::OPT_OUT
 
   # ========================================
   # CONTENT SECURITY POLICY (CSP)
@@ -47,9 +43,6 @@ SecureHeaders::Configuration.default do |config|
   trusted_src.uniq!
 
   config.csp = {
-    # Enforcement mode (report-only in development)
-    report_only: Rails.env.development?,
-
     # CSP violation reporting endpoint
     report_uri: %w[/api/csp-violations],
 
@@ -144,15 +137,10 @@ SecureHeaders::Configuration.default do |config|
   # ========================================
   # EXPECT-CT (Certificate Transparency)
   # ========================================
-
-  if Rails.env.production?
-    config.expect_ct = {
-      max_age: 86_400, # 24 hours
-      enforce: true,
-    }
-  else
-    config.expect_ct = SecureHeaders::OPT_OUT
-  end
+  # NOTE: expect_ct was deprecated and removed in secure_headers 7.0+
+  # The Expect-CT header is also deprecated by browsers as of 2024
+  # Previously:
+  # config.expect_ct = { max_age: 86_400, enforce: true }
 end
 
 # ========================================

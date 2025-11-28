@@ -187,13 +187,12 @@ Rails.application.routes.draw do
   end
   # /admin
   post '/admin/censustool', to: 'admin/censustool#search_document_vatid', as: :admin_censustool_search_document_vatid
-  # TEMPORARILY COMMENTED: ActiveAdmin has compatibility issues with Ruby 3.3
-  # ActiveAdmin.routes(self)
+  ActiveAdmin.routes(self)
 
-  # TEMPORARILY COMMENTED: Resque admin interface
-  # constraints CanAccessResque.new do
-  #   mount Resque::Server.new, at: '/admin/resque', as: :resque
-  # end
+  # Resque admin interface (requires authentication)
+  constraints CanAccessResque.new do
+    mount Resque::Server.new, at: '/admin/resque', as: :resque
+  end
 
   #get '*path' ,to: redirect("/#{I18n.locale}") # this line must be always the last line
 end
