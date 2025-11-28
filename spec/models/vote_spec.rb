@@ -30,13 +30,13 @@ RSpec.describe Vote, type: :model do
     it 'requires user_id' do
       vote = build(:vote, user: nil)
       expect(vote).not_to be_valid
-      expect(vote.errors[:user_id]).to include("can't be blank")
+      expect(vote.errors[:user_id]).to include("no puede estar en blanco")
     end
 
     it 'requires election_id' do
       vote = build(:vote, election: nil)
       expect(vote).not_to be_valid
-      expect(vote.errors[:election_id]).to include("can't be blank")
+      expect(vote.errors[:election_id]).to include("no puede estar en blanco")
     end
 
     it 'requires voter_id after generation' do
@@ -46,7 +46,7 @@ RSpec.describe Vote, type: :model do
       vote.valid? # Trigger validations
 
       expect(vote).not_to be_valid
-      expect(vote.errors[:voter_id]).to include("can't be blank")
+      expect(vote.errors[:voter_id]).to include("no puede estar en blanco")
     end
 
     it 'validates uniqueness of voter_id scoped to user_id' do
@@ -362,14 +362,14 @@ RSpec.describe Vote, type: :model do
       vote = Vote.new(election: create(:election))
 
       expect(vote.save).to be_falsey
-      expect(vote.errors[:user_id]).to include("can't be blank")
+      expect(vote.errors[:user_id]).to include("no puede estar en blanco")
     end
 
     it 'handles missing election when creating vote' do
       vote = Vote.new(user: create(:user))
 
       expect(vote.save).to be_falsey
-      expect(vote.errors[:election_id]).to include("can't be blank")
+      expect(vote.errors[:election_id]).to include("no puede estar en blanco")
     end
   end
 

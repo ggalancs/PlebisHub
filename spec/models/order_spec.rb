@@ -40,19 +40,19 @@ RSpec.describe Order, type: :model do
     it 'requires payment_type' do
       order = build(:order, payment_type: nil)
       expect(order).not_to be_valid
-      expect(order.errors[:payment_type]).to include("can't be blank")
+      expect(order.errors[:payment_type]).to include("no puede estar en blanco")
     end
 
     it 'requires amount' do
       order = build(:order, amount: nil)
       expect(order).not_to be_valid
-      expect(order.errors[:amount]).to include("can't be blank")
+      expect(order.errors[:amount]).to include("no puede estar en blanco")
     end
 
     it 'requires payable_at' do
       order = build(:order, payable_at: nil)
       expect(order).not_to be_valid
-      expect(order.errors[:payable_at]).to include("can't be blank")
+      expect(order.errors[:payable_at]).to include("no puede estar en blanco")
     end
   end
 

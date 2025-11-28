@@ -18,7 +18,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(bundle exec rspec:*)",
-      "Bash(RAILS_ENV=test bundle exec rake:*)"
+      "Bash(RAILS_ENV=test bundle exec rake:*)",
+      "Bash(RAILS_ENV=test bundle exec ruby:*)",
+      "Bash(find:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

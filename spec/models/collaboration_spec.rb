@@ -43,19 +43,19 @@ RSpec.describe Collaboration, type: :model do
     it 'requires payment_type' do
       collaboration = build(:collaboration, payment_type: nil)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:payment_type]).to include("can't be blank")
+      expect(collaboration.errors[:payment_type]).to include("no puede estar en blanco")
     end
 
     it 'requires amount' do
       collaboration = build(:collaboration, amount: nil)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:amount]).to include("can't be blank")
+      expect(collaboration.errors[:amount]).to include("no puede estar en blanco")
     end
 
     it 'requires frequency' do
       collaboration = build(:collaboration, frequency: nil)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:frequency]).to include("can't be blank")
+      expect(collaboration.errors[:frequency]).to include("no puede estar en blanco")
     end
 
     it 'requires terms_of_service acceptance' do
@@ -102,13 +102,13 @@ RSpec.describe Collaboration, type: :model do
     it 'validates CCC fields when payment_type is CCC' do
       collaboration = build(:collaboration, payment_type: 2, ccc_entity: nil)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:ccc_entity]).to include("can't be blank")
+      expect(collaboration.errors[:ccc_entity]).to include("no puede estar en blanco")
     end
 
     it 'validates IBAN presence when payment_type is IBAN' do
       collaboration = build(:collaboration, payment_type: 3, iban_account: nil, iban_bic: nil)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:iban_account]).to include("can't be blank")
+      expect(collaboration.errors[:iban_account]).to include("no puede estar en blanco")
     end
 
     it 'rejects passport users' do

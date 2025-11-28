@@ -39,13 +39,13 @@ RSpec.describe Post, type: :model do
     it 'requires title' do
       post = build(:post, title: nil)
       expect(post).not_to be_valid
-      expect(post.errors[:title]).to include("can't be blank")
+      expect(post.errors[:title]).to include("no puede estar en blanco")
     end
 
     it 'requires status' do
       post = build(:post, status: nil)
       expect(post).not_to be_valid
-      expect(post.errors[:status]).to include("can't be blank")
+      expect(post.errors[:status]).to include("no puede estar en blanco")
     end
 
     it 'accepts valid title and status' do

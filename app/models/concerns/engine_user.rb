@@ -33,6 +33,14 @@ module EngineUser
     #   register_engine_concern('plebis_voting', EngineUser::Votable)
     #
     def register_engine_concern(engine_name, concern_module)
+      # In test environment, include all concerns by default
+      # This ensures tests have access to all engine functionality
+      if Rails.env.test?
+        include concern_module
+        Rails.logger.info "[EngineUser] Test mode: loaded #{engine_name} concern"
+        return
+      end
+
       # Check if EngineActivation exists before trying to use it
       # During initial migrations, this model might not exist yet
       return unless defined?(EngineActivation)

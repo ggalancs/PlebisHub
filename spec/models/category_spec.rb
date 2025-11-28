@@ -36,7 +36,7 @@ RSpec.describe Category, type: :model do
       it 'requires name' do
         category = build(:category, name: nil)
         expect(category).not_to be_valid
-        expect(category.errors[:name]).to include("can't be blank")
+        expect(category.errors[:name]).to include("no puede estar en blanco")
       end
 
       it 'accepts valid name' do
@@ -47,7 +47,7 @@ RSpec.describe Category, type: :model do
       it 'rejects empty string name' do
         category = build(:category, name: '')
         expect(category).not_to be_valid
-        expect(category.errors[:name]).to include("can't be blank")
+        expect(category.errors[:name]).to include("no puede estar en blanco")
       end
 
       it 'requires unique name (case insensitive)' do

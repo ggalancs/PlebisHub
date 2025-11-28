@@ -27,25 +27,25 @@ RSpec.describe ImpulsaEditionCategory, type: :model do
     it 'requires name' do
       category = build(:impulsa_edition_category, name: nil)
       expect(category).not_to be_valid
-      expect(category.errors[:name]).to include("can't be blank")
+      expect(category.errors[:name]).to include("no puede estar en blanco")
     end
 
     it 'requires category_type' do
       category = build(:impulsa_edition_category, category_type: nil)
       expect(category).not_to be_valid
-      expect(category.errors[:category_type]).to include("can't be blank")
+      expect(category.errors[:category_type]).to include("no puede estar en blanco")
     end
 
     it 'requires winners' do
       category = build(:impulsa_edition_category, winners: nil)
       expect(category).not_to be_valid
-      expect(category.errors[:winners]).to include("can't be blank")
+      expect(category.errors[:winners]).to include("no puede estar en blanco")
     end
 
     it 'requires prize' do
       category = build(:impulsa_edition_category, prize: nil)
       expect(category).not_to be_valid
-      expect(category.errors[:prize]).to include("can't be blank")
+      expect(category.errors[:prize]).to include("no puede estar en blanco")
     end
 
     it 'accepts valid attributes' do

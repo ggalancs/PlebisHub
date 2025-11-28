@@ -45,7 +45,7 @@ module PlebisVotes
     has_many :votes, class_name: "PlebisVotes::Vote"
     has_many :election_locations, class_name: "PlebisVotes::ElectionLocation", dependent: :destroy
 
-    enum election_type: [:nvotes, :external, :paper ]
+    enum :election_type, [:nvotes, :external, :paper]
 
     scope :active, -> { where("? BETWEEN starts_at AND ends_at", Time.now).order(priority: :asc) }
     scope :upcoming_finished, -> { where("ends_at > ? AND starts_at < ?", 2.days.ago, 12.hours.from_now).order(priority: :asc)}

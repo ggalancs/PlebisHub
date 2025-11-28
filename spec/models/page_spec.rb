@@ -36,7 +36,7 @@ RSpec.describe Page, type: :model do
       it 'requires title' do
         page = build(:page, title: nil)
         expect(page).not_to be_valid
-        expect(page.errors[:title]).to include("can't be blank")
+        expect(page.errors[:title]).to include("no puede estar en blanco")
       end
 
       it 'accepts valid title' do
@@ -47,7 +47,7 @@ RSpec.describe Page, type: :model do
       it 'rejects empty string title' do
         page = build(:page, title: "")
         expect(page).not_to be_valid
-        expect(page.errors[:title]).to include("can't be blank")
+        expect(page.errors[:title]).to include("no puede estar en blanco")
       end
     end
 
@@ -55,7 +55,7 @@ RSpec.describe Page, type: :model do
       it 'requires slug' do
         page = build(:page, slug: nil)
         expect(page).not_to be_valid
-        expect(page.errors[:slug]).to include("can't be blank")
+        expect(page.errors[:slug]).to include("no puede estar en blanco")
       end
 
       it 'requires unique slug' do
@@ -94,7 +94,7 @@ RSpec.describe Page, type: :model do
       it 'requires id_form' do
         page = build(:page, id_form: nil)
         expect(page).not_to be_valid
-        expect(page.errors[:id_form]).to include("can't be blank")
+        expect(page.errors[:id_form]).to include("no puede estar en blanco")
       end
 
       it 'requires id_form to be greater than or equal to 0' do
