@@ -10,8 +10,9 @@ gem 'vite_rails', '~> 3.0' # Modern frontend with Vite + Vue 3
 gem 'sqlite3', '~> 1.4'
 gem 'sass-rails'
 gem 'uglifier', '>= 2.7.2'
-gem 'coffee-rails', '~> 4.2'
-gem 'therubyracer', git: 'https://github.com/cowboyd/therubyracer.git',  platforms: :ruby
+gem 'coffee-rails', '~> 5.0' # Updated for Rails 7.x compatibility
+# therubyracer removed - deprecated and crashes on Ruby 3.x
+# Node.js is used as the JavaScript runtime instead
 gem 'jquery-rails'
 gem 'turbolinks'
 gem 'jbuilder', '~> 2.0'
@@ -24,7 +25,7 @@ gem 'rb-readline'
 gem 'airbrake'
 
 gem 'devise', '~> 4.9' # Rails 7.0+ compatible
-gem 'cancancan', '~> 1.9'
+gem 'cancancan', '~> 3.5' # Updated from 1.9 - Rails 7.2 compatible
 gem 'bootstrap-sass', '~> 3.4.1'
 gem 'formtastic'
 gem 'formtastic-bootstrap'
@@ -38,7 +39,7 @@ gem 'active_skin'
 gem 'mailcatcher' # for staging too
 gem 'resque'
 gem 'resque_mailer' # for automated email sending in background
-gem 'aws-sdk-rails', '~> 2.1' # aws-sdk-rails >= 3 requires Ruby >= 2.6
+gem 'aws-sdk-rails', '~> 3.0' # Updated for Rails 7.2+ compatibility
 gem 'kaminari'
 gem 'pushmeup'
 gem 'date_validator'
@@ -62,7 +63,10 @@ gem 'friendly_id', '~> 5.2' # Updated for Rails 5
 gem 'auto_html'
 gem "paranoia", "~> 3.0" # Rails 7.2 compatible
 gem 'cocoon'
-gem 'paperclip', '~> 5.2.1'
+# ActiveStorage for file uploads (Rails 5.2+)
+# Replaces deprecated Paperclip gem
+gem 'image_processing', '~> 1.12' # For image variants (required by ActiveStorage)
+gem 'mini_magick', '~> 4.12'      # Image processing backend
 gem 'validate_url'
 gem 'norma43', git: 'https://github.com/podemos-info/norma43.git'
 gem "d3-rails"
