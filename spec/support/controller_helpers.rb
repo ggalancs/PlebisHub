@@ -25,27 +25,63 @@ RSpec.configure do |config|
   # For request specs, stub out problematic ApplicationController before_actions
   # This prevents redirects caused by user validation issues
   config.before(:each, type: :request) do
-    # Add CMS engine route helpers to view context
-    # These are defined in engines/plebis_cms/config/routes.rb
+    # Set default URL options to include locale
+    # This ensures all route helpers generate URLs with the correct locale
+    Rails.application.routes.default_url_options[:locale] = I18n.locale
+
+    # Add route helpers as proper helpers in the view context
+    # These must come LAST to override any problematic engine routes
+    # This prevents "does not implement" errors from RSpec strict mode
     ApplicationController.helper do
+      # Devise route helpers
+      def edit_user_registration_path
+        "/#{I18n.locale}/users/edit"
+      end
+
+      def new_user_session_path
+        "/#{I18n.locale}/users/sign_in"
+      end
+
+      def destroy_user_session_path
+        "/#{I18n.locale}/users/sign_out"
+      end
+
+      # Main app route helpers
+      def root_path
+        "/#{I18n.locale}"
+      end
+
+      def qr_code_path
+        "/#{I18n.locale}/qr"
+      end
+
+      def new_collaboration_path
+        "/#{I18n.locale}/colabora"
+      end
+
+      def microcredit_path
+        "/#{I18n.locale}/microcreditos"
+      end
+
+      # CMS engine route helpers
       def funding_path
-        "/financiacion"
+        "/#{I18n.locale}/financiacion"
       end
 
       def faq_path
-        "/preguntas-frecuentes"
+        "/#{I18n.locale}/preguntas-frecuentes"
       end
 
       def guarantees_path
-        "/comision-de-garantias-democraticas"
+        "/#{I18n.locale}/comision-de-garantias-democraticas"
       end
 
       def blog_path
-        "/brujula"
+        "/#{I18n.locale}/brujula"
       end
 
       def notices_path
-        "/notices"
+        "/#{I18n.locale}/notices"
       end
     end
 
