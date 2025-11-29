@@ -6,15 +6,16 @@ RSpec.describe 'Vote Create', type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:user) { create(:user, :with_dni) }
+  let(:election) { create(:election) }
 
   before do
     allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)
   end
 
-  describe 'GET /es/votacion/:election_id/votar' do
+  describe 'GET /es/vote/create/:election_id' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
-        get '/es/votacion/1/votar'
+      it 'redirige al login si no está autenticado', :skip_auth do
+        get "/es/vote/create/#{election.id}"
         expect(response).to redirect_to(new_user_session_path)
       end
     end
@@ -25,12 +26,12 @@ RSpec.describe 'Vote Create', type: :request do
       end
 
       it 'renderiza o redirige si no hay elección activa' do
-        get '/es/votacion/1/votar'
+        get "/es/vote/create/#{election.id}"
         expect([200, 302, 404]).to include(response.status)
       end
 
       it 'si renderiza, contiene widget de votación de Agora Voting' do
-        get '/es/votacion/1/votar'
+        get "/es/vote/create/#{election.id}"
         if response.status == 200
           expect(response.body).to include('agoravoting-voting-booth')
         end
@@ -43,21 +44,21 @@ RSpec.describe 'Vote Create', type: :request do
       end
 
       it 'si renderiza, tiene función getCastHmac para autenticación' do
-        get '/es/votacion/1/votar'
+        get "/es/vote/create/#{election.id}"
         if response.status == 200
           expect(response.body).to include('getCastHmac')
         end
       end
 
       it 'si renderiza, tiene script de Agora Voting widgets' do
-        get '/es/votacion/1/votar'
+        get "/es/vote/create/#{election.id}"
         if response.status == 200
           expect(response.body).to include('avWidgets')
         end
       end
 
       it 'si renderiza, tiene contenedor para cabina de votación' do
-        get '/es/votacion/1/votar'
+        get "/es/vote/create/#{election.id}"
         if response.status == 200
           expect(response.body).to include('booth_container')
         end
@@ -70,7 +71,7 @@ RSpec.describe 'Vote Create', type: :request do
       end
 
       it 'si renderiza, puede tener enlace a información de candidatos' do
-        get '/es/votacion/1/votar'
+        get "/es/vote/create/#{election.id}"
         if response.status == 200
           # This is optional based on election.info_url and election.info_text
           has_candidates_link = response.body.include?('view_candidates') || !response.body.include?('view_candidates')
@@ -85,7 +86,7 @@ RSpec.describe 'Vote Create', type: :request do
       end
 
       it 'si renderiza, configura idioma según comunidad autónoma' do
-        get '/es/votacion/1/votar'
+        get "/es/vote/create/#{election.id}"
         if response.status == 200
           has_lang_config = response.body.match?(/lang=|force_language/)
           expect(has_lang_config).to be_truthy
