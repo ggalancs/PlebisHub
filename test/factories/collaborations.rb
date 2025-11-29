@@ -74,6 +74,11 @@ FactoryBot.define do
       frequency { 0 } # Puntual (one-time)
     end
 
+    # RAILS 7.2 FIX: Add explicit :monthly trait for collaborations_ok_spec
+    trait :monthly do
+      frequency { 1 } # Monthly (this is the default, but tests need explicit trait)
+    end
+
     trait :quarterly do
       frequency { 3 }
     end

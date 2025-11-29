@@ -63,6 +63,13 @@ FactoryBot.define do
       postal_code { "08001" }
     end
 
+    # RAILS 7.2 FIX: Add :admin trait for vote_controller specs
+    trait :admin do
+      after(:create) do |user|
+        user.update_column(:flags, user.flags | 1) # admin flag
+      end
+    end
+
     trait :superadmin do
       after(:create) do |user|
         user.update_column(:flags, user.flags | 2) # superadmin flag

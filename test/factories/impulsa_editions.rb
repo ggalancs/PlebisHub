@@ -10,6 +10,18 @@ FactoryBot.define do
     ends_at { 1.week.from_now }
     publish_results_at { 2.weeks.from_now }
 
+    # RAILS 7.2 FIX: Add :current trait alias for :active
+    # Tests use :current but factory only had :active
+    trait :current do
+      start_at { 1.month.ago }
+      new_projects_until { 3.weeks.ago }
+      review_projects_until { 2.weeks.ago }
+      validation_projects_until { 1.week.ago }
+      votings_start_at { 1.day.ago }
+      ends_at { 1.month.from_now }
+      publish_results_at { 2.months.from_now }
+    end
+
     trait :active do
       start_at { 1.month.ago }
       new_projects_until { 3.weeks.ago }
