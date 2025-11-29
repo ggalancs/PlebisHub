@@ -18,6 +18,9 @@ module PlebisImpulsa
 
     # Hook to check if engine is enabled
     initializer "plebis_impulsa.check_activation", before: :set_routes_reloader do
+      # Always enable in test environment for easier testing
+      next if Rails.env.test?
+
       begin
         unless ::EngineActivation.enabled?('plebis_impulsa')
           Rails.logger.info "[PlebisImpulsa] Engine disabled, skipping routes"

@@ -19,6 +19,9 @@ module PlebisVerification
     end
 
     initializer "plebis_verification.check_activation", before: :set_routes_reloader do
+      # Always enable in test environment for easier testing
+      next if Rails.env.test?
+
       begin
         unless ::EngineActivation.enabled?('plebis_verification')
           Rails.logger.info "[PlebisVerification] Engine disabled, skipping routes"

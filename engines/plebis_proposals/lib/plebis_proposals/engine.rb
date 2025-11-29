@@ -12,6 +12,9 @@ module PlebisProposals
 
     # Hook to check if engine is enabled
     initializer "plebis_proposals.check_activation", before: :set_routes_reloader do
+      # Always enable in test environment for easier testing
+      next if Rails.env.test?
+
       begin
         unless ::EngineActivation.enabled?('plebis_proposals')
           Rails.logger.info "[PlebisProposals] Engine disabled, skipping routes"
