@@ -58,7 +58,7 @@ RSpec.describe Vote, type: :model do
       vote2.voter_id = vote1.voter_id
 
       expect(vote2).not_to be_valid
-      expect(vote2.errors[:voter_id]).to include("has already been taken")
+      expect(vote2.errors[:voter_id]).to include("ya está en uso")
     end
 
     it 'allows same voter_id for different users' do
