@@ -864,6 +864,11 @@ class User < ApplicationRecord
   # The User model was redefining them as private (after line 787), which caused
   # "private method called" errors in Rails 7.2+
 
+  # RAILS 7.2 FIX: Make vote location methods public
+  # These methods are called from PageController#add_user_params
+  # They were incorrectly placed in the private section, causing NoMethodError
+  public
+
   def vote_autonomy_since
     last_vote_location_change[:autonomy]
   end
@@ -879,6 +884,9 @@ class User < ApplicationRecord
   def vote_town_since
     last_vote_location_change[:town]
   end
+
+  # Back to private for internal helper methods
+  private
 
   def any_microcredit_renewable?
     MicrocreditLoan.renewables.where(document_vatid: self.document_vatid).exists?
