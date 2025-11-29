@@ -13,7 +13,7 @@ RSpec.describe 'Impulsa Evaluation', type: :request do
 
   describe 'GET /es/impulsa/evaluacion' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
+      it 'redirige al login si no está autenticado', :skip_auth do
         get '/es/impulsa/evaluacion'
         expect(response).to redirect_to(new_user_session_path)
       end
