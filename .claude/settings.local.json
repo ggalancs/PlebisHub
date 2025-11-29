@@ -6,7 +6,12 @@
       "Bash(timeout 120 bundle exec rspec:*)",
       "Bash(if [ -f /tmp/routing_fixes_results.json ])",
       "Bash(then cat /tmp/routing_fixes_results.json)",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(then jq -r \".examples[] | select(.status == \"\"failed\"\") | .file_path\" /tmp/routing_fixes_results.json)",
+      "Bash(else echo \"No results file found\")",
+      "Bash(chmod:*)",
+      "Bash(/tmp/test_all_controllers.sh)",
+      "Bash(cut:*)"
     ],
     "deny": [],
     "ask": []

@@ -4,6 +4,15 @@ require 'rails_helper'
 
 # Rails 7.2 FIX: Template is in PlebisCms engine, need correct namespace
 RSpec.describe 'plebis_cms/notice/index.html.erb', type: :view do
+  # RAILS 7.2 FIX: Add engine view paths for view specs
+  before(:all) do
+    # Prepend engine view paths so Rails can find the templates
+    view_paths = ActionController::Base.view_paths.dup
+    engine_path = PlebisCms::Engine.root.join('app', 'views')
+    view_paths.unshift(engine_path) unless view_paths.include?(engine_path)
+    ActionController::Base.view_paths = view_paths
+  end
+
   # Helper para crear colección paginada de Kaminari
   def paginated_collection(items, page: 1, per_page: 5)
     Kaminari.paginate_array(items).page(page).per(per_page)
