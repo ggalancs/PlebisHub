@@ -11,6 +11,10 @@ RSpec.describe VoteController, type: :controller do
 
   before do
     sign_in user
+
+    # Use main app routes instead of custom route set
+    # Rails 7 requires controller specs to use actual application routes
+    @routes = Rails.application.routes
   end
 
   # ============================================================================

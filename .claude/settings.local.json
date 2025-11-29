@@ -44,7 +44,11 @@
       "Bash(xargs:*)",
       "Bash(for file in audio_captcha_controller_spec.rb errors_controller_spec.rb militant_controller_spec.rb orders_controller_spec.rb tools_controller_spec.rb)",
       "Bash(do echo \"=== $file ===\" head -10 spec/controllers/$file)",
-      "Bash([ -s /tmp/improved_test_results.json ])"
+      "Bash([ -s /tmp/improved_test_results.json ])",
+      "Bash(for file in spec/controllers/*.rb)",
+      "Bash(if grep -q \"RSpec.describe.*Controller\" \"$file\")",
+      "Bash(if ! grep -q \"@routes = \" \"$file\")",
+      "Bash(basename:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

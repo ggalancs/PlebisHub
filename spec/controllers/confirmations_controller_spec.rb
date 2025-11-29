@@ -5,6 +5,10 @@ require 'rails_helper'
 RSpec.describe ConfirmationsController, type: :controller do
   before do
     @request.env['devise.mapping'] = Devise.mappings[:user]
+
+    # Use main app routes instead of custom route set
+    # Rails 7 requires controller specs to use actual application routes
+    @routes = Rails.application.routes
   end
 
   let(:user) { create(:user, confirmed_at: nil) }
