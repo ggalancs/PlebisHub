@@ -65,10 +65,15 @@ module PlebisCms
       end
 
       # HIGH PRIORITY FIX: Use Page model method instead of regex in controller
+      # RAILS 7.2 FIX: Use instance variables instead of locals for testability
+      # Rails 7.2 controller specs cannot access locals via view_assigns
+      @title = @page.title
       if @page.external_plebisbrand_link?
-        render :formview_iframe, locals: { title: @page.title, url: add_user_params(@page.link) }
+        @url = add_user_params(@page.link)
+        render :formview_iframe, locals: { title: @title, url: @url }
       else
-        render :form_iframe, locals: { title: @page.title, url: form_url(@page.id_form) }
+        @url = form_url(@page.id_form)
+        render :form_iframe, locals: { title: @title, url: @url }
       end
     end
 
@@ -85,7 +90,11 @@ module PlebisCms
     end
 
     def guarantees_form
-      render :form_iframe, locals: { title: "Comunicación a Comisiones de Garantías Democráticas", url: form_url(77), return_path: guarantees_path }
+      # RAILS 7.2 FIX: Use instance variables for testability
+      @title = "Comunicación a Comisiones de Garantías Democráticas"
+      @url = form_url(77)
+      @return_path = guarantees_path
+      render :form_iframe, locals: { title: @title, url: @url, return_path: @return_path }
     end
 
     def old_circles_data_validation
@@ -129,7 +138,10 @@ module PlebisCms
     end
 
     def primarias_andalucia
-      render :form_iframe, locals: { title: "Primarias Andalucía", url: form_url(21) }
+      # RAILS 7.2 FIX: Use instance variables for testability
+      @title = "Primarias Andalucía"
+      @url = form_url(21)
+      render :form_iframe, locals: { title: @title, url: @url }
     end
 
     def listas_primarias_andaluzas
@@ -162,7 +174,10 @@ module PlebisCms
 
     # CRITICAL FIX: Removed duplicate method definition (was defined at lines 124 and 128)
     def representantes_electorales_extranjeros
-      render :form_iframe, locals: { title: "Elecciones Andaluzas: Representantes electorales de PlebisBrand en Consulados extranjeros", url: form_url(60) }
+      # RAILS 7.2 FIX: Use instance variables for testability
+      @title = "Elecciones Andaluzas: Representantes electorales de PlebisBrand en Consulados extranjeros"
+      @url = form_url(60)
+      render :form_iframe, locals: { title: @title, url: @url }
     end
 
     def responsables_areas_cc_autonomicos
