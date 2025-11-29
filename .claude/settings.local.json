@@ -3,7 +3,10 @@
     "allow": [
       "Bash(if [ -f /tmp/latest_test_results.json ])",
       "Bash(then cat /tmp/latest_test_results.json)",
-      "Bash(timeout 120 bundle exec rspec:*)"
+      "Bash(timeout 120 bundle exec rspec:*)",
+      "Bash(if [ -f /tmp/routing_fixes_results.json ])",
+      "Bash(then cat /tmp/routing_fixes_results.json)",
+      "Bash(jq:*)"
     ],
     "deny": [],
     "ask": []
