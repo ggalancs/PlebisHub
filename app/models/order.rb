@@ -113,7 +113,7 @@ class Order < ApplicationRecord
   end
 
   def self.payment_day
-    Rails.application.secrets.orders["payment_day"].to_i
+    Rails.application.secrets.orders&.[]("payment_day").to_i
   end
 
   def self.by_month_count(date)
