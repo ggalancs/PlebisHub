@@ -52,6 +52,10 @@ Rails.application.configure do
   # incoming request so you'll need to provide the :host parameter yourself.
   config.action_mailer.default_url_options = { host: "www.example.com" }
 
+  # RAILS 7.2 FIX: Set default from address for test mailers
+  # Rails 7.2 requires a from address to be set, raising ArgumentError otherwise
+  config.action_mailer.default_options = { from: 'test@example.com' }
+
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 
