@@ -227,10 +227,13 @@ module PlebisMicrocredit
     end
 
     def check_user_limits
-      limit = self.microcredit.loans.not_discarded.not_returned.where(ip:self.ip).count > microcredit_loan_config("max_loans_per_ip")
+      # RAILS 7.2 FIX: Add .to_i to handle nil config values
+      # Ruby 3.4+ raises ArgumentError when comparing Integer with nil
+      # .to_i converts nil to 0, maintaining the original logic
+      limit = self.microcredit.loans.not_discarded.not_returned.where(ip:self.ip).count > microcredit_loan_config("max_loans_per_ip").to_i
       unless limit
         loans = self.microcredit.loans.not_discarded.not_returned.where(document_vatid: self.document_vatid).pluck(:amount)
-        limit = ((loans.length >= microcredit_loan_config("max_loans_per_user")) or (loans.sum + self.amount > microcredit_loan_config("max_loans_sum_amount"))) if not limit and self.amount
+        limit = ((loans.length >= microcredit_loan_config("max_loans_per_user").to_i) or (loans.sum + self.amount > microcredit_loan_config("max_loans_sum_amount").to_i)) if not limit and self.amount
       end
 
       self.errors.add(:user, "Lamentablemente, no es posible suscribir este microcrédito.") if limit
