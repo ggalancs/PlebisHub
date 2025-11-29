@@ -14,7 +14,9 @@ class CollaborationsController < ApplicationController
   helper_method :pending_single_orders
 
   before_action :authenticate_user!
-  before_action :set_collaboration, only: [:confirm, :confirm_bank, :edit, :modify, :destroy, :OK, :KO]
+  # Rails 7.1+ requires all :only actions to exist in controller
+  # Removed :confirm_bank as it's not defined as an action
+  before_action :set_collaboration, only: [:confirm, :edit, :modify, :destroy, :OK, :KO]
 
   def new
     redirect_to edit_collaboration_path and return if current_user.recurrent_collaboration && !force_single?

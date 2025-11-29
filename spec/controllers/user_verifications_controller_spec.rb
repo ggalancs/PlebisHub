@@ -5,9 +5,16 @@ require 'rails_helper'
 RSpec.describe UserVerificationsController, type: :controller do
   include Devise::Test::ControllerHelpers
 
-  let(:user) { create(:user, confirmed_at: Time.current, verified_at: nil) }
+  # Rails 7.2 FIX: User model doesn't have verified_at column
+  # Verification is tracked through user_verifications table with status field
+  let(:user) { create(:user, confirmed_at: Time.current) }
   let(:admin_user) { create(:user, admin: true, confirmed_at: Time.current) }
-  let(:verified_user) { create(:user, confirmed_at: Time.current, verified_at: 1.day.ago) }
+  let(:verified_user) do
+    user = create(:user, confirmed_at: Time.current)
+    # Create a user_verification with accepted status to make user verified
+    create(:user_verification, user: user, status: :accepted)
+    user
+  end
   let(:user_verification) { create(:user_verification, user: user) }
 
   # Mock secrets configuration

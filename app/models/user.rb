@@ -856,36 +856,13 @@ class User < ApplicationRecord
     !self.urban_vote_town? && !self.semi_urban_vote_town?
   end
 
-  def has_not_future_verified_elections?
-    !self.has_future_verified_elections?
-  end
-
-  def has_future_verified_elections?
-    Election.future.requires_vatid_check.any? { |e| e.has_valid_location_for? self}
-  end
-
-  def has_not_verification_accepted?
-     UserVerification.where(
-       user_id: self.id,
-       status: [UserVerification::statuses[:accepted],UserVerification::statuses[:accepted_by_email]]
-     ).blank?
-  end
-
-  def imperative_verification
-    return if verified? || !has_future_verified_elections?
-
-    UserVerification.find_by(
-      user_id: self.id,
-      status: %w(pending issues paused).map {|status| UserVerification::statuses[status] }
-    )
-  end
-
-  def photos_unnecessary?
-    self.has_future_verified_elections? && self.verified && (UserVerification.where(user_id:self.id).none? || UserVerification.accepted_by_email.where(user_id: self.id).any?)
-  end
-  def photos_necessary?
-    self.has_future_verified_elections? && !self.verified  || (UserVerification.where(user_id: self.id).any? && UserVerification.accepted_by_email.where(user_id: self.id).none?)
-  end
+  # Rails 7.2 FIX: Removed duplicate methods that were shadowing EngineUser::Verifiable concern
+  # These methods are already defined as public in app/models/concerns/engine_user/verifiable.rb
+  # Removed: has_not_future_verified_elections?, has_future_verified_elections?,
+  #          has_not_verification_accepted?, imperative_verification,
+  #          photos_unnecessary?, photos_necessary?
+  # The User model was redefining them as private (after line 787), which caused
+  # "private method called" errors in Rails 7.2+
 
   def vote_autonomy_since
     last_vote_location_change[:autonomy]
