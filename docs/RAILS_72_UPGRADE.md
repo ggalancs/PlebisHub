@@ -3,9 +3,19 @@
 ## Overview
 Successfully migrated from Rails 4.2 to Rails 7.2, fixing critical test infrastructure issues.
 
-## Total Tests Fixed: 338+ across all sessions
+## Total Tests Fixed: 379+ across all sessions
 
 ## Critical Infrastructure Fixes
+
+### 12. API V1 Controller Routes (41 tests) ✅
+**Commit**: a0899d84
+- **Error**: ActionController::UrlGenerationError "No route matches"
+- **Root Cause**: Rails 7.2 controller specs require direct action-based routes when using `post :action_name` syntax
+- **Solution**: Added explicit action-based routes for GCM API endpoints
+- **Impact**: Fixed 41 routing failures in API controller specs
+- **Files Modified**:
+  - `config/routes.rb` - Added `post 'gcm_register'` and `delete 'gcm_unregister'` routes
+- **Remaining**: 8 failures are test quality issues (logger expectations with BroadcastLogger)
 
 ### 11. PageController set_metas Method (63 tests) ✅
 **Commit**: 267eebcf
