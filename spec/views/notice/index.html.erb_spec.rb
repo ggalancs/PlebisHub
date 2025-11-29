@@ -7,10 +7,12 @@ RSpec.describe 'plebis_cms/notice/index.html.erb', type: :view do
   # RAILS 7.2 FIX: Add engine view paths for view specs
   before(:all) do
     # Prepend engine view paths so Rails can find the templates
-    view_paths = ActionController::Base.view_paths.dup
-    engine_path = PlebisCms::Engine.root.join('app', 'views')
-    view_paths.unshift(engine_path) unless view_paths.include?(engine_path)
-    ActionController::Base.view_paths = view_paths
+    engine_path = PlebisCms::Engine.root.join('app', 'views').to_s
+    # Convert PathSet to array, prepend engine path, then reassign
+    current_paths = ActionController::Base.view_paths.paths.map(&:to_s)
+    unless current_paths.include?(engine_path)
+      ActionController::Base.view_paths = [engine_path] + current_paths
+    end
   end
 
   # Helper para crear colección paginada de Kaminari
