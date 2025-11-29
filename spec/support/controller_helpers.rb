@@ -22,6 +22,13 @@ RSpec.configure do |config|
   # Include asset helpers for request specs
   config.include RequestSpecHelpers, type: :request
 
+  # Configure routes for controller specs
+  # Controller specs in Rails 7 need explicit routes configuration
+  config.before(:each, type: :controller) do
+    # Make all application routes available in controller specs
+    @routes = Rails.application.routes
+  end
+
   # For request specs, stub out problematic ApplicationController before_actions
   # This prevents redirects caused by user validation issues
   config.before(:each, type: :request) do
