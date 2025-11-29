@@ -9,7 +9,8 @@ module PlebisVerification
   # Extracts signature logic from PageController and MilitantController
   class UrlSignatureService
     def initialize(secret_key = nil)
-      @secret = secret_key || Rails.application.secrets.forms["secret"]
+      # RAILS 7.2 FIX: Use safe navigation to handle nil forms in test environment
+      @secret = secret_key || Rails.application.secrets.forms&.[]("secret")
     end
 
     # Sign a URL with timestamp and HMAC signature

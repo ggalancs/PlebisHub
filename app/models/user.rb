@@ -1025,9 +1025,10 @@ class User < ApplicationRecord
       else
         last_valid_collaboration = self.collaborations.where.not(frequency:0).where("amount >= ?", MIN_MILITANT_AMOUNT).where(status:3).last
         last_valid_collaboration ||= self.collaborations.where.not(frequency:0).where(status:[0, 2]).last
-        date_collaboration ||= last_valid_collaboration.created_at
+        # RAILS 7.2 FIX: Handle nil last_valid_collaboration to prevent NoMethodError
+        date_collaboration ||= last_valid_collaboration&.created_at || now
         new_record.payment_type ||= 1
-        new_record.amount = last_valid_collaboration.amount
+        new_record.amount = last_valid_collaboration&.amount || 0
       end
       new_record.begin_payment = date_collaboration
       new_record.end_payment = nil
