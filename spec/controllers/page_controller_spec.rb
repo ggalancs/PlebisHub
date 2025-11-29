@@ -31,18 +31,9 @@ RSpec.describe PlebisCms::PageController, type: :controller do
       "secret" => "test_secret_key"
     })
 
-    # Define routes
-    @routes ||= ActionDispatch::Routing::RouteSet.new
-    @routes.draw do
-      get '/page/show_form/:id' => 'page#show_form', as: :show_form
-      get '/page/privacy_policy' => 'page#privacy_policy'
-      get '/page/faq' => 'page#faq'
-      get '/page/guarantees' => 'page#guarantees'
-      get '/page/funding' => 'page#funding'
-      get '/page/guarantees_form' => 'page#guarantees_form'
-      get '/page/primarias_andalucia' => 'page#primarias_andalucia'
-      get '/page/representantes_electorales_extranjeros' => 'page#representantes_electorales_extranjeros'
-    end
+    # Use actual engine routes instead of custom route set
+    # Rails 7 requires engine controller specs to use engine routes
+    @routes = PlebisCms::Engine.routes
   end
 
   describe "before_action filters" do

@@ -40,6 +40,10 @@ RSpec.describe MicrocreditController, type: :controller do
     allow(controller).to receive(:set_metas).and_return(true)
     allow(controller).to receive(:set_locale).and_return(true)
 
+    # Use engine routes instead of main app routes
+    # Rails 7 requires engine controller specs to use engine routes
+    @routes = PlebisMicrocredit::Engine.routes
+
     # Mock secrets configuration
     allow(Rails.application).to receive(:secrets).and_return(
       double(microcredits: default_brand_config)

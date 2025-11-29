@@ -19,11 +19,9 @@ RSpec.describe PlebisCms::NoticeController, type: :controller do
     # Setup Devise mapping for tests
     @request.env["devise.mapping"] = Devise.mappings[:user]
 
-    # Define simple routes for testing
-    @routes ||= ActionDispatch::Routing::RouteSet.new
-    @routes.draw do
-      get '/notice' => 'notice#index'
-    end
+    # Use actual engine routes instead of custom route set
+    # Rails 7 requires engine controller specs to use engine routes
+    @routes = PlebisCms::Engine.routes
   end
 
   describe "GET #index" do

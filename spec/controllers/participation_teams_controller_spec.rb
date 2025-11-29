@@ -20,14 +20,9 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
     # Setup Devise mapping for tests
     @request.env["devise.mapping"] = Devise.mappings[:user]
 
-    # Define simple routes for testing
-    @routes ||= ActionDispatch::Routing::RouteSet.new
-    @routes.draw do
-      get '/participation_teams' => 'participation_teams#index'
-      post '/participation_teams/join' => 'participation_teams#join'
-      post '/participation_teams/leave' => 'participation_teams#leave'
-      patch '/participation_teams/update_user' => 'participation_teams#update_user'
-    end
+    # Use actual engine routes instead of custom route set
+    # Rails 7 requires engine controller specs to use engine routes
+    @routes = PlebisParticipation::Engine.routes
   end
 
   describe "GET #index" do
