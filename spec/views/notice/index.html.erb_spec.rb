@@ -2,7 +2,8 @@
 
 require 'rails_helper'
 
-RSpec.describe 'notice/index.html.erb', type: :view do
+# Rails 7.2 FIX: Template is in PlebisCms engine, need correct namespace
+RSpec.describe 'plebis_cms/notice/index.html.erb', type: :view do
   # Helper para crear colección paginada de Kaminari
   def paginated_collection(items, page: 1, per_page: 5)
     Kaminari.paginate_array(items).page(page).per(per_page)
