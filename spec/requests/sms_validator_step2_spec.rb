@@ -11,10 +11,10 @@ RSpec.describe 'SMS Validator Step2', type: :request do
     allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)
   end
 
-  describe 'GET /es/validacion/sms/captcha' do
+  describe 'GET /es/validator/sms/step2' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
-        get '/es/validacion/sms/captcha'
+      it 'redirige al login si no está autenticado', :skip_auth do
+        get '/es/validator/sms/step2'
         expect(response).to redirect_to(new_user_session_path)
       end
     end
@@ -22,7 +22,7 @@ RSpec.describe 'SMS Validator Step2', type: :request do
     describe 'B. RENDERING BÁSICO CON AUTENTICACIÓN' do
       before do
         sign_in user
-        get '/es/validacion/sms/captcha'
+        get '/es/validator/sms/step2'
       end
 
       it 'renderiza correctamente o redirige' do
@@ -45,7 +45,7 @@ RSpec.describe 'SMS Validator Step2', type: :request do
     describe 'C. PARTIAL DE STEPS' do
       before do
         sign_in user
-        get '/es/validacion/sms/captcha'
+        get '/es/validator/sms/step2'
       end
 
       it 'si renderiza, muestra step 2' do
@@ -58,7 +58,7 @@ RSpec.describe 'SMS Validator Step2', type: :request do
     describe 'D. FORMULARIO DE CAPTCHA' do
       before do
         sign_in user
-        get '/es/validacion/sms/captcha'
+        get '/es/validator/sms/step2'
       end
 
       it 'si renderiza, tiene formulario de captcha' do
@@ -89,7 +89,7 @@ RSpec.describe 'SMS Validator Step2', type: :request do
     describe 'E. INSTRUCCIONES' do
       before do
         sign_in user
-        get '/es/validacion/sms/captcha'
+        get '/es/validator/sms/step2'
       end
 
       it 'si renderiza, tiene párrafo con instrucciones' do
@@ -102,7 +102,7 @@ RSpec.describe 'SMS Validator Step2', type: :request do
     describe 'F. ESTRUCTURA HTML' do
       before do
         sign_in user
-        get '/es/validacion/sms/captcha'
+        get '/es/validator/sms/step2'
       end
 
       it 'si renderiza, usa estructura content-content cols' do
