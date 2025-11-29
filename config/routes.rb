@@ -183,6 +183,13 @@ Rails.application.routes.draw do
       get code, to: 'errors#show', code: code
     end
 
+    # Rails 7.2 FIX: Add parameterized routes for controller specs
+    # Controller specs need to be able to call errors#show with or without a :code parameter
+    # This allows tests to call: get :show or get :show, params: { code: 404 }
+    # No constraints - controller will sanitize invalid codes to 500
+    get 'errors', to: 'errors#show', as: 'errors', defaults: { code: '500' }
+    get 'errors/:code', to: 'errors#show', as: 'error', defaults: { code: '500' }
+
     DynamicRouter.load
   end
   # /admin
