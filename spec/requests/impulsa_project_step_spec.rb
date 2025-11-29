@@ -13,7 +13,7 @@ RSpec.describe 'Impulsa Project Step', type: :request do
 
   describe 'GET /es/impulsa/proyecto/:step' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
+      it 'redirige al login si no está autenticado', :skip_auth do
         get '/es/impulsa/proyecto/1'
         expect(response).to redirect_to(new_user_session_path)
       end
