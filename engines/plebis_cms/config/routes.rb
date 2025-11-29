@@ -59,4 +59,8 @@ PlebisCms::Engine.routes.draw do
   get '/cuentas-consejos-autonomicos-33', to: 'page#cuentas_consejos_autonomicos', as: 'cuentas_consejos_autonomicos'
   get '/condiciones-uso-correo-34', to: 'page#condiciones_uso_correo', as: 'condiciones_uso_correo'
   get '/financiacion', to: 'page#funding', as: 'funding'
+
+  # Dynamic form display route
+  # Rails 7.2 fix: Added route for show_form action used in tests
+  get '/pages/:id', to: 'page#show_form', as: 'show_form'
 end

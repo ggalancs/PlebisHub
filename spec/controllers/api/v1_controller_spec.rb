@@ -9,6 +9,9 @@ RSpec.describe Api::V1Controller, type: :controller do
   let(:existing_registration) { create(:notice_registrar, registration_id: 'existing_token_123') }
 
   before do
+    # Rails 7.2 FIX: Use main app routes
+    @routes = Rails.application.routes
+
     # Mock API tokens configuration
     allow(Rails.application).to receive(:secrets).and_return(
       double(api_tokens: [valid_token])

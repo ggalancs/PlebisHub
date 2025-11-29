@@ -21,9 +21,10 @@ RSpec.describe ImpulsaController, type: :controller do
     allow(controller).to receive(:set_metas).and_return(true)
     allow(controller).to receive(:set_locale).and_return(true)
 
-    # Use engine routes instead of main app routes
-    # Rails 7 requires engine controller specs to use engine routes
-    @routes = PlebisImpulsa::Engine.routes
+    # Rails 7.2 FIX: Use main app routes instead of engine routes
+    # ImpulsaController is an alias in app/controllers that inherits from PlebisImpulsa::ImpulsaController
+    # The routes are defined in config/routes.rb (main app), not in the engine
+    @routes = Rails.application.routes
 
     # Mock wizard configuration
     allow_any_instance_of(ImpulsaProject).to receive(:wizard).and_return({

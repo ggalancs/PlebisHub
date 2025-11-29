@@ -12,10 +12,12 @@ module PlebisCms
     include ERB::Util
 
     # HIGH PRIORITY FIX: Replaced deprecated before_filter with before_action
+    # Rails 7.2 FIX: Removed :count_votes from except list - action doesn't exist in controller
+    # Rails 7.1+ validates callback action lists and raises errors for non-existent actions
     before_action :authenticate_user!, except: [
       :privacy_policy, :faq, :guarantees, :funding, :guarantees_form, :show_form,
       :old_circles_data_validation, :primarias_andalucia, :listas_primarias_andaluzas,
-      :responsables_organizacion_municipales, :count_votes,
+      :responsables_organizacion_municipales,
       :responsables_municipales_andalucia, :plaza_plebisbrand_municipal,
       :portal_transparencia_cc_estatal, :mujer_igualdad, :alta_consulta_ciudadana,
       :representantes_electorales_extranjeros, :responsables_areas_cc_autonomicos,
