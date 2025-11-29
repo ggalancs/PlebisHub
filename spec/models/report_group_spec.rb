@@ -291,7 +291,7 @@ RSpec.describe ReportGroup, type: :model do
       group.id = 1 # Simulate persisted
 
       # Expect deprecation warning
-      expect(Rails.logger).to receive(:warn).with(/deprecated eval/).at_least_once
+      expect(Rails.logger).to receive(:warn).with(/deprecated eval/).at_least(:once)
 
       row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.now)
 
@@ -411,7 +411,7 @@ RSpec.describe ReportGroup, type: :model do
       group.id = 1
 
       # Simulate error by passing nil row
-      expect(Rails.logger).to receive(:error).at_least_once
+      expect(Rails.logger).to receive(:error).at_least(:once)
 
       result = group.process(nil)
 

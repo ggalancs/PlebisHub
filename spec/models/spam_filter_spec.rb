@@ -272,7 +272,7 @@ RSpec.describe SpamFilter, type: :model do
       filter.id = 1 # Simulate persisted record
 
       # Expect deprecation warning
-      expect(Rails.logger).to receive(:warn).with(/deprecated eval/).at_least_once
+      expect(Rails.logger).to receive(:warn).with(/deprecated eval/).at_least(:once)
 
       spam_user = build(:user, email: 'test@spam.com')
       legit_user = build(:user, email: 'test@example.com')
@@ -342,7 +342,7 @@ RSpec.describe SpamFilter, type: :model do
       )
 
       # Simulate error by passing nil user
-      expect(Rails.logger).to receive(:error).at_least_once
+      expect(Rails.logger).to receive(:error).at_least(:once)
 
       expect(filter.process(nil)).to be_falsey
     end
