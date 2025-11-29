@@ -9,6 +9,12 @@ Rails.application.routes.draw do
 
   namespace :api do
     scope :v1 do
+      # RAILS 7.2 FIX: Add direct action routes for controller specs
+      # Controller specs use "post :gcm_register" which requires action-based routes
+      post 'gcm_register', to: 'v1#gcm_register'
+      delete 'gcm_unregister', to: 'v1#gcm_unregister'
+
+      # Backward compatible path-based routes
       scope :gcm do
         post 'registrars', to: 'v1#gcm_registrate'
         delete 'registrars/:registrar_id', to: 'v1#gcm_unregister'
