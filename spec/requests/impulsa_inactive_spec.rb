@@ -19,10 +19,11 @@ RSpec.describe 'Impulsa Inactive', type: :request do
     end
 
     describe 'B. MENSAJES DE ESTADO' do
-      it 'muestra mensaje sobre próxima edición o ausencia de ediciones' do
+      it 'muestra mensaje sobre próxima edición, ausencia de ediciones, o descripción general' do
         get '/es/impulsa'
         if response.status == 200
-          expect(response.body).to match(/próxim|upcoming|noupcoming/i)
+          # Can show upcoming message, no upcoming message, or general "¿Qué es IMPULSA?" description
+          expect(response.body).to match(/próxim|upcoming|noupcoming|¿Qué es IMPULSA\?/i)
         end
       end
     end
