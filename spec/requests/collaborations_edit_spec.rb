@@ -135,7 +135,8 @@ RSpec.describe 'Collaborations Edit', type: :request do
     end
 
     describe 'G. AVISO TARJETA DE CRÉDITO' do
-      let!(:collaboration) { create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 1, payment_identifier: '1234') }
+      # RAILS 7.2 FIX: Use correct column name redsys_identifier instead of payment_identifier
+      let!(:collaboration) { create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 1, redsys_identifier: '1234') }
 
       before do
         sign_in user

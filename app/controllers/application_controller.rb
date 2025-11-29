@@ -39,8 +39,9 @@ class ApplicationController < ActionController::Base
       @meta_image = election.meta_image if election.meta_image.present?
     end
 
-    @meta_description ||= Rails.application.secrets.metas['description']
-    @meta_image ||= Rails.application.secrets.metas['image']
+    # RAILS 7.2 FIX: Handle nil secrets.metas in test environment
+    @meta_description ||= Rails.application.secrets.metas&.[]('description')
+    @meta_image ||= Rails.application.secrets.metas&.[]('image')
 
     if flash[:metas]&.dig('description')
       @meta_description = flash[:metas]['description']

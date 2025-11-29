@@ -66,6 +66,17 @@ Rails.application.routes.draw do
 
     get '/audio_captcha', to: 'audio_captcha#index', as: 'audio_captcha'
 
+    # RAILS 7.2 FIX: Define main app vote routes BEFORE engine mount
+    # This ensures main app routes take precedence over duplicate engine routes
+    get '/vote/create/:election_id', to: 'vote#create', as: :create_vote
+    get '/vote/create_token/:election_id', to: 'vote#create_token', as: :create_token_vote
+    get '/vote/check/:election_id', to: 'vote#check', as: :check_vote
+    get '/vote/sms_check/:election_id', to: 'vote#sms_check', as: :sms_check_vote
+    get '/vote/send_sms_check/:election_id', to: 'vote#send_sms_check', as: :send_sms_check_vote
+    get '/votos/:election_id/:token', to: 'vote#election_votes_count', as: 'election_votes_count'
+    get '/votos/:election_id/:election_location_id/:token', to: 'vote#election_location_votes_count', as: 'election_location_votes_count'
+    match '/paper_vote/:election_id/:election_location_id/:token', to: 'vote#paper_vote', as: 'election_location_paper_vote', via: %w(get post)
+
     # Mount PlebisCMS Engine - handles blog, pages, and notices
     # Routes are only loaded when engine is activated via EngineActivation
     mount PlebisCms::Engine, at: '/'
@@ -87,16 +98,6 @@ Rails.application.routes.draw do
     #get '/propuestas/info', to: 'proposals#info', as: 'proposals_info'
     #get '/propuestas/:id', to: 'proposals#show', as: 'proposal'
     #post '/apoyar/:proposal_id', to: 'supports#create', as: 'proposal_supports'
-    get '/vote/create/:election_id', to: 'vote#create', as: :create_vote
-    get '/vote/create_token/:election_id', to: 'vote#create_token', as: :create_token_vote
-    get '/vote/check/:election_id', to: 'vote#check', as: :check_vote
-
-    get '/vote/sms_check/:election_id', to: 'vote#sms_check', as: :sms_check_vote
-    get '/vote/send_sms_check/:election_id', to: 'vote#send_sms_check', as: :send_sms_check_vote
-
-    get '/votos/:election_id/:token', to: 'vote#election_votes_count', as: 'election_votes_count'
-    get '/votos/:election_id/:election_location_id/:token', to: 'vote#election_location_votes_count', as: 'election_location_votes_count'
-    match '/paper_vote/:election_id/:election_location_id/:token', to: 'vote#paper_vote', as: 'election_location_paper_vote', via: %w(get post)
 
     get '/tools/militant_request/get_external_info', to:'militant#get_militant_info', as: 'user_get_militant_info'
     devise_for :users, controllers: {

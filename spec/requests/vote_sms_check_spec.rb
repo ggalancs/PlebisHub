@@ -14,7 +14,7 @@ RSpec.describe 'Vote SMS Check', type: :request do
   describe 'GET /es/votacion/:election_id/sms_check' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
       it 'redirige al login si no está autenticado' do
-        get '/es/votacion/1/sms_check'
+        get '/es/vote/sms_check/1'
         expect(response).to redirect_to(new_user_session_path)
       end
     end
@@ -22,7 +22,7 @@ RSpec.describe 'Vote SMS Check', type: :request do
     describe 'B. RENDERING BÁSICO CON AUTENTICACIÓN' do
       before do
         sign_in user
-        get '/es/votacion/1/sms_check'
+        get '/es/vote/sms_check/1'
       end
 
       it 'renderiza correctamente o redirige si no hay elección' do
@@ -39,7 +39,7 @@ RSpec.describe 'Vote SMS Check', type: :request do
     describe 'C. SECCIÓN DE CONFIRMAR CÓDIGO' do
       before do
         sign_in user
-        get '/es/votacion/1/sms_check'
+        get '/es/vote/sms_check/1'
       end
 
       it 'si renderiza, puede mostrar sección confirmar código' do
@@ -65,7 +65,7 @@ RSpec.describe 'Vote SMS Check', type: :request do
     describe 'D. SECCIÓN DE SOLICITAR CÓDIGO' do
       before do
         sign_in user
-        get '/es/votacion/1/sms_check'
+        get '/es/vote/sms_check/1'
       end
 
       it 'si renderiza, tiene sección solicitar código' do
@@ -99,7 +99,7 @@ RSpec.describe 'Vote SMS Check', type: :request do
     describe 'E. LIMITACIÓN DE SOLICITUDES' do
       before do
         sign_in user
-        get '/es/votacion/1/sms_check'
+        get '/es/vote/sms_check/1'
       end
 
       it 'si renderiza, puede mostrar mensaje de límite de tiempo' do
@@ -113,7 +113,7 @@ RSpec.describe 'Vote SMS Check', type: :request do
     describe 'F. ESTRUCTURA HTML' do
       before do
         sign_in user
-        get '/es/votacion/1/sms_check'
+        get '/es/vote/sms_check/1'
       end
 
       it 'si renderiza, usa estructura content-content cols' do
