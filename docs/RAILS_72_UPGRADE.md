@@ -3,7 +3,7 @@
 ## Overview
 Successfully migrated from Rails 4.2 to Rails 7.2, fixing critical test infrastructure issues.
 
-## Total Tests Fixed: 195+ across all sessions
+## Total Tests Fixed: 275+ across all sessions
 
 ## Critical Infrastructure Fixes
 
@@ -88,15 +88,28 @@ Successfully migrated from Rails 4.2 to Rails 7.2, fixing critical test infrastr
   - `test/factories/users.rb`
   - `test/factories/collaborations.rb`
 
+### 10. Notice View Spec - ActionView::PathSet and Routing (80 tests) ✅
+**Commits**: ddfeff5c, 7be7332c
+- **Error #1**: NoMethodError "undefined method 'unshift' for ActionView::PathSet" (73 tests)
+- **Error #2**: ActionView::Template::Error "No route matches" for Kaminari pagination (7 tests)
+- **Root Causes**:
+  1. Rails 7.2 changed ActionView::PathSet to be immutable - `.unshift()` no longer works
+  2. Rails 7.2 view specs don't have routing configured, breaking Kaminari's `paginate` helper
+- **Solutions**:
+  1. Convert PathSet to array, prepend engine path, reassign: `[engine_path] + current_paths`
+  2. Stub `url_for` helper in pagination/helper integration test contexts
+- **Files Modified**:
+  - `spec/views/notice/index.html.erb_spec.rb`
+
 ## Test Results by Category
 
 ### Fully Passing (100%)
 - `spec/controllers/errors_controller_spec.rb`: 36/36 ✅
+- `spec/views/notice/index.html.erb_spec.rb`: 80/80 ✅
 
 ### Significantly Improved
 - `spec/controllers/page_controller_spec.rb`: 74/89 (83%, was 54%)
 - `spec/services/town_verification_report_service_spec.rb`: 32/39 (82%)
-- `spec/views/notice/index.html.erb_spec.rb`: 80 template errors fixed
 - `spec/controllers/confirmations_controller_spec.rb`: All SMTP errors fixed
 - `spec/mailers/users_mailer_spec.rb`: All Integer comparison errors fixed
 
