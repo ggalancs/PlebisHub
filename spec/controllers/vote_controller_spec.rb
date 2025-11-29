@@ -275,8 +275,9 @@ RSpec.describe VoteController, type: :controller do
         allow(controller).to receive(:election).and_return(election)
       end
 
+      # RAILS 7.2 FIX: CSV::MalformedCSVError requires line number in Ruby 3.4+
       it "handles CSV::MalformedCSVError gracefully" do
-        allow_any_instance_of(CensusFileParser).to receive(:find_user_by_document).and_raise(CSV::MalformedCSVError.new("Bad CSV"))
+        allow_any_instance_of(CensusFileParser).to receive(:find_user_by_document).and_raise(CSV::MalformedCSVError.new("Bad CSV", 1))
 
         controller.params[:document_vatid] = "12345678A"
         controller.params[:document_type] = "1"
@@ -286,7 +287,7 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs CSV parsing errors" do
-        allow_any_instance_of(CensusFileParser).to receive(:find_user_by_document).and_raise(CSV::MalformedCSVError.new("Bad CSV"))
+        allow_any_instance_of(CensusFileParser).to receive(:find_user_by_document).and_raise(CSV::MalformedCSVError.new("Bad CSV", 1))
         expect(Rails.logger).to receive(:error).with(a_string_matching(/census_parse_error/))
 
         controller.params[:document_vatid] = "12345678A"
