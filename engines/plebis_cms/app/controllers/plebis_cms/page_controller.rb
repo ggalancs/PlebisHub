@@ -33,9 +33,10 @@ module PlebisCms
       # MEDIUM PRIORITY FIX: Removed unused variable 'election'
       # Previous code selected election with meta_description but never used it
 
-      @meta_description = Rails.application.secrets.metas["description"] if @meta_description.nil?
+      # RAILS 7.2 FIX: Use safe navigation to handle nil metas in test environment
+      @meta_description = Rails.application.secrets.metas&.[]("description") if @meta_description.nil?
       # MEDIUM PRIORITY FIX: Fixed logic bug - was checking @meta_description instead of @meta_image
-      @meta_image = Rails.application.secrets.metas["image"] if @meta_image.nil?
+      @meta_image = Rails.application.secrets.metas&.[]("image") if @meta_image.nil?
     end
 
     def show_form
