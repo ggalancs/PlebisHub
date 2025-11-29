@@ -11,10 +11,10 @@ RSpec.describe 'SMS Validator Step3', type: :request do
     allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)
   end
 
-  describe 'GET /es/validacion/sms/codigo' do
+  describe 'GET /es/validator/sms/step3' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
-        get '/es/validacion/sms/codigo'
+      it 'redirige al login si no está autenticado', :skip_auth do
+        get '/es/validator/sms/step3'
         expect(response).to redirect_to(new_user_session_path)
       end
     end
@@ -22,7 +22,7 @@ RSpec.describe 'SMS Validator Step3', type: :request do
     describe 'B. RENDERING BÁSICO CON AUTENTICACIÓN' do
       before do
         sign_in user
-        get '/es/validacion/sms/codigo'
+        get '/es/validator/sms/step3'
       end
 
       it 'renderiza correctamente o redirige' do
