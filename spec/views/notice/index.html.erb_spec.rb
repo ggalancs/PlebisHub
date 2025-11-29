@@ -193,6 +193,12 @@ RSpec.describe 'plebis_cms/notice/index.html.erb', type: :view do
   end
 
   describe 'C. TESTS DE PAGINACIÓN' do
+    # RAILS 7.2 FIX: View specs need route helpers for Kaminari pagination
+    before(:each) do
+      # Stub the url_for helper that Kaminari uses to generate pagination links
+      allow(view).to receive(:url_for).and_return('/notice')
+    end
+
     context 'cuando hay más de 5 notificaciones' do
       let!(:notices) { create_list(:notice, 12, :sent_active) }
 
@@ -588,6 +594,12 @@ RSpec.describe 'plebis_cms/notice/index.html.erb', type: :view do
   end
 
   describe 'G. TESTS DE INTEGRACIÓN CON HELPERS' do
+    # RAILS 7.2 FIX: View specs need route helpers for Kaminari pagination
+    before(:each) do
+      # Stub the url_for helper that Kaminari uses to generate pagination links
+      allow(view).to receive(:url_for).and_return('/notice')
+    end
+
     context 'helper localize (l)' do
       let!(:notice) do
         create(:notice, :sent_active,
