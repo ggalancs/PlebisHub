@@ -14,11 +14,9 @@ RSpec.describe OrdersController, type: :controller do
     allow(controller).to receive(:set_metas).and_return(true)
     allow(controller).to receive(:set_locale).and_return(true)
 
-    # Define routes for testing (callback endpoint)
-    @routes ||= ActionDispatch::Routing::RouteSet.new
-    @routes.draw do
-      post '/orders/callback_redsys' => 'orders#callback_redsys'
-    end
+    # Use main app routes instead of custom route set
+    # Rails 7 requires controller specs to use actual application routes
+    @routes = Rails.application.routes
   end
 
   describe "POST #callback_redsys" do

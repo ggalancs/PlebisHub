@@ -10,11 +10,9 @@ RSpec.describe MilitantController, type: :controller do
   let(:mock_signature_service) { instance_double(UrlSignatureService) }
 
   before do
-    # Define routes for testing (external API endpoint)
-    @routes ||= ActionDispatch::Routing::RouteSet.new
-    @routes.draw do
-      get '/militant/get_militant_info' => 'militant#get_militant_info'
-    end
+    # Use main app routes instead of custom route set
+    # Rails 7 requires controller specs to use actual application routes
+    @routes = Rails.application.routes
 
     allow(UrlSignatureService).to receive(:new).and_return(mock_signature_service)
   end

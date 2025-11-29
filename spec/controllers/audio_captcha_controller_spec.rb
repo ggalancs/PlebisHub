@@ -23,11 +23,9 @@ RSpec.describe AudioCaptchaController, type: :controller, skip: !espeak_availabl
     allow(controller).to receive(:set_metas).and_return(true)
     allow(controller).to receive(:set_locale).and_return(true)
 
-    # Define routes for testing
-    @routes ||= ActionDispatch::Routing::RouteSet.new
-    @routes.draw do
-      get '/audio_captcha/index' => 'audio_captcha#index'
-    end
+    # Use main app routes instead of custom route set
+    # Rails 7 requires controller specs to use actual application routes
+    @routes = Rails.application.routes
   end
 
   # Clean up test audio files after tests

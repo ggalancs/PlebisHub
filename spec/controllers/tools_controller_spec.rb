@@ -16,11 +16,9 @@ RSpec.describe ToolsController, type: :controller do
     allow(controller).to receive(:set_metas).and_return(true)
     allow(controller).to receive(:set_locale).and_return(true)
 
-    # Define simple routes for testing
-    @routes ||= ActionDispatch::Routing::RouteSet.new
-    @routes.draw do
-      get '/index' => 'tools#index'
-    end
+    # Use main app routes instead of custom route set
+    # Rails 7 requires controller specs to use actual application routes
+    @routes = Rails.application.routes
   end
 
   describe "GET #index" do
