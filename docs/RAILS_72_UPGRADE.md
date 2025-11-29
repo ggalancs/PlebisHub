@@ -3,9 +3,18 @@
 ## Overview
 Successfully migrated from Rails 4.2 to Rails 7.2, fixing critical test infrastructure issues.
 
-## Total Tests Fixed: 275+ across all sessions
+## Total Tests Fixed: 338+ across all sessions
 
 ## Critical Infrastructure Fixes
+
+### 11. PageController set_metas Method (63 tests) ✅
+**Commit**: 267eebcf
+- **Error**: NoMethodError "undefined method '[]' for nil"
+- **Root Cause**: `Rails.application.secrets.metas` is nil in test environment
+- **Solution**: Added safe navigation operator (&.) to handle nil metas
+- **Impact**: Fixed all page_faq_spec tests and prevented crashes in all PageController actions
+- **Files Modified**:
+  - `engines/plebis_cms/app/controllers/plebis_cms/page_controller.rb`
 
 ### 1. TownVerificationReportService (32 tests) ✅
 **Commit**: 7f94047d
