@@ -4,6 +4,11 @@ import { nextTick } from 'vue'
 import MicrocreditList from './MicrocreditList.vue'
 import type { Microcredit } from './MicrocreditCard.vue'
 
+interface SelectOption {
+  value: string
+  label: string
+}
+
 const mockMicrocredits: Microcredit[] = [
   {
     id: '1',
@@ -301,7 +306,7 @@ describe('MicrocreditList', () => {
       })
 
       const sortSelect = wrapper.findAllComponents({ name: 'Select' }).find(
-        s => s.props('options')?.some((o: any) => o.value === 'amount-high')
+        s => s.props('options')?.some((o: SelectOption) => o.value === 'amount-high')
       )
       await sortSelect?.setValue('amount-high')
       await nextTick()
@@ -318,7 +323,7 @@ describe('MicrocreditList', () => {
       })
 
       const sortSelect = wrapper.findAllComponents({ name: 'Select' }).find(
-        s => s.props('options')?.some((o: any) => o.value === 'amount-low')
+        s => s.props('options')?.some((o: SelectOption) => o.value === 'amount-low')
       )
       await sortSelect?.setValue('amount-low')
       await nextTick()
@@ -335,7 +340,7 @@ describe('MicrocreditList', () => {
       })
 
       const sortSelect = wrapper.findAllComponents({ name: 'Select' }).find(
-        s => s.props('options')?.some((o: any) => o.value === 'interest-high')
+        s => s.props('options')?.some((o: SelectOption) => o.value === 'interest-high')
       )
       await sortSelect?.setValue('interest-high')
       await nextTick()
@@ -352,7 +357,7 @@ describe('MicrocreditList', () => {
       })
 
       const sortSelect = wrapper.findAllComponents({ name: 'Select' }).find(
-        s => s.props('options')?.some((o: any) => o.value === 'interest-low')
+        s => s.props('options')?.some((o: SelectOption) => o.value === 'interest-low')
       )
       await sortSelect?.setValue('interest-low')
       await nextTick()

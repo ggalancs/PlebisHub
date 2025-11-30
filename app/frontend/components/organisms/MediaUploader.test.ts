@@ -5,15 +5,22 @@ import MediaUploader from './MediaUploader.vue'
 import type { UploadFile } from './MediaUploader.vue'
 
 // Mock File and FileReader
+interface MockFileReader {
+  onload: ((event: { target: { result: string } }) => void) | null
+  readAsDataURL: (blob: Blob) => void
+}
+
 global.FileReader = class FileReader {
-  readAsDataURL = vi.fn(function(this: any) {
+  onload: ((event: { target: { result: string } }) => void) | null = null
+
+  readAsDataURL = vi.fn(function(this: MockFileReader) {
     setTimeout(() => {
       if (this.onload) {
         this.onload({ target: { result: 'data:image/png;base64,mock' } })
       }
     }, 0)
   })
-} as any
+} as unknown as typeof FileReader
 
 describe('MediaUploader', () => {
   describe('rendering', () => {

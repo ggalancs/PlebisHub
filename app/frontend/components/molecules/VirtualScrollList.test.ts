@@ -21,14 +21,14 @@ describe('VirtualScrollList', () => {
       observe() {}
       unobserve() {}
       disconnect() {}
-    } as any
+    } as unknown as typeof IntersectionObserver
 
     // Mock ResizeObserver
     global.ResizeObserver = class ResizeObserver {
       observe() {}
       unobserve() {}
       disconnect() {}
-    } as any
+    } as unknown as typeof ResizeObserver
   })
 
   it('should render with items', () => {
@@ -149,7 +149,7 @@ describe('VirtualScrollList', () => {
     const wrapper = mount(VirtualScrollList, {
       props: {
         items,
-        itemHeight: (item: any) => {
+        itemHeight: (item: { id: number; title: string; content: string }) => {
           // Vary height based on content
           return item.id % 2 === 0 ? 100 : 50
         },
