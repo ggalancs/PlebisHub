@@ -54,7 +54,7 @@ RSpec.describe Category, type: :model do
         create(:category, name: 'Technology')
         duplicate = build(:category, name: 'technology')
         expect(duplicate).not_to be_valid
-        expect(duplicate.errors[:name]).to include('has already been taken')
+        expect(duplicate.errors[:name]).to include('ya está en uso')
       end
 
       it 'does not allow same name if different case initially' do
@@ -111,7 +111,7 @@ RSpec.describe Category, type: :model do
         create(:category, slug: 'unique-slug')
         duplicate = build(:category, slug: 'unique-slug')
         expect(duplicate).not_to be_valid
-        expect(duplicate.errors[:slug]).to include('has already been taken')
+        expect(duplicate.errors[:slug]).to include('ya está en uso')
       end
 
       it 'allows different slugs' do

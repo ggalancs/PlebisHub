@@ -62,14 +62,14 @@ RSpec.describe Page, type: :model do
         create(:page, slug: "unique-slug")
         duplicate_page = build(:page, slug: "unique-slug")
         expect(duplicate_page).not_to be_valid
-        expect(duplicate_page.errors[:slug]).to include("has already been taken")
+        expect(duplicate_page.errors[:slug]).to include("ya está en uso")
       end
 
       it 'enforces case-insensitive slug uniqueness' do
         create(:page, slug: "my-slug")
         duplicate_page = build(:page, slug: "MY-SLUG")
         expect(duplicate_page).not_to be_valid
-        expect(duplicate_page.errors[:slug]).to include("has already been taken")
+        expect(duplicate_page.errors[:slug]).to include("ya está en uso")
       end
 
       it 'allows same slug if one is deleted (paranoid scope)' do

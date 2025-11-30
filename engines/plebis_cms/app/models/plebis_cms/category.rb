@@ -41,5 +41,10 @@ module PlebisCms
         [:name, :id]
       ]
     end
+
+    # Required for FriendlyId to regenerate slug when name changes
+    def should_generate_new_friendly_id?
+      name_changed? || slug.blank?
+    end
   end
 end
