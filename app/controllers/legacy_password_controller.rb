@@ -28,7 +28,8 @@ class LegacyPasswordController < ApplicationController
   def update
     if current_user.update(change_pass_params)
       # Password updated successfully
-      current_user.update_attribute(:has_legacy_password, false)
+      # Rails 7.2: Use update_column instead of deprecated update_attribute
+      current_user.update_column(:has_legacy_password, false)
 
       log_security_event('legacy_password_updated',
         user_id: current_user.id,
@@ -36,7 +37,8 @@ class LegacyPasswordController < ApplicationController
       )
 
       # Re-authenticate user with new password
-      sign_in current_user, bypass: true
+      # Devise: Use bypass_sign_in instead of deprecated bypass option
+      bypass_sign_in(current_user)
 
       redirect_to root_path, notice: t('plebisbrand.legacy.password.changed')
     else
