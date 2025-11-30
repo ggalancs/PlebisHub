@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import DOMPurify from 'dompurify'
 import Card from '@/components/molecules/Card.vue'
 import Icon from '@/components/atoms/Icon.vue'
 
@@ -116,12 +117,14 @@ const renderMarkdown = (text: string): string => {
   return html
 }
 
-// Rendered content
+// Rendered content with XSS protection
 const renderedContent = computed(() => {
+  let rawHtml = ''
+
   if (props.contentType === 'markdown') {
-    return renderMarkdown(props.content)
+    rawHtml = renderMarkdown(props.content)
   } else if (props.contentType === 'html') {
-    return props.content
+    rawHtml = props.content
   } else {
     // Plain text - escape HTML and preserve formatting
     return props.content
@@ -130,6 +133,21 @@ const renderedContent = computed(() => {
       .replace(/>/g, '&gt;')
       .replace(/\n/g, '<br />')
   }
+
+  // Security: Sanitize HTML to prevent XSS attacks
+  return DOMPurify.sanitize(rawHtml, {
+    ALLOWED_TAGS: [
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'p', 'br', 'strong', 'em', 'u', 's',
+      'a', 'img',
+      'ul', 'ol', 'li',
+      'blockquote', 'code', 'pre',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'div', 'span', 'hr'
+    ],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel'],
+    ALLOW_DATA_ATTR: false,
+  })
 })
 
 // Change view mode
