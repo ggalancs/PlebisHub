@@ -82,6 +82,48 @@ Se ha configurado para que la aplicación sea un proveedor de OpenID, por lo que
 ## Instalación
 
 Es una aplicación Ruby On Rails actualizada a Rails 7.2 / Ruby 3.3.
+
+### Instalación con Docker (Recomendada)
+
+La forma más fácil de instalar PlebisHub es usando Docker. Solo necesitas tener Docker y Docker Compose instalados.
+
+**Instalación en un solo comando:**
+
+```bash
+./quick-start.sh
+```
+
+Esto automáticamente:
+- Crea la configuración con secretos seguros generados
+- Construye las imágenes Docker
+- Inicia PostgreSQL, Redis y la aplicación Rails
+- Configura la base de datos
+
+**Accesos después de la instalación:**
+- 🌐 Aplicación Web: http://localhost:3000
+- 👤 Panel de Admin: http://localhost:3000/admin
+- 💚 Health Check: http://localhost:3000/health
+
+**Comandos útiles:**
+
+```bash
+make start          # Iniciar servicios
+make stop           # Parar servicios
+make logs           # Ver logs
+make console        # Consola de Rails
+make shell          # Terminal del contenedor
+make db-migrate     # Ejecutar migraciones
+make help           # Ver todos los comandos
+```
+
+**Modo desarrollo (con Vite HMR):**
+
+```bash
+./quick-start.sh development
+```
+
+### Instalación Manual (Sin Docker)
+
 Se recomienda hacerla en sistemas operativos GNU/Linux (nosotros usamos Ubuntu).
 Para manejar las gemas recomendamos rvm o rbenv.
 Para la BBDD recomendamos postgres, pero se puede usar también mysql/sqlite3.

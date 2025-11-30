@@ -2,6 +2,9 @@ require 'dynamic_router'
 require 'resque/server'
 
 Rails.application.routes.draw do
+  # Health check endpoint for Docker/Kubernetes/Load Balancers
+  get 'health', to: 'health#show', as: :health_check
+
   get '', to: redirect("/#{I18n.locale}")
 
   # redsys MerchantURL
