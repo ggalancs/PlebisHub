@@ -62,6 +62,7 @@ services:
       target: ${BUILD_TARGET:-production}
     container_name: plebishub_app
     restart: unless-stopped
+    command: bundle exec rails server -b 0.0.0.0 -p 3000
     environment:
       # Rails
       RAILS_ENV: ${RAILS_ENV:-production}
@@ -93,9 +94,8 @@ services:
       AWS_REGION: ${AWS_REGION:-eu-west-1}
       S3_BUCKET_NAME: ${S3_BUCKET_NAME}
     volumes:
-      - ./log:/app/log
-      - ./tmp:/app/tmp
-      - ./storage:/app/storage
+      - .:/app
+      - bundle_cache:/usr/local/bundle
     ports:
       - "${APP_PORT:-3000}:3000"
     depends_on:
@@ -140,8 +140,8 @@ services:
       SMTP_USER_NAME: ${SMTP_USER_NAME}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
     volumes:
-      - ./log:/app/log
-      - ./tmp:/app/tmp
+      - .:/app
+      - bundle_cache:/usr/local/bundle
     depends_on:
       db:
         condition: service_healthy
@@ -200,6 +200,8 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  bundle_cache:
     driver: local
 
 # ==================== Networks ====================
