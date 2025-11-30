@@ -7,7 +7,8 @@ FactoryBot.define do
     amount { 100 }
     iban_account { "ES9121000418450200051332" }
     iban_bic { "CAIXESBBXXX" }
-    ip { "192.168.1.1" }
+    # RAILS 7.2 FIX: Use sequence for unique IPs to avoid check_user_limits validation failures
+    sequence(:ip) { |n| "192.168.1.#{(n % 254) + 1}" }
 
     # Terms acceptance
     terms_of_service { true }
