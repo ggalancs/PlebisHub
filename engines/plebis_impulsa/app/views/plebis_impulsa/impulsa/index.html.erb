@@ -12,7 +12,7 @@
       <% end %>
 
       <% if @edition %>
-        <%= raw @edition.description %>
+        <%= sanitize @edition.description, tags: %w[p br strong em a ul ol li h1 h2 h3 h4 div span], attributes: %w[href target rel class style] %>
       <% else %>
         <h3 style="margin-top:30px;">¿Qué es IMPULSA?</h3>
 

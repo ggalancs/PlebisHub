@@ -858,7 +858,8 @@ class User < ApplicationRecord
   end
 
   def sms_check_token
-    Digest::SHA1.digest("#{sms_check_at}#{id}#{Rails.application.secrets.users['sms_secret_key'] }")[0..3].codepoints.map { |c| "%02X" % c }.join if sms_check_at
+    # SECURITY FIX: Use SHA256 instead of SHA1
+    Digest::SHA256.digest("#{sms_check_at}#{id}#{Rails.application.secrets.users['sms_secret_key']}")[0..3].codepoints.map { |c| "%02X" % c }.join if sms_check_at
   end
 
   def pass_vatid_check?

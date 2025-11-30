@@ -272,7 +272,8 @@ module PlebisMicrocredit
 
     def unique_hash
        # RAILS 7.2 FIX: Use safe navigation for document_vatid which may be nil
-       Digest::SHA1.hexdigest "#{id}-#{created_at}-#{document_vatid&.upcase}"
+       # SECURITY FIX: Use SHA256 instead of SHA1
+       Digest::SHA256.hexdigest "#{id}-#{created_at}-#{document_vatid&.upcase}"
     end
 
     def renew!(new_campaign)

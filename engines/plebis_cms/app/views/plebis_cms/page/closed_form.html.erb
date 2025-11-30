@@ -6,7 +6,7 @@
 	  <% if defined? return_path %>
 		<%= content_tag :p, link_to("Volver", return_path) %>
 	  <% end %>
-      <p><%= raw text %></p>
+      <p><%= sanitize text, tags: %w[p br strong em a ul ol li], attributes: %w[href target rel] %></p>
     </div>
   </div>
 </div>

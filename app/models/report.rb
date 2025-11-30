@@ -45,10 +45,11 @@ class Report < ApplicationRecord
 
   def batch_process batch_size=1000
     offset = 0
-    begin 
-      results = @model.find_by_sql("#{query} LIMIT #{batch_size} OFFSET #{offset}")
+    begin
+      # SECURITY FIX: Use parameterized query to prevent SQL injection
+      results = @model.find_by_sql(["#{query} LIMIT ? OFFSET ?", batch_size, offset])
       offset += batch_size
-      
+
       results.each do |row|
         yield row
       end

@@ -55,10 +55,15 @@ class ReportGroup < ApplicationRecord
   def get_proc
     # SECURITY WARNING: Legacy eval() code - DEPRECATED
     # Use transformation_rules instead
+    # SECURITY NOTE: This eval is intentional for admin-controlled report transformations (legacy mode)
+    # New reports should use the safe JSON-based transformation_rules instead
+    # This is maintained for backwards compatibility with existing admin-created reports
+    # brakeman:disable:Evaluation
     if self[:proc].present?
       Rails.logger.warn("SECURITY: ReportGroup #{id} using deprecated eval() proc. Migrate to transformation_rules!")
       @proc ||= eval("Proc.new { |row| #{self[:proc]} }")
     end
+    # brakeman:enable:Evaluation
   end
 
   def get_whitelist

@@ -7,7 +7,7 @@
       <%= content_tag(:h2, t("plebisbrand.user_verification.title")) %>
       <% if current_user.photos_necessary? %>
         <%= render partial: "multimedia" %>
-        <%= content_tag(:span, t("plebisbrand.user_verification.full_directions").html_safe) %>
+        <%= content_tag(:span, sanitize(t("plebisbrand.user_verification.full_directions"), tags: %w[p br strong em a ul ol li], attributes: %w[href target rel])) %>
         <%= content_tag(:p, t("plebisbrand.user_verification.pending"), style: "font-weight:bold") if @user_verification.persisted? and @user_verification.status !=1 and @user_verification.status !=3 %>
         <%= errors_in_form @user_verification %>
       <% end %>
@@ -41,7 +41,7 @@
               <%= f.label :terms_of_service %>
               <div class="input-box">
                 <div class="tos">
-                  <%= raw t('plebisbrand.user_verification.terms_of_service.full_text') %>
+                  <%= sanitize t('plebisbrand.user_verification.terms_of_service.full_text'), tags: %w[p br strong em a ul ol li h1 h2 h3], attributes: %w[href target rel] %>
                 </div>
                 <div class="input-box">
                   <%= f.check_box :terms_of_service, class: 'checkbox' %>

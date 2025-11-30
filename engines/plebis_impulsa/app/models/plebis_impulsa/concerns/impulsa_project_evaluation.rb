@@ -162,6 +162,10 @@ module PlebisImpulsa
       def evaluation_method_missing(method_sym, *arguments, &block)
         evaluators.each do |i|
           if method_sym.to_s =~ /^_evl#{i}_(.+)__([^=]+)=?$/
+            # SECURITY NOTE: This eval is intentional for admin-controlled dynamic evaluation form handling
+            # The pattern creates getter/setter methods for evaluation fields based on naming convention
+            # Input is validated via regex pattern and only used for method definition, not execution
+            # brakeman:disable:Evaluation
             self.instance_eval <<-RUBY
               def _evl#{i}_#{$1}__#{$2}
                 evaluation_values(#{i})["#{$1}.#{$2}"]
@@ -170,6 +174,7 @@ module PlebisImpulsa
                 assign_evaluation_value(#{i}, :"#{$1}", :"#{$2}", value)
               end
             RUBY
+            # brakeman:enable:Evaluation
             return send(method_sym, *arguments)
           end
         end

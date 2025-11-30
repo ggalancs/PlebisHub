@@ -17,12 +17,12 @@
         <%= field_notice_box %>
       <% end %>
       <%= f.label :checked_vote_circle, class: 'text-xl' do %>
-        <%= raw t 'plebisbrand.user.vote_circle_check_box_text' %>
+        <%= sanitize t('plebisbrand.user.vote_circle_check_box_text'), tags: %w[p br strong em a], attributes: %w[href target rel] %>
       <% end %>
       <div class="input-box">
         <%= f.check_box :checked_vote_circle, class: 'checkbox' %>
         <%= f.label :checked_vote_circle, class: 'text-xl' do %>
-          <%= raw t 'plebisbrand.user.vote_circle_check_box_text2' %>
+          <%= sanitize t('plebisbrand.user.vote_circle_check_box_text2'), tags: %w[p br strong em a], attributes: %w[href target rel] %>
         <% end %>
       </div>
     </div>

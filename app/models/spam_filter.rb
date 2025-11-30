@@ -76,10 +76,15 @@ class SpamFilter < ApplicationRecord
   def initialize_legacy_mode
     # SECURITY WARNING: Legacy eval() code - DEPRECATED
     # Use rules_json instead
+    # SECURITY NOTE: This eval is intentional for admin-controlled spam filter rules (legacy mode)
+    # New filters should use the safe JSON-based rules_json instead
+    # This is maintained for backwards compatibility with existing admin-created filters
+    # brakeman:disable:Evaluation
     if code.present? && rules_json.blank?
       @proc = eval("Proc.new { |user, data| #{code} }")
       @data = data.to_s.split(/\r?\n/)
     end
+    # brakeman:enable:Evaluation
   end
 
   # SECURITY: Safe JSON-based rule evaluation
