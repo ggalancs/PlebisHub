@@ -16,6 +16,12 @@ RUN apk add --no-cache \
     tzdata \
     libstdc++ \
     gcompat \
+    git \
+    build-base \
+    postgresql-dev \
+    libxml2-dev \
+    libxslt-dev \
+    linux-headers \
     && rm -rf /var/cache/apk/*
 
 # Set working directory
@@ -41,29 +47,35 @@ RUN apk add --no-cache \
     linux-headers \
     && rm -rf /var/cache/apk/*
 
-# Copy Gemfile and install gems
+# Copy Gemfile, lock, and engines (path gems required by Gemfile)
 COPY Gemfile Gemfile.lock ./
+COPY engines/ ./engines/
 RUN bundle config set --local deployment 'true' \
     && bundle config set --local without 'development test' \
     && bundle install --jobs 4 --retry 3 \
-    && rm -rf ~/.bundle/ /usr/local/bundle/cache/*.gem \
-    && find /usr/local/bundle/gems/ -name "*.c" -delete \
-    && find /usr/local/bundle/gems/ -name "*.o" -delete
+    && rm -rf ~/.bundle/ \
+    && find ./vendor/bundle -name "*.c" -delete 2>/dev/null || true \
+    && find ./vendor/bundle -name "*.o" -delete 2>/dev/null || true
 
 # Copy application code
 COPY . .
 
+# Build arg for asset precompilation (dummy value for build time only)
+ARG SECRET_KEY_BASE=dummy_key_for_build_only
+
 # Precompile assets (includes Vite build artifacts if pre-built)
-RUN bundle exec rake assets:precompile \
+# Skip database connection and certain initializers during asset compilation
+RUN SECRET_KEY_BASE=$SECRET_KEY_BASE \
+    RAILS_ENV=production \
+    DATABASE_URL="postgresql://dummy:dummy@localhost/dummy" \
+    SKIP_DB_CONNECTION=true \
+    bundle exec rake assets:precompile \
     && rm -rf node_modules tmp/cache
 
 # ==================== Stage 3: Production ====================
 FROM base AS production
 
-# Copy installed gems from builder
-COPY --from=builder /usr/local/bundle /usr/local/bundle
-
-# Copy application code
+# Copy application code (includes vendor/bundle from deployment mode)
 COPY --from=builder /app /app
 
 # Create non-root user for security
