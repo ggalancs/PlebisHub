@@ -339,7 +339,7 @@ ActiveAdmin.register User do
     i=0
     query = "lower(document_vatid)= ?"
     non_user_query = "lower(non_user_document_vatid)= ?"
-    directory= "/home/capistrano/borrame/"
+    _directory= "/home/capistrano/borrame/"
     buscados={}
     encode="windows-1252" #"UTF-8"
     sep=";" #","

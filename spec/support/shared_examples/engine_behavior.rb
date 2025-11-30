@@ -36,7 +36,7 @@ RSpec.shared_examples "an engine with dependencies" do |engine_name, dependencie
     EngineActivation.update_all(enabled: false)
 
     # Try to enable without dependencies
-    activation = EngineActivation.find_or_create_by!(engine_name: engine_name)
+    _activation = EngineActivation.find_or_create_by!(engine_name: engine_name)
 
     if dependencies.reject { |d| d == 'User' }.any?
       expect(PlebisCore::EngineRegistry.can_enable?(engine_name)).to be false

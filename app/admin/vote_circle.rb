@@ -123,8 +123,8 @@ ActiveAdmin.register VoteCircle do
       region_type = 3
       exterior_type = 4
 
-      spain_types = [["TB%",neighborhood_type],["TM%",town_type],["TC%",region_type]]
-      internal = ["IP%", internal_type]
+      _spain_types = [["TB%",neighborhood_type],["TM%",town_type],["TC%",region_type]]
+      _internal = ["IP%", internal_type]
       known_types  = ["TB%", "TM%", "TC%", "IP%"]
       spain_code ="ES"
 

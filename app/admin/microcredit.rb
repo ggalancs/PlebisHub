@@ -44,7 +44,7 @@ ActiveAdmin.register Microcredit do
 
   form do |f|
     f.inputs do
-      f.semantic_errors *f.object.errors.keys
+      f.semantic_errors(*f.object.errors.keys)
       if can? :admin, Microcredit
         f.input :title
         f.input :priority

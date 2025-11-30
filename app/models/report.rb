@@ -82,7 +82,7 @@ class Report < ApplicationRecord
       main_name = get_main_group.format_group_name(get_main_group.process(row)[0][0]) if get_main_group
 
       get_groups.each do |group|
-        width = group.width
+        _width = group.width
         begin
           group.process(row).each do |name, data|
             group.write "#{row_id}#{main_name}#{group.format_group_name(name)} #{data}"

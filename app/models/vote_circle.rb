@@ -98,7 +98,7 @@ class VoteCircle < ApplicationRecord
   end
 
   def get_next_circle_region_id(muni_code,country_code = "ES")
-    country = Carmen::Country.coded(country_code)
+    _country = Carmen::Country.coded(country_code)
     town_code = muni_code[5..7].to_i > 0 ? muni_code[5..7] : "000"
     province_code= muni_code[2,2]
     autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES["p_#{province_code}"  ][0]

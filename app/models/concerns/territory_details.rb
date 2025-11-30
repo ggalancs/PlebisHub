@@ -4,7 +4,7 @@ module TerritoryDetails
   def calc_muni_dc (m)
     w = [[0,1,2,3,4,5,6,7,8,9],[0,3,8,2,7,4,1,5,9,6],[0,2,4,6,8,1,3,5,7,9]]
     c = m.to_s.rjust(5,'0').split('').map(&:to_i)
-    dc = (10-(0..4).map {|d| w[2 - d % 3][c[d]]}.reduce(:+)) % 10
+    _dc = (10-(0..4).map {|d| w[2 - d % 3][c[d]]}.reduce(:+)) % 10
   end
 
   def get_valid_town_code town_code,country_code = "ES",generate_dc = false

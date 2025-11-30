@@ -237,7 +237,7 @@ end
 
     def remove_redis_hash id
       $redis = $redis || Redis::Namespace.new("plebisbrand_queue_validator", :redis => Redis.new)
-      current = $redis.hget(:processing,id)
+      _current = $redis.hget(:processing,id)
       $redis.hdel(:processing,id)
     end
 
