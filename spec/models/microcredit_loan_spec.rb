@@ -2,7 +2,8 @@
 
 require 'rails_helper'
 
-RSpec.describe MicrocreditLoan, type: :model do
+# RAILS 7.2 FIX: Use namespaced class to match factory and model class
+RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
   # ====================
   # FACTORY TESTS
   # ====================
