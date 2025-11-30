@@ -450,7 +450,7 @@ module PlebisMicrocredit
       Rails.logger.error({
         event: "microcredit_error_#{event_type}",
         user_id: current_user&.id,
-        **@url_params,
+        **(@url_params || {}),
         error_class: error.class.name,
         error_message: error.message,
         backtrace: error.backtrace&.first(5),
