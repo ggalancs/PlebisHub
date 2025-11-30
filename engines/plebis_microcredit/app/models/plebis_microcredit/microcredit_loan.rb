@@ -332,17 +332,18 @@ module PlebisMicrocredit
     # Helper method to safely get microcredit_loan configuration with default values
     def microcredit_loan_config(key)
       config = Rails.application.secrets.microcredit_loans
-      return nil unless config
 
+      # RAILS 7.2 FIX: Return defaults even when config is nil
+      # Previously returned nil which caused .to_i to return 0, blocking all loans
       case key
       when "max_loans_per_ip"
-        config["max_loans_per_ip"] || 50
+        config&.dig("max_loans_per_ip") || 50
       when "max_loans_per_user"
-        config["max_loans_per_user"] || 30
+        config&.dig("max_loans_per_user") || 30
       when "max_loans_sum_amount"
-        config["max_loans_sum_amount"] || 10000
+        config&.dig("max_loans_sum_amount") || 10000
       else
-        config[key]
+        config&.dig(key)
       end
     end
   end

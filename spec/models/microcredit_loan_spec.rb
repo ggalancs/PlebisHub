@@ -27,7 +27,9 @@ RSpec.describe MicrocreditLoan, type: :model do
     it 'belongs to microcredit' do
       loan = create(:microcredit_loan)
       expect(loan).to respond_to(:microcredit)
-      expect(loan.microcredit).to be_a(Microcredit)
+      # RAILS 7.2 FIX: Use namespaced class since engines models don't inherit from aliases
+      # Microcredit < PlebisMicrocredit::Microcredit (not the reverse)
+      expect(loan.microcredit).to be_a(PlebisMicrocredit::Microcredit)
     end
 
     it 'belongs to user' do
@@ -39,7 +41,8 @@ RSpec.describe MicrocreditLoan, type: :model do
     it 'belongs to microcredit_option' do
       loan = create(:microcredit_loan)
       expect(loan).to respond_to(:microcredit_option)
-      expect(loan.microcredit_option).to be_a(MicrocreditOption)
+      # RAILS 7.2 FIX: Use namespaced class
+      expect(loan.microcredit_option).to be_a(PlebisMicrocredit::MicrocreditOption)
     end
 
     it 'belongs to transferred_to' do
