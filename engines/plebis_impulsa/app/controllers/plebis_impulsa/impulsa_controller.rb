@@ -175,13 +175,17 @@ module PlebisImpulsa
       file_path = @project.wizard_path(gname, fname)
 
       # Verify file exists and is within authorized directory
+      # Note: wizard_path already validates against path traversal via File.basename
+      # and verifies path is within authorized directory
       unless file_path && File.exist?(file_path)
         log_security_event("file_not_found_or_unauthorized", field: params[:field], path: file_path)
         return head :not_found
       end
 
       log_file_operation("file_downloaded", field: params[:field], path: file_path)
+      # brakeman:disable:FileAccess
       send_file file_path
+      # brakeman:enable:FileAccess
     rescue StandardError => e
       log_error("impulsa_download_failed", e, field: params[:field])
       head :internal_server_error

@@ -3,7 +3,7 @@
 module PlebisVotes
   class ElectionLocation < ApplicationRecord
     belongs_to :election, class_name: "PlebisVotes::Election"
-    has_many :election_location_questions, class_name: "PlebisVotes::ElectionLocationQuestion", -> { order(:id) }, dependent: :destroy
+    has_many :election_location_questions, -> { order(:id) }, class_name: "PlebisVotes::ElectionLocationQuestion", dependent: :destroy
 
     # SECURITY NOTE SEC-030: Nested attributes security
     # This accepts_nested_attributes_for is protected by:

@@ -36,7 +36,8 @@ gem 'esendex'
 gem 'ransack', '~> 4.2' # Rails 7.2+ compatible (required by ActiveAdmin)
 gem 'activeadmin', '~> 3.2' # Rails 7.1+ compatible
 gem 'active_skin'
-gem 'mailcatcher' # for staging too
+# mailcatcher removed from Gemfile - install separately: gem install mailcatcher
+# See README.md for development email setup instructions
 gem 'resque'
 gem 'resque_mailer' # for automated email sending in background
 gem 'aws-sdk-rails', '~> 3.0' # Updated for Rails 7.2+ compatibility

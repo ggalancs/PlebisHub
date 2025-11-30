@@ -31,7 +31,7 @@ input.button, a.button { background-color: <%=@brand_config["color2"]%> !importa
   </div>
 <% else %>
   <% if @microcredit.contact_phone and not @microcredit.contact_phone.empty?%>
-  <p><%=fa_icon "phone-square"%> <%= t('.help_phone', phone: @microcredit.contact_phone).html_safe %></p>
+  <p><%=fa_icon "phone-square"%> <%= sanitize(t('.help_phone', phone: sanitize(@microcredit.contact_phone)), tags: %w[strong], attributes: []) %></p>
   <% end %>
   <%= errors_in_form @loan %>
   <%= semantic_form_with model: @loan, url: plebis_microcredit.create_microcredit_loan_path(@url_params), method: :post, html: { autocomplete: 'off' } do |f| %>

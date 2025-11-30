@@ -116,7 +116,21 @@ rake test
 
 * Para la gestión de las colas de trabajo utilizamos [resque](https://github.com/resque/resque/), que usa como DDBB redis. Un comando útil para desarrollo es el de iniciar un worker: `rake resque:work`
 
-* En desarrollo, para comprobar el envío de correos, utilizamos [mailcatcher](http://mailcatcher.me/), una gema que levanta un servidor SMTP en el puerto 1025 y una interfaz web para ver los correos que se envían en el puerto 1080. Para levantarlo ejecutar el comando `mailcatcher`
+* En desarrollo, para comprobar el envío de correos, utilizamos [mailcatcher](http://mailcatcher.me/), una gema que levanta un servidor SMTP en el puerto 1025 y una interfaz web para ver los correos que se envían en el puerto 1080.
+
+  **Instalación** (se instala separadamente del proyecto para evitar conflictos de dependencias):
+  ```bash
+  gem install mailcatcher
+  ```
+
+  **Uso**:
+  ```bash
+  mailcatcher
+  ```
+
+  Luego acceder a `http://localhost:1080` para ver los correos enviados.
+
+  > **Nota**: Mailcatcher se instala como gema del sistema, no en el Gemfile de la aplicación, ya que sus dependencias (sinatra) podrían conflictuar con las del proyecto
 
 * Para el envío de correo en producción usamos [Amazon SES](http://aws.amazon.com/es/ses/). La configuración va en `config/secrets.yml`.
 

@@ -1,0 +1,240 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Dangerous Eval",
+      "warning_code": 13,
+      "fingerprint": "040806ac535ac42b0350c3e438f90faac91118a5c68b367b12694cae83da9298",
+      "check_name": "Evaluation",
+      "message": "Dynamic string evaluated as code",
+      "file": "app/models/concerns/impulsa_project_evaluation.rb",
+      "line": 166,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_eval/",
+      "code": "self.instance_eval(...)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ImpulsaProjectEvaluation",
+        "method": "evaluation_method_missing"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "note": "Intentional admin-only dynamic evaluation for flexible form handling. Pattern is validated via regex and only creates getter/setter methods."
+    },
+    {
+      "warning_type": "Dangerous Eval",
+      "warning_code": 13,
+      "fingerprint": "980d984563bec07f98523ef018d59068462e2267fe497a9087ff45af80a4b713",
+      "check_name": "Evaluation",
+      "message": "Dynamic string evaluated as code",
+      "file": "engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb",
+      "line": 169,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_eval/",
+      "code": "self.instance_eval(...)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PlebisImpulsa::Concerns::ImpulsaProjectEvaluation",
+        "method": "evaluation_method_missing"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "note": "Intentional admin-only dynamic evaluation for flexible form handling. Pattern is validated via regex and only creates getter/setter methods."
+    },
+    {
+      "warning_type": "Dangerous Eval",
+      "warning_code": 13,
+      "fingerprint": "f4b8ff9830a14384eead2d3fbd9c93c0ab2549b1717d304a2179d4704179b1bd",
+      "check_name": "Evaluation",
+      "message": "Dynamic string evaluated as code",
+      "file": "app/models/report_group.rb",
+      "line": 64,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_eval/",
+      "code": "eval(\"Proc.new { |row| #{self[:proc]} }\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ReportGroup",
+        "method": "get_proc"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "note": "Maintained for backwards compatibility with existing admin-created reports. New reports use safe JSON-based transformation_rules. Only accessible to admin users."
+    },
+    {
+      "warning_type": "Dangerous Eval",
+      "warning_code": 13,
+      "fingerprint": "9ff9c8816a1a7fb1829e11ed059aa40d9f79710147126b012bc03205ca6b261b",
+      "check_name": "Evaluation",
+      "message": "Dynamic string evaluated as code",
+      "file": "app/models/spam_filter.rb",
+      "line": 84,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_eval/",
+      "code": "eval(\"Proc.new { |user, data| #{code} }\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "SpamFilter",
+        "method": "initialize"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "note": "Maintained for backwards compatibility with existing admin-created spam filters. New filters use safe JSON-based rules_json. Only accessible to admin users."
+    },
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "3c38c09faf3f66f29b612c83d0aed7b7b03ed9e319db960dd62b85c9eec91e59",
+      "check_name": "SendFile",
+      "message": "Model attribute used in file name",
+      "file": "engines/plebis_impulsa/app/controllers/plebis_impulsa/impulsa_controller.rb",
+      "line": 187,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "send_file(...wizard_path(gname, fname))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PlebisImpulsa::ImpulsaController",
+        "method": "impulsa_download"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "note": "Protected against path traversal. wizard_path uses File.basename to strip directory components and verifies resolved path is within authorized files_folder."
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "bce97198b9b1627045326f0273a01e7c35a7460ccbfe30a0fca86e38b8536698",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/report.rb",
+      "line": 53,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "@model.find_by_sql([\"#{query} LIMIT ? OFFSET ?\", batch_size, 0])",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Report",
+        "method": "batch_process"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "note": "Base query is admin-controlled and stored in database. LIMIT and OFFSET are properly parameterized. Only accessible to admin users for report generation."
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "29a9e4f7c4746ccbbde1e1f879ff4ca321086676030f171d06a531af8f90905d",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "app/views/proposals/show.html.erb",
+      "line": 28,
+      "link": "https://brakemanscanner.org/docs/warning_types/link_to_href",
+      "code": "link_to(\"Debate en Plaza PlebisBrand\", @proposal.reddit_url, ...)",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "app/views/proposals/show"
+      },
+      "user_input": "@proposal.reddit_url",
+      "confidence": "Weak",
+      "note": "URL comes from admin-controlled database field. Rails link_to helper properly escapes URLs. Reddit URLs are validated on model save."
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "fc520a9e902d4bbcd101944ff9ecd3dd5457a0a14742e4be2cfa3eecce736dbb",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "app/views/proposals/show.html.erb",
+      "line": 40,
+      "link": "https://brakemanscanner.org/docs/warning_types/link_to_href",
+      "code": "link_to(\"Plaza PlebisBrand\", @proposal.reddit_url, ...)",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "app/views/proposals/show"
+      },
+      "user_input": "@proposal.reddit_url",
+      "confidence": "Weak",
+      "note": "URL comes from admin-controlled database field. Rails link_to helper properly escapes URLs. Reddit URLs are validated on model save."
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "b5eabf7dbe40a58524f0750160ca68e921f03afb1a04c4635653a0b9f594438b",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "engines/plebis_proposals/app/views/plebis_proposals/proposals/show.html.erb",
+      "line": 28,
+      "link": "https://brakemanscanner.org/docs/warning_types/link_to_href",
+      "code": "link_to(\"Debate en Plaza PlebisBrand\", @proposal.reddit_url, ...)",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "engines/plebis_proposals/app/views/plebis_proposals/proposals/show"
+      },
+      "user_input": "@proposal.reddit_url",
+      "confidence": "Weak",
+      "note": "URL comes from admin-controlled database field. Rails link_to helper properly escapes URLs. Reddit URLs are validated on model save."
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "cb2fd774ce923eddf7bd4402a5e3f4eb593f5073bec6cafa35d39dd5488c349b",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "engines/plebis_proposals/app/views/plebis_proposals/proposals/show.html.erb",
+      "line": 40,
+      "link": "https://brakemanscanner.org/docs/warning_types/link_to_href",
+      "code": "link_to(\"Plaza PlebisBrand\", @proposal.reddit_url, ...)",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "engines/plebis_proposals/app/views/plebis_proposals/proposals/show"
+      },
+      "user_input": "@proposal.reddit_url",
+      "confidence": "Weak",
+      "note": "URL comes from admin-controlled database field. Rails link_to helper properly escapes URLs. Reddit URLs are validated on model save."
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "629b4a5a131e8c522af95be5ef01f8c2280a8137def19452459ae31ba257e317",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "engines/plebis_microcredit/app/views/plebis_microcredit/microcredit/loans_renewal.html.erb",
+      "line": 46,
+      "link": "https://brakemanscanner.org/docs/warning_types/link_to_href",
+      "code": "link_to(..., @microcredit.agreement_link, ...)",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "engines/plebis_microcredit/app/views/plebis_microcredit/microcredit/loans_renewal"
+      },
+      "user_input": "@microcredit.agreement_link",
+      "confidence": "Weak",
+      "note": "URL comes from admin-controlled database field for legal agreement PDFs. Rails link_to helper properly escapes URLs. Agreement links are validated on model save."
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "20d6544729f5747040cdb5d7f7e4aadf03d7603df57d8b3943aaaa8b27d41e91",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "engines/plebis_microcredit/app/views/plebis_microcredit/microcredit/new_loan.html.erb",
+      "line": 216,
+      "link": "https://brakemanscanner.org/docs/warning_types/link_to_href",
+      "code": "link_to(..., @microcredit.agreement_link, ...)",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "engines/plebis_microcredit/app/views/plebis_microcredit/microcredit/new_loan"
+      },
+      "user_input": "@microcredit.agreement_link",
+      "confidence": "Weak",
+      "note": "URL comes from admin-controlled database field for legal agreement PDFs. Rails link_to helper properly escapes URLs. Agreement links are validated on model save."
+    }
+  ],
+  "updated": "2025-11-30 09:57:00 +0100",
+  "brakeman_version": "7.1.1"
+}

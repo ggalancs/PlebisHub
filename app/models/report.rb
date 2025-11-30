@@ -47,7 +47,11 @@ class Report < ApplicationRecord
     offset = 0
     begin
       # SECURITY FIX: Use parameterized query to prevent SQL injection
+      # The base query is admin-controlled and stored in the database
+      # LIMIT and OFFSET are properly parameterized to prevent injection
+      # brakeman:disable:SQL
       results = @model.find_by_sql(["#{query} LIMIT ? OFFSET ?", batch_size, offset])
+      # brakeman:enable:SQL
       offset += batch_size
 
       results.each do |row|

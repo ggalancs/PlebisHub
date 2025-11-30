@@ -25,7 +25,7 @@
             </p>
         
             <div class="info">
-                <%= link_to "Debate en Plaza PlebisBrand", @proposal.reddit_url, :target => '_blank' %> | <%= @proposal.finished? ? "Cerrada hace" : "Termina en" %> <%= time_left(@proposal) %>
+                <%= link_to "Debate en Plaza PlebisBrand", @proposal.reddit_url, :target => '_blank', :rel => 'noopener noreferrer' %> | <%= @proposal.finished? ? "Cerrada hace" : "Termina en" %> <%= time_left(@proposal) %>
             </div>
         </article>
     
@@ -37,7 +37,7 @@
         <article class="proposal-sidebar no-border-bottom">    
             <p class="threshold">Umbrales</p>
             <p class="check"><strong>0,2%</strong><span> de votos positivos en </span><br>
-            <%= link_to "Plaza PlebisBrand", @proposal.reddit_url, :target => '_blank' %>
+            <%= link_to "Plaza PlebisBrand", @proposal.reddit_url, :target => '_blank', :rel => 'noopener noreferrer' %>
             </p>
             <p class="<%= @proposal.monthly_email_required_votes? ? "check" : "times"%>"><strong>2%</strong><span> de apoyos</span></p>
             <p class="<%= @proposal.agoravoting_required_votes? ? "check" : "times"%>"><strong>10%</strong><span> de apoyos</span></p>
