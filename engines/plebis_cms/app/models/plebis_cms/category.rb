@@ -12,7 +12,9 @@ module PlebisCms
 
     # Validations
     validates :name, presence: true, uniqueness: { case_sensitive: false }
-    validates :slug, uniqueness: { case_sensitive: false }, allow_blank: true
+    # RAILS 7.2 FIX: Use allow_nil instead of allow_blank for slug uniqueness
+    # FriendlyId generates slug from name, so nil is expected before save
+    validates :slug, uniqueness: { case_sensitive: false }, allow_nil: true
 
     # Scopes
     scope :active, -> { joins(:posts).distinct }

@@ -5,7 +5,7 @@ module PlebisCms
   class Page < ApplicationRecord
     self.table_name = 'pages'
 
-    validates :id_form, presence: true, :numericality => { :greater_than_or_equal_to => 0 }
+    validates :id_form, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
     validates :slug, uniqueness: { case_sensitive: false, scope: :deleted_at }, presence: true
     validates :title, presence: true
 
