@@ -13,10 +13,15 @@ SecureHeaders::Configuration.default do |config|
   # ========================================
   # COOKIES CONFIGURATION
   # ========================================
-  # NOTE: Rails 7 handles cookie security natively via ActionDispatch::Cookies
-  # Cookie security is configured in config/initializers/session_store.rb
-  # Opting out of secure_headers cookie management to avoid conflicts
-  config.cookies = SecureHeaders::OPT_OUT
+  # SEC-004: Enable secure cookie configuration
+  # Secure headers cookie settings work in conjunction with session_store.rb
+  config.cookies = {
+    secure: true, # Only send cookies over HTTPS (enforced in production)
+    httponly: true, # Prevent JavaScript access to cookies (XSS protection)
+    samesite: {
+      lax: true # CSRF protection while allowing normal navigation
+    }
+  }
 
   # ========================================
   # CONTENT SECURITY POLICY (CSP)

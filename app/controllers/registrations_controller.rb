@@ -171,7 +171,14 @@ class RegistrationsController < Devise::RegistrationsController
 
   # Generate and display QR code for user
   # SECURITY: Only accessible to authenticated users with permission
+  # SECURITY FIX SEC-008: Explicitly reject any user_id parameter to prevent IDOR
   def qr_code
+    # SECURITY FIX: Explicitly reject any user_id parameter to prevent IDOR
+    if params[:user_id].present? || params[:id].present?
+      log_security_event('qr_idor_attempt', attempted_user: params[:user_id] || params[:id])
+      return redirect_to root_path, alert: 'Unauthorized access'
+    end
+
     unless current_user&.can_show_qr?
       log_security_event('unauthorized_qr_access_attempt', user_id: current_user&.id)
       return redirect_to root_path

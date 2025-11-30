@@ -20,18 +20,18 @@ module EngineUser
     end
 
     # Returns a vote for the given election, creating it if necessary
+    # SECURITY FIX SEC-037: Added race condition handling
     #
     # @param election_id [Integer] The election ID
     # @return [Vote] The vote instance
     #
     def get_or_create_vote(election_id)
-      v = Vote.new(election_id: election_id, user_id: self.id)
-      if Vote.find_by(voter_id: v.generate_message)
-        return v
-      else
-        v.save
-        return v
+      votes.find_or_create_by!(election_id: election_id) do |vote|
+        vote.created_at = Time.current
       end
+    rescue ActiveRecord::RecordNotUnique
+      # Race condition occurred - retry with existing record
+      votes.find_by!(election_id: election_id)
     end
 
     # Check if user has already voted in a specific election

@@ -321,11 +321,16 @@ class Order < ApplicationRecord
           self.status = 3
         end
         self.payment_identifier = params["Ds_Merchant_Identifier"]
-      rescue
-        redsys_logger.info("Status: OK, but with errors on response processing.")
-        redsys_logger.info("Error: #{$!.message}")
-        redsys_logger.info("Backtrace: #{$!.backtrace}")
-        self.status = 3
+      # SECURITY FIX SEC-038: Replace bare rescue with specific exception handling
+      rescue ArgumentError, TypeError => e
+        # Parsing errors (date/time parsing failed)
+        redsys_logger.error("Parsing error: #{e.message}")
+        self.status = 4  # Error - cannot validate payment
+      rescue StandardError => e
+        # Unexpected errors
+        redsys_logger.error("Unexpected error: #{e.class} - #{e.message}")
+        redsys_logger.error("Backtrace: #{e.backtrace.first(5).join("\n")}")
+        self.status = 4  # Error
       end
     else
       redsys_logger.info("Status: KO - ERROR")
@@ -385,11 +390,8 @@ class Order < ApplicationRecord
     http = Net::HTTP.new uri.host, uri.port
     if uri.scheme == 'https'
       http.use_ssl = true
-      if Rails.env.production?
-        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-      else
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end
+      # SECURITY FIX SEC-024: Always verify SSL certificates
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
       #http.ssl_options = OpenSSL::SSL::OP_NO_SSLv2 + OpenSSL::SSL::OP_NO_SSLv3 + OpenSSL::SSL::OP_NO_COMPRESSION
       http.ssl_version = :TLSv1_2
     end

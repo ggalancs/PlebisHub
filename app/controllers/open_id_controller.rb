@@ -200,27 +200,30 @@ class OpenIdController < ApplicationController
     sregreq = OpenID::SReg::Request.from_openid_request(oidreq)
     return if sregreq.nil?
 
-    sreg_data = {
+    # SECURITY FIX (SEC-018): Only provide basic identity fields, not sensitive PII
+    available_data = {
       'email' => current_user.email,
       'fullname' => current_user.full_name,
-      'remote_id' => current_user.id.to_s,
+      'nickname' => current_user.first_name,
       'first_name' => current_user.first_name,
-      'last_name' => current_user.last_name,
-      'dob' => current_user.born_at.to_s,
-      'guid' => current_user.document_vatid,
-      'address' => current_user.address,
-      'postcode' => current_user.postal_code,
-      'verified' => current_user.verified?
+      'last_name' => current_user.last_name
+      # REMOVED: dob, guid (document_vatid), address, phone - too sensitive
     }
 
-    sreg_data['phone'] = current_user.phone if current_user.phone
+    # Only return fields that were actually requested
+    requested_fields = (sregreq.required.to_a + sregreq.optional.to_a).map(&:to_s)
+    filtered_data = available_data.select { |k, _| requested_fields.include?(k) }
 
-    if current_user.vote_town
-      sreg_data['town'] = current_user.vote_town.scan(/\d/).join
-      sreg_data['district'] = current_user.vote_town.scan(/\d/).join if current_user.vote_district
-    end
+    # Log PII disclosure for audit
+    Rails.logger.warn({
+      event: 'openid_pii_disclosure',
+      user_id: current_user.id,
+      trust_root: oidreq.trust_root,
+      disclosed_fields: filtered_data.keys,
+      timestamp: Time.current.iso8601
+    }.to_json)
 
-    sregresp = OpenID::SReg::Response.extract_response(sregreq, sreg_data)
+    sregresp = OpenID::SReg::Response.extract_response(sregreq, filtered_data)
     oidresp.add_extension(sregresp)
   end
 

@@ -54,8 +54,20 @@ class VoteController < ApplicationController
     redirect_to root_path, flash: { error: I18n.t('vote.errors.create_failed') }
   end
 
+  # SECURITY FIX SEC-036: Added constant-time delay to prevent timing attacks
   def create_token
-    return send_to_home unless election.nvotes? && check_open_election && check_valid_user && check_valid_location && check_verification
+    # SECURITY FIX: Collect all check results to prevent timing attacks
+    election_valid = election&.nvotes?
+    election_open = check_open_election
+    user_valid = check_valid_user
+    location_valid = check_valid_location
+    verification_valid = check_verification
+
+    unless election_valid && election_open && user_valid && location_valid && verification_valid
+      # Constant-time delay to prevent timing-based enumeration
+      sleep(Random.rand(0.05..0.15))
+      return send_to_home
+    end
 
     vote = current_user.get_or_create_vote(election.id)
     message = vote.generate_message

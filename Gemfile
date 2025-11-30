@@ -111,6 +111,12 @@ group :development, :test do
   gem 'rails-controller-testing' # Required for assigns() and assert_template in controller specs
 end
 
+group :development do
+  # SECURITY FIX SEC-027: Security audit tools
+  gem 'bundler-audit', require: false
+  gem 'brakeman', require: false
+end
+
 
 # PlebisHub Engines
 gem 'plebis_cms', path: 'engines/plebis_cms'

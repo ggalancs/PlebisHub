@@ -135,7 +135,8 @@ Devise.setup do |config|
 
   # ==> Configuration for :validatable
   # Range for password length. Default is 8..128.
-  config.password_length = 6..128
+  # SEC-002: Increased minimum password length from 6 to 12 characters for better security
+  config.password_length = 12..128
 
   # Email regex used to validate email formats. It simply asserts that
   # one (and only one) @ exists in the given string. This is mainly
@@ -145,7 +146,8 @@ Devise.setup do |config|
   # ==> Configuration for :timeoutable
   # The time you want to timeout the user session without activity. After this
   # time the user will be asked for credentials again. Default is 30 minutes.
-  config.timeout_in = 30.days
+  # SEC-003: Changed from 30 days to 2 hours to reduce session hijacking risk
+  config.timeout_in = 2.hours
 
   # If true, expires auth token on session timeout.
   # config.expire_auth_token_on_timeout = false
@@ -168,7 +170,8 @@ Devise.setup do |config|
 
   # Number of authentication tries before locking an account if lock_strategy
   # is failed attempts.
-  config.maximum_attempts = 20
+  # SECURITY FIX (SEC-005): Reduced from 20 to 5 to prevent brute-force attacks
+  config.maximum_attempts = 5
 
   # Time interval to unlock the account if :time is enabled as unlock_strategy.
   config.unlock_in = 1.hour
@@ -184,7 +187,8 @@ Devise.setup do |config|
   # Time interval you can reset your password with a reset password key.
   # Don't put a too small interval or your users won't have the time to
   # change their passwords.
-  config.reset_password_within = 6.hours
+  # SECURITY FIX SEC-006: Reduced from 6 hours to 1 hour to minimize token exposure window
+  config.reset_password_within = 1.hour
 
   # ==> Configuration for :encryptable
   # Allow you to use another encryption algorithm besides bcrypt (default). You can use

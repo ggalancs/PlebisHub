@@ -85,11 +85,23 @@ class User < ApplicationRecord
   validate :validates_phone_format
   validate :validates_unconfirmed_phone_format
   validate :validates_unconfirmed_phone_uniqueness
+  # SEC-002: Password complexity validation
+  validate :password_complexity, if: -> { password.present? }
 
   MIN_MILITANT_AMOUNT = Rails.application.secrets.users["min_militant_amount"].present? ? Rails.application.secrets.users["min_militant_amount"].to_i : 3
 
   def validate_born_at
     errors.add(:born_at, "debes ser mayor de 18 años") if born_at && born_at > Date.today - 18.years
+  end
+
+  # SEC-002: Password complexity validation
+  # Requires at least one lowercase letter, one uppercase letter, and one digit
+  def password_complexity
+    return if password.blank?
+
+    unless password.match?(/\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+      errors.add :password, "must include at least one lowercase letter, one uppercase letter, and one digit"
+    end
   end
 
   def validates_postal_code
@@ -270,14 +282,14 @@ class User < ApplicationRecord
     end
   end
 
+  # SECURITY FIX SEC-037: Added race condition handling
   def get_or_create_vote election_id
-    v = Vote.new({election_id: election_id, user_id: self.id})
-    if Vote.find_by(voter_id: v.generate_message)
-      return v
-    else
-      v.save
-      return v
+    votes.find_or_create_by!(election_id: election_id) do |vote|
+      vote.created_at = Time.current
     end
+  rescue ActiveRecord::RecordNotUnique
+    # Race condition occurred - retry with existing record
+    votes.find_by!(election_id: election_id)
   end
 
   def has_already_voted_in election_id

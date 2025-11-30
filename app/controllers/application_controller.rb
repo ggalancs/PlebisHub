@@ -54,7 +54,7 @@ class ApplicationController < ActionController::Base
     @meta_image ||= Rails.application.secrets.metas['image'] rescue nil
   end
 
-  # Allow iframe requests by removing X-Frame-Options header
+  # Allow iframe requests by setting X-Frame-Options to SAMEORIGIN
   # SECURITY: Only allow iframe embedding for public pages, not admin or sensitive endpoints
   def allow_iframe_requests
     # Skip for admin pages and authenticated-only sections
@@ -63,7 +63,8 @@ class ApplicationController < ActionController::Base
     return if params['controller'] == 'sessions'
     return if params['controller'] == 'registrations'
 
-    response.headers.delete('X-Frame-Options')
+    # SECURITY FIX SEC-023: Set SAMEORIGIN instead of removing protection entirely
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
   end
 
   # Log admin actions for audit trail
@@ -74,7 +75,11 @@ class ApplicationController < ActionController::Base
       tracking = Logger.new(File.join(Rails.root, 'log', 'activeadmin.log'))
       user_info = user_signed_in? ? current_user.full_name : 'Anonymous'
       tracking.info "** #{user_info} ** #{request.method} #{request.path}"
-      tracking.info params.to_s
+
+      # SECURITY FIX (SEC-021): Filter sensitive parameters before logging
+      filtered_params = params.except(:password, :password_confirmation, :current_password,
+                                       :email, :document_vatid, :phone, :otp, :token)
+      tracking.info filtered_params.to_s
 
       log_security_event('admin_action',
         user_id: current_user&.id,
