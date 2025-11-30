@@ -687,7 +687,13 @@ tools
   left: -1.7em;
 }
 .tools li div.box-tool-large:before{
-  @extend div.box-tool:before;
+  // Fixed: Cannot @extend pseudo-elements in SCSS - copy properties directly
+  display: inline-block;
+  margin: 0;
+  content: image-url("ico.ropes-purple.png");
+  position: absolute;
+  top: -1.7em;
+  left: -1.7em;
 }
 .box-tool-large .buttonbox{
 
