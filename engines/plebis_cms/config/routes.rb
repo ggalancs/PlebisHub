@@ -62,5 +62,6 @@ PlebisCms::Engine.routes.draw do
 
   # Dynamic form display route
   # Rails 7.2 fix: Added route for show_form action used in tests
-  get '/pages/:id', to: 'page#show_form', as: 'show_form'
+  # ID is optional to allow controller-level validation
+  get '/pages(/:id)', to: 'page#show_form', as: 'show_form'
 end

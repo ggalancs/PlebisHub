@@ -1,0 +1,21 @@
+en:
+  vote:
+    sms_check:
+      sent: "The code has been sent to your mobile phone."
+      rate_limited: "A code has already been requested recently."
+      invalid_token: "The code entered is incorrect."
+    errors:
+      sms_check_failed: "Could not send the verification code. Please try again later."
+      create_failed: "Could not process your vote. Please try again later."
+      check_failed: "Could not verify your eligibility to vote."
+      invalid_election: "The selected election is not valid."
+      invalid_location: "The voting location is not valid."
+      invalid_document_type: "The document type is not valid."
+      invalid_document_format: "The document format is not valid."
+      election_closed: "The voting deadline has passed. Voting is closed."
+      user_not_eligible: "Your user account does not meet the seniority requirement to participate in this vote."
+      verification_required: "For this vote, you need to verify your identity."
+      census_file_error: "Error processing the census file. Please contact the administrator."
+      paper_vote_failed: "Could not process the paper vote. Please try again."
+    paper_vote:
+      user_not_found: "No users found with the given document."

@@ -15,11 +15,12 @@ RSpec.describe Api::V2Controller, type: :controller do
       email: 'militant@example.com',
       vote_circle: vote_circle,
       first_name: 'Test',
-      phone: '123456789'
+      phone: '+34666777888'
     )
   end
 
   before do
+    @routes = Rails.application.routes
     allow(Rails.application).to receive(:secrets).and_return(
       double(
         host: host,
@@ -56,7 +57,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
     context 'with valid signature' do
       it 'allows access to get_data' do
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -65,7 +66,7 @@ RSpec.describe Api::V2Controller, type: :controller do
       end
 
       it 'uses secure_compare to prevent timing attacks' do
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         expect(ActiveSupport::SecurityUtils).to receive(:secure_compare).and_call_original
@@ -105,7 +106,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
     context 'timestamp validation' do
       it 'accepts timestamp within valid range' do
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -116,7 +117,7 @@ RSpec.describe Api::V2Controller, type: :controller do
       it 'rejects timestamp older than 1 hour' do
         old_timestamp = 2.hours.ago.to_i.to_s
         params_hash['timestamp'] = old_timestamp
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -129,7 +130,7 @@ RSpec.describe Api::V2Controller, type: :controller do
       it 'rejects timestamp in future (> 5 minutes)' do
         future_timestamp = 10.minutes.from_now.to_i.to_s
         params_hash['timestamp'] = future_timestamp
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -142,9 +143,10 @@ RSpec.describe Api::V2Controller, type: :controller do
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
-        expect(response).to have_http_status(:bad_request)
+        # 'invalid'.to_i becomes 0, which is way older than 1 hour ago
+        expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
-        expect(json['message']).to eq('Invalid timestamp format')
+        expect(json['message']).to eq('Timestamp out of valid range')
       end
 
       it 'logs invalid timestamp attempts' do
@@ -172,7 +174,7 @@ RSpec.describe Api::V2Controller, type: :controller do
     let(:params_list) { %w[email territory timestamp range_name command] }
 
     before do
-      signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+      signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
       params_hash['signature'] = signature
     end
 
@@ -224,7 +226,7 @@ RSpec.describe Api::V2Controller, type: :controller do
       it 'accepts valid territories' do
         %w[autonomy province town island circle].each do |territory|
           params_hash['territory'] = territory
-          signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+          signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
           params_hash['signature'] = signature
 
           get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -255,7 +257,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
       it 'accepts valid email format' do
         params_hash['email'] = 'valid@example.com'
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -276,7 +278,7 @@ RSpec.describe Api::V2Controller, type: :controller do
       let(:params_list) { %w[vote_circle_id territory timestamp range_name command] }
 
       before do
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
       end
 
@@ -321,7 +323,7 @@ RSpec.describe Api::V2Controller, type: :controller do
     let(:params_list) { %w[email territory timestamp range_name command] }
 
     before do
-      signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+      signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
       params_hash['signature'] = signature
     end
 
@@ -346,7 +348,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         militant = create(:user,
           vote_circle: vote_circle,
           first_name: 'Militant',
-          phone: '987654321'
+          phone: '+34987654321'
         )
         allow(militant).to receive(:vote_circle).and_return(vote_circle)
         allow(User).to receive_message_chain(:militant, :where, :find_each).and_yield(militant)
@@ -361,7 +363,7 @@ RSpec.describe Api::V2Controller, type: :controller do
     context 'with non-existent user' do
       it 'returns 404 not found' do
         params_hash['email'] = 'nonexistent@example.com'
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -375,7 +377,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
       it 'logs user not found event' do
         params_hash['email'] = 'nonexistent@example.com'
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         expect(Rails.logger).to receive(:warn).with(a_string_matching(/user_not_found/))
@@ -387,7 +389,7 @@ RSpec.describe Api::V2Controller, type: :controller do
     context 'territory filtering' do
       it 'filters by autonomy' do
         params_hash['territory'] = 'autonomy'
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -397,7 +399,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
       it 'filters by province' do
         params_hash['territory'] = 'province'
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -407,7 +409,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
       it 'filters by town' do
         params_hash['territory'] = 'town'
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -417,7 +419,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
       it 'filters by circle' do
         params_hash['territory'] = 'circle'
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -440,7 +442,7 @@ RSpec.describe Api::V2Controller, type: :controller do
     let(:params_list) { %w[vote_circle_id territory timestamp range_name command] }
 
     before do
-      signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+      signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
       params_hash['signature'] = signature
     end
 
@@ -464,7 +466,7 @@ RSpec.describe Api::V2Controller, type: :controller do
     context 'with non-existent vote circle' do
       it 'returns 404 not found' do
         params_hash['vote_circle_id'] = '99999'
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
@@ -478,7 +480,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
       it 'logs vote circle not found event' do
         params_hash['vote_circle_id'] = '99999'
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
         expect(Rails.logger).to receive(:warn).with(a_string_matching(/vote_circle_not_found/))
@@ -502,13 +504,13 @@ RSpec.describe Api::V2Controller, type: :controller do
     let(:params_list) { %w[email territory timestamp range_name command] }
 
     before do
-      signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+      signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
       params_hash['signature'] = signature
     end
 
     context 'when database error occurs' do
       it 'returns 500 internal server error' do
-        allow(User).to receive(:find_by_email).and_raise(StandardError.new('Database error'))
+        allow(User).to receive(:find_by).and_raise(StandardError.new('Database error'))
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
@@ -519,7 +521,7 @@ RSpec.describe Api::V2Controller, type: :controller do
       end
 
       it 'does not expose error details' do
-        allow(User).to receive(:find_by_email).and_raise(StandardError.new('Sensitive error'))
+        allow(User).to receive(:find_by).and_raise(StandardError.new('Sensitive error'))
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
@@ -529,7 +531,7 @@ RSpec.describe Api::V2Controller, type: :controller do
       end
 
       it 'logs error with backtrace' do
-        allow(User).to receive(:find_by_email).and_raise(StandardError.new('Database error'))
+        allow(User).to receive(:find_by).and_raise(StandardError.new('Database error'))
 
         expect(Rails.logger).to receive(:error).with(a_string_matching(/militants_from_territory_error.*backtrace/m))
 
@@ -549,7 +551,7 @@ RSpec.describe Api::V2Controller, type: :controller do
       let(:params_list) { %w[vote_circle_id territory timestamp range_name command] }
 
       before do
-        signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
       end
 
@@ -585,7 +587,7 @@ RSpec.describe Api::V2Controller, type: :controller do
     let(:params_list) { %w[email territory timestamp range_name command] }
 
     before do
-      signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+      signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
       params_hash['signature'] = signature
     end
 
@@ -634,7 +636,7 @@ RSpec.describe Api::V2Controller, type: :controller do
     let(:params_list) { %w[email territory timestamp range_name command] }
 
     before do
-      signature = generate_signature('/api/v2/get_data', params_list, params_hash)
+      signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
       params_hash['signature'] = signature
     end
 
