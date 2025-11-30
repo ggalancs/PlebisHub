@@ -10,6 +10,12 @@
  * See config/initializers/secure_headers.rb for active CSP configuration.
  */
 
+import type { IncomingMessage, ServerResponse } from 'http'
+import type { ViteDevServer } from 'vite'
+
+/** Middleware next function type */
+type NextFunction = () => void
+
 // Use Node.js environment variables for portability (works in Vite, Node.js, and tests)
 const isDevelopment = process.env.NODE_ENV === 'development'
 const isProduction = process.env.NODE_ENV === 'production'
@@ -181,7 +187,11 @@ export const securityHeaders = {
 /**
  * Express/Connect middleware for setting security headers
  */
-export function securityHeadersMiddleware(req: any, res: any, next: any) {
+export function securityHeadersMiddleware(
+  _req: IncomingMessage,
+  res: ServerResponse,
+  next: NextFunction
+): void {
   // Set CSP header
   const cspHeader = generateCSPHeader(defaultCSPConfig)
   const headerName = defaultCSPConfig.reportOnly
@@ -203,9 +213,13 @@ export function securityHeadersMiddleware(req: any, res: any, next: any) {
 export function viteSecurityHeadersPlugin() {
   return {
     name: 'security-headers',
-    configureServer(server: any) {
-      server.middlewares.use((req: any, res: any, next: any) => {
-        securityHeadersMiddleware(req, res, next)
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use((req, res, next) => {
+        securityHeadersMiddleware(
+          req as IncomingMessage,
+          res as ServerResponse,
+          next as NextFunction
+        )
       })
     },
   }
