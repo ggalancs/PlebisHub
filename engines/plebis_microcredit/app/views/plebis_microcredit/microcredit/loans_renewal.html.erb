@@ -30,7 +30,7 @@
             <%= f.check_box :renewal_terms, class: 'checkbox' %>
             <%= f.label :renewal_terms, class: 'text-xl' do %>
               <%= t '.renewal_terms_message', name: @brand_config["name"]%>
-              <%= link_to t('.renewal_terms_link', name: @brand_config["name"]), @renewal.loan.microcredit.renewal_terms.url, target: "_blank"%>
+              <%= link_to t('.renewal_terms_link', name: @brand_config["name"]), @renewal.loan.microcredit.renewal_terms.url, target: "_blank", rel: "noopener noreferrer"%>
             <% end %>
           </div>
         </div>
@@ -43,7 +43,7 @@
             <%= f.check_box :terms_of_service, class: 'checkbox' %>
             <%= f.label :terms_of_service, class: 'text-xl' do %>
               <%= t '.terms_of_service_message', name: @brand_config["name"], campaign: @microcredit.title %>
-              <%= link_to t('.terms_of_service_link', name: @brand_config["name"], campaign: @microcredit.title ), @microcredit.agreement_link, target: "_blank"%>
+              <%= link_to t('.terms_of_service_link', name: @brand_config["name"], campaign: @microcredit.title ), @microcredit.agreement_link, target: "_blank", rel: "noopener noreferrer"%>
             <% end %>
           </div>
         </div>

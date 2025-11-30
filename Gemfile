@@ -80,6 +80,7 @@ gem 'xmlrpc'
 gem "espeak-ruby", require: false
 gem 'grape'
 gem 'rqrcode'
+gem 'rexml', '>= 3.4.2' # CVE-2025-58767 security fix
 
 group :development, :test do
   gem 'listen' # Required by Rails 6.0 for file watching

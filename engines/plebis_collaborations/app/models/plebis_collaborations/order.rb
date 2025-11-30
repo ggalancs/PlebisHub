@@ -386,11 +386,7 @@ module PlebisCollaborations
       http = Net::HTTP.new uri.host, uri.port
       if uri.scheme == 'https'
         http.use_ssl = true
-        if Rails.env.production?
-          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        else
-          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        end
+        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
         #http.ssl_options = OpenSSL::SSL::OP_NO_SSLv2 + OpenSSL::SSL::OP_NO_SSLv3 + OpenSSL::SSL::OP_NO_COMPRESSION
         http.ssl_version = :TLSv1_2
       end

@@ -10,7 +10,7 @@
     <ol>
       <% @microcredits_active.each do |m| %>
         <li>
-            <%= link_to( m.title, loans_renewal_microcredit_loan_path(m.id, params[:loan_id], params[:hash]), target: '_blank')%>
+            <%= link_to( m.title, loans_renewal_microcredit_loan_path(m.id, params[:loan_id], params[:hash]), target: '_blank', rel: "noopener noreferrer")%>
         </li>
       <% end %>
     <% end %>

@@ -213,7 +213,7 @@ input.button, a.button { background-color: <%=@brand_config["color2"]%> !importa
           <%= f.check_box :terms_of_service, class: 'checkbox' %>
           <%= f.label :terms_of_service, class: 'text-xl' do %>
             <%= t '.terms_of_service_message', name: @brand_config["name"]%>
-            <%= link_to t('.terms_of_service_link', name: @brand_config["name"]), @microcredit.agreement_link, target: "_blank"%>
+            <%= link_to t('.terms_of_service_link', name: @brand_config["name"]), @microcredit.agreement_link, target: "_blank", rel: "noopener noreferrer"%>
           <% end %>
         </div>
       </div>

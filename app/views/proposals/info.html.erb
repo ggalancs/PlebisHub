@@ -6,7 +6,7 @@
   <h2>El mecanismo consta de varias fases:</h2>
 
   <h3>1. RECOGIDA DE PROPUESTAS</h3>
-  <p>Cualquier persona puede colgar una propuesta en Plaza PlebisBrand (<%= link_to 'plaza.plebisbrand.info', 'http://plaza.plebisbrand.info', target: "_blank" %>). Las propuestas que tengan un cierto número de votos positivos (el equivalente al 0,2% de los inscritos en PlebisBrand, y tened en cuenta que los votos negativos son irrelevantes), pasan al portal de participación <%= link_to 'participa.plebisbrand.info', 'http://participa.plebisbrand.info', target: 'blank' %></p>
+  <p>Cualquier persona puede colgar una propuesta en Plaza PlebisBrand (<%= link_to 'plaza.plebisbrand.info', 'http://plaza.plebisbrand.info', target: "_blank", rel: "noopener noreferrer" %>). Las propuestas que tengan un cierto número de votos positivos (el equivalente al 0,2% de los inscritos en PlebisBrand, y tened en cuenta que los votos negativos son irrelevantes), pasan al portal de participación <%= link_to 'participa.plebisbrand.info', 'http://participa.plebisbrand.info', target: '_blank', rel: "noopener noreferrer" %></p>
 
   <h3>2. APOYO DE PROPUESTAS</h3> 
   <p>En el portal de participación los inscritos en PlebisBrand y los círculos pueden apoyar las propuestas. Cuando el 2% de los inscritos ha apoyado una propuesta, se manda un correo electrónico a todos los inscritos anunciándolo, para darle una buena visibilidad.
@@ -20,6 +20,6 @@
 
   <p><em>[ Puedes encontrar el texto aprobado en la Asamblea Ciudadana definiendo el mecanismo en el siguiente enlace (páginas 42 y 43):</em> <br/>
     <% url = 'https://web-plebisbrand.s3.amazonaws.com/wordpress/wp-content/uploads/2014/11/documento_organizativo_alta_03.pdf' %>
-    <%= link_to url, url, target: "_blank" %> ]
+    <%= link_to url, url, target: "_blank", rel: "noopener noreferrer" %> ]
   </p>
 </div>
