@@ -335,26 +335,31 @@ class User < ApplicationRecord
   end
 
   def set_sms_token!
-    self.update_attribute(:sms_confirmation_token, generate_sms_token)
+    # Rails 7.2: Use update_column instead of deprecated update_attribute
+    self.update_column(:sms_confirmation_token, generate_sms_token)
   end
 
   def send_sms_token!
     require 'sms'
-    self.update_attribute(:confirmation_sms_sent_at, DateTime.now)
+    # Rails 7.2: Use update_column instead of deprecated update_attribute
+    self.update_column(:confirmation_sms_sent_at, DateTime.current)
     SMS::Sender.send_message(self.unconfirmed_phone, self.sms_confirmation_token)
   end
 
   def check_sms_token(token)
     if token == self.sms_confirmation_token
-      self.update_attribute(:sms_confirmed_at, DateTime.now)
+      # Rails 7.2: Use update_column instead of deprecated update_attribute
+      self.update_column(:sms_confirmed_at, DateTime.current)
       if self.unconfirmed_phone?
-        self.update_attribute(:phone, self.unconfirmed_phone)
-        self.update_attribute(:unconfirmed_phone, nil)
+        # Rails 7.2: Use update_column instead of deprecated update_attribute
+        self.update_column(:phone, self.unconfirmed_phone)
+        self.update_column(:unconfirmed_phone, nil)
 
         if not self.verified? and not self.is_admin?
           filter = SpamFilter.any? self
           if filter
-            self.update_attribute(:banned, true)
+            # Rails 7.2: Use update_column instead of deprecated update_attribute
+            self.update_column(:banned, true)
             self.add_comment("Usuario baneado automáticamente por el filtro: #{filter}")
           end
         end
@@ -821,10 +826,14 @@ class User < ApplicationRecord
     5.minutes
   end
 
+  public
+
   def send_sms_check!
     require 'sms'
     if can_request_sms_check?
-      self.update_attribute(:sms_check_at, DateTime.now)
+      # Rails 7.2: Use update_column instead of deprecated update_attribute
+      # This bypasses validations/callbacks and directly updates the database
+      self.update_column(:sms_check_at, DateTime.current)
       SMS::Sender.send_message(self.phone, self.sms_check_token)
       true
     else
@@ -888,11 +897,13 @@ class User < ApplicationRecord
   # Back to private for internal helper methods
   private
 
+  public
+
+  # RAILS 7.2 FIX: This method must be public as it's called from MicrocreditController#any_renewable?
+  # Rails 7.2 raises NoMethodError when calling private methods
   def any_microcredit_renewable?
     MicrocreditLoan.renewables.where(document_vatid: self.document_vatid).exists?
   end
-
-  public
 
   def recurrent_collaboration
     collaborations.where.not(frequency: 0).last

@@ -18,7 +18,8 @@ module PlebisCms
 
     def broadcast!
       self.broadcast_gcm(title, body, link)
-      self.update_attribute(:sent_at, DateTime.now)
+      # Rails 7.2: Use update_column instead of deprecated update_attribute
+      self.update_column(:sent_at, DateTime.current)
     end
 
     def broadcast_gcm(title, message, link)

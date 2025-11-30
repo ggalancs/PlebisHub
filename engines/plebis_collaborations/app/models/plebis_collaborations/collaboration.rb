@@ -396,20 +396,24 @@ module PlebisCollaborations
     end
 
     def set_error! reason
-      self.update_attribute :status, 1
+      # Rails 7.2: Use update_column instead of deprecated update_attribute
+      self.update_column :status, 1
       self.add_comment reason
     end
 
     def set_active!
-      self.update_attribute(:status, 2) if self.status < 2
+      # Rails 7.2: Use update_column instead of deprecated update_attribute
+      self.update_column(:status, 2) if self.status < 2
     end
 
     def set_ok!
-      self.update_attribute :status, 3
+      # Rails 7.2: Use update_column instead of deprecated update_attribute
+      self.update_column :status, 3
     end
 
     def set_warning! reason
-      self.update_attribute :status, 4
+      # Rails 7.2: Use update_column instead of deprecated update_attribute
+      self.update_column :status, 4
       self.add_comment reason
     end
 

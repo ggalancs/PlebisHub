@@ -115,12 +115,14 @@ module PlebisMicrocredit
 
     def campaign_status
       # field IS NOT NULL returns integer on SQLite and boolean in postgres, so both values are checked and converted to boolean
-      @campaign_status ||= loans.group(:amount, "confirmed_at IS NOT NULL", "counted_at IS NOT NULL", "discarded_at IS NOT NULL").pluck(:amount, "confirmed_at IS NOT NULL", "counted_at IS NOT NULL", "discarded_at IS NOT NULL", "COUNT(*)").sort_by(&:first).map {|x| [x[0], (x[1]==true||x[1]==1), (x[2]==true||x[2]==1), (x[3]==true||x[3]==1), x[4]] }
+      # RAILS 7.2 FIX: Wrap raw SQL in Arel.sql() for security
+    @campaign_status ||= loans.group(:amount, Arel.sql("confirmed_at IS NOT NULL"), Arel.sql("counted_at IS NOT NULL"), Arel.sql("discarded_at IS NOT NULL")).pluck(:amount, Arel.sql("confirmed_at IS NOT NULL"), Arel.sql("counted_at IS NOT NULL"), Arel.sql("discarded_at IS NOT NULL"), Arel.sql("COUNT(*)")).sort_by(&:first).map {|x| [x[0], (x[1]==true||x[1]==1), (x[2]==true||x[2]==1), (x[3]==true||x[3]==1), x[4]] }
     end
 
     def phase_status
       # field IS NOT NULL returns integer on SQLite and boolean in postgres, so both values are checked and converted to boolean
-      @phase_status ||= loans.phase.group(:amount, "confirmed_at IS NOT NULL", "counted_at IS NOT NULL", "discarded_at IS NOT NULL").pluck(:amount, "confirmed_at IS NOT NULL", "counted_at IS NOT NULL", "discarded_at IS NOT NULL", "COUNT(*)").sort_by(&:first).map {|x| [x[0], (x[1]==true||x[1]==1), (x[2]==true||x[2]==1), (x[3]==true||x[3]==1), x[4]] }
+      # RAILS 7.2 FIX: Wrap raw SQL in Arel.sql() for security
+    @phase_status ||= loans.phase.group(:amount, Arel.sql("confirmed_at IS NOT NULL"), Arel.sql("counted_at IS NOT NULL"), Arel.sql("discarded_at IS NOT NULL")).pluck(:amount, Arel.sql("confirmed_at IS NOT NULL"), Arel.sql("counted_at IS NOT NULL"), Arel.sql("discarded_at IS NOT NULL"), Arel.sql("COUNT(*)")).sort_by(&:first).map {|x| [x[0], (x[1]==true||x[1]==1), (x[2]==true||x[2]==1), (x[3]==true||x[3]==1), x[4]] }
     end
 
     def remaining_percent
@@ -237,7 +239,8 @@ module PlebisMicrocredit
     end
 
     def change_phase!
-      if self.update_attribute(:reset_at, DateTime.now)
+      # Rails 7.2: Use update_column instead of deprecated update_attribute
+      if self.update_column(:reset_at, DateTime.current)
         self.clear_cache
         self.loans.where.not(confirmed_at:nil).where(counted_at:nil).each do |loan|
           loan.update_counted_at

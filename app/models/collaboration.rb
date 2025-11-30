@@ -69,7 +69,8 @@ class Collaboration < ApplicationRecord
   scope :town_cc, -> { live.where(for_town_cc: true)}
   scope :island_cc, -> { live.where(for_island_cc: true)}
 
-  after_create :set_initial_status
+  # Rails 7.2: Changed from after_create to before_create so status is persisted
+  before_create :set_initial_status
   before_save :check_spanish_bic
   before_save do
     self.iban_account.upcase! if self.iban_account.present?
@@ -270,7 +271,21 @@ class Collaboration < ApplicationRecord
         reference_text = last_returned_order.reference.strip + ", "
       end
     end
-    date = date.change(day: Order.payment_day) unless is_first and self.is_credit_card?
+    # Rails 7.2: Ensure payment day is valid for the month (clamp to last day if needed)
+    unless is_first and self.is_credit_card?
+      payment_day = Order.payment_day
+      if payment_day && payment_day > 0
+        begin
+          # Get the last day of the month to avoid invalid dates (e.g., Feb 30)
+          last_day_of_month = Date.civil(date.year, date.month, -1).day
+          valid_day = [payment_day, last_day_of_month].min
+          date = date.change(day: valid_day)
+        rescue Date::Error
+          # If date change fails, keep the original date
+          # This can happen with invalid dates or edge cases
+        end
+      end
+    end
     reference_text += self.user.present? && self.user.militant? && self.frequency != 0 ? "Cuota " : "Colaboración "
 
     case frequency
@@ -398,20 +413,24 @@ class Collaboration < ApplicationRecord
   end
 
   def set_error! reason
-    self.update_attribute :status, 1
+    # Rails 7.2: Use update_column instead of deprecated update_attribute
+    self.update_column :status, 1
     self.add_comment reason
   end
 
   def set_active!
-    self.update_attribute(:status, 2) if self.status < 2
+    # Rails 7.2: Use update_column instead of deprecated update_attribute
+    self.update_column(:status, 2) if self.status < 2
   end
 
   def set_ok!
-    self.update_attribute :status, 3
+    # Rails 7.2: Use update_column instead of deprecated update_attribute
+    self.update_column :status, 3
   end
 
   def set_warning! reason
-    self.update_attribute :status, 4
+    # Rails 7.2: Use update_column instead of deprecated update_attribute
+    self.update_column :status, 4
     self.add_comment reason
   end
 

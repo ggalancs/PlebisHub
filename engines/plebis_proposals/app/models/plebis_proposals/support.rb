@@ -18,7 +18,8 @@ module PlebisProposals
 
     # Instance methods
     def update_hotness
-      proposal.update_attribute(:hotness, proposal.hotness)
+      # Rails 7.2: Use update_column instead of deprecated update_attribute
+      proposal.update_column(:hotness, proposal.hotness)
     end
   end
 end

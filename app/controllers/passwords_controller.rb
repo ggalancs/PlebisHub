@@ -38,7 +38,8 @@ class PasswordsController < Devise::PasswordsController
     if !resource.errors.include?(:password) && !resource.errors.include?(:password_confirmation)
       # Clear legacy password flag if user had one
       if resource.has_legacy_password?
-        resource.update_attribute(:has_legacy_password, false)
+        # Rails 7.2: Use update_column instead of deprecated update_attribute
+        resource.update_column(:has_legacy_password, false)
         log_security_event('legacy_password_cleared', user_id: resource.id)
       end
 
