@@ -31,6 +31,16 @@ const showExportModal = ref(false)
 const showImportModal = ref(false)
 const contrastWarning = ref('')
 
+// Toast/notification state
+const notification = ref<{ type: 'success' | 'error' | 'info'; message: string } | null>(null)
+
+const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
+  notification.value = { type, message }
+  setTimeout(() => {
+    notification.value = null
+  }, 3000)
+}
+
 // Computed
 const hasChanges = computed(() => {
   return customPrimary.value !== brandColors.value.primary ||
@@ -76,7 +86,7 @@ const handleExport = () => {
 
 const handleCopyExport = () => {
   navigator.clipboard.writeText(exportedJson.value)
-  // TODO: Show toast notification
+  showNotification('success', 'Configuration copied to clipboard!')
 }
 
 const handleImport = () => {
@@ -86,15 +96,28 @@ const handleImport = () => {
     importJson.value = ''
     customPrimary.value = brandColors.value.primary
     customSecondary.value = brandColors.value.secondary
-    // TODO: Show success toast
+    showNotification('success', 'Brand configuration imported successfully!')
   } else {
-    // TODO: Show error toast
+    showNotification('error', 'Invalid configuration format. Please check your JSON.')
   }
 }
 </script>
 
 <template>
   <div class="brand-customizer">
+    <!-- Notification Toast -->
+    <Transition name="slide-fade">
+      <Alert
+        v-if="notification"
+        :variant="notification.type"
+        class="brand-customizer__notification"
+        dismissible
+        @dismiss="notification = null"
+      >
+        {{ notification.message }}
+      </Alert>
+    </Transition>
+
     <div class="brand-customizer__header">
       <h1 class="brand-customizer__title">
         🎨 Brand Customization
