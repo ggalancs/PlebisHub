@@ -65,9 +65,7 @@ FactoryBot.define do
 
     # RAILS 7.2 FIX: Add :admin trait for vote_controller specs
     trait :admin do
-      after(:create) do |user|
-        user.update_column(:flags, user.flags | 1) # admin flag
-      end
+      admin { true }
     end
 
     trait :superadmin do

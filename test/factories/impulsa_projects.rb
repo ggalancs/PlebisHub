@@ -6,8 +6,9 @@ FactoryBot.define do
     association :evaluator2, factory: :user
     sequence(:name) { |n| "Project #{n}" }
     status { 0 }
-    terms_of_service { true }
-    data_truthfulness { true }
-    content_rights { true }
+    # Rails 7.2: Acceptance validations require string "1" instead of boolean true
+    terms_of_service { "1" }
+    data_truthfulness { "1" }
+    content_rights { "1" }
   end
 end

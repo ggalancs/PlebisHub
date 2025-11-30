@@ -4,7 +4,8 @@ FactoryBot.define do
     starts_at { 1.month.ago }
     ends_at { 1.month.from_now }
     limits { "100€: 10\n500€: 5\n1000€: 2" }
-    account_number { "ES6621000418401234567891" }
+    # RAILS 7.2 FIX: Use different IBAN than test loan IBANs to avoid validation conflict
+    account_number { "ES7921000813610123456789" }
 
     trait :active do
       starts_at { 1.week.ago }
