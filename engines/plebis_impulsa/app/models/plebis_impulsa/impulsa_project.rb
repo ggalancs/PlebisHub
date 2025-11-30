@@ -16,7 +16,9 @@ module PlebisImpulsa
     belongs_to :impulsa_edition_category, class_name: 'PlebisImpulsa::ImpulsaEditionCategory'
     belongs_to :user, -> { with_deleted }
     has_one :impulsa_edition, through: :impulsa_edition_category
-    has_many :impulsa_project_state_transitions, class_name: 'PlebisImpulsa::ImpulsaProjectStateTransition', foreign_key: 'impulsa_project_id', dependent: :destroy
+    # Rails 7.2: Disable automatic validation of state_transitions (managed by state_machine gem)
+    # Using autosave: false to prevent validation errors during state_machine transitions
+    has_many :impulsa_project_state_transitions, class_name: 'PlebisImpulsa::ImpulsaProjectStateTransition', foreign_key: 'impulsa_project_id', dependent: :destroy, validate: false, autosave: false, inverse_of: :impulsa_project
     has_many :impulsa_project_topics, class_name: 'PlebisImpulsa::ImpulsaProjectTopic', foreign_key: 'impulsa_project_id', dependent: :destroy
 
     validates :name, :impulsa_edition_category_id, :status, presence: true

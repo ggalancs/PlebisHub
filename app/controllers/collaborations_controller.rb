@@ -167,12 +167,14 @@ class CollaborationsController < ApplicationController
 
   def force_single?
     # Use ActiveModel::Type::Boolean for proper boolean casting
-    ActiveModel::Type::Boolean.new.cast(params[:force_single])
+    # Rails 7.2 returns nil for nil input, so convert to false explicitly
+    ActiveModel::Type::Boolean.new.cast(params[:force_single]) || false
   end
 
   def only_recurrent?
     # Use ActiveModel::Type::Boolean for proper boolean casting
-    ActiveModel::Type::Boolean.new.cast(params[:only_recurrent])
+    # Rails 7.2 returns nil for nil input, so convert to false explicitly
+    ActiveModel::Type::Boolean.new.cast(params[:only_recurrent]) || false
   end
 
   def active_frequencies

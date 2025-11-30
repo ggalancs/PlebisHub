@@ -14,7 +14,8 @@ module PlebisMicrocredit
     belongs_to :transferred_to, inverse_of: :original_loans, class_name: "PlebisMicrocredit::MicrocreditLoan", optional: true
     has_many :original_loans, inverse_of: :transferred_to, class_name: "PlebisMicrocredit::MicrocreditLoan", foreign_key: :transferred_to_id
 
-    attr_accessor :first_name, :last_name, :email, :address, :postal_code, :town, :province, :country
+    # RAILS 7.2 FIX: Add acceptance validation virtual attributes
+  attr_accessor :first_name, :last_name, :email, :address, :postal_code, :town, :province, :country, :terms_of_service, :minimal_year_old
 
     validates :document_vatid, valid_spanish_id: true, if: :has_not_user?
     validates :first_name, :last_name, :email, :address, :postal_code, :town, :province, :country, presence: true, if: :has_not_user?
@@ -22,12 +23,13 @@ module PlebisMicrocredit
     validates :email, email: true, if: :has_not_user?
 
     validates :amount, presence: true
-    validates :terms_of_service, acceptance: true
-    validates :minimal_year_old, acceptance: true
+    # RAILS 7.2 FIX: Acceptance validation now expects "1" by default, but tests use true
+    validates :terms_of_service, acceptance: { accept: [true, "1"] }
+    validates :minimal_year_old, acceptance: { accept: [true, "1"] }
 
-    validate :amount, :check_amount, on: :create
-    validate :user, :check_user_limits, on: :create
-    validate :microcredit, :check_microcredit_active, on: :create
+    validate :check_amount, on: :create
+    validate :check_user_limits, on: :create
+    validate :check_microcredit_active, on: :create
     validate :validates_not_passport
     validate :validates_age_over
 
@@ -268,7 +270,8 @@ module PlebisMicrocredit
     end
 
     def unique_hash
-       Digest::SHA1.hexdigest "#{id}-#{created_at}-#{document_vatid.upcase}"
+       # RAILS 7.2 FIX: Use safe navigation for document_vatid which may be nil
+       Digest::SHA1.hexdigest "#{id}-#{created_at}-#{document_vatid&.upcase}"
     end
 
     def renew!(new_campaign)

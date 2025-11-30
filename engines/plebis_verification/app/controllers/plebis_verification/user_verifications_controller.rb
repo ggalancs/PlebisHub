@@ -14,6 +14,7 @@ module PlebisVerification
   class UserVerificationsController < ApplicationController
     include Redirectable
 
+    before_action :authenticate_user!, only: [:new, :create]
     before_action :check_valid_and_verified, only: [:new, :create]
     before_action :authenticate_admin_user!, only: [:report, :report_town, :report_exterior]
     before_action :validate_report_code, only: [:report, :report_town, :report_exterior]
@@ -69,6 +70,8 @@ module PlebisVerification
     private
 
     def check_valid_and_verified
+      return unless current_user
+
       if current_user.has_not_future_verified_elections?
         redirect_to safe_return_path, flash: { notice: t('plebisbrand.user_verification.user_not_valid_to_verify') }
       elsif current_user.verified? && current_user.photos_necessary?

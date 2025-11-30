@@ -42,10 +42,10 @@ class VoteController < ApplicationController
 
     if election.requires_sms_check?
       if params[:sms_check_token].nil?
-        redirect_to sms_check_vote_path(params[:election_id])
+        return redirect_to sms_check_vote_path(params[:election_id])
       elsif !current_user.valid_sms_check?(params[:sms_check_token])
         log_vote_security_event(:invalid_sms_token, election_id: params[:election_id])
-        redirect_to sms_check_vote_path(params[:election_id]), flash: { error: I18n.t('vote.sms_check.invalid_token') }
+        return redirect_to(sms_check_vote_path(params[:election_id]), flash: { error: I18n.t('vote.sms_check.invalid_token') })
       end
     end
     @scoped_agora_election_id = election.scoped_agora_election_id(current_user)
@@ -322,7 +322,7 @@ class VoteController < ApplicationController
   end
 
   def check_paper_authority?
-    is_authority = current_user.admin? || current_user.paper_authority?
+    is_authority = current_user.is_admin? || current_user.paper_authority?
 
     unless is_authority
       log_vote_security_event(:unauthorized_paper_authority_attempt,

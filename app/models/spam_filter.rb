@@ -28,15 +28,8 @@ class SpamFilter < ApplicationRecord
   ].freeze
 
   after_initialize do |filter|
-    if persisted?
-      # SECURITY WARNING: Legacy eval() code - DEPRECATED
-      # Use rules_json instead
-      if filter.code.present? && filter.rules_json.blank?
-        Rails.logger.warn("SECURITY: SpamFilter #{id} using deprecated eval() code. Migrate to rules_json!")
-        @proc = eval("Proc.new { |user, data| #{filter.code} }")
-      end
-      @data = filter.data.to_s.split("\r\n")
-    end
+    # Initialization moved to lazy loading in process method
+    # to support test scenarios where id is set after initialization
   end
 
   def process(user)
@@ -44,7 +37,8 @@ class SpamFilter < ApplicationRecord
       # SECURITY: Safe JSON-based evaluation - NO EVAL
       process_with_json_rules(user)
     else
-      # DEPRECATED: Legacy eval() mode
+      # DEPRECATED: Legacy eval() mode - initialize lazily
+      initialize_legacy_mode unless @proc
       Rails.logger.warn("SECURITY: SpamFilter #{id} using deprecated eval(). Migrate to JSON rules!")
       @proc.call(user, @data)
     end
@@ -79,6 +73,15 @@ class SpamFilter < ApplicationRecord
     rules_json.present?
   end
 
+  def initialize_legacy_mode
+    # SECURITY WARNING: Legacy eval() code - DEPRECATED
+    # Use rules_json instead
+    if code.present? && rules_json.blank?
+      @proc = eval("Proc.new { |user, data| #{code} }")
+      @data = data.to_s.split(/\r?\n/)
+    end
+  end
+
   # SECURITY: Safe JSON-based rule evaluation
   # NO EVAL - uses whitelisted operators and fields
   def process_with_json_rules(user)
@@ -92,6 +95,9 @@ class SpamFilter < ApplicationRecord
   def evaluate_rules(user, rules)
     conditions = rules['conditions'] || []
     logic = rules['logic'] || 'AND'
+
+    # Empty conditions should return false (no rules to match)
+    return false if conditions.empty?
 
     results = conditions.map { |cond| evaluate_condition(user, cond) }
 
@@ -119,7 +125,7 @@ class SpamFilter < ApplicationRecord
   end
 
   def data_list
-    @data ||= data.to_s.split("\r\n")
+    @data ||= data.to_s.split(/\r?\n/)
   end
 
   def validate_rules_structure

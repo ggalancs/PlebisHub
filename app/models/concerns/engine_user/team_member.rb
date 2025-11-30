@@ -11,7 +11,8 @@ module EngineUser
 
     included do
       # Associations for participation teams
-      has_and_belongs_to_many :participation_teams
+      # Rails 7.2: Explicitly specify class_name for namespaced engine models
+      has_and_belongs_to_many :participation_teams, class_name: 'PlebisParticipation::ParticipationTeam'
     end
 
     # Check if user is member of a specific team

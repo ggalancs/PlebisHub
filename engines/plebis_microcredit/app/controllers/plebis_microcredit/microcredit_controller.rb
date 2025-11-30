@@ -123,7 +123,7 @@ module PlebisMicrocredit
 
     def login
       authenticate_user!
-      redirect_to new_microcredit_loan_path(params[:id], brand: @brand)
+      redirect_to new_microcredit_loan_path(params[:id], **@url_params)
     rescue StandardError => e
       log_microcredit_error(:login_redirect_failed, e)
       redirect_to root_path
@@ -134,7 +134,7 @@ module PlebisMicrocredit
 
       unless @microcredit.is_active?
         log_microcredit_event(:inactive_microcredit_access, microcredit_id: params[:id])
-        redirect_to microcredit_path(brand: @brand)
+        redirect_to microcredit_path(**@url_params)
         return
       end
 
@@ -143,11 +143,11 @@ module PlebisMicrocredit
     rescue ActiveRecord::RecordNotFound => e
       log_microcredit_error(:microcredit_not_found, e, microcredit_id: params[:id])
       flash[:error] = I18n.t('microcredit.errors.not_found')
-      redirect_to microcredit_path(brand: @brand)
+      redirect_to microcredit_path(**@url_params)
     rescue StandardError => e
       log_microcredit_error(:new_loan_failed, e, microcredit_id: params[:id])
       flash[:error] = I18n.t('microcredit.errors.load_failed')
-      redirect_to microcredit_path(brand: @brand)
+      redirect_to microcredit_path(**@url_params)
     end
 
     def create_loan
@@ -155,7 +155,7 @@ module PlebisMicrocredit
 
       unless @microcredit.is_active?
         log_microcredit_event(:create_loan_inactive_microcredit, microcredit_id: params[:id])
-        redirect_to microcredit_path(brand: @brand)
+        redirect_to microcredit_path(**@url_params)
         return
       end
 
@@ -189,13 +189,13 @@ module PlebisMicrocredit
           flash[:notice] = build_loan_success_message
           log_microcredit_event(:loan_email_queued, loan_id: @loan.id)
 
-          redirect_to microcredit_path(brand: @brand) unless params[:reload]
+          redirect_to microcredit_path(**@url_params) unless params[:reload]
           return
         rescue StandardError => e
           # Email delivery failed but loan was created - log and continue
           log_microcredit_error(:loan_email_failed, e, loan_id: @loan.id)
           flash[:notice] = I18n.t('microcredit.new_loan.created_email_pending')
-          redirect_to microcredit_path(brand: @brand) unless params[:reload]
+          redirect_to microcredit_path(**@url_params) unless params[:reload]
           return
         end
       end
@@ -208,7 +208,7 @@ module PlebisMicrocredit
     rescue ActiveRecord::RecordNotFound => e
       log_microcredit_error(:microcredit_not_found, e, microcredit_id: params[:id])
       flash[:error] = I18n.t('microcredit.errors.not_found')
-      redirect_to microcredit_path(brand: @brand)
+      redirect_to microcredit_path(**@url_params)
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
       log_microcredit_error(:loan_save_failed, e, microcredit_id: params[:id])
       flash[:error] = I18n.t('microcredit.errors.save_failed')
@@ -418,7 +418,7 @@ module PlebisMicrocredit
       Rails.logger.info({
         event: "microcredit_#{event_type}",
         user_id: current_user&.id,
-        brand: @brand,
+        **@url_params,
         timestamp: Time.current.iso8601
       }.merge(details).to_json)
     end
@@ -428,7 +428,7 @@ module PlebisMicrocredit
       Rails.logger.error({
         event: "microcredit_error_#{event_type}",
         user_id: current_user&.id,
-        brand: @brand,
+        **@url_params,
         error_class: error.class.name,
         error_message: error.message,
         backtrace: error.backtrace&.first(5),
@@ -441,7 +441,7 @@ module PlebisMicrocredit
       Rails.logger.warn({
         event: "microcredit_security_#{event_type}",
         user_id: current_user&.id,
-        brand: @brand,
+        **@url_params,
         ip_address: request.remote_ip,
         user_agent: request.user_agent,
         timestamp: Time.current.iso8601

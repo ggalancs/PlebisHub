@@ -89,36 +89,43 @@ class RegistrationsController < Devise::RegistrationsController
   def create
     build_resource(sign_up_params)
 
-    if resource.valid_with_captcha?
-      super do
-        # SECURITY: Paranoid mode - check if user already exists
-        # If email or document_vatid are taken, fail silently and send email
-        # to existing user instead of revealing account exists
-        result, status = user_already_exists?(resource, :document_vatid)
-        if status && result.errors.empty?
-          log_security_event('registration_duplicate_document', document_vatid: result.document_vatid)
-          # SECURITY FIX: Use deliver_later for non-blocking email delivery
-          UsersMailer.remember_email(:document_vatid, result.document_vatid).deliver_later
-          redirect_to(root_path, notice: t('devise.registrations.signed_up_but_unconfirmed'))
-          return
-        end
-
-        result, status = user_already_exists?(resource, :email)
-        if status && result.errors.empty?
-          log_security_event('registration_duplicate_email', email: result.email)
-          # SECURITY FIX: Use deliver_later for non-blocking email delivery
-          UsersMailer.remember_email(:email, result.email).deliver_later
-          redirect_to(root_path, notice: t('devise.registrations.signed_up_but_unconfirmed'))
-          return
-        end
-
-        # Log successful registration
-        log_security_event('user_registration_success', email: resource.email)
-      end
-    else
+    # Check captcha first
+    unless resource.valid_with_captcha?
       log_security_event('registration_invalid_captcha', email: params.dig(:user, :email))
       clean_up_passwords(resource)
       render :new
+      return
+    end
+
+    # RAILS 7.2 FIX: Validate to trigger uniqueness checks BEFORE calling super
+    # This allows us to detect duplicates and handle them in paranoid mode
+    resource.validate
+
+    # SECURITY: Paranoid mode - check if user already exists
+    # Check document_vatid first
+    result, status = user_already_exists?(resource, :document_vatid)
+    if status
+      log_security_event('registration_duplicate_document', document_vatid: result.document_vatid)
+      # SECURITY FIX: Use deliver_later for non-blocking email delivery
+      UsersMailer.remember_email(:document_vatid, result.document_vatid).deliver_later
+      redirect_to(root_path, notice: t('devise.registrations.signed_up_but_unconfirmed'))
+      return
+    end
+
+    # Check email
+    result, status = user_already_exists?(resource, :email)
+    if status
+      log_security_event('registration_duplicate_email', email: result.email)
+      # SECURITY FIX: Use deliver_later for non-blocking email delivery
+      UsersMailer.remember_email(:email, result.email).deliver_later
+      redirect_to(root_path, notice: t('devise.registrations.signed_up_but_unconfirmed'))
+      return
+    end
+
+    # No duplicates found, proceed with normal Devise registration
+    super do
+      # Log successful registration
+      log_security_event('user_registration_success', email: resource.email)
     end
   rescue StandardError => e
     log_error('registration_create_error', e)
@@ -155,7 +162,9 @@ class RegistrationsController < Devise::RegistrationsController
 
   # Override Devise flash message to include resource params
   def set_flash_message(key, kind, options = {})
-    options.merge! resource_params.deep_symbolize_keys
+    # Rails 7.2: Convert permitted parameters to hash for symbolization
+    params_hash = resource_params.respond_to?(:to_unsafe_h) ? resource_params.to_unsafe_h : resource_params.to_h
+    options.merge! params_hash.deep_symbolize_keys
     message = find_message(kind, options)
     flash[key] = message if message.present?
   end
@@ -201,7 +210,10 @@ class RegistrationsController < Devise::RegistrationsController
   #
   # See test/features/users_are_paranoid_test.rb
   def user_already_exists?(resource, type)
-    return [resource, false] unless resource.errors.added?(type, :taken)
+    # RAILS 7.2 FIX: errors.added? doesn't work correctly in Rails 7.2
+    # Use errors.details to check for :taken error instead
+    has_taken_error = resource.errors.details[type]&.any? { |error| error[:error] == :taken }
+    return [resource, false] unless has_taken_error
 
     # SECURITY FIX: Use proper error clearing instead of array subtraction
     # Remove the "taken" error message to hide existence from attacker
