@@ -121,6 +121,21 @@ module PlebisMicrocredit
       redirect_to root_path
     end
 
+    def info
+      # Informational page about microcredits - no specific logic needed
+      # View will render brand-specific content
+    end
+
+    def info_mailing
+      # Informational page about microcredit mailing campaigns - no specific logic needed
+      # View will render brand-specific content
+    end
+
+    def info_euskera
+      # Informational page about microcredits in Euskera language - no specific logic needed
+      # View will render brand-specific content
+    end
+
     def login
       authenticate_user!
       redirect_to new_microcredit_loan_path(params[:id], **@url_params)

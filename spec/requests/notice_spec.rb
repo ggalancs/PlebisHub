@@ -4,6 +4,7 @@ require 'rails_helper'
 
 RSpec.describe 'Notice Index', type: :request do
   include Devise::Test::IntegrationHelpers
+  include Capybara::RSpecMatchers
 
   let(:user) { create(:user) }
 

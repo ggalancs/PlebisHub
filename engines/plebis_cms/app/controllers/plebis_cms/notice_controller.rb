@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 module PlebisCms
-  # CRITICAL FIX: Added authentication requirement per TESTING_INVENTORY.md specification
-  class NoticeController < ApplicationController
+  class NoticeController < ::ApplicationController
     before_action :authenticate_user!
 
     def index
