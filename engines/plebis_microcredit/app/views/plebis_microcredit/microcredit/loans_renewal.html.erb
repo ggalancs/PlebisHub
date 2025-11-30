@@ -9,11 +9,11 @@
   <p>Para renovar tus suscripciones:<ol><li>Elige el microcrédito que deseas renovar</li><li>Acepta la extinción y renovación de la suscripción así como las condiciones del nuevo contrato para apoyar la campaña a las elecciones generales, marcando las dos casillas que aparecen a continuación.</li></ol>
   <% if @renewal.other_loans.any? %>
   <p>Además, tienes microcréditos suscritos en otras campañas que también puedes renovar: <% @renewal.other_loans.each do |loan| %>
-        <%= link_to( loan.microcredit.title, loans_renewal_microcredit_loan_path(@microcredit.id, loan.id, loan.unique_hash))%>
+        <%= link_to( loan.microcredit.title, plebis_microcredit.loans_renewal_microcredit_loan_path(@microcredit.id, loan.id, loan.unique_hash))%>
       <%end %>.</p>
   <% end %>
   <%= errors_in_form @renewal %>
-  <%= semantic_form_with model: @renewal, scope: :renewals, url: loans_renew_microcredit_loan_path(@microcredit.id, @renewal.loan.id, @renewal.loan.unique_hash, brand: @brand), method: :post, html: { autocomplete: 'off' } do |f| %>
+  <%= semantic_form_with model: @renewal, scope: :renewals, url: plebis_microcredit.loans_renew_microcredit_loan_path(@microcredit.id, @renewal.loan.id, @renewal.loan.unique_hash, brand: @brand), method: :post, html: { autocomplete: 'off' } do |f| %>
     <fieldset>
       <div class="inputlabel-box">
         <% if @renewal.errors.include?(:loan_renewals) %>

@@ -58,24 +58,29 @@ module PlebisMicrocredit
 
     def init_env
       # SECURITY FIX: Validate configuration exists before accessing
-      unless Rails.application.secrets.microcredits &&
-             Rails.application.secrets.microcredits["default_brand"] &&
-             Rails.application.secrets.microcredits["brands"]
+      # Rails 7.2: secrets can return either string or symbol keys depending on environment
+      # Use with_indifferent_access to handle both cases
+      microcredits_config = Rails.application.secrets.microcredits&.with_indifferent_access
+
+      unless microcredits_config &&
+             microcredits_config["default_brand"] &&
+             microcredits_config["brands"]
         log_microcredit_security_event(:missing_configuration)
         flash[:error] = I18n.t('microcredit.errors.configuration_error')
         redirect_to root_path
         return
       end
 
-      default_brand = Rails.application.secrets.microcredits["default_brand"]
+      default_brand = microcredits_config["default_brand"]
       @brand = params[:brand].presence || default_brand
-      @brand_config = Rails.application.secrets.microcredits["brands"][@brand]
+      brands_config = microcredits_config["brands"].with_indifferent_access
+      @brand_config = brands_config[@brand]
 
       # SECURITY FIX: Validate brand exists
       if @brand_config.blank?
         log_microcredit_security_event(:invalid_brand, brand: params[:brand])
         @brand = default_brand
-        @brand_config = Rails.application.secrets.microcredits["brands"][default_brand]
+        @brand_config = brands_config[default_brand]
 
         # Double-check default brand exists
         if @brand_config.blank?
@@ -86,6 +91,8 @@ module PlebisMicrocredit
         end
       end
 
+      # Ensure brand_config also uses indifferent access
+      @brand_config = @brand_config.with_indifferent_access if @brand_config.is_a?(Hash)
       @external = @brand_config["external"] || false
       @url_params = @brand == default_brand ? {} : { brand: @brand }
     rescue StandardError => e
