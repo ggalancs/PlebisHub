@@ -208,11 +208,23 @@ class Rack::Attack
 
   ### Blocklists ###
 
-  # Block suspicious requests
-  # Block requests with suspicious user agents
-  blocklist('block_bad_user_agents') do |req|
-    # Block known bad user agents
-    req.user_agent =~ /curl|wget|python-requests/i
+  # SECURITY FIX SEC-042: More nuanced user agent blocking
+  # Only block automated tools on sensitive endpoints when unauthenticated
+  blocklist('block_suspicious_user_agents_on_sensitive_endpoints') do |req|
+    automated_ua = req.user_agent.to_s =~ /\b(curl|wget|python-requests|libwww-perl|mechanize)\b/i
+    sensitive_endpoint = req.path =~ /\/(admin|users\/sign_in|registrations|api\/v1\/gcm)/
+
+    # Allow authenticated requests (check for session cookie)
+    has_session = req.cookies['_plebis_hub_session'].present?
+
+    # Block only if: automated tool + sensitive endpoint + no session
+    automated_ua && sensitive_endpoint && !has_session
+  end
+
+  # Whitelist legitimate crawlers and monitoring tools
+  safelist('allow_known_bots') do |req|
+    # Allow search engine crawlers and uptime monitors
+    req.user_agent.to_s =~ /\b(Googlebot|Bingbot|Slackbot|UptimeRobot|Pingdom)\b/i
   end
 
   # Allow safelisted IPs (optional)

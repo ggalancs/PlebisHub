@@ -7,6 +7,18 @@ require 'openid/extensions/sreg'
 require 'openid/extensions/pape'
 require 'openid/store/filesystem'
 
+# DEPRECATION NOTICE: OpenID 2.0 Authentication Provider
+# OpenID 2.0 was deprecated by the OpenID Foundation in February 2014.
+# This implementation is maintained for legacy compatibility only.
+#
+# SECURITY RECOMMENDATIONS:
+# 1. Migrate consuming applications to OAuth 2.0 / OpenID Connect (OIDC)
+# 2. Monitor usage logs for active consumers
+# 3. Set sunset date for OpenID 2.0 support
+# 4. Notify users before deprecation
+#
+# Reference: https://openid.net/2014/02/26/the-openid-foundation-launches-the-openid-connect-standard/
+
 # OpenIdController - OpenID 2.0 Authentication Provider
 #
 # SECURITY FIXES IMPLEMENTED:

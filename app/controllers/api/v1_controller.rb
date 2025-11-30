@@ -15,6 +15,7 @@ class Api::V1Controller < ApplicationController
   skip_before_action :verify_authenticity_token
   before_action :authenticate_api_token
   before_action :validate_registration_id, only: [:gcm_register, :gcm_unregister]
+  before_action :set_api_version_header
 
   # Register a device for push notifications
   # POST /api/v1/gcm_register
@@ -83,6 +84,12 @@ class Api::V1Controller < ApplicationController
   end
 
   private
+
+  # SEC-032: Set API version headers
+  def set_api_version_header
+    response.headers['X-API-Version'] = '1.0'
+    response.headers['X-API-Deprecated'] = 'false'
+  end
 
   # SECURITY: Authenticate API requests with token
   def authenticate_api_token

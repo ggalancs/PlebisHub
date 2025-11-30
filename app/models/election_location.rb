@@ -2,6 +2,14 @@ class ElectionLocation < ApplicationRecord
   belongs_to :election
   has_many :election_location_questions, -> { order(:id) }, dependent: :destroy
 
+  # SECURITY NOTE SEC-030: Nested attributes security
+  # This accepts_nested_attributes_for is protected by:
+  # 1. Strong parameters in app/admin/election.rb (line 199)
+  #    - Whitelists only: :id, :_destroy, :title, :description, :voting_system, :layout,
+  #                       :winners, :minimum, :maximum, :random_order, :totals, :options, options_headers
+  # 2. :reject_if => :all_blank prevents creation of empty nested records
+  # 3. :allow_destroy => true is safe as it's controlled by admin-only interface
+  # 4. Access controlled by ActiveAdmin authentication (admin users only)
   accepts_nested_attributes_for :election_location_questions, :reject_if => :all_blank, :allow_destroy => true
 
   validates :title, :layout, :theme, presence: true, if: -> { self.has_voting_info }

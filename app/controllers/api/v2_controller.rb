@@ -21,6 +21,7 @@ class Api::V2Controller < ActionController::Base
   respond_to :json
   before_action :log_api_call
   before_action :validate_inputs, only: [:get_data]
+  before_action :set_api_version_header
 
   COMMANDS = %w[militants_from_territory militants_from_vote_circle_territory].freeze
   RANGE_NAMES = { exterior: 'exterior' }.freeze
@@ -112,6 +113,12 @@ class Api::V2Controller < ActionController::Base
   end
 
   private
+
+  # SEC-032: Set API version headers
+  def set_api_version_header
+    response.headers['X-API-Version'] = '2.0'
+    response.headers['X-API-Deprecated'] = 'false'
+  end
 
   # SECURITY: Validate all inputs before processing
   def validate_inputs

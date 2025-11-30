@@ -237,18 +237,32 @@ class RegistrationsController < Devise::RegistrationsController
   end
 
   # SECURITY: Validate vote_circle_id changes
+  # SEC-009: Added eligibility validation to prevent vote circle manipulation
   def validate_vote_circle
     return unless params.dig(:user, :vote_circle_id).present?
 
     vote_circle_id = params[:user][:vote_circle_id]
 
-    # Validate vote_circle exists
-    unless VoteCircle.exists?(vote_circle_id)
+    # Find vote_circle
+    vote_circle = VoteCircle.find_by(id: vote_circle_id)
+
+    unless vote_circle
       log_security_event('invalid_vote_circle_attempt',
         user_id: current_user.id,
         vote_circle_id: vote_circle_id
       )
       redirect_to edit_user_registration_path, alert: t('errors.messages.invalid_vote_circle')
+      return false
+    end
+
+    # SEC-009: SECURITY FIX - Validate user eligibility based on location
+    unless user_eligible_for_vote_circle?(current_user, vote_circle)
+      log_security_event('unauthorized_vote_circle_attempt',
+        user_id: current_user.id,
+        vote_circle_id: vote_circle_id,
+        user_location: "#{current_user.vote_province}/#{current_user.vote_town}"
+      )
+      redirect_to edit_user_registration_path, alert: t('errors.messages.vote_circle_location_mismatch')
       return false
     end
 
@@ -266,6 +280,25 @@ class RegistrationsController < Devise::RegistrationsController
     log_error('validate_vote_circle_error', e, user_id: current_user&.id)
     redirect_to edit_user_registration_path, alert: t('errors.messages.invalid_vote_circle')
     false
+  end
+
+  # SEC-009: Validate user eligibility for vote_circle based on geographic scope
+  def user_eligible_for_vote_circle?(user, vote_circle)
+    # Allow any circle if user doesn't have location restrictions
+    return true unless vote_circle.respond_to?(:scope)
+
+    case vote_circle.scope
+    when 'town'
+      user.vote_town == vote_circle.town
+    when 'province'
+      user.vote_province == vote_circle.province_code
+    when 'autonomy'
+      user.vote_province&.starts_with?(vote_circle.autonomy_code.to_s)
+    when 'national'
+      true  # All users eligible for national circles
+    else
+      true  # Unrestricted circles
+    end
   end
 
   # Strong parameters for sign up

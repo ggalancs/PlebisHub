@@ -505,6 +505,13 @@ EOL
   end
 
 private
+  # SECURITY NOTICE: 3DES with zero IV is required by Redsys API specification.
+  # This is an EXTERNAL CONSTRAINT that cannot be changed without Redsys updating their API.
+  # - 3DES is deprecated per NIST SP 800-131A Rev.2 (2023)
+  # - Zero IV weakens security per CWE-329
+  # - Redsys signature verification requires this exact implementation
+  # - Monitored for Redsys API cryptographic updates
+  # Reference: Redsys TPV Virtual Integration Manual
   def _sign key, data
     des3 = OpenSSL::Cipher.new('des-ede3-cbc')
     des3.encrypt

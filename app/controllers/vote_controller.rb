@@ -264,7 +264,8 @@ class VoteController < ApplicationController
                              # SECURITY: SQL injection safe - uses parameterized query
                              paper_voters.find_by(id: params[:user_id])
                            elsif params[:document_vatid].present? && params[:document_type].present?
-                             # SECURITY: SQL injection safe - uses parameterized query with placeholder
+                             # SECURITY NOTE SEC-010: SQL injection prevented via parameterized query (?)
+                             # This is safe - ActiveRecord escapes the parameter automatically
                              # The .downcase method is safe, and ? placeholder prevents injection
                              paper_voters.where("lower(document_vatid) = ?", params[:document_vatid].downcase)
                                          .find_by(document_type: params[:document_type])
