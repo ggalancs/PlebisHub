@@ -35,7 +35,6 @@
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "exactOptionalPropertyTypes": false,
-    "noUnusedLocals": true,
 
     /* Path Mapping */
     "baseUrl": ".",
