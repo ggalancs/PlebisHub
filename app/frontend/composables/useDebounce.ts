@@ -66,7 +66,7 @@ export function useDebounce<T>(value: Ref<T>, delay = 300): Ref<T> {
  * debouncedSearch('hello world') // Will execute after 500ms
  * ```
  */
-export function useDebouncedFn<T extends (...args: any[]) => any>(
+export function useDebouncedFn<T extends (...args: never[]) => unknown>(
   fn: T,
   delay = 300
 ): (...args: Parameters<T>) => void {
@@ -104,7 +104,7 @@ export function useDebouncedFn<T extends (...args: any[]) => any>(
  * cancel() // Cancels the pending execution
  * ```
  */
-export function useDebouncedFnWithCancel<T extends (...args: any[]) => any>(
+export function useDebouncedFnWithCancel<T extends (...args: never[]) => unknown>(
   fn: T,
   delay = 300
 ): {

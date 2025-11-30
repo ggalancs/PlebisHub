@@ -23,6 +23,19 @@ export interface Theme {
   spacing?: string
 }
 
+/** API theme response structure */
+interface ApiTheme {
+  id?: string | number
+  name: string
+  colors?: {
+    primary?: string
+    secondary?: string
+  }
+  typography?: {
+    fontPrimary?: string
+  }
+}
+
 export interface UseThemeReturn {
   /** Current active theme */
   currentTheme: Ref<Theme | null>
@@ -271,7 +284,7 @@ export function useTheme(): UseThemeReturn {
         const data = await response.json()
 
         // Convert API themes to our Theme interface
-        const apiThemes = data.map((apiTheme: any): Theme => ({
+        const apiThemes = (data as ApiTheme[]).map((apiTheme): Theme => ({
           id: `custom-${apiTheme.id || apiTheme.name}`,
           name: apiTheme.name,
           colors: {

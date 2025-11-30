@@ -391,7 +391,7 @@ export const validators = {
   }),
 
   match: (fieldName: string, message?: string): ValidationRule => ({
-    validator: (value: string, formValues?: any) => {
+    validator: (value: string, formValues?: Record<string, unknown>) => {
       if (!formValues) return true
       return value === formValues[fieldName]
     },

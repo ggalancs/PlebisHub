@@ -221,7 +221,7 @@ export function useVirtualScroll<T>(
    * Props for container element
    */
   const containerProps = {
-    ref: (el: any) => {
+    ref: (el: HTMLElement | null) => {
       containerRef.value = el
     },
     onScroll: handleScroll,
