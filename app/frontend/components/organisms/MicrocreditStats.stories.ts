@@ -473,7 +473,7 @@ export const ComparisonView: Story = {
   args: {},
 }
 
-export const ProgressOver Time: Story = {
+export const ProgressOverTime: Story = {
   render: (args) => ({
     components: { MicrocreditStats },
     setup() {

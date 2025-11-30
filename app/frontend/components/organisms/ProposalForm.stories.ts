@@ -2,6 +2,11 @@ import type { Meta, StoryObj } from '@storybook/vue3'
 import { ref } from 'vue'
 import ProposalForm from './ProposalForm.vue'
 
+interface ProposalFormData {
+  title: string
+  description: string
+}
+
 const meta = {
   title: 'Organisms/ProposalForm',
   component: ProposalForm,
@@ -124,7 +129,7 @@ export const Interactive: Story = {
       const success = ref<string | null>(null)
       const error = ref<string | null>(null)
 
-      const handleSubmit = async (data: any) => {
+      const handleSubmit = async (data: ProposalFormData) => {
         console.log('Submitting proposal:', data)
         loading.value = true
         success.value = null
@@ -189,7 +194,7 @@ export const InteractiveEdit: Story = {
           'Esta es la descripción original de la propuesta que puede ser editada por el usuario.',
       })
 
-      const handleSubmit = async (data: any) => {
+      const handleSubmit = async (data: ProposalFormData) => {
         console.log('Updating proposal:', data)
         loading.value = true
         success.value = null

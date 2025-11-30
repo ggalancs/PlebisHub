@@ -3,6 +3,12 @@ import { ref } from 'vue'
 import ImpulsaProjectsList from './ImpulsaProjectsList.vue'
 import type { ImpulsaProject } from './ImpulsaProjectCard.vue'
 
+interface ProjectFilters {
+  status?: string
+  category?: string
+  search?: string
+}
+
 const meta = {
   title: 'Organisms/ImpulsaProjectsList',
   component: ImpulsaProjectsList,
@@ -318,7 +324,7 @@ export const Interactive: Story = {
       const projects = ref(mockProjects)
       const isAuthenticated = ref(false)
 
-      const handleFilterChange = (filters: any) => {
+      const handleFilterChange = (filters: ProjectFilters) => {
         console.log('Filters changed:', filters)
       }
 

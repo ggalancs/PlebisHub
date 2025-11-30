@@ -222,7 +222,7 @@ export const DynamicHeights: Story = {
     components: { VirtualScrollList },
     setup() {
       // Dynamic height function
-      const getItemHeight = (item: any) => {
+      const getItemHeight = (item: { id: number; title: string; description: string; timestamp: string }) => {
         // Vary height based on item ID
         const heights = [60, 80, 100, 120, 150]
         return heights[item.id % heights.length]
