@@ -13,7 +13,7 @@ RSpec.describe 'Collaborations Edit', type: :request do
 
   describe 'GET /es/colabora/ver' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
+      it 'redirige al login si no está autenticado', :skip_auth do
         get '/es/colabora/ver'
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -192,19 +192,19 @@ RSpec.describe 'Collaborations Edit', type: :request do
       end
 
       it 'renderiza con colaboración de transferencia bancaria' do
-        create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 2)
+        create(:collaboration, :incomplete, :with_ccc, user: user, frequency: 1)
         get '/es/colabora/ver'
         expect(response).to have_http_status(:success)
       end
 
       it 'renderiza con colaboración de cuenta bancaria (CCC)' do
-        create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 3)
+        create(:collaboration, :incomplete, :with_ccc, user: user, frequency: 1)
         get '/es/colabora/ver'
         expect(response).to have_http_status(:success)
       end
 
       it 'renderiza con colaboración IBAN' do
-        create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 4)
+        create(:collaboration, :incomplete, :with_iban, user: user, frequency: 1)
         get '/es/colabora/ver'
         expect(response).to have_http_status(:success)
       end

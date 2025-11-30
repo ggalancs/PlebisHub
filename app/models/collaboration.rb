@@ -429,8 +429,13 @@ class Collaboration < ApplicationRecord
   end
 
   def set_warning! reason
-    # Rails 7.2: Use update_column instead of deprecated update_attribute
-    self.update_column :status, 4
+    # Rails 7.2: Use update_column for persisted records, direct assignment for new records
+    # update_column requires a persisted record
+    if persisted?
+      self.update_column :status, 4
+    else
+      self.status = 4
+    end
     self.add_comment reason
   end
 
