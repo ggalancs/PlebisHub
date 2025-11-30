@@ -6,5 +6,9 @@ module PlebisImpulsa
 
     belongs_to :impulsa_project, class_name: 'PlebisImpulsa::ImpulsaProject'
     belongs_to :impulsa_edition_topic, class_name: 'PlebisImpulsa::ImpulsaEditionTopic'
+
+    def slug
+      impulsa_edition_topic&.name&.parameterize || "topic-#{id}"
+    end
   end
 end
