@@ -11,12 +11,12 @@ RSpec.describe 'Notice Index', type: :request do
   describe 'GET /es/notices' do
     describe 'A. AUTENTICACIÓN Y RENDERING BÁSICO' do
       context 'cuando el usuario no está autenticado' do
-        it 'redirige a la página de login' do
+        it 'redirige a la página de login', :skip_auth do
           get '/es/notices'
           expect(response).to redirect_to(new_user_session_path)
         end
 
-        it 'no renderiza la vista' do
+        it 'no renderiza la vista', :skip_auth do
           get '/es/notices'
           expect(response).not_to have_http_status(:success)
         end
