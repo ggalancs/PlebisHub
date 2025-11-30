@@ -62,7 +62,9 @@ RSpec.describe RegistrationsController, type: :controller do
       before do
         valid_user_attributes[:email] = existing_user.email
         valid_user_attributes[:email_confirmation] = existing_user.email
+        # Rails 7.2: Mock captcha validation to bypass captcha check
         allow_any_instance_of(User).to receive(:valid_with_captcha?).and_return(true)
+        allow_any_instance_of(SimpleCaptcha::ControllerHelpers).to receive(:simple_captcha_valid?).and_return(true)
       end
 
       it 'does not reveal user exists' do
@@ -80,9 +82,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'logs duplicate email attempt' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/registration_duplicate_email/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         post :create, params: { user: valid_user_attributes }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/registration_duplicate_email/)).at_least(:once)
       end
 
       it 'does not create new user' do
@@ -95,7 +97,9 @@ RSpec.describe RegistrationsController, type: :controller do
     context 'with duplicate document_vatid' do
       before do
         valid_user_attributes[:document_vatid] = existing_user.document_vatid
+        # Rails 7.2: Mock captcha validation to bypass captcha check
         allow_any_instance_of(User).to receive(:valid_with_captcha?).and_return(true)
+        allow_any_instance_of(SimpleCaptcha::ControllerHelpers).to receive(:simple_captcha_valid?).and_return(true)
       end
 
       it 'does not reveal user exists' do
@@ -113,9 +117,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'logs duplicate document attempt' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/registration_duplicate_document/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         post :create, params: { user: valid_user_attributes }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/registration_duplicate_document/)).at_least(:once)
       end
     end
 
@@ -125,9 +129,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'logs invalid captcha attempt' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/registration_invalid_captcha/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         post :create, params: { user: valid_user_attributes }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/registration_invalid_captcha/)).at_least(:once)
       end
 
       it 'renders new template' do
@@ -147,10 +151,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'handles error gracefully' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/load_user_location_error/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :new
-
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/load_user_location_error/)).at_least(:once)
         expect(response).to be_successful
         expect(assigns(:user_location)).to eq({})
       end
@@ -162,10 +165,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'handles error and logs it' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/registration_create_error/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         post :create, params: { user: valid_user_attributes }
-
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/registration_create_error/)).at_least(:once)
         expect(response).to render_template(:new)
       end
     end
@@ -175,15 +177,14 @@ RSpec.describe RegistrationsController, type: :controller do
 
       before do
         sign_in user
-        allow(user).to receive(:can_show_qr?).and_return(true)
-        allow(user).to receive(:qr_svg).and_raise(StandardError.new('QR error'))
+        allow_any_instance_of(User).to receive(:can_show_qr?).and_return(true)
+        allow_any_instance_of(User).to receive(:qr_svg).and_raise(StandardError.new('QR error'))
       end
 
       it 'handles error gracefully' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/qr_code_generation_error/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :qr_code
-
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/qr_code_generation_error/)).at_least(:once)
         expect(response).to redirect_to(root_path)
       end
     end
@@ -200,9 +201,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'logs unauthorized attempt' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/unauthorized_qr_access_attempt/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :qr_code
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/unauthorized_qr_access_attempt/)).at_least(:once)
       end
     end
 
@@ -211,7 +212,7 @@ RSpec.describe RegistrationsController, type: :controller do
 
       before do
         sign_in user
-        allow(user).to receive(:can_show_qr?).and_return(false)
+        allow_any_instance_of(User).to receive(:can_show_qr?).and_return(false)
       end
 
       it 'redirects to root' do
@@ -221,9 +222,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'logs unauthorized attempt' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/unauthorized_qr_access_attempt/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :qr_code
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/unauthorized_qr_access_attempt/)).at_least(:once)
       end
     end
 
@@ -234,9 +235,9 @@ RSpec.describe RegistrationsController, type: :controller do
 
       before do
         sign_in user
-        allow(user).to receive(:can_show_qr?).and_return(true)
-        allow(user).to receive(:qr_svg).and_return(qr_svg)
-        allow(user).to receive(:qr_expire_date).and_return(expire_date)
+        allow_any_instance_of(User).to receive(:can_show_qr?).and_return(true)
+        allow_any_instance_of(User).to receive(:qr_svg).and_return(qr_svg)
+        allow_any_instance_of(User).to receive(:qr_expire_date).and_return(expire_date)
       end
 
       it 'renders QR code' do
@@ -247,9 +248,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'logs QR code access' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/qr_code_accessed/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :qr_code
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/qr_code_accessed/)).at_least(:once)
       end
     end
   end
@@ -272,9 +273,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'logs vote_circle change' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/vote_circle_changed/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         patch :update, params: { user: { vote_circle_id: vote_circle.id, current_password: user.password } }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/vote_circle_changed/)).at_least(:once)
       end
     end
 
@@ -286,9 +287,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'logs invalid attempt' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_vote_circle_attempt/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         patch :update, params: { user: { vote_circle_id: 99999 } }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_vote_circle_attempt/)).at_least(:once)
       end
     end
   end
@@ -303,9 +304,9 @@ RSpec.describe RegistrationsController, type: :controller do
     end
 
     it 'logs account deletion request' do
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/account_deletion_request/))
-
+      allow(Rails.logger).to receive(:warn).and_call_original
       delete :destroy
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/account_deletion_request/)).at_least(:once)
     end
 
     it 'sends cancellation email' do
@@ -321,10 +322,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'handles error gracefully' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/account_deletion_error/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         delete :destroy
-
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/account_deletion_error/)).at_least(:once)
         expect(response).to redirect_to(root_path)
       end
     end
@@ -340,15 +340,15 @@ RSpec.describe RegistrationsController, type: :controller do
     end
 
     it 'sends password reset instructions' do
-      expect(user).to receive(:send_reset_password_instructions)
+      expect_any_instance_of(User).to receive(:send_reset_password_instructions)
 
       post :recover_and_logout
     end
 
     it 'logs password recovery request' do
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/password_recovery_from_profile/))
-
+      allow(Rails.logger).to receive(:warn).and_call_original
       post :recover_and_logout
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/password_recovery_from_profile/)).at_least(:once)
     end
 
     it 'signs user out' do
@@ -359,14 +359,13 @@ RSpec.describe RegistrationsController, type: :controller do
 
     context 'when recovery fails' do
       before do
-        allow(user).to receive(:send_reset_password_instructions).and_raise(StandardError.new('Email error'))
+        allow_any_instance_of(User).to receive(:send_reset_password_instructions).and_raise(StandardError.new('Email error'))
       end
 
       it 'handles error gracefully' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/password_recovery_error/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         post :recover_and_logout
-
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/password_recovery_error/)).at_least(:once)
         expect(controller.current_user).to be_nil
       end
     end
@@ -398,9 +397,9 @@ RSpec.describe RegistrationsController, type: :controller do
         end
 
         it 'handles error' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/regions_provinces_error/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :regions_provinces, xhr: true
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/regions_provinces_error/)).at_least(:once)
         end
       end
     end
@@ -429,36 +428,36 @@ RSpec.describe RegistrationsController, type: :controller do
       user = create(:user)
       sign_in user
 
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/"ip_address"/))
-
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :qr_code
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/"ip_address"/)).at_least(:once)
     end
 
     it 'logs with user agent' do
       user = create(:user)
       sign_in user
 
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/"user_agent"/))
-
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :qr_code
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/"user_agent"/)).at_least(:once)
     end
 
     it 'logs with timestamp' do
       user = create(:user)
       sign_in user
 
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/"timestamp"/))
-
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :qr_code
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/"timestamp"/)).at_least(:once)
     end
 
     it 'logs with controller name' do
       user = create(:user)
       sign_in user
 
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/"controller":"registrations"/))
-
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :qr_code
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/"controller":"registrations"/)).at_least(:once)
     end
   end
 
@@ -467,7 +466,7 @@ RSpec.describe RegistrationsController, type: :controller do
   describe 'strong parameters' do
     context 'sign_up_params' do
       it 'permits safe attributes' do
-        params = ActionController::Parameters.new(user: valid_user_attributes)
+        controller.params = ActionController::Parameters.new(user: valid_user_attributes)
 
         expect(controller.send(:sign_up_params).keys).to include('email', 'password', 'first_name')
       end
@@ -519,7 +518,7 @@ RSpec.describe RegistrationsController, type: :controller do
 
         before do
           sign_in user
-          allow(user).to receive(:verified?).and_return(true)
+          allow_any_instance_of(User).to receive(:verified?).and_return(true)
         end
 
         it 'returns true' do
@@ -532,7 +531,7 @@ RSpec.describe RegistrationsController, type: :controller do
 
         before do
           sign_in user
-          allow(user).to receive(:verified?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(false)
         end
 
         it 'returns false' do

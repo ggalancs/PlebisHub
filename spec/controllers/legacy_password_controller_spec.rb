@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe LegacyPasswordController, type: :controller do
-  let(:user_with_legacy) { create(:user, has_legacy_password: true, password: 'OldPassword123!') }
+  let(:user_with_legacy) { create(:user, has_legacy_password: true, password: 'OldPassword123!', password_confirmation: 'OldPassword123!') }
   let(:user_without_legacy) { create(:user, has_legacy_password: false) }
 
   describe 'GET #new' do
@@ -18,9 +18,11 @@ RSpec.describe LegacyPasswordController, type: :controller do
       end
 
       it 'logs form view' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/legacy_password_form_viewed/))
+        allow(Rails.logger).to receive(:info).and_call_original
 
         get :new
+
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/legacy_password_form_viewed/)).at_least(:once)
       end
     end
 
@@ -34,9 +36,11 @@ RSpec.describe LegacyPasswordController, type: :controller do
       end
 
       it 'logs unauthorized access' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/legacy_password_unauthorized_access/))
+        allow(Rails.logger).to receive(:info).and_call_original
 
         get :new
+
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/legacy_password_unauthorized_access/)).at_least(:once)
       end
     end
 
@@ -44,7 +48,7 @@ RSpec.describe LegacyPasswordController, type: :controller do
       it 'redirects to sign in' do
         get :new
 
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to("/users/sign_in")
       end
     end
   end
@@ -78,9 +82,11 @@ RSpec.describe LegacyPasswordController, type: :controller do
         end
 
         it 'logs password update' do
-          expect(Rails.logger).to receive(:info).with(a_string_matching(/legacy_password_updated/))
+          allow(Rails.logger).to receive(:info).and_call_original
 
           put :update, params: valid_params
+
+          expect(Rails.logger).to have_received(:info).with(a_string_matching(/legacy_password_updated/)).at_least(:once)
         end
 
         it 're-authenticates user' do
@@ -116,9 +122,11 @@ RSpec.describe LegacyPasswordController, type: :controller do
         end
 
         it 'logs update failure' do
-          expect(Rails.logger).to receive(:info).with(a_string_matching(/legacy_password_update_failed/))
+          allow(Rails.logger).to receive(:info).and_call_original
 
           put :update, params: invalid_params
+
+          expect(Rails.logger).to have_received(:info).with(a_string_matching(/legacy_password_update_failed/)).at_least(:once)
         end
 
         it 'renders new template' do
@@ -129,12 +137,10 @@ RSpec.describe LegacyPasswordController, type: :controller do
       end
 
       context 'error handling' do
-        before do
-          allow(user_with_legacy).to receive(:update).and_raise(StandardError.new('DB error'))
-        end
-
         it 'handles errors gracefully' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/legacy_password_update_error/))
+          allow(Rails.logger).to receive(:error).and_call_original
+          allow(controller).to receive(:current_user).and_return(user_with_legacy)
+          allow(user_with_legacy).to receive(:update).and_raise(StandardError.new('DB error'))
 
           put :update, params: {
             user: {
@@ -143,6 +149,7 @@ RSpec.describe LegacyPasswordController, type: :controller do
             }
           }
 
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/legacy_password_update_error/)).at_least(:once)
           expect(response).to render_template(:new)
         end
       end
@@ -168,27 +175,35 @@ RSpec.describe LegacyPasswordController, type: :controller do
     before { sign_in user_with_legacy }
 
     it 'logs with IP address' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"ip_address"/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       get :new
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address"/)).at_least(:once)
     end
 
     it 'logs with user agent' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_agent"/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       get :new
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_agent"/)).at_least(:once)
     end
 
     it 'logs with user_id' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_id":#{user_with_legacy.id}/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       get :new
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_id":#{user_with_legacy.id}/)).at_least(:once)
     end
 
     it 'logs in JSON format' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/^\{.*\}$/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       get :new
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/^\{.*\}$/)).at_least(:once)
     end
   end
 end

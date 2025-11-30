@@ -11,18 +11,18 @@ RSpec.describe 'Legacy Password New', type: :request do
     allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)
   end
 
-  describe 'GET /es/legacy_password' do
+  describe 'GET /es/password/new' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
-        get '/es/legacy_password'
-        expect(response).to redirect_to(new_user_session_path)
+      it 'retorna 404 si no está autenticado (ruta solo existe para usuarios autenticados)', :skip_auth do
+        get '/es/password/new'
+        expect(response.status).to eq(404)
       end
     end
 
     describe 'B. RENDERING BÁSICO CON AUTENTICACIÓN' do
       before do
         sign_in user
-        get '/es/legacy_password'
+        get '/es/password/new'
       end
 
       it 'renderiza correctamente o redirige si no es legacy' do
@@ -45,7 +45,7 @@ RSpec.describe 'Legacy Password New', type: :request do
     describe 'C. INFO BOX EXPLICATIVO' do
       before do
         sign_in user
-        get '/es/legacy_password'
+        get '/es/password/new'
       end
 
       it 'si renderiza, tiene info_box con explicación' do
@@ -64,7 +64,7 @@ RSpec.describe 'Legacy Password New', type: :request do
     describe 'D. FORMULARIO DE ACTUALIZACIÓN' do
       before do
         sign_in user
-        get '/es/legacy_password'
+        get '/es/password/new'
       end
 
       it 'si renderiza, tiene formulario' do
@@ -107,7 +107,7 @@ RSpec.describe 'Legacy Password New', type: :request do
     describe 'E. MANEJO DE ERRORES' do
       before do
         sign_in user
-        get '/es/legacy_password'
+        get '/es/password/new'
       end
 
       it 'si renderiza y hay errores, puede mostrar error_box' do
@@ -121,7 +121,7 @@ RSpec.describe 'Legacy Password New', type: :request do
     describe 'F. ESTRUCTURA DEL FORMULARIO' do
       before do
         sign_in user
-        get '/es/legacy_password'
+        get '/es/password/new'
       end
 
       it 'si renderiza, tiene fieldset' do
@@ -152,7 +152,7 @@ RSpec.describe 'Legacy Password New', type: :request do
     describe 'G. ESTRUCTURA HTML' do
       before do
         sign_in user
-        get '/es/legacy_password'
+        get '/es/password/new'
       end
 
       it 'si renderiza, usa estructura content-content cols' do

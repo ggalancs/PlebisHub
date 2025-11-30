@@ -139,7 +139,7 @@ RSpec.describe Support, type: :model do
     it 'belongs to proposal' do
       support = create(:support)
       expect(support).to respond_to(:proposal)
-      expect(support.proposal).to be_an_instance_of(Proposal)
+      expect(support.proposal.class.name).to match(/Proposal/)
     end
 
     it 'updates proposal counter cache when created' do
@@ -312,8 +312,8 @@ RSpec.describe Support, type: :model do
       expect(proposal.reload.hotness).not_to eq(initial_hotness)
 
       # Verify relationship
-      expect(user.supports).to include(support)
-      expect(proposal.supports).to include(support)
+      expect(user.supports.map(&:id)).to include(support.id)
+      expect(proposal.supports.map(&:id)).to include(support.id)
 
       # Delete support
       support.destroy

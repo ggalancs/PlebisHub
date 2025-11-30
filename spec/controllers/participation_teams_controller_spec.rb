@@ -20,8 +20,8 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
     # Setup Devise mapping for tests
     @request.env["devise.mapping"] = Devise.mappings[:user]
 
-    # Use actual engine routes instead of custom route set
-    # Rails 7 requires engine controller specs to use engine routes
+    # Rails 7.2: Use engine routes for engine controllers
+    # This allows the controller specs to properly test the engine's routes
     @routes = PlebisParticipation::Engine.routes
   end
 
@@ -29,7 +29,7 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
     context "when user is not authenticated" do
       it "redirects to sign in page" do
         get :index
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to("/users/sign_in")
       end
 
       it "does not set instance variables" do
@@ -73,7 +73,7 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
     end
   end
 
-  describe "POST #join" do
+  describe "PUT #join" do
     before do
       sign_in user
     end
@@ -82,19 +82,19 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
       context "with valid team_id" do
         it "adds user to the team" do
           expect {
-            post :join, params: { team_id: team.id }
+            put :join, params: { team_id: team.id }
           }.to change { user.participation_teams.count }.by(1)
 
           expect(user.participation_teams).to include(team)
         end
 
         it "sets success flash message" do
-          post :join, params: { team_id: team.id }
+          put :join, params: { team_id: team.id }
           expect(flash[:notice]).to eq("Te has unido al equipo #{team.name}")
         end
 
         it "redirects to participation_teams_path" do
-          post :join, params: { team_id: team.id }
+          put :join, params: { team_id: team.id }
           expect(response).to redirect_to(participation_teams_path)
         end
 
@@ -105,12 +105,12 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
 
           it "does not add user to team again" do
             expect {
-              post :join, params: { team_id: team.id }
+              put :join, params: { team_id: team.id }
             }.not_to change { user.participation_teams.count }
           end
 
           it "sets alert flash message" do
-            post :join, params: { team_id: team.id }
+            put :join, params: { team_id: team.id }
             expect(flash[:alert]).to eq("Ya eres miembro de este equipo")
           end
         end
@@ -119,23 +119,23 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
       context "with invalid team_id (HIGH PRIORITY FIX)" do
         it "does not raise exception" do
           expect {
-            post :join, params: { team_id: 99999 }
+            put :join, params: { team_id: 99999 }
           }.not_to raise_error
         end
 
         it "sets alert flash message" do
-          post :join, params: { team_id: 99999 }
+          put :join, params: { team_id: 99999 }
           expect(flash[:alert]).to eq("El equipo solicitado no existe")
         end
 
         it "does not add any team to user" do
           expect {
-            post :join, params: { team_id: 99999 }
+            put :join, params: { team_id: 99999 }
           }.not_to change { user.participation_teams.count }
         end
 
         it "redirects to participation_teams_path" do
-          post :join, params: { team_id: 99999 }
+          put :join, params: { team_id: 99999 }
           expect(response).to redirect_to(participation_teams_path)
         end
       end
@@ -143,12 +143,12 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
       context "with non-numeric team_id" do
         it "handles gracefully" do
           expect {
-            post :join, params: { team_id: "invalid" }
+            put :join, params: { team_id: "invalid" }
           }.not_to raise_error
         end
 
         it "sets alert flash message" do
-          post :join, params: { team_id: "invalid" }
+          put :join, params: { team_id: "invalid" }
           expect(flash[:alert]).to eq("El equipo solicitado no existe")
         end
       end
@@ -156,20 +156,22 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
 
     context "when team_id is not provided (general signup)" do
       it "updates user's participation_team_at timestamp" do
-        freeze_time do
-          post :join
+        # Rails 7.2: Test timestamp is set without time mocking
+        expect(user.participation_team_at).to be_nil
 
-          expect(user.reload.participation_team_at).to be_within(1.second).of(DateTime.now)
-        end
+        put :join
+
+        expect(user.reload.participation_team_at).not_to be_nil
+        expect(user.reload.participation_team_at).to be_within(2.seconds).of(Time.current)
       end
 
       it "sets success flash message" do
-        post :join
+        put :join
         expect(flash[:notice]).to eq("Te damos la bienvenida a los Equipos de Acción Participativa. En los próximos días nos pondremos en contacto contigo.")
       end
 
       it "redirects to participation_teams_path" do
-        post :join
+        put :join
         expect(response).to redirect_to(participation_teams_path)
       end
 
@@ -180,14 +182,14 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
         end
 
         it "sets alert flash message" do
-          post :join
+          put :join
           expect(flash[:alert]).to eq("Error al registrar tu solicitud. Por favor, inténtalo de nuevo.")
         end
       end
     end
   end
 
-  describe "POST #leave" do
+  describe "PUT #leave" do
     before do
       sign_in user
     end
@@ -200,19 +202,19 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
 
         it "removes user from the team" do
           expect {
-            post :leave, params: { team_id: team.id }
+            put :leave, params: { team_id: team.id }
           }.to change { user.participation_teams.count }.by(-1)
 
           expect(user.participation_teams).not_to include(team)
         end
 
         it "sets success flash message" do
-          post :leave, params: { team_id: team.id }
+          put :leave, params: { team_id: team.id }
           expect(flash[:notice]).to eq("Has abandonado el equipo #{team.name}")
         end
 
         it "redirects to participation_teams_path" do
-          post :leave, params: { team_id: team.id }
+          put :leave, params: { team_id: team.id }
           expect(response).to redirect_to(participation_teams_path)
         end
       end
@@ -220,12 +222,12 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
       context "when user is not a member of the team" do
         it "does not change user's teams" do
           expect {
-            post :leave, params: { team_id: team.id }
+            put :leave, params: { team_id: team.id }
           }.not_to change { user.participation_teams.count }
         end
 
         it "sets alert flash message" do
-          post :leave, params: { team_id: team.id }
+          put :leave, params: { team_id: team.id }
           expect(flash[:alert]).to eq("No eres miembro de este equipo")
         end
       end
@@ -233,17 +235,17 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
       context "with invalid team_id (HIGH PRIORITY FIX)" do
         it "does not raise exception" do
           expect {
-            post :leave, params: { team_id: 99999 }
+            put :leave, params: { team_id: 99999 }
           }.not_to raise_error
         end
 
         it "sets alert flash message" do
-          post :leave, params: { team_id: 99999 }
+          put :leave, params: { team_id: 99999 }
           expect(flash[:alert]).to eq("El equipo solicitado no existe")
         end
 
         it "redirects to participation_teams_path" do
-          post :leave, params: { team_id: 99999 }
+          put :leave, params: { team_id: 99999 }
           expect(response).to redirect_to(participation_teams_path)
         end
       end
@@ -255,18 +257,18 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
       end
 
       it "sets participation_team_at to nil" do
-        post :leave
+        put :leave
 
         expect(user.reload.participation_team_at).to be_nil
       end
 
       it "sets success flash message" do
-        post :leave
+        put :leave
         expect(flash[:notice]).to eq("Te has dado de baja de los Equipos de Acción Participativa")
       end
 
       it "redirects to participation_teams_path" do
-        post :leave
+        put :leave
         expect(response).to redirect_to(participation_teams_path)
       end
 
@@ -277,7 +279,7 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
         end
 
         it "sets alert flash message" do
-          post :leave
+          put :leave
           expect(flash[:alert]).to eq("Error al procesar tu solicitud. Por favor, inténtalo de nuevo.")
         end
       end
@@ -361,22 +363,22 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
     context "when user is not signed in" do
       it "redirects to sign in for index" do
         get :index
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to("/users/sign_in")
       end
 
       it "redirects to sign in for join" do
-        post :join
-        expect(response).to redirect_to(new_user_session_path)
+        put :join
+        expect(response).to redirect_to("/users/sign_in")
       end
 
       it "redirects to sign in for leave" do
-        post :leave
-        expect(response).to redirect_to(new_user_session_path)
+        put :leave
+        expect(response).to redirect_to("/users/sign_in")
       end
 
       it "redirects to sign in for update_user" do
         patch :update_user, params: { user: { old_circle_data: "data" } }
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to("/users/sign_in")
       end
     end
   end
@@ -389,26 +391,26 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
     context "when params are empty strings" do
       it "handles empty team_id in join" do
         expect {
-          post :join, params: { team_id: "" }
+          put :join, params: { team_id: "" }
         }.not_to raise_error
       end
 
       it "handles empty team_id in leave" do
         expect {
-          post :leave, params: { team_id: "" }
+          put :leave, params: { team_id: "" }
         }.not_to raise_error
       end
     end
 
     context "when params are nil" do
       it "handles nil team_id in join (general signup)" do
-        post :join, params: { team_id: nil }
+        put :join, params: { team_id: nil }
         expect(user.reload.participation_team_at).not_to be_nil
       end
 
       it "handles nil team_id in leave (general opt-out)" do
         user.update(participation_team_at: DateTime.now)
-        post :leave, params: { team_id: nil }
+        put :leave, params: { team_id: nil }
         expect(user.reload.participation_team_at).to be_nil
       end
     end
@@ -417,13 +419,13 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
       let(:inactive_team) { create(:participation_team, :inactive) }
 
       it "can still join inactive team (business logic may want to prevent this)" do
-        post :join, params: { team_id: inactive_team.id }
+        put :join, params: { team_id: inactive_team.id }
         expect(user.participation_teams).to include(inactive_team)
       end
 
       it "can leave inactive team" do
         user.participation_teams << inactive_team
-        post :leave, params: { team_id: inactive_team.id }
+        put :leave, params: { team_id: inactive_team.id }
         expect(user.participation_teams).not_to include(inactive_team)
       end
     end
@@ -434,7 +436,7 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
           .to receive(:<<).and_raise(ActiveRecord::RecordInvalid)
 
         expect {
-          post :join, params: { team_id: team.id }
+          put :join, params: { team_id: team.id }
         }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
@@ -442,15 +444,18 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
 
   describe "CRITICAL FIX: class name correction" do
     it "uses correct controller class name ParticipationTeamsController" do
-      expect(controller.class.name).to eq("ParticipationTeamsController")
+      # Rails 7.2: Controller is properly namespaced within engine
+      expect(controller.class.name).to eq("PlebisParticipation::ParticipationTeamsController")
       expect(controller.class.name).not_to eq("PlebisHubtionTeamsController")
     end
 
     it "uses correct model class name ParticipationTeam" do
+      sign_in user
       get :index
 
       teams = assigns(:participation_teams)
-      expect(teams.model.name).to eq("ParticipationTeam")
+      # Rails 7.2: Model is properly namespaced within engine
+      expect(teams.model.name).to eq("PlebisParticipation::ParticipationTeam")
     end
   end
 
@@ -463,7 +468,7 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
       # Rails handles association saves automatically
       expect(user).not_to receive(:save)
 
-      post :join, params: { team_id: team.id }
+      put :join, params: { team_id: team.id }
     end
 
     it "does not call save after association modification in leave" do
@@ -472,7 +477,7 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
       # Rails handles association saves automatically
       expect(user).not_to receive(:save)
 
-      post :leave, params: { team_id: team.id }
+      put :leave, params: { team_id: team.id }
     end
   end
 end

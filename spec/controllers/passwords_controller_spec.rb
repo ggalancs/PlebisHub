@@ -11,13 +11,15 @@ RSpec.describe PasswordsController, type: :controller do
     @routes = Rails.application.routes
   end
 
-  let(:user) { create(:user, password: 'OldPassword123!', has_legacy_password: true) }
+  let(:user) { create(:user, password: 'OldPassword123!', password_confirmation: 'OldPassword123!', has_legacy_password: true) }
 
   describe 'POST #create' do
     it 'logs password reset request' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/password_reset_requested/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       post :create, params: { user: { email: user.email } }
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/password_reset_requested/)).at_least(:once)
     end
 
     it 'sends reset email' do
@@ -49,18 +51,21 @@ RSpec.describe PasswordsController, type: :controller do
       end
 
       it 'clears legacy password flag' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/legacy_password_cleared/))
+        allow(Rails.logger).to receive(:info).and_call_original
 
         put :update, params: valid_params
 
         user.reload
         expect(user.has_legacy_password?).to be false
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/legacy_password_cleared/)).at_least(:once)
       end
 
       it 'logs password reset success' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/password_reset_success/))
+        allow(Rails.logger).to receive(:info).and_call_original
 
         put :update, params: valid_params
+
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/password_reset_success/)).at_least(:once)
       end
 
       it 'signs in user' do
@@ -97,9 +102,11 @@ RSpec.describe PasswordsController, type: :controller do
       end
 
       it 'logs password reset failure' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/password_reset_failed/))
+        allow(Rails.logger).to receive(:info).and_call_original
 
         put :update, params: invalid_params
+
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/password_reset_failed/)).at_least(:once)
       end
 
       it 'renders errors' do
@@ -111,11 +118,12 @@ RSpec.describe PasswordsController, type: :controller do
 
     context 'error handling' do
       before do
-        allow_any_instance_of(User).to receive(:update_attribute).and_raise(StandardError.new('DB error'))
+        # Rails 7.2: Mock update_column instead of deprecated update_attribute
+        allow_any_instance_of(User).to receive(:update_column).and_raise(StandardError.new('DB error'))
       end
 
       it 'handles errors gracefully' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/password_reset_error/))
+        allow(Rails.logger).to receive(:error).and_call_original
 
         put :update, params: {
           user: {
@@ -125,7 +133,8 @@ RSpec.describe PasswordsController, type: :controller do
           }
         }
 
-        expect(response).to redirect_to(new_user_session_path)
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/password_reset_error/)).at_least(:once)
+        expect(response).to redirect_to("/en/users/sign_in")
       end
     end
   end
@@ -140,21 +149,27 @@ RSpec.describe PasswordsController, type: :controller do
 
   describe 'security logging' do
     it 'logs with IP address' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"ip_address"/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       post :create, params: { user: { email: user.email } }
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address"/)).at_least(:once)
     end
 
     it 'logs with user agent' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_agent"/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       post :create, params: { user: { email: user.email } }
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_agent"/)).at_least(:once)
     end
 
     it 'logs in JSON format' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/^\{.*\}$/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       post :create, params: { user: { email: user.email } }
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/^\{.*\}$/)).at_least(:once)
     end
   end
 end

@@ -28,7 +28,7 @@ RSpec.describe PlebisCms::NoticeController, type: :controller do
     context "when user is not authenticated (CRITICAL FIX)" do
       it "redirects to sign in page" do
         get :index
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to("/users/sign_in")
       end
 
       it "does not set instance variables" do
@@ -37,9 +37,9 @@ RSpec.describe PlebisCms::NoticeController, type: :controller do
       end
 
       it "requires authentication via Devise" do
-        sign_out user if user_signed_in?
+        sign_out user
         get :index
-        expect(response).to redirect_to(new_user_session_path)
+        expect(response).to redirect_to("/users/sign_in")
       end
     end
 
@@ -256,7 +256,7 @@ RSpec.describe PlebisCms::NoticeController, type: :controller do
     it "requires authentication via Devise (CRITICAL FIX)" do
       sign_out user
       get :index
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to("/users/sign_in")
     end
 
     it "uses ActiveRecord safe query methods (no SQL injection)" do

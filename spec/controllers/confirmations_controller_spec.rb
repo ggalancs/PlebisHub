@@ -31,9 +31,11 @@ RSpec.describe ConfirmationsController, type: :controller do
       end
 
       it 'logs email confirmation' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/email_confirmed/))
+        allow(Rails.logger).to receive(:info).and_call_original
 
         get :show, params: { confirmation_token: user.confirmation_token }
+
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/email_confirmed/)).at_least(:once)
       end
 
       it 'signs in user automatically' do
@@ -58,9 +60,11 @@ RSpec.describe ConfirmationsController, type: :controller do
       end
 
       it 'logs confirmation failure' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/email_confirmation_failed/))
+        allow(Rails.logger).to receive(:info).and_call_original
 
         get :show, params: { confirmation_token: 'invalid_token' }
+
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/email_confirmation_failed/)).at_least(:once)
       end
 
       it 'renders errors' do
@@ -87,9 +91,11 @@ RSpec.describe ConfirmationsController, type: :controller do
 
   describe 'POST #create' do
     it 'logs confirmation email request' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/confirmation_email_requested/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       post :create, params: { user: { email: user.email } }
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/confirmation_email_requested/)).at_least(:once)
     end
 
     it 'resends confirmation email' do
@@ -114,21 +120,27 @@ RSpec.describe ConfirmationsController, type: :controller do
     end
 
     it 'logs with IP address' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"ip_address"/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       get :show, params: { confirmation_token: user.confirmation_token }
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address"/)).at_least(:once)
     end
 
     it 'logs with user agent' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_agent"/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       get :show, params: { confirmation_token: user.confirmation_token }
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_agent"/)).at_least(:once)
     end
 
     it 'logs in JSON format' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/^\{.*\}$/))
+      allow(Rails.logger).to receive(:info).and_call_original
 
       get :show, params: { confirmation_token: user.confirmation_token }
+
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/^\{.*\}$/)).at_least(:once)
     end
   end
 end

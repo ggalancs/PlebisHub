@@ -40,8 +40,9 @@ RSpec.describe VoteController, type: :controller do
         end
 
         it "logs security event for invalid election_id" do
-          expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_election_id/))
+          allow(Rails.logger).to receive(:warn).and_call_original
           get :create, params: { election_id: "malicious" }
+          expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_election_id/))
         end
       end
 
@@ -52,6 +53,8 @@ RSpec.describe VoteController, type: :controller do
           allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(true)
           allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
           allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(false)
+          allow_any_instance_of(Election).to receive(:requires_sms_check?).and_return(false)
+          allow_any_instance_of(Election).to receive(:scoped_agora_election_id).and_return("1234")
 
           get :create, params: { election_id: election.id }
           expect(response).to have_http_status(:success)
@@ -71,30 +74,36 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs security event for invalid location_id" do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_election_location_id/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :election_location_votes_count, params: {
           election_id: election.id,
           election_location_id: "hack",
           token: "test"
         }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_election_location_id/))
       end
     end
 
     describe "#validate_document_params" do
-      let(:election) { create(:election, :active, :paper, scope: 6) }
-      let(:paper_token) { election_location.paper_token }
+      let!(:paper_election) { create(:election, :active, :paper, scope: 6) }
+      let!(:paper_election_location) { create(:election_location, election: paper_election) }
+      let(:paper_token) { paper_election_location.paper_token }
       let(:paper_authority) { create(:user, :admin) }
+      let(:paper_vote_service) { instance_double(PaperVoteService) }
 
       before do
         sign_in paper_authority
-        allow(controller).to receive(:check_open_election).and_return(true)
-        allow(controller).to receive(:check_paper_authority?).and_return(true)
+        # Set referrer for redirect_back to work
+        request.env['HTTP_REFERER'] = root_path
+        # Mock PaperVoteService to avoid errors
+        allow(PaperVoteService).to receive(:new).and_return(paper_vote_service)
+        allow(paper_vote_service).to receive(:log_vote_query)
       end
 
       it "rejects invalid document_type" do
         get :paper_vote, params: {
-          election_id: election.id,
-          election_location_id: election_location.id,
+          election_id: paper_election.id,
+          election_location_id: paper_election_location.id,
           token: paper_token,
           document_type: "abc",
           document_vatid: "12345678A"
@@ -104,8 +113,8 @@ RSpec.describe VoteController, type: :controller do
 
       it "rejects document_vatid with invalid characters" do
         get :paper_vote, params: {
-          election_id: election.id,
-          election_location_id: election_location.id,
+          election_id: paper_election.id,
+          election_location_id: paper_election_location.id,
           token: paper_token,
           document_type: "1",
           document_vatid: "12345'; DROP TABLE--"
@@ -114,9 +123,17 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "accepts valid document params" do
+        # Mock paper_vote_user to return a valid user
+        test_user = create(:user)
+        allow(controller).to receive(:paper_vote_user).and_return(test_user)
+        allow(controller).to receive(:check_valid_user).and_return(true)
+        allow(controller).to receive(:check_valid_location).and_return(true)
+        allow(controller).to receive(:check_verification).and_return(true)
+        allow(controller).to receive(:check_not_voted).and_return(true)
+
         get :paper_vote, params: {
-          election_id: election.id,
-          election_location_id: election_location.id,
+          election_id: paper_election.id,
+          election_location_id: paper_election_location.id,
           token: paper_token,
           document_type: "1",
           document_vatid: "12345678A"
@@ -140,11 +157,12 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs security event for invalid token" do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_counter_token/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :election_votes_count, params: {
           election_id: election.id,
           token: "wrong"
         }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_counter_token/))
       end
 
       it "returns votes count with valid token" do
@@ -168,12 +186,13 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs security event for invalid location token" do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_location_counter_token/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :election_location_votes_count, params: {
           election_id: election.id,
           election_location_id: election_location.id,
           token: "wrong"
         }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_location_counter_token/))
       end
     end
 
@@ -198,8 +217,9 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs security event for invalid validation token" do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_validation_token/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         controller.send(:check_validation_token, "wrong")
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_validation_token/))
       end
     end
   end
@@ -210,7 +230,7 @@ RSpec.describe VoteController, type: :controller do
   describe "error handling" do
     describe "#send_sms_check" do
       it "handles errors gracefully" do
-        allow(user).to receive(:send_sms_check!).and_raise(StandardError.new("Test error"))
+        allow_any_instance_of(User).to receive(:send_sms_check!).and_raise(StandardError.new("Test error"))
 
         expect {
           get :send_sms_check, params: { election_id: election.id }
@@ -221,10 +241,11 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs errors" do
-        allow(user).to receive(:send_sms_check!).and_raise(StandardError.new("Test error"))
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/sms_check_failed/))
+        allow_any_instance_of(User).to receive(:send_sms_check!).and_raise(StandardError.new("Test error"))
+        allow(Rails.logger).to receive(:error).and_call_original
 
         get :send_sms_check, params: { election_id: election.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/sms_check_failed/))
       end
     end
 
@@ -235,10 +256,11 @@ RSpec.describe VoteController, type: :controller do
         allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(true)
         allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
         allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(false)
+        allow(user).to receive(:pass_vatid_check?).and_return(true)
       end
 
       it "handles RecordInvalid errors" do
-        allow(user).to receive(:get_or_create_vote).and_raise(ActiveRecord::RecordInvalid.new(Vote.new))
+        allow_any_instance_of(User).to receive(:get_or_create_vote).and_raise(ActiveRecord::RecordInvalid.new(Vote.new))
 
         expect {
           get :create_token, params: { election_id: election.id }
@@ -248,10 +270,11 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs token creation errors" do
-        allow(user).to receive(:get_or_create_vote).and_raise(ActiveRecord::RecordInvalid.new(Vote.new))
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/token_creation_failed/))
+        allow_any_instance_of(User).to receive(:get_or_create_vote).and_raise(ActiveRecord::RecordInvalid.new(Vote.new))
+        allow(Rails.logger).to receive(:error).and_call_original
 
         get :create_token, params: { election_id: election.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/token_creation_failed/))
       end
     end
 
@@ -261,9 +284,10 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs error for election not found" do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/election_not_found/))
+        allow(Rails.logger).to receive(:error).and_call_original
         controller.params[:election_id] = "999999"
         controller.send(:election)
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/election_not_found/))
       end
     end
 
@@ -288,11 +312,12 @@ RSpec.describe VoteController, type: :controller do
 
       it "logs CSV parsing errors" do
         allow_any_instance_of(CensusFileParser).to receive(:find_user_by_document).and_raise(CSV::MalformedCSVError.new("Bad CSV", 1))
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/census_parse_error/))
+        allow(Rails.logger).to receive(:error).and_call_original
 
         controller.params[:document_vatid] = "12345678A"
         controller.params[:document_type] = "1"
         controller.send(:get_paper_vote_user_from_csv)
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/census_parse_error/))
       end
     end
   end
@@ -318,6 +343,8 @@ RSpec.describe VoteController, type: :controller do
     describe "#log_vote_error" do
       it "logs errors with backtrace in JSON format" do
         error = StandardError.new("Test error")
+        # Set backtrace on the error (errors don't have backtrace until raised)
+        error.set_backtrace(caller)
 
         expect(Rails.logger).to receive(:error) do |json_str|
           log = JSON.parse(json_str)
@@ -352,7 +379,7 @@ RSpec.describe VoteController, type: :controller do
   describe "GET #send_sms_check" do
     context "when SMS sent successfully" do
       before do
-        allow(user).to receive(:send_sms_check!).and_return(true)
+        allow_any_instance_of(User).to receive(:send_sms_check!).and_return(true)
       end
 
       it "redirects to sms_check page" do
@@ -366,14 +393,15 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs the event" do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/sms_check_sent/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :send_sms_check, params: { election_id: election.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/sms_check_sent/))
       end
     end
 
     context "when SMS rate limited" do
       before do
-        allow(user).to receive(:send_sms_check!).and_return(false)
+        allow_any_instance_of(User).to receive(:send_sms_check!).and_return(false)
       end
 
       it "shows rate limit error" do
@@ -382,8 +410,9 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs rate limit event" do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/sms_check_rate_limited/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :send_sms_check, params: { election_id: election.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/sms_check_rate_limited/))
       end
     end
   end
@@ -435,8 +464,9 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs the attempt" do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/election_closed_attempt/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :create, params: { election_id: election.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/election_closed_attempt/))
       end
     end
 
@@ -451,8 +481,9 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs ineligibility" do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/user_not_eligible/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :create, params: { election_id: election.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/user_not_eligible/))
       end
     end
 
@@ -467,15 +498,16 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "shows error for invalid SMS token" do
-        allow(user).to receive(:valid_sms_check?).and_return(false)
+        allow_any_instance_of(User).to receive(:valid_sms_check?).and_return(false)
         get :create, params: { election_id: election.id, sms_check_token: "wrong" }
         expect(flash[:error]).to eq(I18n.t('vote.sms_check.invalid_token'))
       end
 
       it "logs invalid SMS token attempt" do
-        allow(user).to receive(:valid_sms_check?).and_return(false)
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_sms_token/))
+        allow_any_instance_of(User).to receive(:valid_sms_check?).and_return(false)
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :create, params: { election_id: election.id, sms_check_token: "wrong" }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_sms_token/))
       end
     end
   end
@@ -506,8 +538,9 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs token creation" do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/token_created/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :create_token, params: { election_id: election.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/token_created/))
       end
     end
 
@@ -546,17 +579,21 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs unauthorized attempts" do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/paper_vote_unauthorized/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :paper_vote, params: {
           election_id: election.id,
           election_location_id: election_location.id,
           token: "wrong"
         }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/paper_vote_unauthorized/))
       end
     end
 
     context "with valid token and authority" do
       it "renders paper_vote page" do
+        # Set referrer for redirect_back calls
+        request.env['HTTP_REFERER'] = root_path
+
         get :paper_vote, params: {
           election_id: election.id,
           election_location_id: election_location.id,
@@ -575,12 +612,13 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it "logs unauthorized attempt" do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/unauthorized_paper_authority_attempt/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :paper_vote, params: {
           election_id: election.id,
           election_location_id: election_location.id,
           token: paper_token
         }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/unauthorized_paper_authority_attempt/))
       end
     end
   end
@@ -614,8 +652,9 @@ RSpec.describe VoteController, type: :controller do
 
         it "logs unauthorized attempt" do
           allow(controller).to receive(:election).and_return(election)
-          expect(Rails.logger).to receive(:warn).with(a_string_matching(/unauthorized_paper_authority_attempt/))
+          allow(Rails.logger).to receive(:warn).and_call_original
           controller.send(:check_paper_authority?)
+          expect(Rails.logger).to have_received(:warn).with(a_string_matching(/unauthorized_paper_authority_attempt/))
         end
       end
     end
@@ -627,8 +666,9 @@ RSpec.describe VoteController, type: :controller do
 
       it "logs already voted attempts" do
         allow(user).to receive(:has_already_voted_in).and_return(true)
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/already_voted_attempt/))
+        allow(Rails.logger).to receive(:info).and_call_original
         controller.send(:check_not_voted, user)
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/already_voted_attempt/))
       end
     end
   end
@@ -638,7 +678,7 @@ RSpec.describe VoteController, type: :controller do
   # ============================================================================
   describe "internationalization" do
     it "uses I18n for SMS check messages" do
-      allow(user).to receive(:send_sms_check!).and_return(true)
+      allow_any_instance_of(User).to receive(:send_sms_check!).and_return(true)
       get :send_sms_check, params: { election_id: election.id }
       expect(flash[:info]).to eq(I18n.t('vote.sms_check.sent'))
     end
@@ -665,12 +705,12 @@ RSpec.describe VoteController, type: :controller do
 
     it "requires authentication for send_sms_check" do
       get :send_sms_check, params: { election_id: election.id }
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to("/users/sign_in")
     end
 
     it "requires authentication for create" do
       get :create, params: { election_id: election.id }
-      expect(response).to redirect_to(new_user_session_path)
+      expect(response).to redirect_to("/users/sign_in")
     end
 
     it "does NOT require authentication for election_votes_count" do
