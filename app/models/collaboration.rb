@@ -17,8 +17,8 @@ class Collaboration < ApplicationRecord
 
   attr_accessor :skip_queries_validations
   validates :payment_type, :amount, :frequency, presence: true
-  validates :terms_of_service, acceptance: true
-  validates :minimal_year_old, acceptance: true
+  validates :terms_of_service, acceptance: { accept: [true, "1"] }
+  validates :minimal_year_old, acceptance: { accept: [true, "1"] }
   validates :user_id, uniqueness: { scope: :deleted_at }, allow_nil: true, allow_blank: true, unless: :only_have_single_collaborations?
   validates :non_user_email, uniqueness: {case_sensitive: false, scope: :deleted_at }, allow_nil: true, allow_blank: true, unless: :skip_queries_validations
   validates :non_user_document_vatid, uniqueness: {case_sensitive: false, scope: :deleted_at }, allow_nil: true, allow_blank: true, unless: :skip_queries_validations

@@ -67,14 +67,14 @@ class User < ApplicationRecord
   validates :email, email: true
   validates :email, confirmation: true, on: :create
   validates :email_confirmation, presence: true, on: :create
-  validates :terms_of_service, acceptance: true
-  validates :over_18, acceptance: true
+  validates :terms_of_service, acceptance: { accept: [true, "1"] }
+  validates :over_18, acceptance: { accept: [true, "1"] }
   validates :document_type, inclusion: { in: [1, 2, 3], message: "Tipo de documento no válido" }
   validates :document_vatid, valid_nif: true, if: :is_document_dni?
   validates :document_vatid, valid_nie: true, if: :is_document_nie?
   validates :born_at, date: true, allow_blank: true # gem date_validator
   validate :validate_born_at
-  validates :checked_vote_circle, acceptance: true
+  validates :checked_vote_circle, acceptance: { accept: [true, "1"] }
 
   validates :email, uniqueness: {case_sensitive: false, scope: :deleted_at }
   validates :document_vatid, uniqueness: {case_sensitive: false, scope: :deleted_at }

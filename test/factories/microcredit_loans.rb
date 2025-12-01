@@ -10,9 +10,9 @@ FactoryBot.define do
     # RAILS 7.2 FIX: Use sequence for unique IPs to avoid check_user_limits validation failures
     sequence(:ip) { |n| "192.168.1.#{(n % 254) + 1}" }
 
-    # Terms acceptance
-    terms_of_service { true }
-    minimal_year_old { true }
+    # Terms acceptance - Rails 7.2 requires "1" format for acceptance validation
+    terms_of_service { "1" }
+    minimal_year_old { "1" }
 
     # When creating with user, these virtual attrs are set automatically from user
     # When creating without user, they need to be set manually (see :without_user trait)

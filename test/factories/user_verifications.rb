@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :user_verification, class: 'PlebisVerification::UserVerification' do
     association :user
     status { :pending }
-    terms_of_service { true }
+    terms_of_service { "1" } # Rails 7.2 requires "1" format for acceptance validation
     wants_card { false }
 
     # Skip validations for tests since we can't easily create actual image files

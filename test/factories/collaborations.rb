@@ -24,9 +24,9 @@ FactoryBot.define do
     frequency { 1 } # Monthly
     # status is set by after_create :set_initial_status callback to 0
 
-    # Acceptance attributes
-    terms_of_service { true }
-    minimal_year_old { true }
+    # Acceptance attributes - Rails 7.2 requires "1" format for acceptance validation
+    terms_of_service { "1" }
+    minimal_year_old { "1" }
 
     # Credit card fields (for payment_type = 1)
     redsys_identifier { "999999999R" }

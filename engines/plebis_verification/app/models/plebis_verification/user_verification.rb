@@ -33,7 +33,7 @@ module PlebisVerification
     validates :user, presence: true, unless: :not_require_photos?
     validate :front_vatid_presence, unless: :not_require_photos?
     validate :back_vatid_presence, if: :require_back?, unless: :not_require_photos?
-    validates :terms_of_service, acceptance: true
+    validates :terms_of_service, acceptance: { accept: [true, "1"] }
 
     validate :validate_image_content_types
     validate :validate_image_sizes

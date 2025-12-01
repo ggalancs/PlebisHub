@@ -24,7 +24,7 @@ module PlebisImpulsa
     validates :name, :impulsa_edition_category_id, :status, presence: true
     validates :user, uniqueness: {scope: :impulsa_edition_category}, allow_blank: false, allow_nil: false, unless: Proc.new { |project| project.user.nil? || project.user.impulsa_author? }
 
-    validates :terms_of_service, :data_truthfulness, :content_rights, acceptance: true
+    validates :terms_of_service, :data_truthfulness, :content_rights, acceptance: { accept: [true, "1"] }
 
     scope :by_status, ->(status) { where( status: status ) }
 

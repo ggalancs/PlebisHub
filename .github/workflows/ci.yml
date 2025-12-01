@@ -78,7 +78,8 @@ jobs:
             --format progress \
             --format RspecJunitFormatter \
             --out test-results/rspec/results.xml \
-            --failure-exit-code 1
+            --failure-exit-code 1 \
+            --require rspec_junit_formatter
         continue-on-error: true
 
       - name: Upload test results

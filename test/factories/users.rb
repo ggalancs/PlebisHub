@@ -29,10 +29,10 @@ FactoryBot.define do
     confirmed_at { 1.day.ago }
     sms_confirmed_at { 1.day.ago }
 
-    # Required acceptances
-    terms_of_service { true }
-    over_18 { true }
-    checked_vote_circle { true }
+    # Required acceptances - Rails 7.2 requires "1" format for acceptance validation
+    terms_of_service { "1" }
+    over_18 { "1" }
+    checked_vote_circle { "1" }
 
     # Association
     association :vote_circle
