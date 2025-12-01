@@ -458,12 +458,12 @@ RSpec.describe User, type: :model do
 
   describe 'devise integration' do
     it 'authenticates with valid password' do
-      user = create(:user, password: "secure_password_123", password_confirmation: "secure_password_123")
-      expect(user.valid_password?("secure_password_123")).to be_truthy
+      user = create(:user, password: "SecurePassword123", password_confirmation: "SecurePassword123")
+      expect(user.valid_password?("SecurePassword123")).to be_truthy
     end
 
     it 'does not authenticate with invalid password' do
-      user = create(:user, password: "secure_password_123", password_confirmation: "secure_password_123")
+      user = create(:user, password: "SecurePassword123", password_confirmation: "SecurePassword123")
       expect(user.valid_password?("wrong_password")).to be_falsey
     end
 

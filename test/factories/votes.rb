@@ -2,9 +2,11 @@
 
 FactoryBot.define do
   factory :vote do
-    association :user
-    association :election
-    association :paper_authority, factory: :user
+    # Use create strategy for associations to ensure they have IDs
+    # before vote validation runs (voter_id generation needs user_id and election_id)
+    user { create(:user) }
+    election { create(:election) }
+    paper_authority { create(:user) }
 
     # voter_id and agora_id are generated automatically by before_validation callback
 
