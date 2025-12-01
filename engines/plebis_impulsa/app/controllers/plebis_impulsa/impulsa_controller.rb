@@ -22,7 +22,7 @@ module PlebisImpulsa
       @upcoming = ImpulsaEdition.upcoming.first if @edition.nil?
     rescue StandardError => e
       log_error("impulsa_index_failed", e)
-      redirect_to root_path, flash: { alert: t('impulsa.errors.generic') }
+      redirect_to main_app.root_path, flash: { alert: t('impulsa.errors.generic') }
     end
 
     def project

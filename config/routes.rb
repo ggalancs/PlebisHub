@@ -200,5 +200,9 @@ Rails.application.routes.draw do
     mount Resque::Server.new, at: '/admin/resque', as: :resque
   end
 
-  #get '*path' ,to: redirect("/#{I18n.locale}") # this line must be always the last line
+  # Catch-all route for unsupported locales (e.g., /en, /fr, /de)
+  # Redirects to the default locale (Spanish)
+  # This must be AFTER all other routes but BEFORE the end
+  get '/:unsupported_locale', to: redirect('/es'), constraints: { unsupported_locale: /[a-z]{2}/ }
+  get '/:unsupported_locale/*path', to: redirect { |params, _| "/es/#{params[:path]}" }, constraints: { unsupported_locale: /[a-z]{2}/ }
 end

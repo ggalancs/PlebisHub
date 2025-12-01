@@ -32,10 +32,10 @@
             <%= nav_menu_link_to "Carnet digital con QR", "qrcode", qr_code_path, [qr_code_path], title: "Código QR", layout: false if current_user.can_show_qr?%>
           </li>
           <li>
-            <%= nav_menu_link_to "Colabora", "euro", new_collaboration_path, [new_collaboration_path], title: "Colabora"  %>
+            <%= nav_menu_link_to "Colabora", "euro", plebis_collaborations.new_collaboration_path, [plebis_collaborations.new_collaboration_path], title: "Colabora"  %>
           </li>
           <li>
-            <%= nav_menu_link_to "Microcréditos", "leaf", microcredit_path, [microcredit_path], title: "Microcréditos"  %>
+            <%= nav_menu_link_to "Microcréditos", "leaf", plebis_microcredit.microcredit_path, [plebis_microcredit.microcredit_path], title: "Microcréditos"  %>
           </li>
           <li>
             <%= nav_menu_link_to "Salir", "sign-out", destroy_user_session_path, [destroy_user_session_path], method: :delete, data: { turbo_method: :delete }, title: "Cerrar sesión" %>

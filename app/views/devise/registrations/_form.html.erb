@@ -1,4 +1,4 @@
-<%= semantic_form_with model: resource, scope: resource_name, url: registration_path(resource_name), html: { novalidate: true } do |f| %>
+<%= semantic_form_for resource, as: resource_name, url: registration_path(resource_name), html: { novalidate: true } do |f| %>
   <fieldset>
     <legend class="invisible">
       <span>Completar perfil</span>
@@ -214,9 +214,9 @@
           </div>
         </div>
 
-        <%= f.actions class: 'enter' do %>
-            <%= f.action :submit, label: t("devise.buttons.sign_up"), button_html: {class: "button"} %>
-        <% end %>
+        <div class="enter">
+            <%= f.submit t("devise.buttons.sign_up"), class: "button" %>
+        </div>
     <% end %> <%# if action == "new" %>
 
     <% if action == "edit" %>
@@ -226,9 +226,9 @@
           <% end %>
           <%= f.input :current_password, hint: raw(t("devise.hints.current_password", :link => link_to(t("devise.links.here"), "#recover-password", class: "js-change-tab"))), input_html: {required: true, class: 'input-m'} %>
         </div>
-        <%= f.actions class: 'enter' do %>
-            <%= f.action :submit, label: t("devise.buttons.edit"), button_html: {class: "button"} %>
-        <% end %>
+        <div class="enter">
+            <%= f.submit t("devise.buttons.edit"), class: "button" %>
+        </div>
     <% end %><%# if action == "edit" %>
   </fieldset>
 <% end %>

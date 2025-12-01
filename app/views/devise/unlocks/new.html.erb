@@ -8,7 +8,7 @@
       </h2>
 
 
-      <%= semantic_form_with model: resource, scope: resource_name, url: unlock_path(resource_name), method: :post do |f| %>
+      <%= semantic_form_for resource, as: resource_name, url: unlock_path(resource_name), html: { method: :post } do |f| %>
 
           <fieldset>
             <legend class="invisible">
@@ -21,9 +21,9 @@
               <%= f.input :email, input_html: {autofocus: true, class: 'input-m'} %>
             </div>
 
-            <%= f.actions class: 'enter' do %>
-                <%= f.action :submit, label: t("devise.buttons.unlock_instructions"), button_html: {class: 'button'} %>
-            <% end %>
+            <div class="enter">
+                <%= f.submit t("devise.buttons.unlock_instructions"), class: "button" %>
+            </div>
           </fieldset>
       <% end %>
     </div>

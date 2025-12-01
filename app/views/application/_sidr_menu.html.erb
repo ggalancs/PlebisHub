@@ -10,7 +10,7 @@
     <%= link_to "Carnet digital con QR", qr_code_path if current_user.can_show_qr? %>
   </li>
   <li>
-    <%= link_to "Financiación", funding_path %>
+    <%= link_to "Financiación", plebis_cms.funding_path %>
   </li>
   <li>
     <%= link_to "Salir", destroy_user_session_path, method: :delete, data: { turbo_method: :delete } %>

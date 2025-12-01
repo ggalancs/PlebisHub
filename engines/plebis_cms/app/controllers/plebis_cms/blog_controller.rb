@@ -25,7 +25,7 @@ module PlebisCms
       log_security_event('blog_index_viewed', admin: current_user&.is_admin? || false)
     rescue StandardError => e
       log_error('blog_index_error', e)
-      redirect_to root_path, alert: t('errors.messages.generic')
+      redirect_to main_app.root_path, alert: t('errors.messages.generic')
     end
 
     # Display individual blog post

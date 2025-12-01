@@ -30,7 +30,7 @@
               <p class="text-orange">No cumples con esta condición <%= fa_icon("times-circle") %></p>
           <% end %>
 
-        <p> 3.- Contribuir al sostenimiento de PlebisBrand con el pago de una cuota popular de militante de al menos 3 € al mes. <strong><%= link_to "Si puedes pagar dicha cuota, haz clic aquí", new_collaboration_path(only_recurrent:true) %></strong>, y rellena los campos para establecer una colaboración periódica.</p>
+        <p> 3.- Contribuir al sostenimiento de PlebisBrand con el pago de una cuota popular de militante de al menos 3 € al mes. <strong><%= link_to "Si puedes pagar dicha cuota, haz clic aquí", plebis_collaborations.new_collaboration_path(only_recurrent:true) %></strong>, y rellena los campos para establecer una colaboración periódica.</p>
           <p>Si debido a tu situación personal te encuentras dentro de alguno de los supuestos de exención voluntaria del pago de la cuota, por favor, rellena <a href='https://participa.plebisbrand.info/solicitud-exencion-cuota-militancia'>este formulario</a> en el que te facilitamos un modelo de declaración jurada al respecto para que lo completes.</p>
           <%if current_user.collaborator_for_militant?%>
               <p class="text-green">Ya cumples con esta condición <%= fa_icon("check-circle") %></p>

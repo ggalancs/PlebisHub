@@ -210,15 +210,18 @@ class Rack::Attack
 
   # SECURITY FIX SEC-042: More nuanced user agent blocking
   # Only block automated tools on sensitive endpoints when unauthenticated
-  blocklist('block_suspicious_user_agents_on_sensitive_endpoints') do |req|
-    automated_ua = req.user_agent.to_s =~ /\b(curl|wget|python-requests|libwww-perl|mechanize)\b/i
-    sensitive_endpoint = req.path =~ /\/(admin|users\/sign_in|registrations|api\/v1\/gcm)/
+  # Disabled in development/test to allow local testing with curl/wget
+  unless Rails.env.development? || Rails.env.test?
+    blocklist('block_suspicious_user_agents_on_sensitive_endpoints') do |req|
+      automated_ua = req.user_agent.to_s =~ /\b(curl|wget|python-requests|libwww-perl|mechanize)\b/i
+      sensitive_endpoint = req.path =~ /\/(admin|users\/sign_in|registrations|api\/v1\/gcm)/
 
-    # Allow authenticated requests (check for session cookie)
-    has_session = req.cookies['_plebis_hub_session'].present?
+      # Allow authenticated requests (check for session cookie)
+      has_session = req.cookies['_plebis_hub_session'].present?
 
-    # Block only if: automated tool + sensitive endpoint + no session
-    automated_ua && sensitive_endpoint && !has_session
+      # Block only if: automated tool + sensitive endpoint + no session
+      automated_ua && sensitive_endpoint && !has_session
+    end
   end
 
   # Whitelist legitimate crawlers and monitoring tools
@@ -227,11 +230,14 @@ class Rack::Attack
     req.user_agent.to_s =~ /\b(Googlebot|Bingbot|Slackbot|UptimeRobot|Pingdom)\b/i
   end
 
-  # Allow safelisted IPs (optional)
-  # safelist('allow_local') do |req|
-  #   # Allow localhost
-  #   req.ip == '127.0.0.1' || req.ip == '::1'
-  # end
+  # Allow safelisted IPs in development/test environments
+  # This prevents rate limiting issues during local development and testing
+  if Rails.env.development? || Rails.env.test?
+    safelist('allow_local') do |req|
+      # Allow localhost and Docker network IPs
+      ['127.0.0.1', '::1', '172.'].any? { |ip| req.ip.to_s.start_with?(ip) }
+    end
+  end
 
   ### Logging ###
 

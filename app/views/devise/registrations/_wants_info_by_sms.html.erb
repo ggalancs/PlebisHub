@@ -19,9 +19,9 @@
                   hint: raw(t("devise.hints.current_password", :link => link_to(t("devise.links.here"), "#recover-password", class: "js-change-tab"))),
                   input_html: { class: 'input-m' } %>
     </div>
-    <%= f.actions class: 'enter' do %>
-      <%= f.action :submit, label: t("devise.buttons.edit"), button_html: {class: "button"} %>
-    <% end %>
+    <div class="enter">
+        <%= f.submit t("devise.buttons.edit"), class: "button" %>
+      </div>
   </fieldset>
 <% end %>
 

@@ -22,7 +22,7 @@
 
         <%= errors_in_form @collaboration %>
 
-        <%= semantic_form_with model: @collaboration, url: create_collaboration_path, method: :post, html: { autocomplete: 'off' } do |f| %>
+        <%= semantic_form_for @collaboration, url: create_collaboration_path, html: { method: :post, autocomplete: 'off' } do |f| %>
           <%= render partial:'single_collaborations_table' %>
 
           <%=  pending_single_orders.any? ? content_tag(:h3, t("plebisbrand.collaboration.recurrent")) : content_tag(:h3, t("plebisbrand.collaboration.title")) %>
@@ -70,9 +70,9 @@
                 </div>
               </div>
 
-              <%= f.actions class: 'enter' do %>
-                <%= f.action :submit, label: t('plebisbrand.collaboration.save_new_collaboration'), :as => :input, button_html: {class: 'button'} %>
-              <% end %>
+              <div class="enter">
+                <%= f.submit t('plebisbrand.collaboration.save_new_collaboration'), class: 'button' %>
+              </div>
             </fieldset>
         <% end %>
       <% end %>

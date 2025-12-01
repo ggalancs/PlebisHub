@@ -9,7 +9,7 @@
   <% if current_user.recurrent_collaboration %>
     <%= error_box "Tienes una colaboración", false do %>
       <p> Dándote baja también darás de baja tu colaboración.  </p>
-      <p> Si lo único que quieres dar de baja es tu colaboración <%= link_to  "puedes hacerlo aquí", edit_collaboration_path %>.  </p>
+      <p> Si lo único que quieres dar de baja es tu colaboración <%= link_to  "puedes hacerlo aquí", plebis_collaborations.edit_collaboration_path %>.  </p>
     <% end %>
   <% end %>
 
