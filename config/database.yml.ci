@@ -1,0 +1,24 @@
+# CI/CD database configuration
+# This file is used by GitHub Actions CI pipeline
+# DATABASE_URL environment variable takes precedence when set
+
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: 5000
+
+development:
+  <<: *default
+  database: plebis_hub_dev
+  host: localhost
+
+test:
+  <<: *default
+  database: plebis_hub_test
+  host: localhost
+
+production:
+  <<: *default
+  database: plebis_hub_production
+  url: <%= ENV['DATABASE_URL'] %>

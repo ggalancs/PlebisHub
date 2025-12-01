@@ -26,7 +26,8 @@ config/secrets.yml
 
 .vagrant/*
 
-Gemfile.lock
+# Gemfile.lock should be committed for reproducible builds
+# Gemfile.lock  # Removed from gitignore - needed for CI
 .idea
 
 .DS_Store

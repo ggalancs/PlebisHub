@@ -113,10 +113,13 @@ group :development, :test do
   gem 'rails-controller-testing' # Required for assigns() and assert_template in controller specs
 end
 
-group :development do
-  # SECURITY FIX SEC-027: Security audit tools
+# CI/CD and Security tools - needed in both development and test for CI pipeline
+group :development, :test do
   gem 'bundler-audit', require: false
   gem 'brakeman', require: false
+  gem 'rubocop', require: false
+  gem 'rubocop-rails', require: false
+  gem 'rspec_junit_formatter', require: false  # For CI test results
 end
 
 
