@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Load DSL and Setup Up Stages
 require 'capistrano/setup'
 
@@ -13,10 +15,8 @@ require 'capistrano/bundler'
 require 'capistrano/rails/assets'
 require 'capistrano/rails/migrations'
 require 'capistrano/passenger/no_hook'
-require "capistrano/scm/git"
+require 'capistrano/scm/git'
 install_plugin Capistrano::SCM::Git
-
-
 
 # Loads custom tasks from `lib/capistrano/tasks' if you have any defined.
 Dir.glob('lib/capistrano/tasks/*.rake').each { |r| import r }
