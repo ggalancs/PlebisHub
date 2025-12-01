@@ -66,6 +66,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client libpq-dev
 
+      - name: Setup secrets for CI
+        run: |
+          cp config/secrets.yml.ci config/secrets.yml
+
       - name: Setup Database
         run: |
           bundle exec rake db:create db:migrate RAILS_ENV=test
