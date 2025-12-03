@@ -60,11 +60,10 @@ gem 'rack-openid'
 gem 'rails_autolink'
 gem 'rake-progressbar'
 gem 'redis', '~> 5.0' # Redis client for Rack::Attack cache
-gem 'resque'
-gem 'resque_mailer' # for automated email sending in background
 gem 'ruby-openid'
 gem 'secure_headers'
-gem 'sinatra', '>= 4.2.0' # Security: Fix CVE-2024-21510 and CVE-2025-61921 (resque dependency)
+gem 'sidekiq', '~> 7.0' # Background job processing (replaces Resque)
+gem 'sidekiq-unique-jobs', '~> 8.0' # Ensure jobs run only once
 gem 'unicode'
 gem 'wicked_pdf'
 # ActiveStorage for file uploads (Rails 5.2+)
