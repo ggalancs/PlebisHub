@@ -17,9 +17,15 @@ if Rails.env.test?
     alias_method :original_freeze, :freeze
 
     def freeze
-      # Don't freeze if this is an autoload_paths array
-      # Check object_id to avoid infinite recursion
-      if caller.any? { |line| line.include?('rails/engine.rb') || line.include?('rails/application') }
+      # Don't freeze if this is an autoload_paths, eager_load_paths, or helpers array
+      # This prevents FrozenError when ActionText or other engines try to modify these
+      if caller.any? { |line|
+        line.include?('rails/engine.rb') ||
+        line.include?('rails/application') ||
+        line.include?('actiontext') ||
+        line.include?('autoload_paths') ||
+        line.include?('eager_load_paths')
+      }
         # Return self without freezing to prevent FrozenError
         self
       else
