@@ -1,27 +1,24 @@
 # frozen_string_literal: true
 
 # SimpleCov must be loaded BEFORE any application code
-# Temporarily disabled to focus on test failures without coverage blocking
-# require 'simplecov'
-if false
-  SimpleCov.start 'rails' do
-    add_filter '/bin/'
-    add_filter '/db/'
-    add_filter '/spec/'
-    add_filter '/config/'
-    add_filter '/vendor/'
+require 'simplecov'
+SimpleCov.start 'rails' do
+  add_filter '/bin/'
+  add_filter '/db/'
+  add_filter '/spec/'
+  add_filter '/config/'
+  add_filter '/vendor/'
 
-    add_group 'Controllers', 'app/controllers'
-    add_group 'Models', 'app/models'
-    add_group 'Services', 'app/services'
-    add_group 'Helpers', 'app/helpers'
-    add_group 'Mailers', 'app/mailers'
+  add_group 'Controllers', 'app/controllers'
+  add_group 'Models', 'app/models'
+  add_group 'Services', 'app/services'
+  add_group 'Helpers', 'app/helpers'
+  add_group 'Mailers', 'app/mailers'
 
-    # Set minimum coverage percentages
-    # Temporarily lowered for CI/CD stability - increase once tests are stable
-    minimum_coverage 50
-    minimum_coverage_by_file 40
-  end
+  # Set minimum coverage percentages
+  # Lowered from 95%/80% for CI stability - can increase incrementally
+  minimum_coverage 50
+  minimum_coverage_by_file 40
 end
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
