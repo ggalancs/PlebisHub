@@ -84,21 +84,30 @@ module SafeConditionEvaluator
     # Execute the condition by calling whitelisted methods
     # NO EVAL - uses pure Ruby boolean logic
     def execute_condition(context, tokens)
-      # Convert tokens to boolean values
+      # Convert tokens to boolean values, handling NOT operator
       values = []
       operators = []
+      negate_next = false
 
       tokens.each do |token|
         case token
         when *SAFE_METHODS
           # Call the whitelisted method and get boolean result
           result = context.public_send(token)
-          values << !!result # Convert to boolean
+          result = !!result # Convert to boolean
+
+          # Apply NOT if flag is set
+          if negate_next
+            result = !result
+            negate_next = false
+          end
+
+          values << result
         when "&&", "||"
           operators << token
         when "!"
-          # NOT operator - invert the next value
-          operators << token
+          # NOT operator - set flag to negate next value
+          negate_next = true
         when "(", ")"
           # Parentheses handling (simplified - assumes balanced parens)
           operators << token
@@ -115,7 +124,8 @@ module SafeConditionEvaluator
     end
 
     # Evaluate boolean expression without eval()
-    # Handles: value1 && value2, value1 || value2, !value
+    # Handles: value1 && value2, value1 || value2
+    # (NOT operator is handled in execute_condition before values are added)
     def evaluate_boolean_expression(values, operators)
       return true if values.empty? && operators.empty?
       return values.first if operators.empty?
@@ -130,9 +140,9 @@ module SafeConditionEvaluator
           result = result && next_value
         when "||"
           result = result || next_value
-        when "!"
-          # NOT applies to the next value
-          values[idx] = !next_value if next_value
+        when "(", ")"
+          # Skip parentheses (simplified handling)
+          next
         end
       end
 

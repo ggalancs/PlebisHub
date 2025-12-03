@@ -1,5 +1,5 @@
 require 'dynamic_router'
-require 'sidekiq/web'
+require 'sidekiq/web' if defined?(Sidekiq)
 
 Rails.application.routes.draw do
   # Health check endpoint for Docker/Kubernetes/Load Balancers
@@ -196,8 +196,10 @@ Rails.application.routes.draw do
   ActiveAdmin.routes(self)
 
   # Sidekiq admin interface (requires authentication)
-  constraints CanAccessSidekiq.new do
-    mount Sidekiq::Web, at: '/admin/sidekiq'
+  if defined?(Sidekiq)
+    constraints CanAccessSidekiq.new do
+      mount Sidekiq::Web, at: '/admin/sidekiq'
+    end
   end
 
   # RACK 3.x FIX: Add explicit route for /registro (legacy test compatibility)

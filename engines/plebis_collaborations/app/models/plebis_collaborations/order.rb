@@ -90,7 +90,7 @@ module PlebisCollaborations
     end
 
     def is_bank_international?
-      self.has_iban_account? and !self.payment_identifier.start_with("ES")
+      self.has_iban_account? and !self.payment_identifier.start_with?("ES")
     end
 
     def has_ccc_account?

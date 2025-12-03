@@ -93,14 +93,12 @@ RSpec.describe SafeConditionEvaluator, type: :model do
       end
 
       it 'handles NOT operator correctly' do
-        skip "NOT operator implementation needs fixing in SafeConditionEvaluator#evaluate_boolean_expression"
         @model.editable = false
         result = TestModel.evaluate(@model, "!editable?")
         expect(result).to eq(true)
       end
 
       it 'handles complex boolean expression' do
-        skip "Complex boolean expressions with NOT need fixing in SafeConditionEvaluator#evaluate_boolean_expression"
         @model.editable = true
         @model.reviewable = false
         @model.validable = true
@@ -268,7 +266,6 @@ RSpec.describe SafeConditionEvaluator, type: :model do
     end
 
     it 'handles typical wizard condition: editable? && !reviewable?' do
-      skip "NOT operator implementation needs fixing in SafeConditionEvaluator#evaluate_boolean_expression"
       @model.editable = true
       @model.reviewable = false
       result = TestModel.evaluate(@model, "editable? && !reviewable?")

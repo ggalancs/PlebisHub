@@ -341,7 +341,6 @@ RSpec.describe Order, type: :model do
 
     describe '#is_bank_national?' do
       it 'returns true for Spanish IBAN' do
-        skip "Application code uses start_with instead of start_with? - needs application code fix"
         order = create(:order, :iban)
         expect(order).to be_is_bank_national
       end
@@ -349,7 +348,6 @@ RSpec.describe Order, type: :model do
 
     describe '#is_bank_international?' do
       it 'returns true for non-Spanish IBAN' do
-        skip "Application code uses start_with instead of start_with? - needs application code fix"
         order = create(:order, :international_iban)
         expect(order).to be_is_bank_international
       end
@@ -409,8 +407,15 @@ RSpec.describe Order, type: :model do
     end
 
     describe '#processed!' do
+      before do
+        # Stub all mailer calls to prevent secrets configuration errors
+        mailer_double = double('mailer', deliver_now: true)
+        allow(CollaborationsMailer).to receive(:order_returned_user).and_return(mailer_double)
+        allow(CollaborationsMailer).to receive(:collaboration_suspended_user).and_return(mailer_double)
+        allow(CollaborationsMailer).to receive(:collaboration_suspended_militant).and_return(mailer_double)
+      end
+
       it 'sets status to 5 for returned orders' do
-        skip "Mailer configuration issues in test environment - needs mailer stubs"
         order = create(:order, :nueva)
 
         expect(order.processed!).to be_truthy
@@ -419,7 +424,6 @@ RSpec.describe Order, type: :model do
       end
 
       it 'with error code should set status to 4' do
-        skip "Mailer configuration issues in test environment - needs mailer stubs"
         order = create(:order, :nueva)
 
         expect(order.processed!('AC01')).to be_truthy
@@ -549,7 +553,6 @@ RSpec.describe Order, type: :model do
     end
 
     it 'processes bank order workflow' do
-      skip "Application code uses start_with instead of start_with? - needs application code fix"
       order = create(:order, :iban, :nueva)
 
       expect(order).to be_is_bank
@@ -564,7 +567,12 @@ RSpec.describe Order, type: :model do
     end
 
     it 'processes returned order workflow' do
-      skip "Mailer configuration issues in test environment - needs mailer stubs"
+      # Stub mailer calls to prevent secrets configuration errors
+      mailer_double = double('mailer', deliver_now: true)
+      allow(CollaborationsMailer).to receive(:order_returned_user).and_return(mailer_double)
+      allow(CollaborationsMailer).to receive(:collaboration_suspended_user).and_return(mailer_double)
+      allow(CollaborationsMailer).to receive(:collaboration_suspended_militant).and_return(mailer_double)
+
       order = create(:order, :sin_confirmar)
 
       # Process as returned

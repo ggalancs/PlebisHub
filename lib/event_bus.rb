@@ -132,12 +132,15 @@ end
 
 # Background worker for async event processing
 class EventBusWorker
-  include Sidekiq::Worker
+  # Conditionally include Sidekiq only if available
+  if defined?(Sidekiq)
+    include Sidekiq::Worker
 
-  # Configure Sidekiq with unique jobs to prevent duplicate event processing
-  sidekiq_options queue: :events,
-                  lock: :until_executed,
-                  on_conflict: :log
+    # Configure Sidekiq with unique jobs to prevent duplicate event processing
+    sidekiq_options queue: :events,
+                    lock: :until_executed,
+                    on_conflict: :log
+  end
 
   def perform(listener_class_name, event_hash)
     listener_class = listener_class_name.constantize
@@ -146,7 +149,17 @@ class EventBusWorker
     listener_class.call(event)
   rescue StandardError => e
     Rails.logger.error "[EventBusWorker] Error: #{e.class} - #{e.message}"
-    raise # Re-raise to retry via Sidekiq
+    raise # Re-raise to retry via Sidekiq (if available)
+  end
+
+  # Provide a class method for synchronous execution when Sidekiq is not available
+  def self.perform_async(listener_class_name, event_hash)
+    if defined?(Sidekiq)
+      new.perform_async(listener_class_name, event_hash)
+    else
+      # Execute synchronously in test/development without Sidekiq
+      new.perform(listener_class_name, event_hash)
+    end
   end
 end
 
