@@ -113,7 +113,15 @@ module PlebisVerification
       if range_value.is_a?(String)
         # Extract numeric part from strings like "30.days"
         numeric_match = range_value.match(/\d+/)
-        raise "Invalid active_census_range format: #{range_value}" unless numeric_match
+        unless numeric_match
+          Rails.logger.error({
+            event: "invalid_active_census_range",
+            value: range_value,
+            error: "No numeric value found in string",
+            timestamp: Time.current.iso8601
+          }.to_json)
+          return 30 # Default fallback
+        end
         Integer(numeric_match[0])
       else
         Integer(range_value)

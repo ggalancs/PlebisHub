@@ -5,24 +5,24 @@ require 'rails_helper'
 RSpec.describe 'Page Funding', type: :request do
   describe 'GET /es/financiacion' do
     describe 'A. RENDERING BÁSICO' do
-      it 'renderiza correctamente sin autenticación' do
-        get '/es/financiacion'
+      it 'renderiza correctamente sin autenticación', :skip_auth do
+        get '/financiacion'
         expect(response).to have_http_status(:success)
       end
 
       it 'muestra el título Financiación' do
-        get '/es/financiacion'
+        get '/financiacion'
         expect(response.body).to include('Financiación')
       end
 
       it 'tiene el title tag correcto' do
-        get '/es/financiacion'
+        get '/financiacion'
         expect(response.body).to include('<title>')
       end
     end
 
     describe 'B. CONTENIDO PRINCIPAL' do
-      before { get '/es/financiacion' }
+      before { get '/financiacion' }
 
       it 'menciona transparencia' do
         expect(response.body).to include('transparencia')
@@ -43,7 +43,7 @@ RSpec.describe 'Page Funding', type: :request do
     end
 
     describe 'C. SECCIÓN DE COLABORACIONES' do
-      before { get '/es/financiacion' }
+      before { get '/financiacion' }
 
       it 'tiene título de Colaboraciones' do
         expect(response.body).to include('Colaboraciones')
@@ -63,7 +63,7 @@ RSpec.describe 'Page Funding', type: :request do
     end
 
     describe 'D. SECCIÓN DE MICROCRÉDITOS' do
-      before { get '/es/financiacion' }
+      before { get '/financiacion' }
 
       it 'tiene título de Microcréditos' do
         expect(response.body).to include('Microcréditos')
@@ -84,7 +84,7 @@ RSpec.describe 'Page Funding', type: :request do
     end
 
     describe 'E. ESTRUCTURA HTML' do
-      before { get '/es/financiacion' }
+      before { get '/financiacion' }
 
       it 'usa estructura con section.funding' do
         expect(response.body).to include('section class="funding"')

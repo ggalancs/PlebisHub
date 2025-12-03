@@ -52,6 +52,14 @@ Rails.application.configure do
   # incoming request so you'll need to provide the :host parameter yourself.
   config.action_mailer.default_url_options = { host: "www.example.com" }
 
+  # Set default URL options for controllers (needed for url_for in views/controllers)
+  config.action_controller.default_url_options = { host: "www.example.com" }
+
+  # Set default URL options for routes (needed for URL helpers called from models)
+  config.after_initialize do
+    Rails.application.routes.default_url_options = { host: "www.example.com" }
+  end
+
   # RAILS 7.2 FIX: Set default from address for test mailers
   # Rails 7.2 requires a from address to be set, raising ArgumentError otherwise
   config.action_mailer.default_options = { from: 'test@example.com' }
@@ -73,4 +81,10 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # RACK 3.x FIX: Disable host authorization in test environment
+  # Rails 7.2 + Rack 3.x enforces host matching which causes issues with test requests
+  # that use default hosts like 'example.com' instead of the configured 'www.example.com'
+  # This prevents 301 redirects in tests due to host mismatch
+  config.hosts.clear
 end

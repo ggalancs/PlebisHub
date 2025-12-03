@@ -5,27 +5,27 @@ require 'rails_helper'
 RSpec.describe 'Page Privacy Policy', type: :request do
   describe 'GET /es/politica-privacidad' do
     describe 'A. RENDERING BÁSICO' do
-      it 'renderiza correctamente sin autenticación' do
-        get '/es/politica-privacidad'
+      it 'renderiza correctamente sin autenticación', :skip_auth do
+        get '/privacy-policy'
         expect(response).to have_http_status(:success)
       end
 
       it 'muestra título de política de privacidad' do
-        get '/es/politica-privacidad'
+        get '/privacy-policy'
         expect(response.body).to match(/política.*privacidad|legal|privacidad/i)
       end
 
       it 'tiene el title tag correcto' do
-        get '/es/politica-privacidad'
+        get '/privacy-policy'
         expect(response.body).to match(/<title>/)
       end
     end
 
     describe 'B. ESTRUCTURA DEL DOCUMENTO LEGAL' do
-      before { get '/es/politica-privacidad' }
+      before { get '/privacy-policy' }
 
       it 'usa info_box para contenido legal' do
-        expect(response.body).to match(/info.*box/i)
+        expect(response.body).to match(/box-info|info.*box/i)
       end
 
       it 'tiene h1 para título principal' do
@@ -49,7 +49,7 @@ RSpec.describe 'Page Privacy Policy', type: :request do
     end
 
     describe 'C. SECCIONES DEL DOCUMENTO' do
-      before { get '/es/politica-privacidad' }
+      before { get '/privacy-policy' }
 
       it 'tiene sección 1 con subsecciones 1.1 y 1.2' do
         expect(response.body).to match(/1\..*1\.1.*1\.2/m)
@@ -70,7 +70,7 @@ RSpec.describe 'Page Privacy Policy', type: :request do
     end
 
     describe 'D. CONTENIDO DE PÁRRAFOS' do
-      before { get '/es/politica-privacidad' }
+      before { get '/privacy-policy' }
 
       it 'tiene múltiples párrafos con contenido legal' do
         p_count = response.body.scan(/<p>/).count
@@ -85,7 +85,7 @@ RSpec.describe 'Page Privacy Policy', type: :request do
     end
 
     describe 'E. ESTRUCTURA HTML' do
-      before { get '/es/politica-privacidad' }
+      before { get '/privacy-policy' }
 
       it 'usa estructura content-content cols' do
         expect(response.body).to include('content-content')

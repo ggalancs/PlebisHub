@@ -51,7 +51,7 @@ RSpec.describe UserVerificationsController, type: :controller do
       context "when user not logged in" do
         it "redirects to sign in page" do
           get :new
-          expect(response).to redirect_to("/users/sign_in")
+          expect(response).to redirect_to(%r{/users/sign_in})
         end
       end
 
@@ -71,7 +71,7 @@ RSpec.describe UserVerificationsController, type: :controller do
       context "when user not logged in" do
         it "redirects to sign in page" do
           post :create, params: { user_verification: { terms_of_service: true } }
-          expect(response).to redirect_to("/users/sign_in")
+          expect(response).to redirect_to(%r{/users/sign_in})
         end
       end
     end

@@ -9,8 +9,8 @@ Rails.application.routes.prepend do
       ActiveRecord::Base.connection.execute('SELECT 1')
 
       # Check Redis connection (if configured)
-      if defined?(Resque)
-        Resque.redis.ping
+      if defined?(Sidekiq)
+        Sidekiq.redis { |conn| conn.ping }
       end
 
       [200, { 'Content-Type' => 'text/plain' }, ['OK']]

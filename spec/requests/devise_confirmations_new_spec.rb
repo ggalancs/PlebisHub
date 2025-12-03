@@ -6,23 +6,23 @@ RSpec.describe 'Devise Confirmations New', type: :request do
   describe 'GET /es/confirmacion/nuevo' do
     describe 'A. RENDERING BÁSICO' do
       it 'renderiza correctamente sin autenticación' do
-        get '/es/confirmacion/nuevo'
+        get '/es/users/confirmation/new'
         expect(response).to have_http_status(:success)
       end
 
       it 'muestra título de instrucciones de confirmación' do
-        get '/es/confirmacion/nuevo'
+        get '/es/users/confirmation/new'
         expect(response.body).to match(/confirmation|confirmación/i)
       end
 
       it 'tiene el title tag correcto' do
-        get '/es/confirmacion/nuevo'
+        get '/es/users/confirmation/new'
         expect(response.body).to match(/<title>/)
       end
     end
 
     describe 'B. FORMULARIO DE CONFIRMACIÓN' do
-      before { get '/es/confirmacion/nuevo' }
+      before { get '/es/users/confirmation/new' }
 
       it 'tiene formulario' do
         expect(response.body).to include('<form')
@@ -46,7 +46,7 @@ RSpec.describe 'Devise Confirmations New', type: :request do
     end
 
     describe 'C. ESTRUCTURA DEL FORMULARIO' do
-      before { get '/es/confirmacion/nuevo' }
+      before { get '/es/users/confirmation/new' }
 
       it 'usa semantic_form_for' do
         expect(response.body).to include('<form')
@@ -70,7 +70,7 @@ RSpec.describe 'Devise Confirmations New', type: :request do
     end
 
     describe 'D. ESTRUCTURA HTML' do
-      before { get '/es/confirmacion/nuevo' }
+      before { get '/es/users/confirmation/new' }
 
       it 'usa estructura content-content cols' do
         expect(response.body).to include('content-content')

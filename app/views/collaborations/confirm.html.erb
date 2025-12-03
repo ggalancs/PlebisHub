@@ -6,8 +6,19 @@
       <%= content_tag(:h2, t("plebisbrand.collaboration.title")) %>
 
       <%= render partial: "steps", locals: {step: 2} %>
-      
+
       <p> Revisa y confirma todos los datos para activar la colaboración.</p>
+
+      <div class="collaboration-details">
+        <p><strong>Frecuencia:</strong> <%= @collaboration.frequency_name %></p>
+        <p><strong>Importe:</strong> <%= number_to_euro(@collaboration.amount) %></p>
+        <% if @collaboration.has_ccc_account? %>
+          <p><strong>Cuenta bancaria (CCC):</strong> <%= @collaboration.ccc_entity %> <%= @collaboration.ccc_office %> <%= @collaboration.ccc_dc %> <%= @collaboration.ccc_account %></p>
+        <% elsif @collaboration.has_iban_account? %>
+          <p><strong>Cuenta bancaria (IBAN):</strong> <%= @collaboration.iban_account %></p>
+        <% end %>
+      </div>
+
       <%= render partial: "frequency_table" %>
 
       <% if @collaboration.is_credit_card? %>

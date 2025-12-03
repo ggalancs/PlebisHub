@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe 'Microcredit Index', type: :request do
   describe 'GET /es/microcreditos' do
     describe 'A. RENDERING BÁSICO' do
-      it 'renderiza correctamente sin autenticación' do
+      it 'renderiza correctamente sin autenticación', :skip_auth do
         get '/es/microcreditos'
         expect(response).to have_http_status(:success)
       end

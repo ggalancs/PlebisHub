@@ -23,7 +23,7 @@
             <p class="text-orange">No cumples con esta condición <%= fa_icon("times-circle") %></p>
           <% end %>
 
-        <p> 2.- Adscribir tu participación en PlebisBrand como militante a un Círculo concreto. <strong><%= link_to "Para ello haz clic en Círculo", edit_user_registration_path(anchor:"circle") %></strong> y selecciona el tuyo. Tu Círculo deberá tener el estatus de activo para participar en los distintos procesos que se organicen. </p>
+        <p> 2.- Adscribir tu participación en PlebisBrand como militante a un Círculo concreto. <strong><%= link_to "Para ello haz clic en Círculo", edit_user_registration_path + "#circle" %></strong> y selecciona el tuyo. Tu Círculo deberá tener el estatus de activo para participar en los distintos procesos que se organicen. </p>
           <% if current_user.in_vote_circle? %>
               <p class="text-green">Ya cumples con esta condición <%= fa_icon("check-circle") %></p>
           <% else %>

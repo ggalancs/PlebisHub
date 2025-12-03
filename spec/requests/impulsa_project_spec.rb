@@ -6,6 +6,7 @@ RSpec.describe 'Impulsa Project', type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:user) { create(:user, :with_dni) }
+  let!(:edition) { create(:impulsa_edition, start_at: 1.week.ago, new_projects_until: 1.week.from_now, ends_at: 1.month.from_now) }
 
   before do
     allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)
@@ -13,7 +14,7 @@ RSpec.describe 'Impulsa Project', type: :request do
 
   describe 'GET /es/impulsa/proyecto' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
+      it 'redirige al login si no está autenticado', :skip_auth do
         get '/es/impulsa/proyecto'
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -155,7 +156,7 @@ RSpec.describe 'Impulsa Project', type: :request do
       end
 
       it 'usa autocomplete off para seguridad' do
-        expect(response.body).to include("autocomplete='off'")
+        expect(response.body).to include('autocomplete="off"')
       end
     end
   end

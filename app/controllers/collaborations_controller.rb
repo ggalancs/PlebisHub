@@ -127,7 +127,7 @@ class CollaborationsController < ApplicationController
     # Non-persisted order for credit card payment flow
     # Lifecycle: Created here, displayed in view, persisted during payment callback
     # Allows regenerating order ID for each payment attempt to prevent duplicate charges
-    @order = @collaboration.create_order(Time.now, true) if @collaboration.is_credit_card?
+    @order = @collaboration.create_order(Date.today, true) if @collaboration.is_credit_card?
   end
 
   def single

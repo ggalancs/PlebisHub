@@ -264,7 +264,7 @@ class BrandSetting < ApplicationRecord
 
   def wcag_contrast_validation
     # Validate primary color contrast with white background (WCAG AA requires 4.5:1)
-    if primary_color.present?
+    if primary_color.present? && primary_color.match?(HEX_COLOR_REGEX)
       ratio = calculate_contrast_ratio(primary_color, '#ffffff')
       if ratio < 4.5
         errors.add(:primary_color,
@@ -273,7 +273,7 @@ class BrandSetting < ApplicationRecord
     end
 
     # Validate secondary color contrast
-    if secondary_color.present?
+    if secondary_color.present? && secondary_color.match?(HEX_COLOR_REGEX)
       ratio = calculate_contrast_ratio(secondary_color, '#ffffff')
       if ratio < 4.5
         errors.add(:secondary_color,

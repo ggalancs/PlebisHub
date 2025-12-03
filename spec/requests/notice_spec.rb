@@ -12,12 +12,12 @@ RSpec.describe 'Notice Index', type: :request do
     describe 'A. AUTENTICACIÓN Y RENDERING BÁSICO' do
       context 'cuando el usuario no está autenticado' do
         it 'redirige a la página de login', :skip_auth do
-          get '/es/notices'
+          get '/notices'
           expect(response).to redirect_to(new_user_session_path)
         end
 
         it 'no renderiza la vista', :skip_auth do
-          get '/es/notices'
+          get '/notices'
           expect(response).not_to have_http_status(:success)
         end
       end
@@ -28,7 +28,7 @@ RSpec.describe 'Notice Index', type: :request do
         context 'con notificaciones' do
           let!(:notice) { create(:notice, :sent_active, title: 'Test Notice', body: 'Test Body') }
 
-          before { get '/es/notices' }
+          before { get '/notices' }
 
           it 'retorna http success' do
             expect(response).to have_http_status(:success)
@@ -56,7 +56,7 @@ RSpec.describe 'Notice Index', type: :request do
         end
 
         context 'sin notificaciones' do
-          before { get '/es/notices' }
+          before { get '/notices' }
 
           it 'renderiza exitosamente sin errores' do
             expect(response).to have_http_status(:success)
@@ -89,7 +89,7 @@ RSpec.describe 'Notice Index', type: :request do
                  body: 'El sistema estará en mantenimiento el próximo domingo.')
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'muestra el título de la notificación' do
           expect(response.body).to have_content('Importante: Mantenimiento del Sistema')
@@ -140,7 +140,7 @@ RSpec.describe 'Notice Index', type: :request do
                  created_at: 30.minutes.ago)
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'muestra todas las notificaciones' do
           expect(response.body).to have_content('Primera Notificación')
@@ -187,7 +187,7 @@ RSpec.describe 'Notice Index', type: :request do
       context 'cuando hay más de 5 notificaciones' do
         before do
           12.times { create(:notice, :sent_active) }
-          get '/es/notices'
+          get '/notices'
         end
 
         it 'muestra controles de paginación' do
@@ -202,7 +202,7 @@ RSpec.describe 'Notice Index', type: :request do
       context 'cuando hay exactamente 5 notificaciones' do
         before do
           5.times { create(:notice, :sent_active) }
-          get '/es/notices'
+          get '/notices'
         end
 
         it 'muestra todas las 5 notificaciones' do
@@ -219,7 +219,7 @@ RSpec.describe 'Notice Index', type: :request do
       context 'cuando hay menos de 5 notificaciones' do
         before do
           3.times { create(:notice, :sent_active) }
-          get '/es/notices'
+          get '/notices'
         end
 
         it 'muestra todas las notificaciones disponibles' do
@@ -236,7 +236,7 @@ RSpec.describe 'Notice Index', type: :request do
       context 'en la página 2 de resultados' do
         before do
           12.times { create(:notice, :sent_active) }
-          get '/es/notices', params: { page: 2 }
+          get '/notices', params: { page: 2 }
         end
 
         it 'muestra las notificaciones de la página 2' do
@@ -251,7 +251,7 @@ RSpec.describe 'Notice Index', type: :request do
       context 'en la última página con resultados parciales' do
         before do
           12.times { create(:notice, :sent_active) }
-          get '/es/notices', params: { page: 3 }
+          get '/notices', params: { page: 3 }
         end
 
         it 'muestra solo las notificaciones restantes' do
@@ -274,7 +274,7 @@ RSpec.describe 'Notice Index', type: :request do
 
         before do
           I18n.locale = :es
-          get '/es/notices'
+          get '/notices'
         end
 
         it 'formatea la fecha usando el helper I18n.l' do
@@ -301,7 +301,7 @@ RSpec.describe 'Notice Index', type: :request do
 
         before do
           I18n.locale = :es
-          get '/es/notices'
+          get '/notices'
         end
 
         it 'formatea correctamente fechas antiguas' do
@@ -321,7 +321,7 @@ RSpec.describe 'Notice Index', type: :request do
 
         before do
           I18n.locale = :es
-          get '/es/notices'
+          get '/notices'
         end
 
         it 'formatea correctamente fechas recientes' do
@@ -342,7 +342,7 @@ RSpec.describe 'Notice Index', type: :request do
                  body: 'Safe body')
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'escapa HTML en el título' do
           expect(response.body).to include('&lt;script&gt;')
@@ -368,7 +368,7 @@ RSpec.describe 'Notice Index', type: :request do
                  body: '<img src=x onerror="alert(\'XSS\')">Click here')
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'escapa HTML en el cuerpo' do
           expect(response.body).to include('&lt;img')
@@ -393,7 +393,7 @@ RSpec.describe 'Notice Index', type: :request do
                  body: 'Body with <a href="javascript:void(0)">click</a>')
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'escapa iframes en el título' do
           expect(response.body).to include('&lt;iframe')
@@ -417,7 +417,7 @@ RSpec.describe 'Notice Index', type: :request do
                  body: 'Normal body')
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'muestra títulos muy largos sin errores' do
           expect(response.body).to have_css('strong')
@@ -436,7 +436,7 @@ RSpec.describe 'Notice Index', type: :request do
                  body: 'B' * 1000)
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'muestra cuerpos muy largos sin errores' do
           expect(response.body).to include('B' * 1000)
@@ -454,7 +454,7 @@ RSpec.describe 'Notice Index', type: :request do
                  body: 'Cuerpo con €, £, ¥, ©, ®, ™, emojis: 😀 🎉 ✅')
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'maneja correctamente caracteres acentuados' do
           expect(response.body).to have_content('ñ, á, é, í, ó, ú, ü')
@@ -476,7 +476,7 @@ RSpec.describe 'Notice Index', type: :request do
                  body: "Body\nwith\nmultiple\nlines\nof\ntext")
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'muestra notificaciones con saltos de línea' do
           expect(response.body).to have_content('Title')
@@ -498,7 +498,7 @@ RSpec.describe 'Notice Index', type: :request do
                  body: '   Body with   extra   spaces   ')
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'muestra títulos con espacios' do
           expect(response.body).to have_content('Title with spaces')
@@ -516,7 +516,7 @@ RSpec.describe 'Notice Index', type: :request do
                  body: 'Body with "quotes" and \'apostrophes\'')
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'maneja comillas dobles correctamente' do
           expect(response.body).to have_content('double quotes')
@@ -543,7 +543,7 @@ RSpec.describe 'Notice Index', type: :request do
                body: 'Testing accessibility')
       end
 
-      before { get '/es/notices' }
+      before { get '/notices' }
 
       it 'usa elementos strong para énfasis semántico' do
         expect(response.body).to have_css('strong')
@@ -579,7 +579,7 @@ RSpec.describe 'Notice Index', type: :request do
         let!(:notice1) { create(:notice, :sent_active, title: 'Notice 1', body: 'Body 1') }
         let!(:notice2) { create(:notice, :sent_active, title: 'Notice 2', body: 'Body 2') }
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'cada notificación tiene exactamente un título' do
           parsed = Nokogiri::HTML(response.body)
@@ -624,7 +624,7 @@ RSpec.describe 'Notice Index', type: :request do
                  created_at: Time.zone.parse('2025-02-14 15:45:00'))
         end
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'muestra exactamente el título de la notificación' do
           expect(response.body).to have_css('strong', text: 'Specific Title 123', exact_text: true)
@@ -652,7 +652,7 @@ RSpec.describe 'Notice Index', type: :request do
       context 'página vacía (más allá del rango)' do
         before do
           5.times { create(:notice, :sent_active) }
-          get '/es/notices', params: { page: 10 }
+          get '/notices', params: { page: 10 }
         end
 
         it 'renderiza sin errores en página fuera de rango' do
@@ -671,7 +671,7 @@ RSpec.describe 'Notice Index', type: :request do
       context 'primera página con exactamente 1 notificación' do
         before do
           create(:notice, :sent_active)
-          get '/es/notices'
+          get '/notices'
         end
 
         it 'muestra la única notificación' do
@@ -694,7 +694,7 @@ RSpec.describe 'Notice Index', type: :request do
         let!(:pending) { create(:notice, :pending) }
         let!(:expired) { create(:notice, :sent_expired) }
 
-        before { get '/es/notices' }
+        before { get '/notices' }
 
         it 'muestra notificaciones enviadas y activas' do
           expect(response.body).to have_content(sent_active.title)

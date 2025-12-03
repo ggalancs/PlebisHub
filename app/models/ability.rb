@@ -44,7 +44,7 @@ class Ability
     can :manage, Post
     can :manage, Page if defined?(Page)
     can :manage, Category if defined?(Category)
-    can :manage, Resque
+    can :manage, Sidekiq::Web
     can :manage, Report
     can :manage, ActiveAdmin
     can :read, ActiveAdmin::Page, name: 'Dashboard'

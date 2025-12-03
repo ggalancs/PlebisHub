@@ -29,7 +29,7 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
     context "when user is not authenticated" do
       it "redirects to sign in page" do
         get :index
-        expect(response).to redirect_to("/users/sign_in")
+        expect(response).to redirect_to(%r{/users/sign_in})
       end
 
       it "does not set instance variables" do
@@ -363,22 +363,22 @@ RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :control
     context "when user is not signed in" do
       it "redirects to sign in for index" do
         get :index
-        expect(response).to redirect_to("/users/sign_in")
+        expect(response).to redirect_to(%r{/users/sign_in})
       end
 
       it "redirects to sign in for join" do
         put :join
-        expect(response).to redirect_to("/users/sign_in")
+        expect(response).to redirect_to(%r{/users/sign_in})
       end
 
       it "redirects to sign in for leave" do
         put :leave
-        expect(response).to redirect_to("/users/sign_in")
+        expect(response).to redirect_to(%r{/users/sign_in})
       end
 
       it "redirects to sign in for update_user" do
         patch :update_user, params: { user: { old_circle_data: "data" } }
-        expect(response).to redirect_to("/users/sign_in")
+        expect(response).to redirect_to(%r{/users/sign_in})
       end
     end
   end

@@ -92,3 +92,14 @@ Formtastic::FormBuilder.perform_browser_validations = true
 
 # for country_select
 Formtastic::FormBuilder.priority_countries = ["ES"]
+
+# Monkey patch for Formtastic 5.0.0 compatibility with formtastic-bootstrap
+# formtastic-bootstrap 3.1.1 references Formtastic::Util.html_safe which was removed in formtastic 5.0.0
+# This module provides backward compatibility
+module Formtastic
+  module Util
+    def self.html_safe(string)
+      string.to_s.html_safe
+    end
+  end
+end

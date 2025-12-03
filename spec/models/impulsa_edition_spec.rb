@@ -55,7 +55,7 @@ RSpec.describe ImpulsaEdition, type: :model do
     it 'validates email format' do
       edition = build(:impulsa_edition, email: 'invalid')
       expect(edition).not_to be_valid
-      expect(edition.errors[:email]).to include('no es un correo válido')
+      expect(edition.errors[:email]).to include('es incorrecto')
     end
   end
 
@@ -198,9 +198,9 @@ RSpec.describe ImpulsaEdition, type: :model do
     describe '#allow_fixes?' do
       it 'returns true before validation_projects' do
         edition = create(:impulsa_edition,
-          start_at: 2.days.ago,
-          new_projects_until: 1.day.ago,
-          review_projects_until: 1.hour.ago,
+          start_at: 3.days.ago,
+          new_projects_until: 2.days.ago,
+          review_projects_until: 1.hour.from_now,
           validation_projects_until: 1.day.from_now,
           votings_start_at: 2.days.from_now,
           ends_at: 3.days.from_now

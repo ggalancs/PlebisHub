@@ -89,7 +89,7 @@ RSpec.describe 'Impulsa Project Step', type: :request do
 
       it 'si renderiza, usa autocomplete off' do
         if response.status == 200
-          expect(response.body).to include("autocomplete='off'")
+          expect(response.body).to include('autocomplete="off"')
         end
       end
 

@@ -48,7 +48,7 @@ RSpec.describe LegacyPasswordController, type: :controller do
       it 'redirects to sign in' do
         get :new
 
-        expect(response).to redirect_to("/users/sign_in")
+        expect(response).to redirect_to(%r{/users/sign_in})
       end
     end
   end

@@ -596,7 +596,7 @@ RSpec.describe Election, type: :model do
   describe 'file attachment' do
     it 'accepts valid CSV content type' do
       election = build(:election)
-      election.census_file = fixture_file_upload('files/test.csv', 'text/csv')
+      election.census_file = fixture_file_upload('test.csv', 'text/csv')
 
       expect(election).to be_valid
     end

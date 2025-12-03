@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe NoticeRegistrar, type: :model do
+RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
   # ====================
   # FACTORY TESTS
   # ====================

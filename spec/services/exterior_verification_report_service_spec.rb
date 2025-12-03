@@ -168,7 +168,15 @@ RSpec.describe ExteriorVerificationReportService do
         # Mock the base query to verify parameterized query usage
         base_query = double("base_query")
         allow(service).to receive(:base_query).and_return(base_query)
+
+        # Mock first call: base_query.joins(:user_verifications).group(:country, :status).pluck(...)
         allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([])
+
+        # Mock second call: base_query.group(:country, :active, :verified).pluck(...)
+        pluck_result = double("pluck_result")
+        allow(pluck_result).to receive(:each).and_return([])
+        allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
+
         allow(service).to receive(:countries).and_return({})
 
         service.generate
@@ -270,7 +278,12 @@ RSpec.describe ExteriorVerificationReportService do
     let(:service) { described_class.new('c_99') }
 
     it "caches collected data" do
-      allow(service).to receive(:base_query).and_return(User.none)
+      base_query = double("base_query")
+      allow(service).to receive(:base_query).and_return(base_query)
+      allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([['FR', 0, 1]])
+      pluck_result = double("pluck_result")
+      allow(pluck_result).to receive(:each).and_return([])
+      allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
       # Call twice
       service.send(:collect_data)
@@ -284,6 +297,9 @@ RSpec.describe ExteriorVerificationReportService do
       base_query = double("base_query")
       expect(User).to receive_message_chain(:confirmed, :where).with("country <> 'ES'").and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([])
+      pluck_result = double("pluck_result")
+      allow(pluck_result).to receive(:each).and_return([])
+      allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
       service.send(:collect_data)
     end
@@ -292,6 +308,9 @@ RSpec.describe ExteriorVerificationReportService do
       base_query = double("base_query")
       allow(service).to receive(:base_query).and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([['FR', 0, 5]])
+      pluck_result = double("pluck_result")
+      allow(pluck_result).to receive(:each).and_return([])
+      allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
       data = service.send(:collect_data)
 
@@ -385,11 +404,13 @@ RSpec.describe ExteriorVerificationReportService do
       base_query = double("base_query")
       expect(User).to receive_message_chain(:confirmed, :where).with("country <> 'ES'").and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([])
+      pluck_result = double("pluck_result")
+      allow(pluck_result).to receive(:each).and_return([])
+      allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
       service.send(:collect_data)
 
-      # Verify that Spain is excluded in the where clause
-      expect(User).to have_received(:confirmed)
+      # Expectation is already set at line 405 - Spain is excluded via where clause
     end
   end
 

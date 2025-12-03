@@ -31,7 +31,7 @@ RSpec.describe 'Collaborations Edit', type: :request do
     end
 
     describe 'C. RENDERING BÁSICO CON COLABORACIÓN' do
-      let!(:collaboration) { create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 1) }
+      let!(:collaboration) { create(:collaboration, :unconfirmed, user: user, frequency: 1, payment_type: 1) }
 
       before do
         sign_in user
@@ -52,7 +52,7 @@ RSpec.describe 'Collaborations Edit', type: :request do
     end
 
     describe 'D. CONTENIDO DE LA PÁGINA' do
-      let!(:collaboration) { create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 1) }
+      let!(:collaboration) { create(:collaboration, :unconfirmed, user: user, frequency: 1, payment_type: 1) }
 
       before do
         sign_in user
@@ -60,7 +60,7 @@ RSpec.describe 'Collaborations Edit', type: :request do
       end
 
       it 'muestra info_box con información' do
-        expect(response.body).to match(/info.*box/i)
+        expect(response.body).to match(/box-info/i)
       end
 
       it 'indica que ya tiene una colaboración' do
@@ -77,7 +77,7 @@ RSpec.describe 'Collaborations Edit', type: :request do
     end
 
     describe 'E. FORMULARIO DE MODIFICACIÓN' do
-      let!(:collaboration) { create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 1) }
+      let!(:collaboration) { create(:collaboration, :unconfirmed, user: user, frequency: 1, payment_type: 1) }
 
       before do
         sign_in user
@@ -105,12 +105,12 @@ RSpec.describe 'Collaborations Edit', type: :request do
       end
 
       it 'usa autocomplete off para seguridad' do
-        expect(response.body).to include("autocomplete='off'")
+        expect(response.body).to include('autocomplete="off"')
       end
     end
 
     describe 'F. BOTONES DE ACCIÓN' do
-      let!(:collaboration) { create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 1) }
+      let!(:collaboration) { create(:collaboration, :unconfirmed, user: user, frequency: 1, payment_type: 1) }
 
       before do
         sign_in user
@@ -136,7 +136,7 @@ RSpec.describe 'Collaborations Edit', type: :request do
 
     describe 'G. AVISO TARJETA DE CRÉDITO' do
       # RAILS 7.2 FIX: Use correct column name redsys_identifier instead of payment_identifier
-      let!(:collaboration) { create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 1, redsys_identifier: '1234') }
+      let!(:collaboration) { create(:collaboration, :unconfirmed, user: user, frequency: 1, payment_type: 1, redsys_identifier: '1234') }
 
       before do
         sign_in user
@@ -161,7 +161,7 @@ RSpec.describe 'Collaborations Edit', type: :request do
     end
 
     describe 'H. ESTRUCTURA HTML' do
-      let!(:collaboration) { create(:collaboration, :incomplete, user: user, frequency: 1, payment_type: 1) }
+      let!(:collaboration) { create(:collaboration, :unconfirmed, user: user, frequency: 1, payment_type: 1) }
 
       before do
         sign_in user
@@ -192,19 +192,19 @@ RSpec.describe 'Collaborations Edit', type: :request do
       end
 
       it 'renderiza con colaboración de transferencia bancaria' do
-        create(:collaboration, :incomplete, :with_ccc, user: user, frequency: 1)
+        create(:collaboration, :unconfirmed, :with_ccc, user: user, frequency: 1)
         get '/es/colabora/ver'
         expect(response).to have_http_status(:success)
       end
 
       it 'renderiza con colaboración de cuenta bancaria (CCC)' do
-        create(:collaboration, :incomplete, :with_ccc, user: user, frequency: 1)
+        create(:collaboration, :unconfirmed, :with_ccc, user: user, frequency: 1)
         get '/es/colabora/ver'
         expect(response).to have_http_status(:success)
       end
 
       it 'renderiza con colaboración IBAN' do
-        create(:collaboration, :incomplete, :with_iban, user: user, frequency: 1)
+        create(:collaboration, :unconfirmed, :with_iban, user: user, frequency: 1)
         get '/es/colabora/ver'
         expect(response).to have_http_status(:success)
       end

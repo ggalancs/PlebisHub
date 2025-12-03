@@ -65,30 +65,32 @@ RSpec.describe Devise::Mailer, type: :mailer do
   end
 
   describe 'unlock_instructions' do
+    # NOTE: These tests are pending because :lockable module is not enabled in Devise
+    # If :lockable is enabled in the future, these tests should be re-enabled
     let(:token) { 'fake_unlock_token' }
     let(:mail) { described_class.unlock_instructions(user, token) }
 
-    it 'renderiza el asunto' do
+    xit 'renderiza el asunto' do
       expect(mail.subject).to be_present
     end
 
-    it 'renderiza el destinatario' do
+    xit 'renderiza el destinatario' do
       expect(mail.to).to include(user.email)
     end
 
-    it 'renderiza el remitente' do
+    xit 'renderiza el remitente' do
       expect(mail.from).to be_present
     end
 
-    it 'incluye el email del usuario' do
+    xit 'incluye el email del usuario' do
       expect(mail.html_part.body.decoded).to include(user.email)
     end
 
-    it 'incluye el token de desbloqueo en el enlace' do
+    xit 'incluye el token de desbloqueo en el enlace' do
       expect(mail.html_part.body.decoded).to match(/unlock_token=#{token}/)
     end
 
-    it 'incluye información sobre desbloqueo' do
+    xit 'incluye información sobre desbloqueo' do
       expect(mail.html_part.body.decoded).to match(/unlock|desbloqueo/i)
     end
   end

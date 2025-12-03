@@ -80,7 +80,7 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
 
       topic.update(impulsa_project: new_project)
 
-      expect(topic.reload.impulsa_project).to eq(new_project)
+      expect(topic.reload.impulsa_project_id).to eq(new_project.id)
     end
 
     it 'deletes impulsa_project_topic' do
@@ -232,13 +232,12 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
       topic = create(:impulsa_project_topic)
       edition_topic = topic.impulsa_edition_topic
 
-      # Deleting edition_topic should affect the topic
-      edition_topic.destroy
+      # Cannot delete edition_topic when it has associated project topics due to restrict_with_error
+      expect(edition_topic.destroy).to be false
+      expect(edition_topic.errors[:base]).to be_present
 
-      # Check if topic still exists or was deleted
-      expect {
-        topic.reload
-      }.to raise_error(ActiveRecord::RecordNotFound)
+      # Topic should still exist since deletion was prevented
+      expect(topic.reload).to be_present
     end
 
     it 'handles rapid creation of multiple topics' do

@@ -43,7 +43,7 @@ RSpec.describe UserVerificationReportService do
       end
 
       it "logs error" do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/exterior_verification_report_init_failed/i))
+        expect(Rails.logger).to receive(:error).with(a_string_matching(/user_verification_report_init_failed/i))
         described_class.new('c_00')
       end
     end
@@ -170,6 +170,9 @@ RSpec.describe UserVerificationReportService do
         base_query = double("base_query")
         allow(service).to receive(:base_query).and_return(base_query)
         allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([])
+pluck_result = double("pluck_result")
+allow(pluck_result).to receive(:each).and_return([])
+allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
         allow(service).to receive(:provinces).and_return([])
 
         service.generate
@@ -258,7 +261,12 @@ RSpec.describe UserVerificationReportService do
     let(:service) { described_class.new('c_00') }
 
     it "caches collected data" do
-      allow(service).to receive(:base_query).and_return(User.none)
+      base_query = double("base_query")
+      allow(service).to receive(:base_query).and_return(base_query)
+      allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([['01', 0, 1]])
+      pluck_result = double("pluck_result")
+      allow(pluck_result).to receive(:each).and_return([])
+      allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
       # Call twice
       service.send(:collect_data)
@@ -272,6 +280,9 @@ RSpec.describe UserVerificationReportService do
       base_query = double("base_query")
       allow(service).to receive(:base_query).and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([['01', 0, 5]])
+      pluck_result = double("pluck_result")
+      allow(pluck_result).to receive(:each).and_return([])
+      allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
       data = service.send(:collect_data)
 
@@ -282,6 +293,9 @@ RSpec.describe UserVerificationReportService do
       base_query = double("base_query")
       allow(service).to receive(:base_query).and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([])
+pluck_result = double("pluck_result")
+allow(pluck_result).to receive(:each).and_return([])
+allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
       allow(base_query).to receive(:group).and_return(base_query)
       allow(base_query).to receive(:pluck).and_return([['01', true, true, 10]])
 

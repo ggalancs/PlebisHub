@@ -6,4 +6,5 @@
 # This alias maintains backward compatibility with existing code that references
 # the Notice model without the PlebisCms namespace.
 class Notice < PlebisCms::Notice
+  paginates_per 5
 end

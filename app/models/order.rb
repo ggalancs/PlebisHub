@@ -246,7 +246,8 @@ class Order < ApplicationRecord
   #### REDSYS CC PAYMENTS ####
 
   def redsys_secret(key)
-    Rails.application.secrets.redsys[key]
+    # Handle both string and symbol keys since secrets can be either
+    Rails.application.secrets.redsys&.dig(key.to_sym) || Rails.application.secrets.redsys&.dig(key.to_s)
   end
 
   def redsys_expiration

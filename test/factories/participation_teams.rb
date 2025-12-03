@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :participation_team, class: 'PlebisParticipation::ParticipationTeam' do
+  factory :participation_team, class: 'ParticipationTeam' do
     sequence(:name) { |n| "Team #{n}" }
     description { "Team description" }
     active { true }

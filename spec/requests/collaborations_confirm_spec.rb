@@ -15,7 +15,7 @@ RSpec.describe 'Collaborations Confirm', type: :request do
 
   describe 'GET /es/colabora/confirmar' do
     describe 'A. AUTENTICACIÓN Y REDIRECTS' do
-      context 'usuario no autenticado' do
+      context 'usuario no autenticado', :skip_auth do
         it 'redirige al login' do
           get '/es/colabora/confirmar'
           expect(response).to redirect_to(new_user_session_path)

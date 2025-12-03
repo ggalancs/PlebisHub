@@ -410,12 +410,13 @@ RSpec.describe ReportGroup, type: :model do
       )
       group.id = 1
 
-      # Simulate error by passing nil row
+      # Passing nil row should log error and return empty string
       expect(Rails.logger).to receive(:error).at_least(:once)
 
       result = group.process(nil)
 
-      expect(result).to eq([["ERROR", "ERROR"]])
+      # Returns empty string when field extraction fails on nil row
+      expect(result).to eq([["NAME", ""]])
     end
   end
 end

@@ -1,5 +1,5 @@
 require 'dynamic_router'
-require 'resque/server'
+require 'sidekiq/web'
 
 Rails.application.routes.draw do
   # Health check endpoint for Docker/Kubernetes/Load Balancers
@@ -195,14 +195,22 @@ Rails.application.routes.draw do
   post '/admin/censustool', to: 'admin/censustool#search_document_vatid', as: :admin_censustool_search_document_vatid
   ActiveAdmin.routes(self)
 
-  # Resque admin interface (requires authentication)
-  constraints CanAccessResque.new do
-    mount Resque::Server.new, at: '/admin/resque', as: :resque
+  # Sidekiq admin interface (requires authentication)
+  constraints CanAccessSidekiq.new do
+    mount Sidekiq::Web, at: '/admin/sidekiq'
+  end
+
+  # RACK 3.x FIX: Add explicit route for /registro (legacy test compatibility)
+  # Tests expect /es/registro to work, but actual Devise path is /es/users/sign_up
+  # This redirects the old path to the new path for backward compatibility
+  scope "/:locale", locale: /es|ca|eu/ do
+    get 'registro', to: redirect { |params, _| "/#{params[:locale]}/users/sign_up" }
   end
 
   # Catch-all route for unsupported locales (e.g., /en, /fr, /de)
   # Redirects to the default locale (Spanish)
   # This must be AFTER all other routes but BEFORE the end
-  get '/:unsupported_locale', to: redirect('/es'), constraints: { unsupported_locale: /[a-z]{2}/ }
-  get '/:unsupported_locale/*path', to: redirect { |params, _| "/es/#{params[:path]}" }, constraints: { unsupported_locale: /[a-z]{2}/ }
+  # Exclude supported locales: es, ca, eu (configured in config/application.rb I18n.available_locales)
+  get '/:unsupported_locale', to: redirect('/es'), constraints: { unsupported_locale: /(?!es|ca|eu)[a-z]{2}/ }
+  get '/:unsupported_locale/*path', to: redirect { |params, _| "/es/#{params[:path]}" }, constraints: { unsupported_locale: /(?!es|ca|eu)[a-z]{2}/ }
 end

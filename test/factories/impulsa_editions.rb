@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :impulsa_edition, class: 'PlebisImpulsa::ImpulsaEdition' do
+  factory :impulsa_edition, class: 'ImpulsaEdition' do
     sequence(:name) { |n| "Impulsa Edition #{n}" }
     sequence(:email) { |n| "impulsa#{n}@example.com" }
     start_at { 2.months.ago }
@@ -39,7 +39,12 @@ FactoryBot.define do
 
     trait :previous do
       start_at { 3.months.ago }
-      ends_at { 1.month.ago }
+      new_projects_until { 10.weeks.ago }
+      review_projects_until { 9.weeks.ago }
+      validation_projects_until { 8.weeks.ago }
+      votings_start_at { 6.weeks.ago }
+      ends_at { 5.weeks.ago }
+      publish_results_at { 1.month.ago }
     end
   end
 end

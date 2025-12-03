@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Notice, type: :model do
+RSpec.describe PlebisCms::Notice, type: :model do
   include ActiveSupport::Testing::TimeHelpers
   # ====================
   # FACTORY TESTS
@@ -164,7 +164,7 @@ RSpec.describe Notice, type: :model do
       new_notice = create(:notice, created_at: 1.day.ago)
       newest_notice = create(:notice, created_at: 1.hour.ago)
 
-      notices = Notice.all.to_a
+      notices = PlebisCms::Notice.all.to_a
 
       expect(notices[0]).to eq(newest_notice)
       expect(notices[1]).to eq(new_notice)
@@ -177,7 +177,7 @@ RSpec.describe Notice, type: :model do
 
       first.update(title: "Updated")
 
-      notices = Notice.all.to_a
+      notices = PlebisCms::Notice.all.to_a
       expect(notices[0]).to eq(second)
       expect(notices[1]).to eq(first)
     end
@@ -193,7 +193,7 @@ RSpec.describe Notice, type: :model do
         sent_notice = create(:notice, :sent)
         pending_notice = create(:notice, :pending)
 
-        sent_notices = Notice.sent
+        sent_notices = PlebisCms::Notice.sent
 
         expect(sent_notices).to include(sent_notice)
         expect(sent_notices).not_to include(pending_notice)
@@ -203,7 +203,7 @@ RSpec.describe Notice, type: :model do
         create(:notice, :pending)
         create(:notice, :pending)
 
-        expect(Notice.sent).to be_empty
+        expect(PlebisCms::Notice.sent).to be_empty
       end
     end
 
@@ -212,7 +212,7 @@ RSpec.describe Notice, type: :model do
         sent_notice = create(:notice, :sent)
         pending_notice = create(:notice, :pending)
 
-        pending_notices = Notice.pending
+        pending_notices = PlebisCms::Notice.pending
 
         expect(pending_notices).to include(pending_notice)
         expect(pending_notices).not_to include(sent_notice)
@@ -222,7 +222,7 @@ RSpec.describe Notice, type: :model do
         create(:notice, :sent)
         create(:notice, :sent)
 
-        expect(Notice.pending).to be_empty
+        expect(PlebisCms::Notice.pending).to be_empty
       end
     end
 
@@ -231,7 +231,7 @@ RSpec.describe Notice, type: :model do
         active_notice = create(:notice, final_valid_at: nil)
         expired_notice = create(:notice, :expired)
 
-        active_notices = Notice.active
+        active_notices = PlebisCms::Notice.active
 
         expect(active_notices).to include(active_notice)
         expect(active_notices).not_to include(expired_notice)
@@ -241,7 +241,7 @@ RSpec.describe Notice, type: :model do
         active_notice = create(:notice, final_valid_at: 1.day.from_now)
         expired_notice = create(:notice, :expired)
 
-        active_notices = Notice.active
+        active_notices = PlebisCms::Notice.active
 
         expect(active_notices).to include(active_notice)
         expect(active_notices).not_to include(expired_notice)
@@ -250,11 +250,11 @@ RSpec.describe Notice, type: :model do
       it 'handles edge case at expiration time' do
         almost_expired = create(:notice, final_valid_at: 1.second.from_now)
 
-        expect(Notice.active).to include(almost_expired)
+        expect(PlebisCms::Notice.active).to include(almost_expired)
 
         # Simulate time passing
         travel 2.seconds do
-          expect(Notice.active).not_to include(almost_expired)
+          expect(PlebisCms::Notice.active).not_to include(almost_expired)
         end
       end
     end
@@ -264,7 +264,7 @@ RSpec.describe Notice, type: :model do
         active_notice = create(:notice, :active)
         expired_notice = create(:notice, :expired)
 
-        expired_notices = Notice.expired
+        expired_notices = PlebisCms::Notice.expired
 
         expect(expired_notices).to include(expired_notice)
         expect(expired_notices).not_to include(active_notice)
@@ -274,7 +274,7 @@ RSpec.describe Notice, type: :model do
         without_expiration = create(:notice, final_valid_at: nil)
         expired = create(:notice, :expired)
 
-        expired_notices = Notice.expired
+        expired_notices = PlebisCms::Notice.expired
 
         expect(expired_notices).to include(expired)
         expect(expired_notices).not_to include(without_expiration)
@@ -446,8 +446,8 @@ RSpec.describe Notice, type: :model do
 
       expect(notice).to be_sent
       expect(notice).to be_active
-      expect(Notice.sent).to include(notice)
-      expect(Notice.active).to include(notice)
+      expect(PlebisCms::Notice.sent).to include(notice)
+      expect(PlebisCms::Notice.active).to include(notice)
     end
 
     it 'handles pending expired notices' do
@@ -455,8 +455,8 @@ RSpec.describe Notice, type: :model do
 
       expect(notice).not_to be_sent
       expect(notice).to be_expired
-      expect(Notice.pending).to include(notice)
-      expect(Notice.expired).to include(notice)
+      expect(PlebisCms::Notice.pending).to include(notice)
+      expect(PlebisCms::Notice.expired).to include(notice)
     end
 
     it 'filters sent and active notices' do
@@ -464,7 +464,7 @@ RSpec.describe Notice, type: :model do
       sent_expired = create(:notice, :sent_expired)
       pending_active = create(:notice, :pending_active)
 
-      results = Notice.sent.active
+      results = PlebisCms::Notice.sent.active
 
       expect(results).to include(sent_active)
       expect(results).not_to include(sent_expired)

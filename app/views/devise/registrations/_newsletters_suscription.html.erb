@@ -3,7 +3,11 @@
 </h2>
 
 <!-- section class="content-text"-->
-<iframe class="iframe-full-size" frameborder="0" src="<%=@user.sendy_url %>">
+<% if @user.sendy_url.present? %>
+  <iframe class="iframe-full-size" frameborder="0" src="<%=@user.sendy_url %>">
+    <p><%= t("plebisbrand.user.newsletters_connection_not_active") %></p>
+  </iframe>
+<% else %>
   <p><%= t("plebisbrand.user.newsletters_connection_not_active") %></p>
-</iframe>
+<% end %>
 <!--/section -->

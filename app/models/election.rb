@@ -45,7 +45,7 @@ class Election < ApplicationRecord
   enum :election_type, [:nvotes, :external, :paper]
 
   scope :active, -> { where("? BETWEEN starts_at AND ends_at", Time.now).order(priority: :asc) }
-  scope :upcoming_finished, -> { where("ends_at > ? AND starts_at < ?", 2.days.ago, 12.hours.from_now).order(priority: :asc)}
+  scope :upcoming_finished, -> { where("ends_at > ? AND starts_at < ?", 12.hours.ago, 12.hours.from_now).order(priority: :asc)}
   scope :future, -> { where("ends_at > ?", DateTime.now).order(priority: :asc)}
 
   before_create do
@@ -65,7 +65,7 @@ class Election < ApplicationRecord
   end
 
   def recently_finished?
-    self.ends_at > 2.days.ago && self.ends_at < DateTime.now
+    self.ends_at > 12.hours.ago && self.ends_at < DateTime.now
   end
 
   def scope_name
@@ -254,7 +254,7 @@ class Election < ApplicationRecord
   end
 
   def self.available_servers
-    Rails.application.secrets.agora["servers"].keys
+    Rails.application.secrets.agora["servers"]
   end
 
   def server_shared_key
@@ -305,7 +305,8 @@ class Election < ApplicationRecord
 
     # Parse string like "1.year", "5.minutes", "1.hour"
     # This safely evaluates only ActiveSupport duration methods
-    case config_value.to_s.strip
+    str_value = config_value.to_s.strip
+    case str_value
     when /^(\d+)\.second(s)?$/
       $1.to_i.seconds
     when /^(\d+)\.minute(s)?$/
@@ -321,8 +322,14 @@ class Election < ApplicationRecord
     when /^(\d+)\.year(s)?$/
       $1.to_i.years
     else
-      # Fallback: try to parse as integer seconds
-      config_value.to_i.seconds
+      # Fallback: try to parse as integer seconds, but if invalid, log and return default
+      parsed = str_value.to_i
+      if parsed > 0
+        parsed.seconds
+      else
+        Rails.logger.error("Failed to parse duration config '#{key}': invalid format '#{config_value}'")
+        1.year
+      end
     end
   rescue => e
     Rails.logger.error("Failed to parse duration config '#{key}': #{config_value} - #{e.message}")

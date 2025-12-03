@@ -50,8 +50,10 @@ after_fork do |server, worker|
     ActiveRecord::Base.establish_connection
   end
 
-  # Reconnect to Redis
-  if defined?(Resque)
-    Resque.redis.client.reconnect
+  # Reconnect to Redis (Sidekiq)
+  if defined?(Sidekiq)
+    Sidekiq.configure_client do |config|
+      config.redis = { url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/0') }
+    end
   end
 end

@@ -6,24 +6,24 @@ RSpec.describe 'Page FAQ', type: :request do
   describe 'GET /es/preguntas-frecuentes' do
     describe 'A. RENDERING BÁSICO' do
       it 'renderiza correctamente sin autenticación' do
-        get '/es/preguntas-frecuentes'
+        get '/preguntas-frecuentes'
         expect(response).to have_http_status(:success)
       end
 
       it 'muestra el título principal' do
-        get '/es/preguntas-frecuentes'
+        get '/preguntas-frecuentes'
         expect(response.body).to include('Preguntas Frecuentes')
       end
 
       it 'tiene el title tag correcto' do
-        get '/es/preguntas-frecuentes'
+        get '/preguntas-frecuentes'
         expect(response.body).to include('<title>')
         expect(response.body).to match(/Preguntas Frecuentes/i)
       end
     end
 
     describe 'B. CATEGORÍAS DE NAVEGACIÓN' do
-      before { get '/es/preguntas-frecuentes' }
+      before { get '/preguntas-frecuentes' }
 
       it 'muestra las categorías de FAQ' do
         expect(response.body).to include('cd-faq-categories')
@@ -50,7 +50,7 @@ RSpec.describe 'Page FAQ', type: :request do
     end
 
     describe 'C. SECCIÓN GENERAL (9 preguntas)' do
-      before { get '/es/preguntas-frecuentes' }
+      before { get '/preguntas-frecuentes' }
 
       it 'tiene el div de sección general' do
         expect(response.body).to include('id="general"')
@@ -108,7 +108,7 @@ RSpec.describe 'Page FAQ', type: :request do
     end
 
     describe 'D. SECCIÓN INSCRIPCIÓN (errores comunes)' do
-      before { get '/es/preguntas-frecuentes' }
+      before { get '/preguntas-frecuentes' }
 
       it 'tiene el div de sección inscripción' do
         expect(response.body).to include('id="inscripcion"')
@@ -149,7 +149,7 @@ RSpec.describe 'Page FAQ', type: :request do
     end
 
     describe 'E. SECCIÓN VOTACIONES (14 preguntas)' do
-      before { get '/es/preguntas-frecuentes' }
+      before { get '/preguntas-frecuentes' }
 
       it 'tiene el div de sección votaciones' do
         expect(response.body).to include('id="votaciones"')
@@ -226,7 +226,7 @@ RSpec.describe 'Page FAQ', type: :request do
     end
 
     describe 'F. ENLACES EXTERNOS' do
-      before { get '/es/preguntas-frecuentes' }
+      before { get '/preguntas-frecuentes' }
 
       it 'tiene enlaces a participa.plebisbrand.info' do
         expect(response.body).to include('participa.plebisbrand.info')
@@ -255,7 +255,7 @@ RSpec.describe 'Page FAQ', type: :request do
     end
 
     describe 'G. ESTRUCTURA HTML Y ACCESIBILIDAD' do
-      before { get '/es/preguntas-frecuentes' }
+      before { get '/preguntas-frecuentes' }
 
       it 'usa estructura semántica con section' do
         expect(response.body).to include('<section class="cd-faq">')
@@ -291,7 +291,7 @@ RSpec.describe 'Page FAQ', type: :request do
     end
 
     describe 'H. CONTENIDO Y DETALLES' do
-      before { get '/es/preguntas-frecuentes' }
+      before { get '/preguntas-frecuentes' }
 
       it 'tiene más de 25 preguntas/items en total' do
         faq_items = response.body.scan(/<li>/).count

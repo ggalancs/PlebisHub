@@ -705,12 +705,12 @@ RSpec.describe VoteController, type: :controller do
 
     it "requires authentication for send_sms_check" do
       get :send_sms_check, params: { election_id: election.id }
-      expect(response).to redirect_to("/users/sign_in")
+      expect(response).to redirect_to(%r{/users/sign_in})
     end
 
     it "requires authentication for create" do
       get :create, params: { election_id: election.id }
-      expect(response).to redirect_to("/users/sign_in")
+      expect(response).to redirect_to(%r{/users/sign_in})
     end
 
     it "does NOT require authentication for election_votes_count" do

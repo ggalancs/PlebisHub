@@ -1,7 +1,8 @@
 class PlebisBrandReportWorker
-  @queue = :plebisbrand_report_queue
+  include Sidekiq::Worker
+  sidekiq_options queue: :plebisbrand_report_queue
 
-  def self.perform report_id
+  def perform(report_id)
     report = Report.find(report_id)
     report.run!
   end

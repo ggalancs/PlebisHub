@@ -13,8 +13,8 @@ RSpec.describe 'Devise Registrations Edit', type: :request do
 
   describe 'GET /es/perfil' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
-        get '/es/perfil'
+      it 'redirige al login si no está autenticado', :skip_auth do
+        get '/es/users/edit'
         expect(response).to redirect_to(new_user_session_path)
       end
     end
@@ -22,7 +22,7 @@ RSpec.describe 'Devise Registrations Edit', type: :request do
     describe 'B. RENDERING BÁSICO CON AUTENTICACIÓN' do
       before do
         sign_in user
-        get '/es/perfil'
+        get '/es/users/edit'
       end
 
       it 'renderiza correctamente' do
@@ -41,7 +41,7 @@ RSpec.describe 'Devise Registrations Edit', type: :request do
     describe 'C. MENÚ DE NAVEGACIÓN' do
       before do
         sign_in user
-        get '/es/perfil'
+        get '/es/users/edit'
       end
 
       it 'tiene submenu de navegación' do
@@ -89,7 +89,7 @@ RSpec.describe 'Devise Registrations Edit', type: :request do
     describe 'D. CONTENIDO DE SECCIONES' do
       before do
         sign_in user
-        get '/es/perfil'
+        get '/es/users/edit'
       end
 
       it 'renderiza partial de datos personales' do
@@ -124,7 +124,7 @@ RSpec.describe 'Devise Registrations Edit', type: :request do
     describe 'E. FUNCIONALIDAD JAVASCRIPT' do
       before do
         sign_in user
-        get '/es/perfil'
+        get '/es/users/edit'
       end
 
       it 'usa clase js-change-tab para navegación' do
@@ -147,7 +147,7 @@ RSpec.describe 'Devise Registrations Edit', type: :request do
     describe 'F. ESTRUCTURA HTML' do
       before do
         sign_in user
-        get '/es/perfil'
+        get '/es/users/edit'
       end
 
       it 'usa estructura content-content cols' do

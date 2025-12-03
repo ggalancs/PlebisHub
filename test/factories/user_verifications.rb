@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :user_verification, class: 'PlebisVerification::UserVerification' do
+  factory :user_verification, class: 'UserVerification' do
     association :user
     status { :pending }
     terms_of_service { "1" } # Rails 7.2 requires "1" format for acceptance validation

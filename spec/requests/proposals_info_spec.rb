@@ -6,23 +6,23 @@ RSpec.describe 'Proposals Info', type: :request do
   describe 'GET /es/propuestas/informacion' do
     describe 'A. RENDERING BÁSICO' do
       it 'renderiza correctamente sin autenticación' do
-        get '/es/propuestas/informacion'
+        get '/proposals/info'
         expect(response).to have_http_status(:success)
       end
 
       it 'muestra el título Iniciativas Ciudadanas PlebisBrand' do
-        get '/es/propuestas/informacion'
+        get '/proposals/info'
         expect(response.body).to include('Iniciativas Ciudadanas')
       end
 
       it 'tiene el title tag correcto' do
-        get '/es/propuestas/informacion'
+        get '/proposals/info'
         expect(response.body).to match(/<title>.*Iniciativas/i)
       end
     end
 
     describe 'B. FASES DEL MECANISMO' do
-      before { get '/es/propuestas/informacion' }
+      before { get '/proposals/info' }
 
       it 'muestra título de mecanismo con varias fases' do
         expect(response.body).to match(/mecanismo.*fases/i)
@@ -46,7 +46,7 @@ RSpec.describe 'Proposals Info', type: :request do
     end
 
     describe 'C. FASE 1: RECOGIDA DE PROPUESTAS' do
-      before { get '/es/propuestas/informacion' }
+      before { get '/proposals/info' }
 
       it 'menciona Plaza PlebisBrand' do
         expect(response.body).to include('Plaza PlebisBrand')
@@ -66,7 +66,7 @@ RSpec.describe 'Proposals Info', type: :request do
     end
 
     describe 'D. FASE 2: APOYO DE PROPUESTAS' do
-      before { get '/es/propuestas/informacion' }
+      before { get '/proposals/info' }
 
       it 'menciona umbral del 2% para correo electrónico' do
         expect(response.body).to include('2%')
@@ -86,7 +86,7 @@ RSpec.describe 'Proposals Info', type: :request do
     end
 
     describe 'E. FASE 3: DESARROLLO DE PROPUESTAS' do
-      before { get '/es/propuestas/informacion' }
+      before { get '/proposals/info' }
 
       it 'menciona grupo de trabajo' do
         expect(response.body).to include('grupo de trabajo')
@@ -102,7 +102,7 @@ RSpec.describe 'Proposals Info', type: :request do
     end
 
     describe 'F. FASE 4: REFERÉNDUM' do
-      before { get '/es/propuestas/informacion' }
+      before { get '/proposals/info' }
 
       it 'menciona Agora Voting' do
         expect(response.body).to include('Agora Voting')
@@ -122,7 +122,7 @@ RSpec.describe 'Proposals Info', type: :request do
     end
 
     describe 'G. DOCUMENTO ORGANIZATIVO' do
-      before { get '/es/propuestas/informacion' }
+      before { get '/proposals/info' }
 
       it 'menciona Asamblea Ciudadana' do
         expect(response.body).to include('Asamblea Ciudadana')
@@ -139,7 +139,7 @@ RSpec.describe 'Proposals Info', type: :request do
     end
 
     describe 'H. ESTRUCTURA HTML' do
-      before { get '/es/propuestas/informacion' }
+      before { get '/proposals/info' }
 
       it 'usa div con id info' do
         expect(response.body).to include('id="info"')

@@ -51,7 +51,7 @@ RSpec.describe 'Collaborations KO', type: :request do
       end
 
       it 'muestra el error_box o mensaje de error' do
-        has_error = response.body.match?(/error.*box|alert|danger|warning/i) || response.body.include?('KO')
+        has_error = response.body.match?(/error.*box|box-error|box-ko|alert|danger|warning/i) || response.body.include?('KO')
         expect(has_error).to be true
       end
 

@@ -168,11 +168,13 @@ RSpec.describe ImpulsaEditionTopic, type: :model do
       topic = create(:impulsa_edition_topic, impulsa_edition: edition)
 
       topic_id = topic.id
-      edition.destroy
 
-      # Topic should still exist (no dependent: :destroy on has_many)
+      # Cannot delete edition with associated topics due to foreign key constraint
+      expect { edition.destroy }.to raise_error(ActiveRecord::InvalidForeignKey)
+
+      # Topic should still exist after failed deletion attempt
       remaining_topic = ImpulsaEditionTopic.find_by(id: topic_id)
-      expect(remaining_topic).not_to be_nil, 'Topic should still exist after edition is deleted'
+      expect(remaining_topic).not_to be_nil, 'Topic should still exist after edition deletion fails'
     end
   end
 end

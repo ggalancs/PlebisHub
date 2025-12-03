@@ -9,8 +9,9 @@ RSpec.describe ImpulsaProject, type: :model do
 
   describe 'factory' do
     it 'creates valid impulsa_project' do
-      project = build(:impulsa_project)
+      project = create(:impulsa_project)
       expect(project).to be_valid, "Factory should create valid project. Errors: #{project.errors.full_messages.join(', ')}"
+      expect(project).to be_persisted
     end
   end
 

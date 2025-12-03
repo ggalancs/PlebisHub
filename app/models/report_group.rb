@@ -155,7 +155,13 @@ class ReportGroup < ApplicationRecord
 
     value = row
     parts.each do |part|
-      value = value.public_send(part) if value.respond_to?(part)
+      if value.respond_to?(part)
+        value = value.public_send(part)
+      else
+        # Field doesn't exist, log error and return nil
+        Rails.logger.error("Failed to extract '#{source_path}': field '#{part}' not found")
+        return nil
+      end
     end
 
     value

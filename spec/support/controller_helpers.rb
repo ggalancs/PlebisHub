@@ -62,7 +62,7 @@ RSpec.configure do |config|
         "/#{I18n.locale}/qr"
       end
 
-      def new_collaboration_path
+      def new_collaboration_path(*args)
         "/#{I18n.locale}/colabora"
       end
 

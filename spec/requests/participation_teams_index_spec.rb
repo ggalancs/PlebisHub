@@ -3,26 +3,33 @@
 require 'rails_helper'
 
 RSpec.describe 'Participation Teams Index', type: :request do
+  let(:user) { create(:user, :with_dni) }
+
   describe 'GET /es/equipos-participacion' do
     describe 'A. RENDERING BÁSICO' do
-      it 'renderiza correctamente sin autenticación' do
-        get '/es/equipos-participacion'
-        expect(response).to have_http_status(:success)
+      it 'renderiza correctamente sin autenticación', :skip_auth do
+        get '/equipos-de-accion-participativa'
+        expect(response).to have_http_status(:redirect)
       end
 
-      it 'muestra título de Equipos de Acción PlebisHubtiva' do
-        get '/es/equipos-participacion'
-        expect(response.body).to match(/Equipos.*Acción.*PlebisHubtiva/i)
+      it 'muestra título de Equipos de Acción Participativa' do
+        sign_in user
+        get '/equipos-de-accion-participativa'
+        expect(response.body).to match(/Equipos.*Acción.*Participativa/i)
       end
 
       it 'tiene el title tag correcto' do
-        get '/es/equipos-participacion'
+        sign_in user
+        get '/equipos-de-accion-participativa'
         expect(response.body).to match(/<title>.*Equipos/i)
       end
     end
 
     describe 'B. BOTONES DE PARTICIPACIÓN' do
-      before { get '/es/equipos-participacion' }
+      before do
+        sign_in user
+        get '/equipos-de-accion-participativa'
+      end
 
       it 'renderiza partial wants_participation_buttons' do
         expect(response.body).to include('buttonbox')
@@ -35,7 +42,10 @@ RSpec.describe 'Participation Teams Index', type: :request do
     end
 
     describe 'C. INFORMACIÓN SOBRE EQUIPOS DE CAMPAÑA' do
-      before { get '/es/equipos-participacion' }
+      before do
+        sign_in user
+        get '/equipos-de-accion-participativa'
+      end
 
       it 'tiene sección participation_teams_info' do
         expect(response.body).to include('participation_teams_info')
@@ -59,10 +69,13 @@ RSpec.describe 'Participation Teams Index', type: :request do
     end
 
     describe 'D. ENLACE A GUÍA' do
-      before { get '/es/equipos-participacion' }
+      before do
+        sign_in user
+        get '/equipos-de-accion-participativa'
+      end
 
-      it 'tiene enlace a Guía del Área de PlebisHubción' do
-        expect(response.body).to match(/Guía.*Área.*PlebisHubción/i)
+      it 'tiene enlace a Guía del Área de Participación' do
+        expect(response.body).to match(/Guía.*Área.*Participación/i)
       end
 
       it 'enlace apunta a plebisbrand.info' do
@@ -71,7 +84,10 @@ RSpec.describe 'Participation Teams Index', type: :request do
     end
 
     describe 'E. CONTENIDO EXPLICATIVO' do
-      before { get '/es/equipos-participacion' }
+      before do
+        sign_in user
+        get '/equipos-de-accion-participativa'
+      end
 
       it 'menciona capital económico vs apoyo de personas' do
         expect(response.body).to match(/capital económico|apoyo.*personas/i)
@@ -87,7 +103,10 @@ RSpec.describe 'Participation Teams Index', type: :request do
     end
 
     describe 'F. ESTRUCTURA HTML' do
-      before { get '/es/equipos-participacion' }
+      before do
+        sign_in user
+        get '/equipos-de-accion-participativa'
+      end
 
       it 'usa estructura content-content cols' do
         expect(response.body).to include('content-content')

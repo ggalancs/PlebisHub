@@ -66,7 +66,7 @@ RSpec.describe ImpulsaController, type: :controller do
       it "redirects to sign in for project" do
         get :project
         # Rails 7.2: Devise redirects without locale in controller specs
-        expect(response).to redirect_to("/users/sign_in")
+        expect(response).to redirect_to(%r{/users/sign_in})
       end
 
       it "redirects to sign in for upload" do

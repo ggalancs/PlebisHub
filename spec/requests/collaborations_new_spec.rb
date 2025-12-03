@@ -13,7 +13,7 @@ RSpec.describe 'Collaborations New', type: :request do
 
   describe 'GET /es/colabora' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
+      it 'redirige al login si no está autenticado', :skip_auth do
         get '/es/colabora'
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -93,7 +93,7 @@ RSpec.describe 'Collaborations New', type: :request do
       end
 
       it 'muestra info_box con información' do
-        expect(response.body).to match(/info.*box/i)
+        expect(response.body).to match(/box-info|info.*box/i)
       end
 
       it 'tiene formulario con action crear' do
@@ -150,7 +150,7 @@ RSpec.describe 'Collaborations New', type: :request do
       end
 
       it 'usa autocomplete off para seguridad' do
-        expect(response.body).to include("autocomplete='off'")
+        expect(response.body).to include('autocomplete="off"')
       end
     end
 

@@ -13,8 +13,8 @@
 # elections that the current user can participate in.
 class ToolsController < ApplicationController
   before_action :authenticate_user!
-  before_action :user_elections
-  before_action :get_promoted_forms
+  before_action :user_elections, only: [:index]
+  before_action :get_promoted_forms, only: [:index]
 
   # Display tools dashboard
   def index
@@ -27,6 +27,14 @@ class ToolsController < ApplicationController
     )
   rescue StandardError => e
     log_error('tools_index_error', e, user_id: current_user&.id)
+    redirect_to root_path, alert: t('errors.messages.generic')
+  end
+
+  # Display militant request page
+  def militant_request
+    log_security_event('militant_request_viewed', user_id: current_user.id)
+  rescue StandardError => e
+    log_error('militant_request_error', e, user_id: current_user&.id)
     redirect_to root_path, alert: t('errors.messages.generic')
   end
 

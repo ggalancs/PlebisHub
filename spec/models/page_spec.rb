@@ -100,7 +100,7 @@ RSpec.describe Page, type: :model do
       it 'requires id_form to be greater than or equal to 0' do
         page = build(:page, id_form: -1)
         expect(page).not_to be_valid
-        expect(page.errors[:id_form]).to include("must be greater than or equal to 0")
+        expect(page.errors[:id_form]).to include("debe ser mayor que o igual a 0")
       end
 
       it 'accepts id_form equal to 0' do
@@ -117,7 +117,7 @@ RSpec.describe Page, type: :model do
         page = build(:page)
         page.id_form = "not a number"
         expect(page).not_to be_valid
-        expect(page.errors[:id_form]).to include("is not a number")
+        expect(page.errors[:id_form]).to include("no es un número")
       end
     end
   end

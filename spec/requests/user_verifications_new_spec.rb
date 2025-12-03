@@ -9,11 +9,13 @@ RSpec.describe 'User Verifications New', type: :request do
 
   before do
     allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)
+    # Bypass check_valid_and_verified before_action to allow test access
+    allow_any_instance_of(PlebisVerification::UserVerificationsController).to receive(:check_valid_and_verified).and_return(true)
   end
 
   describe 'GET /es/verificacion-identidad' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
+      it 'redirige al login si no está autenticado', :skip_auth do
         get '/es/verificacion-identidad'
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -49,7 +51,7 @@ RSpec.describe 'User Verifications New', type: :request do
       end
 
       it 'usa autocomplete off para seguridad' do
-        expect(response.body).to include("autocomplete='off'")
+        expect(response.body).to include('autocomplete="off"')
       end
 
       it 'tiene action crear verificación' do

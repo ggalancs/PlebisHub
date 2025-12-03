@@ -67,7 +67,7 @@ ActiveAdmin.register Report do
   end
 
   member_action :run do
-    Resque.enqueue(PlebisBrandReportWorker, params[:id])
+    PlebisBrandReportWorker.perform_async(params[:id])
     redirect_to :admin_reports
   end
 

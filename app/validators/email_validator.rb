@@ -21,7 +21,7 @@ module ActiveModel::Validations
           # when an unquoted comma is found, the parsed address is different than the received string
           if value.include? "," and m.address != value
             return "contiene caracteres inválidos"
-          elsif not m.domain.include? "." or m.domain.starts_with? "."# domain validation
+          elsif m.domain.nil? or not m.domain.include? "." or m.domain.starts_with? "."# domain validation
             return "es incorrecto"
           end
         rescue
@@ -36,12 +36,13 @@ end
 class EmailValidator < ActiveModel::EachValidator
   include ActiveModel::Validations::EmailValidatorHelpers
 
-  def validate_each(record,attribute,value)
+  def validate_each(record, attribute, value)
     error = validate_email(value)
     if error
       record.errors.delete(attribute)
-      record.errors[attribute] << error
+      record.errors.add(attribute, error)
       return false
     end
+    true
   end
 end

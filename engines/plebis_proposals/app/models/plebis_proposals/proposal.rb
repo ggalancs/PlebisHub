@@ -28,12 +28,31 @@ module PlebisProposals
     # Callbacks
     before_save :update_threshold
 
+    # Track if reddit_threshold was explicitly set
+    attr_accessor :skip_threshold_update
+
     def update_threshold
-      self.reddit_threshold = true if reddit_required_votes?
+      # Set to true if votes meet threshold
+      return if skip_threshold_update
+
+      if reddit_required_votes?
+        if new_record?
+          # On create, don't override if explicitly set to false via accessor
+          self.reddit_threshold = true unless @reddit_threshold_explicitly_set == false
+        else
+          # On update, always set to true if threshold met
+          self.reddit_threshold = true
+        end
+      end
+    end
+
+    def reddit_threshold=(value)
+      @reddit_threshold_explicitly_set = value if value == false
+      super
     end
 
     def support_percentage
-      supports_count.percent_of(confirmed_users)
+      current_supports_count.percent_of(confirmed_users)
     end
 
     def confirmed_users
@@ -61,11 +80,11 @@ module PlebisProposals
     end
 
     def monthly_email_required_votes?
-      supports_count >= monthly_email_required_votes
+      current_supports_count >= monthly_email_required_votes
     end
 
     def agoravoting_required_votes?
-      supports_count >= agoravoting_required_votes
+      current_supports_count >= agoravoting_required_votes
     end
 
     def finished?
@@ -96,14 +115,25 @@ module PlebisProposals
     end
 
     def hotness
-      supports_count + (days_since_created * 1000)
+      current_supports_count + (days_since_created * 1000)
     end
 
     def days_since_created
       ((Time.now - created_at)/60/60/24).to_i
     end
 
+    # Override the association count to only count supports before finishes_at
     def supports_count
+      calculate_supports_count
+    end
+
+    # Get the current supports count - either from the column or by counting
+    def current_supports_count
+      read_attribute(:supports_count) || calculate_supports_count
+    end
+
+    # Calculate supports count based on supports within the finish date
+    def calculate_supports_count
       supports.where("created_at<?", finishes_at).count
     end
   end

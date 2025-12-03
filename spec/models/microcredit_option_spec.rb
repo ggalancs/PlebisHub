@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe MicrocreditOption, type: :model do
+RSpec.describe PlebisMicrocredit::MicrocreditOption, type: :model do
   # ====================
   # FACTORY TESTS
   # ====================
@@ -94,7 +94,7 @@ RSpec.describe MicrocreditOption, type: :model do
     it 'belongs to microcredit' do
       option = create(:microcredit_option)
       expect(option).to respond_to(:microcredit)
-      expect(option.microcredit).to be_instance_of(Microcredit)
+      expect(option.microcredit).to be_instance_of(PlebisMicrocredit::Microcredit)
     end
 
     it 'belongs to parent' do

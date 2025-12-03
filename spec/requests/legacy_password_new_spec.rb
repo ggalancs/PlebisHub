@@ -50,7 +50,7 @@ RSpec.describe 'Legacy Password New', type: :request do
 
       it 'si renderiza, tiene info_box con explicación' do
         if response.status == 200
-          expect(response.body).to match(/info.*box/i)
+          expect(response.body).to match(/box-info|info.*box/i)
         end
       end
 

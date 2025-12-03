@@ -5,19 +5,19 @@ require 'rails_helper'
 RSpec.describe 'Page Guarantees', type: :request do
   describe 'GET /es/comision-de-garantias-democraticas' do
     describe 'A. RENDERING BÁSICO' do
-      it 'renderiza correctamente sin autenticación' do
-        get '/es/comision-de-garantias-democraticas'
+      it 'renderiza correctamente sin autenticación', :skip_auth do
+        get '/comision-de-garantias-democraticas'
         expect(response).to have_http_status(:success)
       end
 
       it 'muestra el título de Comisión de Garantías' do
-        get '/es/comision-de-garantias-democraticas'
+        get '/comision-de-garantias-democraticas'
         expect(response.body).to include('Comisión de Garantías Democráticas')
       end
     end
 
     describe 'B. CONTENIDO INFORMATIVO' do
-      before { get '/es/comision-de-garantias-democraticas' }
+      before { get '/comision-de-garantias-democraticas' }
 
       it 'explica qué es la Comisión' do
         expect(response.body).to include('órgano independiente')
@@ -66,7 +66,7 @@ RSpec.describe 'Page Guarantees', type: :request do
     end
 
     describe 'C. DOCUMENTOS Y ENLACES' do
-      before { get '/es/comision-de-garantias-democraticas' }
+      before { get '/comision-de-garantias-democraticas' }
 
       it 'tiene enlace al Reglamento' do
         expect(response.body).to include('Reglamento de la Comisión')
@@ -84,7 +84,7 @@ RSpec.describe 'Page Guarantees', type: :request do
     end
 
     describe 'D. BOTÓN DE COMUNICACIÓN' do
-      before { get '/es/comision-de-garantias-democraticas' }
+      before { get '/comision-de-garantias-democraticas' }
 
       it 'tiene botón para comunicar' do
         expect(response.body).to include('Comunicar a la Comisión')
@@ -100,7 +100,7 @@ RSpec.describe 'Page Guarantees', type: :request do
     end
 
     describe 'E. ESTRUCTURA HTML' do
-      before { get '/es/comision-de-garantias-democraticas' }
+      before { get '/comision-de-garantias-democraticas' }
 
       it 'usa estructura content-content' do
         expect(response.body).to include('content-content')

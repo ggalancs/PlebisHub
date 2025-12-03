@@ -2,6 +2,12 @@ require 'fileutils'
 class Collaboration < ApplicationRecord
   include Rails.application.routes.url_helpers
 
+  # Provide default URL options for URL helpers when called from model context
+  # This is needed for Redsys payment URLs generated in ok_url/ko_url methods
+  def default_url_options
+    ActionMailer::Base.default_url_options || { host: 'www.example.com' }
+  end
+
   acts_as_paranoid
   has_paper_trail
 
@@ -500,11 +506,11 @@ class Collaboration < ApplicationRecord
   end
 
   def ok_url
-    ok_collaboration_url
+    ok_collaboration_url(host: default_url_options[:host])
   end
 
   def ko_url
-    ko_collaboration_url
+    ko_collaboration_url(host: default_url_options[:host])
   end
 
   def fix_status!
@@ -625,9 +631,11 @@ class Collaboration < ApplicationRecord
     if self.user
       self.user.vote_autonomy_code
     else
-      return nil unless self.get_non_user.respond_to?('ine_town')
-      vote_province_code = "p_" + self.get_non_user.ine_town.slice(2,2)
-      PlebisBrand::GeoExtra::AUTONOMIES[vote_province_code][0]
+      non_user = self.get_non_user
+      return nil unless non_user.respond_to?('ine_town') && non_user.ine_town
+      vote_province_code = "p_" + non_user.ine_town.slice(2,2)
+      autonomy_data = PlebisBrand::GeoExtra::AUTONOMIES[vote_province_code]
+      autonomy_data&.first
     end
   end
 
@@ -635,9 +643,11 @@ class Collaboration < ApplicationRecord
     if self.user
       self.user.vote_autonomy_name
     else
-      return nil unless self.get_non_user.respond_to?('ine_town')
-      vote_province_code = "p_" + self.get_non_user.ine_town.slice(2,2)
-      PlebisBrand::GeoExtra::AUTONOMIES[vote_province_code][1]
+      non_user = self.get_non_user
+      return nil unless non_user.respond_to?('ine_town') && non_user.ine_town
+      vote_province_code = "p_" + non_user.ine_town.slice(2,2)
+      autonomy_data = PlebisBrand::GeoExtra::AUTONOMIES[vote_province_code]
+      autonomy_data&.last
     end
   end
 
@@ -645,7 +655,10 @@ class Collaboration < ApplicationRecord
     if self.user
       self.user.vote_island_code
     else
-      PlebisBrand::GeoExtra::ISLANDS[self.get_non_user.ine_town][0]
+      non_user = self.get_non_user
+      return nil unless non_user && non_user.ine_town
+      island_data = PlebisBrand::GeoExtra::ISLANDS[non_user.ine_town]
+      island_data&.first
     end
   end
 
@@ -653,7 +666,10 @@ class Collaboration < ApplicationRecord
     if self.user
       self.user.vote_island_name
     else
-      PlebisBrand::GeoExtra::ISLANDS[self.get_non_user.ine_town][1]
+      non_user = self.get_non_user
+      return nil unless non_user && non_user.ine_town
+      island_data = PlebisBrand::GeoExtra::ISLANDS[non_user.ine_town]
+      island_data&.last
     end
   end
 
@@ -684,9 +700,12 @@ class Collaboration < ApplicationRecord
       end
       autonomy_code ||= u.vote_autonomy_code
     else
-      return nil unless self.get_non_user.respond_to?('ine_town')
-      vote_province_code = "p_" + self.get_non_user.ine_town.slice(2,2)
-      autonomy_code = PlebisBrand::GeoExtra::AUTONOMIES[vote_province_code][0]
+      non_user = self.get_non_user
+      if non_user.respond_to?('ine_town') && non_user.ine_town
+        vote_province_code = "p_" + non_user.ine_town.slice(2,2)
+        autonomy_data = PlebisBrand::GeoExtra::AUTONOMIES[vote_province_code]
+        autonomy_code = autonomy_data&.first
+      end
     end
     autonomy_code
   end
@@ -707,7 +726,11 @@ class Collaboration < ApplicationRecord
       end
       island_code ||= u.vote_island_code
     else
-      island_code = PlebisBrand::GeoExtra::ISLANDS[self.get_non_user.ine_town][0]
+      non_user = self.get_non_user
+      if non_user && non_user.ine_town
+        island_data = PlebisBrand::GeoExtra::ISLANDS[non_user.ine_town]
+        island_code = island_data&.first
+      end
     end
     island_code
   end

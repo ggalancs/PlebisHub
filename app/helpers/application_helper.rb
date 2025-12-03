@@ -1,5 +1,19 @@
 module ApplicationHelper
+  # Rails 7.2 FIX: semantic_form_with doesn't exist in formtastic gem
+  # This method provides compatibility by delegating to semantic_form_for
+  # which is the correct formtastic helper method
+  def semantic_form_with(model: nil, scope: nil, url: nil, **options, &block)
+    # Convert Rails 7+ form_with params to formtastic semantic_form_for params
+    record = model
+    as = scope
 
+    # Pass through url and other options
+    form_options = options.dup
+    form_options[:url] = url if url
+    form_options[:as] = as if as
+
+    semantic_form_for(record, **form_options, &block)
+  end
 
   # Like link_to but third parameter is an array of options for current_page?.
   def nav_menu_link_to name, icon, url, current_urls, html_options = {}

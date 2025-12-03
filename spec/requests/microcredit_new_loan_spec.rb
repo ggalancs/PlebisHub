@@ -18,7 +18,7 @@ RSpec.describe 'Microcredit New Loan', type: :request do
       end
     end
 
-    describe 'B. FORMULARIO DE PRÉSTAMO (sin autenticación)' do
+    describe 'B. FORMULARIO DE PRÉSTAMO (sin autenticación)', :skip_auth do
       it 'si renderiza, muestra campos de datos personales' do
         get '/es/microcreditos/1/prestamo'
         if response.status == 200
@@ -120,12 +120,12 @@ RSpec.describe 'Microcredit New Loan', type: :request do
       it 'si renderiza formulario, usa autocomplete off' do
         get '/es/microcreditos/1/prestamo'
         if response.status == 200 && response.body.include?('form')
-          expect(response.body).to include("autocomplete='off'")
+          expect(response.body).to include('autocomplete="off"')
         end
       end
     end
 
-    describe 'H. MODAL DE LOGIN (usuarios no autenticados)' do
+    describe 'H. MODAL DE LOGIN (usuarios no autenticados)', :skip_auth do
       it 'si renderiza, puede mostrar modal de login' do
         get '/es/microcreditos/1/prestamo'
         if response.status == 200

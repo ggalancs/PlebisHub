@@ -308,7 +308,8 @@ module PlebisVotes
 
       # Parse string like "1.year", "5.minutes", "1.hour"
       # This safely evaluates only ActiveSupport duration methods
-      case config_value.to_s.strip
+      str_value = config_value.to_s.strip
+      case str_value
       when /^(\d+)\.second(s)?$/
         $1.to_i.seconds
       when /^(\d+)\.minute(s)?$/
@@ -324,8 +325,14 @@ module PlebisVotes
       when /^(\d+)\.year(s)?$/
         $1.to_i.years
       else
-        # Fallback: try to parse as integer seconds
-        config_value.to_i.seconds
+        # Fallback: try to parse as integer seconds, but if invalid, log and return default
+        parsed = str_value.to_i
+        if parsed > 0
+          parsed.seconds
+        else
+          Rails.logger.error("Failed to parse duration config '#{key}': invalid format '#{config_value}'")
+          1.year
+        end
       end
     rescue => e
       Rails.logger.error("Failed to parse duration config '#{key}': #{config_value} - #{e.message}")

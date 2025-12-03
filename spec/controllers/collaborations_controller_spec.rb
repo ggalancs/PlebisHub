@@ -999,22 +999,22 @@ RSpec.describe CollaborationsController, type: :controller do
 
     it "requires authentication for new" do
       get :new
-      expect(response).to redirect_to("/users/sign_in")
+      expect(response).to redirect_to(%r{/users/sign_in})
     end
 
     it "requires authentication for create" do
       post :create, params: { collaboration: { amount: 1000 } }
-      expect(response).to redirect_to("/users/sign_in")
+      expect(response).to redirect_to(%r{/users/sign_in})
     end
 
     it "requires authentication for edit" do
       get :edit
-      expect(response).to redirect_to("/users/sign_in")
+      expect(response).to redirect_to(%r{/users/sign_in})
     end
 
     it "requires authentication for destroy" do
       delete :destroy
-      expect(response).to redirect_to("/users/sign_in")
+      expect(response).to redirect_to(%r{/users/sign_in})
     end
   end
 

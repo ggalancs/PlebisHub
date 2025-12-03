@@ -25,7 +25,7 @@ RSpec.describe ToolsController, type: :controller do
     context "when user is not authenticated" do
       it "redirects to sign in page" do
         get :index
-        expect(response).to redirect_to("/users/sign_in")
+        expect(response).to redirect_to(%r{/users/sign_in})
       end
 
       it "does not set instance variables" do
@@ -244,7 +244,7 @@ RSpec.describe ToolsController, type: :controller do
     it "requires authentication via Devise" do
       sign_out user
       get :index
-      expect(response).to redirect_to("/users/sign_in")
+      expect(response).to redirect_to(%r{/users/sign_in})
     end
 
     it "uses ActiveRecord safe query methods (no SQL injection)" do

@@ -6,26 +6,26 @@ RSpec.describe 'Devise Registrations New', type: :request do
   describe 'GET /es/registro' do
     describe 'A. RENDERING BÁSICO' do
       it 'renderiza correctamente sin autenticación' do
-        get '/es/registro'
+        get '/es/users/sign_up'
         expect(response).to have_http_status(:success)
       end
 
       it 'muestra título de registro' do
-        get '/es/registro'
+        get '/es/users/sign_up'
         expect(response.body).to match(/sign.*up|registro|inscripción/i)
       end
 
       it 'tiene el title tag correcto' do
-        get '/es/registro'
+        get '/es/users/sign_up'
         expect(response.body).to match(/<title>/)
       end
     end
 
     describe 'B. INFORMACIÓN INTRODUCTORIA' do
-      before { get '/es/registro' }
+      before { get '/es/users/sign_up' }
 
       it 'muestra info_box con información' do
-        expect(response.body).to match(/info.*box/i)
+        expect(response.body).to match(/box-info|info.*box/i)
       end
 
       it 'tiene párrafo introductorio' do
@@ -34,7 +34,7 @@ RSpec.describe 'Devise Registrations New', type: :request do
     end
 
     describe 'C. FORMULARIO DE REGISTRO' do
-      before { get '/es/registro' }
+      before { get '/es/users/sign_up' }
 
       it 'renderiza el partial form' do
         expect(response.body).to match(/form/)
@@ -51,7 +51,7 @@ RSpec.describe 'Devise Registrations New', type: :request do
     end
 
     describe 'D. ESTRUCTURA HTML' do
-      before { get '/es/registro' }
+      before { get '/es/users/sign_up' }
 
       it 'usa estructura content-content cols' do
         expect(response.body).to include('content-content')

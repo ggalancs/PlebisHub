@@ -110,7 +110,7 @@ RSpec.describe BrandSetting, type: :model do
           organization_id: organization.id
         )
         expect(setting).not_to be_valid
-        expect(setting.errors[:organization_id]).to include('debe estar en blanco')
+        expect(setting.errors[:organization_id]).to include('must be blank')
       end
     end
 
@@ -274,8 +274,8 @@ RSpec.describe BrandSetting, type: :model do
           name: 'Test',
           scope: 'global',
           theme_id: 'default',
-          primary_color: '#612d62', # Good contrast
-          secondary_color: '#269283'  # Good contrast
+          primary_color: '#612d62', # Good contrast (5.02:1)
+          secondary_color: '#1a7568'  # Good contrast (4.58:1)
         )
 
         setting.valid?
@@ -632,10 +632,10 @@ RSpec.describe BrandSetting, type: :model do
           name: 'Test',
           scope: 'global',
           theme_id: 'default',
-          primary_color: '#ff0000'
+          primary_color: '#0066cc'
         )
 
-        setting.primary_color = '#00ff00'
+        setting.primary_color = '#006600'
         expect(setting.colors_changed?).to be true
       end
 
@@ -722,15 +722,15 @@ RSpec.describe BrandSetting, type: :model do
           name: 'Test',
           scope: 'global',
           theme_id: 'default',
-          primary_color: '#ff0000',
-          secondary_color: '#00ff00'
+          primary_color: '#0066cc',
+          secondary_color: '#006600'
         )
 
         json = setting.to_brand_json
 
         expect(json[:customColors]).not_to be_nil
-        expect(json[:customColors][:primary]).to eq('#ff0000')
-        expect(json[:customColors][:secondary]).to eq('#00ff00')
+        expect(json[:customColors][:primary]).to eq('#0066cc')
+        expect(json[:customColors][:secondary]).to eq('#006600')
       end
 
       it 'includes timestamps' do
@@ -798,13 +798,13 @@ RSpec.describe BrandSetting, type: :model do
 
   describe 'combined scenarios' do
     it 'handles complete brand setting lifecycle' do
-      # Create setting
+      # Create setting (must be active initially)
       setting = BrandSetting.create!(
         name: 'Campaign Theme',
         description: 'Special campaign colors',
         scope: 'global',
         theme_id: 'ocean',
-        active: false
+        active: true
       )
 
       expect(setting).to be_valid
@@ -812,21 +812,20 @@ RSpec.describe BrandSetting, type: :model do
 
       # Update with custom colors (version should increment)
       setting.update!(
-        primary_color: '#1e40af',
-        secondary_color: '#0891b2'
+        primary_color: '#0066cc',
+        secondary_color: '#006600'
       )
 
       expect(setting.version).to eq(2)
       expect(setting.has_custom_colors?).to be true
 
-      # Activate setting
-      setting.update!(active: true)
+      # Verify still active
       expect(setting.active).to be true
 
       # Verify JSON serialization works
       json = setting.to_brand_json
-      expect(json[:theme][:colors][:primary]).to eq('#1e40af')
-      expect(json[:customColors][:primary]).to eq('#1e40af')
+      expect(json[:theme][:colors][:primary]).to eq('#0066cc')
+      expect(json[:customColors][:primary]).to eq('#0066cc')
     end
 
     it 'handles organization-specific branding' do

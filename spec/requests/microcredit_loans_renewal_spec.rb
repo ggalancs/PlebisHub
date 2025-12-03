@@ -57,7 +57,7 @@ RSpec.describe 'Microcredit Loans Renewal', type: :request do
       it 'si tiene formulario, usa autocomplete off' do
         get '/es/microcreditos/1/prestamos/renovar'
         if response.status == 200 && response.body.include?('<form')
-          expect(response.body).to include("autocomplete='off'")
+          expect(response.body).to include('autocomplete="off"')
         end
       end
 

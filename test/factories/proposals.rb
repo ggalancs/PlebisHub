@@ -1,5 +1,5 @@
  FactoryBot.define do
-  factory :proposal, class: 'PlebisProposals::Proposal' do
+  factory :proposal, class: 'Proposal' do
     sequence(:title) { |n| "Proposal #{n}" }
     sequence(:description) { |n| "Description for proposal #{n}. This is a detailed explanation of what this proposal aims to achieve." }
 

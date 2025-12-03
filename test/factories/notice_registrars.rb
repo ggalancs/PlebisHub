@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :notice_registrar do
+  factory :notice_registrar, class: 'PlebisCms::NoticeRegistrar' do
     sequence(:registration_id) { |n| "REG#{n.to_s.rjust(6, '0')}" }
     status { true }
 

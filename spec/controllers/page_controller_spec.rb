@@ -217,7 +217,7 @@ RSpec.describe PlebisCms::PageController, type: :controller do
         context "when user is not signed in" do
           it "redirects to sign in page" do
             get :show_form, params: { id: page.id }
-            expect(response).to redirect_to("/users/sign_in")
+            expect(response).to redirect_to(%r{/users/sign_in})
           end
 
           it "stores meta information in flash" do
@@ -507,7 +507,7 @@ RSpec.describe PlebisCms::PageController, type: :controller do
       it "does not require authentication" do
         # Should work without signing in
         get :privacy_policy
-        expect(response).not_to redirect_to("/users/sign_in")
+        expect(response).to have_http_status(:success)
       end
     end
 

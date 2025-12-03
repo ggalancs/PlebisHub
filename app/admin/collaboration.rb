@@ -398,21 +398,21 @@ ActiveAdmin.register Collaboration do
   
   collection_action :charge, :method => :get do
     Collaboration.credit_cards.pluck(:id).each do |cid|
-      Resque.enqueue(PlebisBrandCollaborationWorker, cid)
+      PlebisBrandCollaborationWorker.perform_async(cid)
     end
     redirect_to :admin_collaborations
   end
 
   collection_action :generate_orders, :method => :get do
     Collaboration.banks.pluck(:id).each do |cid|
-      Resque.enqueue(PlebisBrandCollaborationWorker, cid)
+      PlebisBrandCollaborationWorker.perform_async(cid)
     end
     redirect_to :admin_collaborations
   end
 
   collection_action :generate_csv, :method => :get do
     Collaboration.bank_file_lock true
-    Resque.enqueue(PlebisBrandCollaborationWorker, -1)
+    PlebisBrandCollaborationWorker.perform_async(-1)
     redirect_to :admin_collaborations
   end
 

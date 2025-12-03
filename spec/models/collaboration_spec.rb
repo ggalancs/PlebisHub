@@ -61,13 +61,13 @@ RSpec.describe Collaboration, type: :model do
     it 'requires terms_of_service acceptance' do
       collaboration = build(:collaboration, terms_of_service: false)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:terms_of_service]).to include('must be accepted')
+      expect(collaboration.errors[:terms_of_service]).to include('debe ser aceptado')
     end
 
     it 'requires minimal_year_old acceptance' do
       collaboration = build(:collaboration, minimal_year_old: false)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:minimal_year_old]).to include('must be accepted')
+      expect(collaboration.errors[:minimal_year_old]).to include('debe ser aceptado')
     end
 
     it 'validates user_id uniqueness for recurring collaborations' do
@@ -82,7 +82,7 @@ RSpec.describe Collaboration, type: :model do
 
       duplicate = build(:collaboration, user: user, frequency: 1)
       expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:user_id]).to include('has already been taken')
+      expect(duplicate.errors[:user_id]).to include('ya está en uso')
     end
 
     it 'allows multiple single collaborations for same user' do

@@ -5,16 +5,16 @@ require 'rails_helper'
 RSpec.describe 'SMS Validator Step1', type: :request do
   include Devise::Test::IntegrationHelpers
 
-  let(:user) { create(:user, :with_dni) }
+  let(:user) { create(:user, :with_dni, sms_confirmed_at: nil) }
 
   before do
     allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)
   end
 
-  describe 'GET /es/validacion/sms' do
+  describe 'GET /es/validator/sms/step1' do
     describe 'A. AUTENTICACIÓN REQUERIDA' do
-      it 'redirige al login si no está autenticado' do
-        get '/es/validacion/sms'
+      it 'redirige al login si no está autenticado', :skip_auth do
+        get '/es/validator/sms/step1'
         expect(response).to redirect_to(new_user_session_path)
       end
     end
@@ -22,7 +22,7 @@ RSpec.describe 'SMS Validator Step1', type: :request do
     describe 'B. RENDERING BÁSICO CON AUTENTICACIÓN' do
       before do
         sign_in user
-        get '/es/validacion/sms'
+        get '/es/validator/sms/step1'
       end
 
       it 'renderiza correctamente' do
@@ -41,7 +41,7 @@ RSpec.describe 'SMS Validator Step1', type: :request do
     describe 'C. PARTIAL DE STEPS' do
       before do
         sign_in user
-        get '/es/validacion/sms'
+        get '/es/validator/sms/step1'
       end
 
       it 'renderiza partial de steps (paso 1)' do
@@ -52,7 +52,7 @@ RSpec.describe 'SMS Validator Step1', type: :request do
     describe 'D. FORMULARIO DE TELÉFONO' do
       before do
         sign_in user
-        get '/es/validacion/sms'
+        get '/es/validator/sms/step1'
       end
 
       it 'tiene formulario para current_user' do
@@ -83,7 +83,7 @@ RSpec.describe 'SMS Validator Step1', type: :request do
     describe 'E. INSTRUCCIONES' do
       before do
         sign_in user
-        get '/es/validacion/sms'
+        get '/es/validator/sms/step1'
       end
 
       it 'tiene párrafos con instrucciones' do
@@ -111,7 +111,7 @@ RSpec.describe 'SMS Validator Step1', type: :request do
     describe 'F. ESTRUCTURA HTML' do
       before do
         sign_in user
-        get '/es/validacion/sms'
+        get '/es/validator/sms/step1'
       end
 
       it 'usa estructura content-content cols' do

@@ -68,15 +68,15 @@ RSpec.describe UsersMailer, type: :mailer do
     end
 
     it 'incluye mensaje de bienvenida como militante' do
-      expect(mail.html_part.body.decoded).to match(/ya eres militante/)
+      expect(mail.body.decoded).to match(/ya eres militante/i)
     end
 
     it 'incluye información sobre derechos como militante' do
-      expect(mail.html_part.body.decoded).to match(/derechos|Círculo/)
+      expect(mail.body.decoded).to match(/derechos|Círculo/)
     end
 
     it 'incluye enlace a información de militantes' do
-      expect(mail.html_part.body.decoded).to include('plebisbrand.info/militantes')
+      expect(mail.body.decoded).to include('plebisbrand.info/militantes')
     end
   end
 
@@ -125,7 +125,8 @@ RSpec.describe UsersMailer, type: :mailer do
       {
         'name' => 'PlebisBrand',
         'mail_from' => 'microcreditos@plebisbrand.info',
-        'mail_signature' => 'Equipo de Microcréditos'
+        'mail_signature' => 'Equipo de Microcréditos',
+        'logo' => 'logo.png'
       }
     end
 

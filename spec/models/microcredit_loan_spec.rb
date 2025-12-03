@@ -152,7 +152,7 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
         microcredit_option = create(:microcredit_option, microcredit: microcredit)
         loan = build(:microcredit_loan, :without_user, microcredit: microcredit, microcredit_option: microcredit_option, email: "test@")
         expect(loan).not_to be_valid
-        expect(loan.errors[:email]).to include("es incorrecto")
+        expect(loan.errors[:email]).to include("debe acabar con una letra")
       end
 
       it 'requires address if no user' do
@@ -233,7 +233,10 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
 
         # Create first loan to fill the limit
         first_loan = create(:microcredit_loan, :without_user, microcredit: microcredit, microcredit_option: microcredit_option, amount: 100)
-        first_loan.update_column(:confirmed_at, Time.current)
+        first_loan.update_columns(confirmed_at: Time.current, counted_at: Time.current)
+
+        # Clear cache to pick up the new loan
+        microcredit.clear_cache
 
         # Try to create second loan
         loan = build(:microcredit_loan, :without_user, microcredit: microcredit, microcredit_option: microcredit_option, amount: 100)
@@ -250,17 +253,19 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
 
       it 'rejects if exceeds max loans per IP' do
         microcredit = create(:microcredit, :active)
+        microcredit_option = create(:microcredit_option, microcredit: microcredit)
         test_ip = "192.168.1.100"
 
-        # Create max loans for this IP using update_columns to bypass validations
+        # Create max loans for this IP using build + save(validate: false) + update_columns
         51.times do |i|
           user = create(:user, :with_dni)
-          loan = create(:microcredit_loan, microcredit: microcredit, user: user, ip: nil)
+          loan = build(:microcredit_loan, microcredit: microcredit, microcredit_option: microcredit_option, user: user, ip: nil)
+          loan.save(validate: false)
           loan.update_columns(ip: test_ip, confirmed_at: Time.current)
         end
 
         # Try to create one more
-        loan = build(:microcredit_loan, microcredit: microcredit, ip: test_ip)
+        loan = build(:microcredit_loan, microcredit: microcredit, microcredit_option: microcredit_option, ip: test_ip)
         expect(loan).not_to be_valid
         expect(loan.errors[:user]).to include("Lamentablemente, no es posible suscribir este microcrédito.")
       end
@@ -626,7 +631,7 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
         hash2 = loan.unique_hash
 
         expect(hash1).to eq(hash2)
-        expect(hash1.length).to eq(40) # SHA1 hex digest length
+        expect(hash1.length).to eq(64) # SHA256 hex digest length
       end
     end
 
@@ -743,7 +748,7 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
 
         expect(loan.returned_at).not_to be_nil
         expect(loan.transferred_to).not_to be_nil
-        expect(loan.transferred_to.microcredit).to eq(new_microcredit)
+        expect(loan.transferred_to.microcredit.id).to eq(new_microcredit.id)
         expect(loan.transferred_to.counted_at).not_to be_nil
       end
     end

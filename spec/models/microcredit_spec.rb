@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Microcredit, type: :model do
+RSpec.describe PlebisMicrocredit::Microcredit, type: :model do
   # ====================
   # FACTORY TESTS
   # ====================

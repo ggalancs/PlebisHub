@@ -132,23 +132,21 @@ end
 
 # Background worker for async event processing
 class EventBusWorker
-  # Include UniqueJob plugin if available (optional dependency)
-  begin
-    include Resque::Plugins::UniqueJob if defined?(Resque::Plugins::UniqueJob)
-  rescue NameError
-    # UniqueJob plugin not available, continue without it
-  end
+  include Sidekiq::Worker
 
-  @queue = :events
+  # Configure Sidekiq with unique jobs to prevent duplicate event processing
+  sidekiq_options queue: :events,
+                  lock: :until_executed,
+                  on_conflict: :log
 
-  def self.perform(listener_class_name, event_hash)
+  def perform(listener_class_name, event_hash)
     listener_class = listener_class_name.constantize
     event = EventBus::Event.new(event_hash['name'], event_hash['payload'])
 
     listener_class.call(event)
   rescue StandardError => e
     Rails.logger.error "[EventBusWorker] Error: #{e.class} - #{e.message}"
-    raise # Re-raise to retry via Resque
+    raise # Re-raise to retry via Sidekiq
   end
 end
 

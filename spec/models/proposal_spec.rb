@@ -3,6 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Proposal, type: :model do
+  include ActiveSupport::Testing::TimeHelpers
   # Due to the extreme length (865 lines) and complexity of this test file,
   # this RSpec conversion focuses on maintaining all test coverage while
   # following RSpec best practices.
@@ -90,7 +91,7 @@ RSpec.describe Proposal, type: :model do
       it 'rejects negative votes' do
         proposal = build(:proposal, votes: -1)
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:votes]).to include("must be greater than or equal to 0")
+        expect(proposal.errors[:votes]).to include("debe ser mayor que o igual a 0")
       end
     end
 
@@ -113,7 +114,7 @@ RSpec.describe Proposal, type: :model do
       it 'rejects negative supports_count' do
         proposal = build(:proposal, supports_count: -1)
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:supports_count]).to include("must be greater than or equal to 0")
+        expect(proposal.errors[:supports_count]).to include("debe ser mayor que o igual a 0")
       end
     end
 
@@ -136,7 +137,7 @@ RSpec.describe Proposal, type: :model do
       it 'rejects negative hotness' do
         proposal = build(:proposal, hotness: -1)
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:hotness]).to include("must be greater than or equal to 0")
+        expect(proposal.errors[:hotness]).to include("debe ser mayor que o igual a 0")
       end
     end
   end

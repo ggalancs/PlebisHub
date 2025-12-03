@@ -931,8 +931,13 @@ class User < ApplicationRecord
   end
 
   def sendy_url
-    url = "#{Rails.application.secrets.users["sendy_page"]}?zaz="
-    url+= encrypt_data(email)
+    sendy_page = Rails.application.secrets.users&.dig("sendy_page")
+    return nil unless sendy_page.present?
+
+    url = "#{sendy_page}?zaz="
+    encrypted = encrypt_data(email)
+    url += encrypted if encrypted.present?
+    url
   end
 
   def can_change_vote_circle?
@@ -1179,6 +1184,8 @@ class User < ApplicationRecord
     cipher_type = Rails.application.secrets.users["cipher_type"]
     key = Rails.application.secrets.users["cipher_key"]
     iv = Rails.application.secrets.users["cipher_iv"]
+
+    return nil if cipher_type.nil? || key.nil? || iv.nil?
 
     cipher = OpenSSL::Cipher.new(cipher_type)
     cipher.encrypt

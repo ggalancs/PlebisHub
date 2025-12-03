@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :impulsa_project, class: 'PlebisImpulsa::ImpulsaProject' do
+  factory :impulsa_project, class: 'ImpulsaProject' do
     association :impulsa_edition_category
     association :user
     association :evaluator1, factory: :user

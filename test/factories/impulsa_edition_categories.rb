@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :impulsa_edition_category, class: 'PlebisImpulsa::ImpulsaEditionCategory' do
+  factory :impulsa_edition_category, class: 'ImpulsaEditionCategory' do
     association :impulsa_edition
     sequence(:name) { |n| "Category #{n}" }
     category_type { 1 } # state
