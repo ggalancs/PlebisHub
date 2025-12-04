@@ -17,9 +17,9 @@ SimpleCov.start 'rails' do
 
   # Set minimum coverage percentages
   # Current: 42.5% - incrementally increasing to 50%
-  # Temporarily lowered to 41% to allow RuboCop autocorrect fixes to be committed
-  # TODO: Incrementally increase to 50% as tests are fixed
-  minimum_coverage 41
+  # Adjusted to current level to allow passing CI
+  # TODO: Incrementally increase to 45%, then 50% as more tests are added
+  minimum_coverage 42
   minimum_coverage_by_file 25
 end
 
