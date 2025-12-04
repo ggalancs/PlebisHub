@@ -99,5 +99,54 @@ RSpec.describe EngineUser::ImpulsaAuthor, type: :model do
 
       expect(user.impulsa_author?).to be true
     end
+
+    it 'can be called on unsaved user' do
+      new_user = build(:user)
+      expect { new_user.impulsa_author? }.not_to raise_error
+      expect(new_user.impulsa_author?).to be false
+    end
+
+    it 'persists correctly after save' do
+      new_user = build(:user)
+      new_user.update_column(:flags, 16) if new_user.persisted?
+      new_user.save! unless new_user.persisted?
+      new_user.update_column(:flags, new_user.flags | 16)
+      new_user.reload
+      expect(new_user.impulsa_author?).to be true
+    end
+  end
+
+  describe 'integration with User model' do
+    it 'method is defined on User instances' do
+      expect(user).to respond_to(:impulsa_author?)
+    end
+
+    it 'method returns same value as impulsa_author attribute' do
+      user.update_column(:flags, user.flags | 16)
+      expect(user.impulsa_author?).to eq(user.impulsa_author)
+    end
+
+    it 'works correctly with user queries' do
+      author1 = create(:user)
+      author2 = create(:user)
+      regular = create(:user)
+
+      author1.update_column(:flags, author1.flags | 16)
+      author2.update_column(:flags, author2.flags | 16)
+
+      expect(author1.impulsa_author?).to be true
+      expect(author2.impulsa_author?).to be true
+      expect(regular.impulsa_author?).to be false
+    end
+  end
+
+  describe 'concern structure' do
+    it 'does not define has_many associations' do
+      expect(user.class.reflect_on_all_associations(:has_many).map(&:name)).not_to include(:impulsa_projects)
+    end
+
+    it 'concern is properly namespaced' do
+      expect(EngineUser::ImpulsaAuthor.name).to eq('EngineUser::ImpulsaAuthor')
+    end
   end
 end

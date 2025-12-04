@@ -456,4 +456,62 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
       expect(described_class.new).to respond_to(:perform)
     end
   end
+
+  describe 'queue configuration' do
+    it 'uses the correct Sidekiq queue' do
+      expect(described_class.get_sidekiq_options['queue']).to eq(:plebisbrand_import_queue)
+    end
+  end
+
+  describe 'method delegation' do
+    it 'delegates processing to PlebisBrandImport.process_row' do
+      worker = described_class.new
+      row = [['first_name', 'Test']]
+
+      expect(PlebisBrandImport).to receive(:process_row).with(row).once
+
+      worker.perform(row)
+    end
+  end
+
+  describe 'return value' do
+    let(:worker) { described_class.new }
+    let(:test_row) { [['first_name', 'Test'], ['last_name', 'User']] }
+
+    it 'returns the result from PlebisBrandImport.process_row' do
+      allow(PlebisBrandImport).to receive(:process_row).with(test_row).and_return('test_result')
+
+      result = worker.perform(test_row)
+
+      expect(result).to eq('test_result')
+    end
+
+    it 'returns nil when process_row returns nil' do
+      allow(PlebisBrandImport).to receive(:process_row).with(test_row).and_return(nil)
+
+      result = worker.perform(test_row)
+
+      expect(result).to be_nil
+    end
+  end
+
+  describe 'argument handling' do
+    let(:worker) { described_class.new }
+
+    it 'accepts any object as row parameter' do
+      allow(PlebisBrandImport).to receive(:process_row)
+
+      expect { worker.perform({}) }.not_to raise_error
+      expect { worker.perform([]) }.not_to raise_error
+      expect { worker.perform('string') }.not_to raise_error
+    end
+
+    it 'passes the exact row object to process_row' do
+      row_object = Object.new
+
+      expect(PlebisBrandImport).to receive(:process_row).with(row_object)
+
+      worker.perform(row_object)
+    end
+  end
 end
