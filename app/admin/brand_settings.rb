@@ -81,7 +81,8 @@ ActiveAdmin.register BrandSetting do
     end
 
     panel 'Color Preview' do
-      div class: 'color-preview-grid', style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;' do
+      div class: 'color-preview-grid',
+          style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;' do
         # Primary Colors
         div do
           h3 'Primary Colors', style: 'margin-bottom: 15px; color: #333;'
@@ -166,7 +167,9 @@ ActiveAdmin.register BrandSetting do
     f.inputs 'Theme Selection' do
       f.input :theme_id,
               as: :select,
-              collection: BrandSetting::PREDEFINED_THEMES.map { |id, theme| ["#{theme[:name]} - #{theme[:description]}", id] },
+              collection: BrandSetting::PREDEFINED_THEMES.map { |id, theme|
+                ["#{theme[:name]} - #{theme[:description]}", id]
+              },
               include_blank: false,
               hint: 'Select a predefined theme. You can override individual colors below.'
       f.input :theme_name,
@@ -251,7 +254,7 @@ ActiveAdmin.register BrandSetting do
 
     if duplicated.save
       redirect_to admin_brand_setting_path(duplicated),
-                  notice: "Brand setting duplicated successfully!"
+                  notice: 'Brand setting duplicated successfully!'
     else
       redirect_to admin_brand_settings_path,
                   alert: "Failed to duplicate: #{duplicated.errors.full_messages.join(', ')}"
