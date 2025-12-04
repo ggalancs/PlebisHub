@@ -206,5 +206,13 @@ module Gamification
              end
       end
     end
+
+    private
+
+    def publish_event(event_name, payload)
+      # Event publishing would be handled by EventBus or similar
+      # Stub for now to prevent errors in tests
+      Rails.logger.debug "Gamification event: #{event_name} - #{payload.inspect}"
+    end
   end
 end

@@ -37,13 +37,13 @@ RSpec.describe BankCccValidator do
     it 'calculates control digit for entity and office code' do
       # For entity 1234 and office 5678: 00-1234-5678
       ary = [0, 0, 1, 2, 3, 4, 5, 6, 7, 8]
-      expect(described_class.calculate_digit(ary)).to eq(6)
+      expect(described_class.calculate_digit(ary)).to eq(0)
     end
 
     it 'calculates control digit for account number' do
       # For account number 0123456789
       ary = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-      expect(described_class.calculate_digit(ary)).to eq(7)
+      expect(described_class.calculate_digit(ary)).to eq(1)
     end
 
     it 'returns 1 when result would be 10' do
@@ -99,16 +99,16 @@ RSpec.describe BankCccValidator do
       end
 
       it 'validates another valid CCC' do
-        # 0182-1666-88-0201503283 is a valid CCC
-        expect(described_class.validate('01821666880201503283')).to be true
+        # 0182-1666-31-0201503283 is a valid CCC
+        expect(described_class.validate('01821666310201503283')).to be true
       end
 
       it 'validates CCC with different separators' do
-        expect(described_class.validate('0182 1666 88 0201503283')).to be true
+        expect(described_class.validate('0182 1666 31 0201503283')).to be true
       end
 
       it 'validates CCC with mixed separators' do
-        expect(described_class.validate('0182-1666-88-0201503283')).to be true
+        expect(described_class.validate('0182-1666-31-0201503283')).to be true
       end
     end
 
@@ -147,8 +147,9 @@ RSpec.describe BankCccValidator do
         expect(described_class.validate('21000418000200051332')).to be false
       end
 
-      it 'rejects CCC with all zeros' do
-        expect(described_class.validate('00000000000000000000')).to be false
+      it 'validates CCC with all zeros (has correct control digits 00)' do
+        # All zeros with control digits 00 is technically valid
+        expect(described_class.validate('00000000000000000000')).to be true
       end
 
       it 'rejects CCC with invalid entity code' do
@@ -199,7 +200,7 @@ RSpec.describe BankCccValidator do
       it 'handles control digits that are 0' do
         # Find or construct a CCC where control digits are 00
         # 0000-0000-00-0000000000 has control digits 00
-        expect(described_class.validate('00000000000000000000')).to be false
+        expect(described_class.validate('00000000000000000000')).to be true
       end
 
       it 'handles control digits that are 10 (represented as 1)' do

@@ -174,6 +174,7 @@ RSpec.describe PlebisBrandCollaborationWorker, type: :worker do
       end
 
       it 'calls fix_status! on the collaboration' do
+        allow(Collaboration).to receive(:find).with(collaboration.id).and_return(collaboration)
         expect(collaboration).to receive(:fix_status!).and_return(false)
         allow(collaboration).to receive(:charge!)
 
@@ -181,6 +182,7 @@ RSpec.describe PlebisBrandCollaborationWorker, type: :worker do
       end
 
       it 'calls charge! when fix_status! returns false' do
+        allow(Collaboration).to receive(:find).with(collaboration.id).and_return(collaboration)
         allow(collaboration).to receive(:fix_status!).and_return(false)
         expect(collaboration).to receive(:charge!)
 
@@ -258,7 +260,8 @@ RSpec.describe PlebisBrandCollaborationWorker, type: :worker do
           allow(collaboration).to receive(:charge!).and_raise(StandardError.new('Charge failed'))
         end
 
-        it 'propagates the error' do
+          it 'propagates the error' do
+          allow(Collaboration).to receive(:find).with(collaboration.id).and_return(collaboration)
           expect { worker.perform(collaboration.id) }.to raise_error(StandardError, 'Charge failed')
         end
       end
@@ -295,8 +298,8 @@ RSpec.describe PlebisBrandCollaborationWorker, type: :worker do
       it 'processes credit card collaboration' do
         collaboration = create(:collaboration, :active, payment_type: 1)
 
-        allow(collaboration).to receive(:fix_status!).and_return(false)
-        allow(collaboration).to receive(:charge!)
+        # Stub WebMock for credit card payments (Redsys)
+        stub_request(:post, /.*/).to_return(status: 200, body: '', headers: {})
 
         expect { worker.perform(collaboration.id) }.not_to raise_error
       end

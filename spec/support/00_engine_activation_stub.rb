@@ -9,5 +9,9 @@ unless defined?(EngineActivation)
     def self.enabled?(_engine_name)
       true
     end
+
+    def self.active?(_engine_name)
+      true
+    end
   end
 end

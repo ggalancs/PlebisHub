@@ -142,79 +142,79 @@ RSpec.describe ValidNifValidator do
       it 'rejects NIF with too few digits' do
         record.nif = '1234567Z'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF with too many digits' do
         record.nif = '123456789Z'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF without final letter' do
         record.nif = '12345678'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF with number as final character' do
         record.nif = '123456781'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF with letter in middle digits' do
         record.nif = '1234A678Z'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF with special characters' do
         record.nif = '12345-78Z'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF with spaces in middle' do
         record.nif = '1234 5678Z'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects too short string' do
         record.nif = '123'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects too long string' do
         record.nif = '12345678901Z'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF with letter at start' do
         record.nif = 'A2345678Z'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF with all letters' do
         record.nif = 'ABCDEFGHZ'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF with all numbers' do
         record.nif = '123456789'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF with multiple letters at end' do
         record.nif = '12345678ZZ'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
     end
 
@@ -223,7 +223,7 @@ RSpec.describe ValidNifValidator do
         # 12345678Z is valid, 12345678A is not
         record.nif = '12345678A'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIF with off-by-one check letter' do
@@ -231,27 +231,27 @@ RSpec.describe ValidNifValidator do
         # Try S (position 13)
         record.nif = '12345678S'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects 00000000 with wrong letter' do
         # 00000000T is valid
         record.nif = '00000000A'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects 99999999 with wrong letter' do
         # 99999999R is valid
         record.nif = '99999999A'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects with completely wrong letter' do
         record.nif = '11111111A'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
     end
 
@@ -321,7 +321,7 @@ RSpec.describe ValidNifValidator do
       it 'converts to string when number provided' do
         record.nif = 12345678
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
     end
 
@@ -396,7 +396,7 @@ RSpec.describe ValidNifValidator do
           test_record.valid?
           # Blank values don't get errors
           unless invalid_nif.strip.empty?
-            expect(test_record.errors[:nif]).to include('is invalid'), "Expected #{invalid_nif.inspect} to be invalid"
+            expect(test_record.errors[:nif]).to include('El DNI no es válido'), "Expected #{invalid_nif.inspect} to be invalid"
           end
         end
       end
@@ -406,25 +406,25 @@ RSpec.describe ValidNifValidator do
       it 'rejects NIE format (X prefix)' do
         record.nif = 'X1234567L'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIE format (Y prefix)' do
         record.nif = 'Y1234567X'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'rejects NIE format (Z prefix)' do
         record.nif = 'Z1234567R'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
 
       it 'only accepts 8 digits, not 7 like NIE' do
         record.nif = '1234567Z'
         record.valid?
-        expect(record.errors[:nif]).to include('is invalid')
+        expect(record.errors[:nif]).to include('El DNI no es válido')
       end
     end
   end
@@ -433,7 +433,7 @@ RSpec.describe ValidNifValidator do
     it 'adds error with default message' do
       record.nif = 'INVALID'
       record.valid?
-      expect(record.errors[:nif]).to include('is invalid')
+      expect(record.errors[:nif]).to include('El DNI no es válido')
     end
 
     it 'only adds one error per validation' do

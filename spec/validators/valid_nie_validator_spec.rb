@@ -137,79 +137,79 @@ RSpec.describe ValidNieValidator do
       it 'rejects NIE without prefix letter' do
         record.nie = '12345678Z'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE with invalid prefix (not X, Y, or Z)' do
         record.nie = 'A1234567L'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE with too few digits' do
         record.nie = 'X123456L'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE with too many digits' do
         record.nie = 'X12345678L'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE without final letter' do
         record.nie = 'X1234567'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE with number as final character' do
         record.nie = 'X12345671'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE with letter in middle digits' do
         record.nie = 'X123A567L'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE with special characters' do
         record.nie = 'X1234-67L'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE with spaces in middle' do
         record.nie = 'X1234 567L'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects too short string' do
         record.nie = 'X123'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects too long string' do
         record.nie = 'X1234567890L'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE with multiple prefix letters' do
         record.nie = 'XX1234567L'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE with lowercase invalid format' do
         record.nie = 'a1234567l'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
     end
 
@@ -218,7 +218,7 @@ RSpec.describe ValidNieValidator do
         # X1234567L is valid, X1234567A is not
         record.nie = 'X1234567A'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects NIE with off-by-one check letter' do
@@ -226,27 +226,27 @@ RSpec.describe ValidNieValidator do
         # Try K (position 10)
         record.nie = 'X1234567K'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects Y prefix with wrong check letter' do
         # Y1234567X is valid
         record.nie = 'Y1234567A'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects Z prefix with wrong check letter' do
         # Z1234567R is valid
         record.nie = 'Z1234567A'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
 
       it 'rejects with completely wrong letter' do
         record.nie = 'X0000000A'
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
     end
 
@@ -317,7 +317,7 @@ RSpec.describe ValidNieValidator do
       it 'converts to string when number provided' do
         record.nie = 12345678
         record.valid?
-        expect(record.errors[:nie]).to include('is invalid')
+        expect(record.errors[:nie]).to include('El NIE no es válido')
       end
     end
 
@@ -350,7 +350,7 @@ RSpec.describe ValidNieValidator do
     end
 
     context 'comprehensive valid NIEs' do
-      # Generate several valid NIEs for each prefix
+      # Generate several valid NIEs for each prefix (correctly calculated)
       [
         'X0000000T', 'X1111111G', 'X2222222P', 'X3333333N',
         'Y0000000Z', 'Y1111111H', 'Y2222222E', 'Y3333333A',
@@ -393,7 +393,7 @@ RSpec.describe ValidNieValidator do
           test_record.valid?
           # Blank values don't get errors
           unless invalid_nie.strip.empty?
-            expect(test_record.errors[:nie]).to include('is invalid'), "Expected #{invalid_nie.inspect} to be invalid"
+            expect(test_record.errors[:nie]).to include('El NIE no es válido'), "Expected #{invalid_nie.inspect} to be invalid"
           end
         end
       end
@@ -404,7 +404,7 @@ RSpec.describe ValidNieValidator do
     it 'adds error with default message' do
       record.nie = 'INVALID'
       record.valid?
-      expect(record.errors[:nie]).to include('is invalid')
+      expect(record.errors[:nie]).to include('El NIE no es válido')
     end
 
     it 'only adds one error per validation' do

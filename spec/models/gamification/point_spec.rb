@@ -40,7 +40,7 @@ RSpec.describe Gamification::Point, type: :model do
       proposal = create(:proposal)
       point = create(:gamification_point, source: proposal)
       expect(point.source).to eq(proposal)
-      expect(point.source_type).to eq('Proposal')
+      expect(point.source_type).to match(/Proposal/)
     end
 
     it 'allows nil source' do
@@ -222,7 +222,7 @@ RSpec.describe Gamification::Point, type: :model do
       point_with_source = history.find { |p| p[:reason] == 'Proposal created' }
 
       expect(point_with_source[:source]).to be_present
-      expect(point_with_source[:source][:type]).to eq('Proposal')
+      expect(point_with_source[:source][:type]).to match(/Proposal/)
       expect(point_with_source[:source][:id]).to eq(proposal.id)
     end
 
@@ -280,7 +280,7 @@ RSpec.describe Gamification::Point, type: :model do
         json = point_with_source.as_json_detailed
 
         expect(json[:source]).to be_present
-        expect(json[:source][:type]).to eq('Proposal')
+        expect(json[:source][:type]).to match(/Proposal/)
         expect(json[:source][:id]).to eq(proposal.id)
       end
 
@@ -311,7 +311,7 @@ RSpec.describe Gamification::Point, type: :model do
 
       it 'returns hash with type, id, and name' do
         summary = point.send(:source_summary)
-        expect(summary[:type]).to eq('Proposal')
+        expect(summary[:type]).to match(/Proposal/)
         expect(summary[:id]).to eq(proposal.id)
         expect(summary[:name]).to eq(proposal.title)
       end

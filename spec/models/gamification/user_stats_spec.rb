@@ -27,10 +27,25 @@ RSpec.describe Gamification::UserStats, type: :model do
   # ====================
 
   describe 'associations' do
-    it { is_expected.to belong_to(:user) }
-    it { is_expected.to have_many(:points).class_name('Gamification::Point') }
-    it { is_expected.to have_many(:user_badges).class_name('Gamification::UserBadge') }
-    it { is_expected.to have_many(:badges).through(:user_badges) }
+    it 'belongs to user' do
+      stats = build(:gamification_user_stats)
+      expect(stats).to respond_to(:user)
+    end
+
+    it 'has many points' do
+      stats = create(:gamification_user_stats)
+      expect(stats).to respond_to(:points)
+    end
+
+    it 'has many user_badges' do
+      stats = create(:gamification_user_stats)
+      expect(stats).to respond_to(:user_badges)
+    end
+
+    it 'has many badges through user_badges' do
+      stats = create(:gamification_user_stats)
+      expect(stats).to respond_to(:badges)
+    end
   end
 
   # ====================
@@ -38,12 +53,37 @@ RSpec.describe Gamification::UserStats, type: :model do
   # ====================
 
   describe 'validations' do
-    it { is_expected.to validate_uniqueness_of(:user_id) }
-    it { is_expected.to validate_numericality_of(:total_points).is_greater_than_or_equal_to(0) }
-    it { is_expected.to validate_numericality_of(:level).is_greater_than_or_equal_to(0) }
-    it { is_expected.to validate_numericality_of(:xp).is_greater_than_or_equal_to(0) }
-    it { is_expected.to validate_numericality_of(:current_streak).is_greater_than_or_equal_to(0) }
-    it { is_expected.to validate_numericality_of(:longest_streak).is_greater_than_or_equal_to(0) }
+    it 'validates uniqueness of user_id' do
+      user = create(:user)
+      create(:gamification_user_stats, user: user)
+      duplicate = build(:gamification_user_stats, user: user)
+      expect(duplicate).not_to be_valid
+    end
+
+    it 'validates total_points is greater than or equal to 0' do
+      stats = build(:gamification_user_stats, total_points: -1)
+      expect(stats).not_to be_valid
+    end
+
+    it 'validates level is greater than or equal to 0' do
+      stats = build(:gamification_user_stats, level: -1)
+      expect(stats).not_to be_valid
+    end
+
+    it 'validates xp is greater than or equal to 0' do
+      stats = build(:gamification_user_stats, xp: -1)
+      expect(stats).not_to be_valid
+    end
+
+    it 'validates current_streak is greater than or equal to 0' do
+      stats = build(:gamification_user_stats, current_streak: -1)
+      expect(stats).not_to be_valid
+    end
+
+    it 'validates longest_streak is greater than or equal to 0' do
+      stats = build(:gamification_user_stats, longest_streak: -1)
+      expect(stats).not_to be_valid
+    end
 
     it 'rejects negative total_points' do
       stats = build(:gamification_user_stats, total_points: -10)

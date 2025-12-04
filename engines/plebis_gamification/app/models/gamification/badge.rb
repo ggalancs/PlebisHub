@@ -160,10 +160,23 @@ module Gamification
     # Check if user meets criteria
     def criteria_met?(user)
       stats = Gamification::UserStats.for_user(user)
+
+      # Use safe attribute access with respond_to? checks
+      proposals_count = if user.respond_to?(:authored_proposals)
+                          user.authored_proposals.count
+                        elsif user.respond_to?(:proposals)
+                          user.proposals.count
+                        else
+                          0
+                        end
+
+      votes_count = user.respond_to?(:votes) ? user.votes.count : 0
+      comments_count = user.respond_to?(:comments) ? user.comments.count : 0
+
       user_metrics = {
-        proposals_created: user.proposals.count,
-        votes_cast: user.votes.count,
-        comments_posted: user.comments.count,
+        proposals_created: proposals_count,
+        votes_cast: votes_count,
+        comments_posted: comments_count,
         streak_days: stats.current_streak,
         level: stats.level,
         registered_before: user.created_at
