@@ -715,8 +715,8 @@ class Collaboration < ApplicationRecord
 
   # Get available frequencies for user based on existing collaborations and parameters
   def self.available_frequencies_for_user(user, force_single: false, only_recurrent: false)
-    return FREQUENCIES.to_a.slice('Puntual') if force_single
-    return FREQUENCIES.to_a.except('Puntual') if user.recurrent_collaboration || only_recurrent
+    return FREQUENCIES.slice('Puntual').to_a if force_single
+    return FREQUENCIES.except('Puntual').to_a if user.recurrent_collaboration || only_recurrent
 
     FREQUENCIES.to_a
   end
