@@ -199,6 +199,29 @@ RSpec.describe Support, type: :model do
       # Verify hotness was updated (which means update_hotness was called)
       expect(proposal.reload.hotness).not_to eq(0)
     end
+
+    it 'updates hotness even when support is updated' do
+      support = create(:support)
+      proposal = support.proposal
+      proposal.update_column(:hotness, 100)
+
+      # Updating support should trigger callback
+      support.touch
+      support.save
+
+      # Hotness should be recalculated
+      expect(proposal.reload.hotness).not_to eq(100)
+    end
+
+    it 'uses update_column to avoid infinite callbacks' do
+      proposal = create(:proposal, created_at: 2.days.ago)
+      support = build(:support, proposal: proposal)
+
+      # Mock update_column to verify it's called instead of update
+      expect(proposal).to receive(:update_column).with(:hotness, anything)
+
+      support.save
+    end
   end
 
   # ====================
@@ -287,6 +310,59 @@ RSpec.describe Support, type: :model do
 
       expect(user.supports.count).to eq(3)
     end
+
+    it 'handles support with custom created_at timestamp' do
+      proposal = create(:proposal, created_at: 4.months.ago)
+      user = create(:user)
+
+      # Support created after proposal finished
+      support = create(:support, user: user, proposal: proposal, created_at: 1.day.ago)
+
+      expect(support).to be_persisted
+      expect(support.created_at).to be > proposal.finishes_at
+    end
+
+    it 'validates uniqueness across different database states' do
+      user = create(:user)
+      proposal = create(:proposal)
+
+      support1 = create(:support, user: user, proposal: proposal)
+
+      # Try to create duplicate
+      support2 = build(:support, user: user, proposal: proposal)
+      expect(support2).not_to be_valid
+      expect(support2.errors[:user_id]).to include('has already supported this proposal')
+    end
+
+    it 'handles support when proposal has nil supports_count' do
+      proposal = create(:proposal)
+      proposal.update_column(:supports_count, nil)
+      user = create(:user)
+
+      support = create(:support, user: user, proposal: proposal)
+
+      expect(support).to be_persisted
+      # Counter cache should update the nil to 1
+      expect(proposal.reload.supports_count).to eq(1)
+    end
+
+    it 'maintains referential integrity' do
+      support = create(:support)
+      user_id = support.user_id
+      proposal_id = support.proposal_id
+
+      expect(User.find(user_id)).to be_present
+      expect(Proposal.find(proposal_id)).to be_present
+    end
+
+    it 'handles support for finished proposal' do
+      proposal = create(:proposal, created_at: 4.months.ago)
+      user = create(:user)
+
+      # Even though proposal is finished, support can still be created
+      support = build(:support, user: user, proposal: proposal)
+      expect(support).to be_valid
+    end
   end
 
   # ====================
@@ -362,6 +438,69 @@ RSpec.describe Support, type: :model do
 
       # Proposal deletion should delete its supports (dependent: :destroy)
       expect { proposal.destroy }.to change(Support, :count).by(-1)
+    end
+
+    it 'tracks hotness changes across multiple supports' do
+      proposal = create(:proposal, created_at: 5.days.ago)
+      proposal.update_column(:hotness, 5000)
+      users = 3.times.map { create(:user) }
+
+      # Adding supports should update hotness each time
+      hotness_values = []
+      users.each do |user|
+        create(:support, user: user, proposal: proposal)
+        hotness_values << proposal.reload.hotness
+      end
+
+      # Each hotness value should be different as supports increase
+      expect(hotness_values.uniq.length).to eq(3)
+    end
+
+    it 'handles sequential support creation and deletion' do
+      proposal = create(:proposal)
+      initial_count = proposal.reload.supports_count || 0
+
+      user1 = create(:user)
+      user2 = create(:user)
+
+      support1 = create(:support, user: user1, proposal: proposal)
+      expect(proposal.reload.supports_count).to eq(initial_count + 1)
+
+      support2 = create(:support, user: user2, proposal: proposal)
+      expect(proposal.reload.supports_count).to eq(initial_count + 2)
+
+      support1.destroy
+      expect(proposal.reload.supports_count).to eq(initial_count + 1)
+
+      support2.destroy
+      expect(proposal.reload.supports_count).to eq(initial_count)
+    end
+
+    it 'verifies table_name is correctly set' do
+      expect(Support.table_name).to eq('supports')
+    end
+
+    it 'handles support creation within proposal lifecycle' do
+      # Active proposal
+      active_proposal = create(:proposal, created_at: 1.month.ago)
+      user1 = create(:user)
+      support1 = create(:support, user: user1, proposal: active_proposal, created_at: 2.weeks.ago)
+
+      expect(active_proposal.calculate_supports_count).to be >= 1
+
+      # Finished proposal with support before deadline
+      finished_proposal = create(:proposal, created_at: 4.months.ago)
+      user2 = create(:user)
+      support2 = create(:support, user: user2, proposal: finished_proposal, created_at: (3.months + 15.days).ago)
+
+      expect(finished_proposal.calculate_supports_count).to eq(1)
+
+      # Finished proposal with support after deadline
+      user3 = create(:user)
+      support3 = create(:support, user: user3, proposal: finished_proposal, created_at: 1.day.ago)
+
+      # Should not count support after deadline
+      expect(finished_proposal.calculate_supports_count).to eq(1)
     end
   end
 end

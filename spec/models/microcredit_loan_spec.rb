@@ -752,6 +752,80 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
         expect(loan.transferred_to.counted_at).not_to be_nil
       end
     end
+
+    describe '#update_counted_at' do
+      let(:microcredit) { create(:microcredit, :active, limits: '100€: 5') }
+      let(:option) { create(:microcredit_option, microcredit: microcredit) }
+
+      it 'counts loan when slots available and confirmed' do
+        loan = create(:microcredit_loan, microcredit: microcredit, microcredit_option: option, amount: 100)
+        loan.update_columns(confirmed_at: Time.current, counted_at: nil)
+
+        loan.update_counted_at
+        expect(loan.counted_at).not_to be_nil
+      end
+
+      it 'does not count when already counted' do
+        loan = create(:microcredit_loan, microcredit: microcredit, microcredit_option: option, amount: 100)
+        original_time = 2.days.ago
+        loan.update_columns(confirmed_at: Time.current, counted_at: original_time)
+
+        loan.update_counted_at
+        expect(loan.reload.counted_at.to_i).to eq(original_time.to_i)
+      end
+
+      it 'does not count when discarded' do
+        loan = create(:microcredit_loan, microcredit: microcredit, microcredit_option: option, amount: 100)
+        loan.update_columns(confirmed_at: nil, counted_at: nil, discarded_at: Time.current)
+
+        loan.update_counted_at
+        expect(loan.reload.counted_at).to be_nil
+      end
+
+      it 'replaces discarded counted loan' do
+        # Create a counted+discarded loan
+        discarded_loan = create(:microcredit_loan, microcredit: microcredit, microcredit_option: option, amount: 100)
+        discarded_loan.update_columns(confirmed_at: Time.current, counted_at: Time.current, discarded_at: Time.current)
+
+        # Create a new confirmed loan
+        new_loan = create(:microcredit_loan, microcredit: microcredit, microcredit_option: option, amount: 100)
+        new_loan.update_columns(confirmed_at: Time.current, counted_at: nil, discarded_at: nil)
+
+        microcredit.clear_cache
+        new_loan.update_counted_at
+
+        # New loan should take counted status
+        expect(new_loan.reload.counted_at).not_to be_nil
+        # Discarded loan should lose counted status
+        expect(discarded_loan.reload.counted_at).to be_nil
+      end
+
+      it 'replaces unconfirmed counted loan when new confirmed loan arrives' do
+        # Create an unconfirmed but counted loan
+        unconfirmed_loan = create(:microcredit_loan, microcredit: microcredit, microcredit_option: option, amount: 100)
+        unconfirmed_loan.update_columns(confirmed_at: nil, counted_at: Time.current, discarded_at: nil)
+
+        # Create a new confirmed loan
+        confirmed_loan = create(:microcredit_loan, microcredit: microcredit, microcredit_option: option, amount: 100)
+        confirmed_loan.update_columns(confirmed_at: Time.current, counted_at: nil, discarded_at: nil)
+
+        microcredit.clear_cache
+        confirmed_loan.update_counted_at
+
+        # Confirmed loan should take counted status
+        expect(confirmed_loan.reload.counted_at).not_to be_nil
+        # Unconfirmed loan should lose counted status
+        expect(unconfirmed_loan.reload.counted_at).to be_nil
+      end
+
+      it 'clears microcredit cache after counting' do
+        loan = create(:microcredit_loan, microcredit: microcredit, microcredit_option: option, amount: 100)
+        loan.update_columns(confirmed_at: Time.current, counted_at: nil)
+
+        expect(microcredit).to receive(:clear_cache)
+        loan.update_counted_at
+      end
+    end
   end
 
   # ====================

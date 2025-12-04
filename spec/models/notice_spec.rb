@@ -356,21 +356,148 @@ RSpec.describe PlebisCms::Notice, type: :model do
     end
 
     # NOTE: broadcast! and broadcast_gcm methods require external GCM service
-    # These methods should be tested with integration tests or with proper mocking library
-    # For unit tests, we focus on the state changes we can verify
+    # We test them with proper mocking to achieve coverage
 
     describe '#broadcast!' do
-      it 'should update sent_at timestamp' do
-        skip 'broadcast! requires GCM service - should be tested in integration tests'
+      it 'calls broadcast_gcm with correct parameters' do
+        notice = create(:notice, title: 'Test Title', body: 'Test Body', link: 'https://example.com')
+
+        # Mock the broadcast_gcm method
+        allow(notice).to receive(:broadcast_gcm)
+
+        notice.broadcast!
+
+        expect(notice).to have_received(:broadcast_gcm).with('Test Title', 'Test Body', 'https://example.com')
+      end
+
+      it 'updates sent_at timestamp' do
+        notice = create(:notice, sent_at: nil)
+
+        # Mock the broadcast_gcm method to avoid external dependencies
+        allow(notice).to receive(:broadcast_gcm)
+
+        expect { notice.broadcast! }.to change { notice.reload.sent_at }.from(nil)
+        expect(notice.sent_at).not_to be_nil
+      end
+
+      it 'uses update_column to avoid callbacks' do
+        notice = create(:notice)
+
+        # Mock broadcast_gcm
+        allow(notice).to receive(:broadcast_gcm)
+
+        # Verify update_column is called (not update or update_attribute)
+        expect(notice).to receive(:update_column).with(:sent_at, kind_of(DateTime))
+
+        notice.broadcast!
       end
     end
 
     describe '#broadcast_gcm' do
+      let(:gcm_double) { class_double('GCM').as_stubbed_const }
+
+      before do
+        # Mock GCM as a module/class with setters and methods
+        allow(gcm_double).to receive(:host=)
+        allow(gcm_double).to receive(:format=)
+        allow(gcm_double).to receive(:key=)
+        allow(gcm_double).to receive(:send_notification)
+      end
+
       it 'exists and accepts correct parameters' do
         notice = create(:notice)
         expect(notice).to respond_to(:broadcast_gcm)
         # Method signature verification
         expect(notice.method(:broadcast_gcm).arity).to eq(3)
+      end
+
+      it 'configures GCM with correct settings' do
+        notice = create(:notice)
+
+        # Mock Rails secrets
+        allow(Rails.application).to receive(:secrets).and_return(
+          OpenStruct.new(gcm: { 'key' => 'test_gcm_key' })
+        )
+
+        notice.broadcast_gcm('Title', 'Message', 'https://link.com')
+
+        expect(gcm_double).to have_received(:host=).with('https://android.googleapis.com/gcm/send')
+        expect(gcm_double).to have_received(:format=).with(:json)
+        expect(gcm_double).to have_received(:key=).with('test_gcm_key')
+      end
+
+      it 'sends notification to registrars in groups of 1000' do
+        notice = create(:notice)
+
+        # Create test registrars
+        registration_ids = (1..2500).map { |i| "reg_id_#{i}" }
+        allow(PlebisCms::NoticeRegistrar).to receive(:pluck).with(:registration_id).and_return(registration_ids)
+
+        # Mock Rails secrets
+        allow(Rails.application).to receive(:secrets).and_return(
+          OpenStruct.new(gcm: { 'key' => 'test_key' })
+        )
+
+        notice.broadcast_gcm('Test Title', 'Test Message', 'https://test.com')
+
+        # Should be called 3 times (1000 + 1000 + 500)
+        expect(gcm_double).to have_received(:send_notification).exactly(3).times
+      end
+
+      it 'includes correct data in notification payload' do
+        notice = create(:notice)
+
+        # Create a single registrar
+        allow(PlebisCms::NoticeRegistrar).to receive(:pluck).with(:registration_id).and_return(['reg_id_1'])
+
+        # Mock Rails secrets
+        allow(Rails.application).to receive(:secrets).and_return(
+          OpenStruct.new(gcm: { 'key' => 'test_key' })
+        )
+
+        expected_data = {
+          title: 'Test Title',
+          message: 'Test Message',
+          url: 'https://example.com',
+          msgcnt: '1',
+          soundname: 'beep.wav'
+        }
+
+        notice.broadcast_gcm('Test Title', 'Test Message', 'https://example.com')
+
+        # in_groups_of(1000) will pad a single item with nils
+        # So we expect an array of 1000 elements where first is 'reg_id_1' and rest are nil
+        expect(gcm_double).to have_received(:send_notification) do |destination, data|
+          expect(destination[0]).to eq('reg_id_1')
+          expect(destination.compact).to eq(['reg_id_1'])
+          expect(data).to eq(expected_data)
+        end
+      end
+
+      it 'handles nil link in notification' do
+        notice = create(:notice)
+
+        allow(PlebisCms::NoticeRegistrar).to receive(:pluck).with(:registration_id).and_return(['reg_id_1'])
+        allow(Rails.application).to receive(:secrets).and_return(
+          OpenStruct.new(gcm: { 'key' => 'test_key' })
+        )
+
+        expected_data = {
+          title: 'Test',
+          message: 'Message',
+          url: nil,
+          msgcnt: '1',
+          soundname: 'beep.wav'
+        }
+
+        notice.broadcast_gcm('Test', 'Message', nil)
+
+        # in_groups_of(1000) will pad a single item with nils
+        expect(gcm_double).to have_received(:send_notification) do |destination, data|
+          expect(destination[0]).to eq('reg_id_1')
+          expect(destination.compact).to eq(['reg_id_1'])
+          expect(data).to eq(expected_data)
+        end
       end
     end
   end

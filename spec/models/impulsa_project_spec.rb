@@ -181,5 +181,313 @@ RSpec.describe ImpulsaProject, type: :model do
         expect(folder).to include(project.id.to_s)
       end
     end
+
+    describe '#method_missing' do
+      it 'delegates to wizard_method_missing' do
+        project = create(:impulsa_project)
+        allow(project).to receive(:wizard_method_missing).and_return(:result)
+
+        expect(project.send(:method_missing, :test_method)).to eq(:result)
+      end
+
+      it 'delegates to evaluation_method_missing when wizard returns :super' do
+        project = create(:impulsa_project)
+        allow(project).to receive(:wizard_method_missing).and_return(:super)
+        allow(project).to receive(:evaluation_method_missing).and_return(:eval_result)
+
+        expect(project.send(:method_missing, :test_method)).to eq(:eval_result)
+      end
+
+      it 'raises NoMethodError when both return :super' do
+        project = create(:impulsa_project)
+        allow(project).to receive(:wizard_method_missing).and_return(:super)
+        allow(project).to receive(:evaluation_method_missing).and_return(:super)
+
+        expect { project.some_undefined_method }.to raise_error(NoMethodError)
+      end
+    end
+  end
+
+  # ====================
+  # STATE MACHINE TESTS (ImpulsaProjectStates)
+  # ====================
+
+  describe 'state machine' do
+    describe 'initial state' do
+      it 'starts in new state' do
+        project = create(:impulsa_project)
+        expect(project.state).to eq('new')
+      end
+    end
+
+    describe '#mark_as_spam' do
+      it 'transitions from any state to spam' do
+        project = create(:impulsa_project, state: 'review')
+        expect { project.mark_as_spam }.to change { project.state }.to('spam')
+      end
+    end
+
+    describe '#mark_for_review' do
+      it 'transitions from new to review when markable' do
+        edition = create(:impulsa_edition, :active)
+        category = create(:impulsa_edition_category, impulsa_edition: edition, wizard: { step1: { title: 'Step 1', groups: {} } })
+        project = create(:impulsa_project, impulsa_edition_category: category, state: 'new')
+
+        allow(project).to receive(:markable_for_review?).and_return(true)
+        expect { project.mark_for_review }.to change { project.state }.from('new').to('review')
+      end
+
+      it 'transitions from spam to review when markable' do
+        edition = create(:impulsa_edition, :active)
+        category = create(:impulsa_edition_category, impulsa_edition: edition, wizard: { step1: { title: 'Step 1', groups: {} } })
+        project = create(:impulsa_project, impulsa_edition_category: category, state: 'spam')
+
+        allow(project).to receive(:markable_for_review?).and_return(true)
+        expect { project.mark_for_review }.to change { project.state }.from('spam').to('review')
+      end
+
+      it 'transitions from fixes to review_fixes when markable' do
+        edition = create(:impulsa_edition, :active)
+        category = create(:impulsa_edition_category, impulsa_edition: edition, wizard: { step1: { title: 'Step 1', groups: {} } })
+        project = create(:impulsa_project, impulsa_edition_category: category, state: 'fixes')
+
+        allow(project).to receive(:markable_for_review?).and_return(true)
+        expect { project.mark_for_review }.to change { project.state }.from('fixes').to('review_fixes')
+      end
+    end
+
+    describe '#mark_as_fixes' do
+      it 'transitions from review to fixes' do
+        project = create(:impulsa_project, state: 'review')
+        expect { project.mark_as_fixes }.to change { project.state }.from('review').to('fixes')
+      end
+
+      it 'transitions from review_fixes to fixes' do
+        project = create(:impulsa_project, state: 'review_fixes')
+        expect { project.mark_as_fixes }.to change { project.state }.from('review_fixes').to('fixes')
+      end
+    end
+
+    describe '#mark_as_validable' do
+      it 'transitions from review to validable' do
+        project = create(:impulsa_project, state: 'review')
+        expect { project.mark_as_validable }.to change { project.state }.from('review').to('validable')
+      end
+
+      it 'transitions from review_fixes to validable' do
+        project = create(:impulsa_project, state: 'review_fixes')
+        expect { project.mark_as_validable }.to change { project.state }.from('review_fixes').to('validable')
+      end
+    end
+
+    describe '#mark_as_validated' do
+      it 'transitions from validable to validated when evaluation_result? is true' do
+        project = create(:impulsa_project, state: 'validable')
+        allow(project).to receive(:evaluation_result?).and_return(true)
+        expect { project.mark_as_validated }.to change { project.state }.from('validable').to('validated')
+      end
+
+      it 'does not transition when evaluation_result? is false' do
+        project = create(:impulsa_project, state: 'validable')
+        allow(project).to receive(:evaluation_result?).and_return(false)
+        expect { project.mark_as_validated rescue nil }.not_to change { project.state }
+      end
+    end
+
+    describe '#mark_as_invalidated' do
+      it 'transitions from validable to invalidated when evaluation_result? is true' do
+        project = create(:impulsa_project, state: 'validable')
+        allow(project).to receive(:evaluation_result?).and_return(true)
+        expect { project.mark_as_invalidated }.to change { project.state }.from('validable').to('invalidated')
+      end
+    end
+
+    describe '#mark_as_winner' do
+      it 'transitions from validated to winner' do
+        project = create(:impulsa_project, state: 'validated')
+        expect { project.mark_as_winner }.to change { project.state }.from('validated').to('winner')
+      end
+    end
+
+    describe '#mark_as_resigned' do
+      it 'transitions from any state to resigned' do
+        project = create(:impulsa_project, state: 'review')
+        expect { project.mark_as_resigned }.to change { project.state }.to('resigned')
+      end
+    end
+
+    describe '#editable?' do
+      context 'in new, review, or spam state' do
+        it 'returns true when edition allows edition' do
+          edition = create(:impulsa_edition,
+                           start_at: 1.day.ago,
+                           new_projects_until: 1.day.from_now,
+                           review_projects_until: 2.days.from_now,
+                           validation_projects_until: 3.days.from_now,
+                           votings_start_at: 4.days.from_now,
+                           ends_at: 5.days.from_now)
+          category = create(:impulsa_edition_category, impulsa_edition: edition)
+          project = create(:impulsa_project, impulsa_edition_category: category, state: 'new')
+
+          expect(project.editable?).to be true
+        end
+
+        it 'returns false when edition does not allow edition' do
+          edition = create(:impulsa_edition, :active)
+          category = create(:impulsa_edition_category, impulsa_edition: edition)
+          project = create(:impulsa_project, impulsa_edition_category: category, state: 'new')
+
+          expect(project.editable?).to be false
+        end
+
+        it 'returns false when resigned' do
+          edition = create(:impulsa_edition, :active)
+          category = create(:impulsa_edition_category, impulsa_edition: edition)
+          project = create(:impulsa_project, impulsa_edition_category: category, state: 'resigned')
+
+          expect(project.editable?).to be false
+        end
+      end
+
+      context 'in other states' do
+        it 'returns false' do
+          project = create(:impulsa_project, state: 'validated')
+          expect(project.editable?).to be false
+        end
+      end
+    end
+
+    describe '#saveable?' do
+      it 'returns true when editable and not resigned' do
+        project = create(:impulsa_project, state: 'new')
+        allow(project).to receive(:editable?).and_return(true)
+        allow(project).to receive(:resigned?).and_return(false)
+
+        expect(project.saveable?).to be true
+      end
+
+      it 'returns true when fixable and not resigned' do
+        project = create(:impulsa_project, state: 'fixes')
+        allow(project).to receive(:fixable?).and_return(true)
+        allow(project).to receive(:resigned?).and_return(false)
+
+        expect(project.saveable?).to be true
+      end
+
+      it 'returns false when resigned' do
+        project = create(:impulsa_project, state: 'resigned')
+        expect(project.saveable?).to be false
+      end
+    end
+
+    describe '#reviewable?' do
+      it 'returns true for review state when persisted and not resigned' do
+        project = create(:impulsa_project, state: 'review')
+        expect(project.reviewable?).to be true
+      end
+
+      it 'returns true for review_fixes state when persisted and not resigned' do
+        project = create(:impulsa_project, state: 'review_fixes')
+        expect(project.reviewable?).to be true
+      end
+
+      it 'returns false for other states' do
+        project = create(:impulsa_project, state: 'new')
+        expect(project.reviewable?).to be false
+      end
+    end
+
+    describe '#markable_for_review?' do
+      it 'returns true when all conditions are met' do
+        project = create(:impulsa_project, state: 'new')
+        allow(project).to receive(:saveable?).and_return(true)
+        allow(project).to receive(:wizard_has_errors?).and_return(false)
+
+        expect(project.markable_for_review?).to be true
+      end
+
+      it 'returns false when wizard has errors' do
+        project = create(:impulsa_project, state: 'new')
+        allow(project).to receive(:saveable?).and_return(true)
+        allow(project).to receive(:wizard_has_errors?).and_return(true)
+
+        expect(project.markable_for_review?).to be false
+      end
+
+      it 'returns false when not saveable' do
+        project = create(:impulsa_project, state: 'new')
+        allow(project).to receive(:saveable?).and_return(false)
+
+        expect(project.markable_for_review?).to be false
+      end
+    end
+
+    describe '#deleteable?' do
+      it 'returns true when editable and persisted and not resigned' do
+        project = create(:impulsa_project, state: 'new')
+        allow(project).to receive(:editable?).and_return(true)
+
+        expect(project.deleteable?).to be true
+      end
+
+      it 'returns false when resigned' do
+        project = create(:impulsa_project, state: 'resigned')
+        expect(project.deleteable?).to be false
+      end
+    end
+
+    describe '#fixable?' do
+      it 'returns true in fixes state when edition allows fixes' do
+        edition = create(:impulsa_edition,
+                         start_at: 3.days.ago,
+                         new_projects_until: 2.days.ago,
+                         review_projects_until: 1.hour.from_now,
+                         validation_projects_until: 1.day.from_now,
+                         votings_start_at: 2.days.from_now,
+                         ends_at: 3.days.from_now)
+        category = create(:impulsa_edition_category, impulsa_edition: edition)
+        project = create(:impulsa_project, impulsa_edition_category: category, state: 'fixes')
+
+        expect(project.fixable?).to be true
+      end
+
+      it 'returns false when not in fixes state' do
+        project = create(:impulsa_project, state: 'review')
+        expect(project.fixable?).to be false
+      end
+
+      it 'returns false when resigned' do
+        project = create(:impulsa_project, state: 'resigned')
+        expect(project.fixable?).to be false
+      end
+    end
+
+    describe '.exportable scope' do
+      it 'includes validated projects' do
+        validated = create(:impulsa_project, state: 'validated')
+        expect(ImpulsaProject.exportable).to include(validated)
+      end
+
+      it 'includes winner projects' do
+        winner = create(:impulsa_project, state: 'winner')
+        expect(ImpulsaProject.exportable).to include(winner)
+      end
+
+      it 'excludes other states' do
+        new_project = create(:impulsa_project, state: 'new')
+        expect(ImpulsaProject.exportable).not_to include(new_project)
+      end
+    end
+
+    describe 'audit trail' do
+      it 'creates state transition records on state changes' do
+        project = create(:impulsa_project, state: 'new')
+        initial_count = project.impulsa_project_state_transitions.count
+
+        project.mark_as_spam
+
+        expect(project.impulsa_project_state_transitions.count).to be > initial_count
+      end
+    end
   end
 end

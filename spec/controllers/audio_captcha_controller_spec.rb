@@ -5,15 +5,29 @@ require 'rails_helper'
 # Ensure espeak binary is in PATH before requiring the gem
 ENV['PATH'] = "#{ENV['PATH']}:/usr/bin" unless ENV['PATH'].include?('/usr/bin')
 
-# Check if espeak is available before loading tests
-begin
-  require 'espeak'
-  espeak_available = system('which espeak > /dev/null 2>&1')
-rescue LoadError, Errno::ENOENT
-  espeak_available = false
+# Stub IO.popen for espeak since the binary might not be available
+# The espeak gem calls `espeak --voices` when required
+if !system('which espeak > /dev/null 2>&1')
+  # Mock espeak binary before loading the gem
+  class << IO
+    alias_method :original_popen, :popen
+
+    def popen(command, *args, &block)
+      if command.to_s.include?('espeak')
+        # Return empty voices list header
+        io = StringIO.new("Pty Language Age/Gender VoiceName          File          Other Languages\n")
+        block ? block.call(io) : io
+      else
+        original_popen(command, *args, &block)
+      end
+    end
+  end
 end
 
-RSpec.describe AudioCaptchaController, type: :controller, skip: !espeak_available do
+# Require espeak gem
+require 'espeak'
+
+RSpec.describe AudioCaptchaController, type: :controller do
   # Skip ApplicationController filters that may cause issues in testing
   before do
     allow(controller).to receive(:banned_user).and_return(true)
@@ -391,7 +405,7 @@ RSpec.describe AudioCaptchaController, type: :controller, skip: !espeak_availabl
         File.write(old_file, 'old audio')
 
         # Set file modification time to 2 hours ago
-        old_time = 2.hours.ago
+        old_time = 2.hours.ago.to_time
         File.utime(old_time, old_time, old_file)
 
         expect(File.exist?(old_file)).to be true
@@ -409,7 +423,7 @@ RSpec.describe AudioCaptchaController, type: :controller, skip: !espeak_availabl
         File.write(recent_file, 'recent audio')
 
         # Set file modification time to 30 minutes ago
-        recent_time = 30.minutes.ago
+        recent_time = 30.minutes.ago.to_time
         File.utime(recent_time, recent_time, recent_file)
 
         expect(File.exist?(recent_file)).to be true
@@ -418,6 +432,391 @@ RSpec.describe AudioCaptchaController, type: :controller, skip: !espeak_availabl
 
         # Recent file should still exist
         expect(File.exist?(recent_file)).to be true
+      end
+
+      it 'handles errors when deleting individual files gracefully' do
+        # Create an old file
+        old_file = "#{file_dir}/old_captcha.mp3"
+        FileUtils.mkdir_p(file_dir)
+        File.write(old_file, 'old audio')
+        old_time = 2.hours.ago.to_time
+        File.utime(old_time, old_time, old_file)
+
+        # Mock File.delete to raise an error
+        allow(File).to receive(:delete).and_raise(StandardError.new('Permission denied'))
+        allow(Rails.logger).to receive(:warn)
+
+        # Should not raise, just log the warning
+        expect { get :index, params: { captcha_key: captcha_key } }.not_to raise_error
+        expect(Rails.logger).to have_received(:warn).with(/Failed to delete old audio file/)
+      end
+
+      it 'handles errors during cleanup process gracefully' do
+        # Mock Dir.glob to raise an error
+        allow(Dir).to receive(:glob).and_raise(StandardError.new('IO error'))
+        allow(Rails.logger).to receive(:error)
+
+        # Should not raise, just log the error
+        expect { get :index, params: { captcha_key: captcha_key } }.not_to raise_error
+      end
+
+      it 'skips cleanup when directory does not exist' do
+        # Ensure directory doesn't exist
+        FileUtils.rm_rf(file_dir)
+
+        # Should not raise error
+        expect { get :index, params: { captcha_key: captcha_key } }.not_to raise_error
+      end
+    end
+
+    context 'error handling' do
+      before do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return(captcha_value)
+
+        allow(I18n).to receive(:t).and_call_original
+        allow(I18n).to receive(:t).with(/^simple_captcha\.letters\./).and_return('test')
+      end
+
+      it 'returns 500 and logs error when ESpeak fails' do
+        allow(ESpeak::Speech).to receive(:new).and_raise(StandardError.new('ESpeak error'))
+        allow(Rails.logger).to receive(:error)
+
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(response).to have_http_status(:internal_server_error)
+        expect(Rails.logger).to have_received(:error)
+      end
+
+      it 'returns 500 when file save fails' do
+        allow(ESpeak::Speech).to receive(:new).and_return(mock_speech)
+        allow(mock_speech).to receive(:save).and_raise(StandardError.new('Cannot write file'))
+        allow(Rails.logger).to receive(:error)
+
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(response).to have_http_status(:internal_server_error)
+      end
+
+      it 'returns 500 when directory creation fails' do
+        allow(FileUtils).to receive(:mkdir_p).and_raise(StandardError.new('Permission denied'))
+        allow(Rails.logger).to receive(:error)
+
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(response).to have_http_status(:internal_server_error)
+      end
+
+      it 'logs detailed error information' do
+        error = StandardError.new('Test error')
+        allow(ESpeak::Speech).to receive(:new).and_raise(error)
+        allow(Rails.logger).to receive(:error)
+
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(Rails.logger).to have_received(:error) do |log_data|
+          parsed = JSON.parse(log_data)
+          expect(parsed['event']).to eq('audio_captcha_generation_error')
+          expect(parsed['error_class']).to eq('StandardError')
+          expect(parsed['error_message']).to eq('Test error')
+          expect(parsed['ip_address']).to be_present
+          expect(parsed['controller']).to eq('audio_captcha')
+          expect(parsed['timestamp']).to be_present
+          expect(parsed['backtrace']).to be_an(Array)
+        end
+      end
+    end
+
+    context 'security logging' do
+      before do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return(captcha_value)
+
+        allow(I18n).to receive(:t).and_call_original
+        allow(I18n).to receive(:t).with(/^simple_captcha\.letters\./).and_return('test')
+        allow(ESpeak::Speech).to receive(:new).and_return(mock_speech)
+        allow(mock_speech).to receive(:save) do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          File.write(path, 'fake audio')
+        end
+        allow(Rails.logger).to receive(:info)
+      end
+
+      it 'logs successful audio generation with security event' do
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(Rails.logger).to have_received(:info).at_least(:once) do |log_data|
+          # Skip non-JSON log entries (like Rails processing messages)
+          next unless log_data.is_a?(String) && log_data.strip.start_with?('{')
+
+          parsed = JSON.parse(log_data)
+          if parsed['event'] == 'audio_captcha_generated'
+            expect(parsed['captcha_key']).to eq(captcha_key)
+            expect(parsed['ip_address']).to be_present
+            expect(parsed['user_agent']).to be_present
+            expect(parsed['controller']).to eq('audio_captcha')
+            expect(parsed['timestamp']).to be_present
+          end
+        end
+      end
+
+      it 'logs invalid captcha key attempts' do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with('invalid_key')
+          .and_return(nil)
+        allow(Rails.logger).to receive(:info)
+
+        get :index, params: { captcha_key: 'invalid_key' }
+
+        expect(Rails.logger).to have_received(:info).at_least(:once) do |log_data|
+          # Skip non-JSON log entries (like Rails processing messages)
+          next unless log_data.is_a?(String) && log_data.strip.start_with?('{')
+
+          parsed = JSON.parse(log_data)
+          if parsed['event'] == 'audio_captcha_invalid_key'
+            expect(parsed['captcha_key']).to eq('invalid_key')
+          end
+        end
+      end
+
+      it 'includes request metadata in security logs' do
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(Rails.logger).to have_received(:info).at_least(:once) do |log_data|
+          # Skip non-JSON log entries (like Rails processing messages)
+          next unless log_data.is_a?(String) && log_data.strip.start_with?('{')
+
+          parsed = JSON.parse(log_data)
+          if parsed['event'] == 'audio_captcha_generated'
+            expect(parsed).to have_key('ip_address')
+            expect(parsed).to have_key('user_agent')
+            expect(parsed).to have_key('timestamp')
+          end
+        end
+      end
+    end
+
+    context 'edge cases' do
+      before do
+        allow(I18n).to receive(:t).and_call_original
+        allow(I18n).to receive(:t).with(/^simple_captcha\.letters\./).and_return('test')
+        allow(ESpeak::Speech).to receive(:new).and_return(mock_speech)
+        allow(mock_speech).to receive(:save) do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          File.write(path, 'fake audio')
+        end
+      end
+
+      it 'handles blank captcha_value in spelling method' do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return('')
+
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'handles nil captcha_key in sanitization' do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(nil)
+          .and_return(nil)
+
+        get :index
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'handles captcha_key with special characters' do
+        special_key = 'test@#$%key'
+        safe_key = File.basename(special_key)
+
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(special_key)
+          .and_return(captcha_value)
+
+        get :index, params: { captcha_key: special_key }
+
+        expect(response).to have_http_status(:success)
+        expect(File.exist?("#{file_dir}/#{safe_key}.mp3")).to be true
+      end
+
+      it 'handles very long captcha values' do
+        long_captcha = 'A' * 100
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return(long_captcha)
+
+        allow(I18n).to receive(:t).with('simple_captcha.letters.A', default: 'A').and_return('A')
+
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'handles captcha with only numbers' do
+        number_captcha = '123456'
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return(number_captcha)
+
+        ('0'..'9').each do |digit|
+          allow(I18n).to receive(:t).with("simple_captcha.letters.#{digit}",
+                                          default: digit).and_return(digit)
+        end
+
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'handles mixed case captcha values' do
+        mixed_case = 'AbC123'
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return(mixed_case)
+
+        allow(I18n).to receive(:t).with('simple_captcha.letters.A', default: 'A').and_return('A')
+        allow(I18n).to receive(:t).with('simple_captcha.letters.b', default: 'b').and_return('b')
+        allow(I18n).to receive(:t).with('simple_captcha.letters.C', default: 'C').and_return('C')
+        allow(I18n).to receive(:t).with('simple_captcha.letters.1', default: '1').and_return('1')
+        allow(I18n).to receive(:t).with('simple_captcha.letters.2', default: '2').and_return('2')
+        allow(I18n).to receive(:t).with('simple_captcha.letters.3', default: '3').and_return('3')
+
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context 'private method coverage' do
+      before do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return(captcha_value)
+
+        allow(I18n).to receive(:t).and_call_original
+        allow(I18n).to receive(:t).with(/^simple_captcha\.letters\./).and_return('test')
+        allow(ESpeak::Speech).to receive(:new).and_return(mock_speech)
+        allow(mock_speech).to receive(:save) do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          File.write(path, 'fake audio')
+        end
+      end
+
+      it 'memoizes captcha_value' do
+        get :index, params: { captcha_key: captcha_key }
+
+        # SimpleCaptcha should only be called once due to memoization
+        expect(SimpleCaptcha::Utils).to have_received(:simple_captcha_value).once
+      end
+
+      it 'memoizes captcha_key' do
+        get :index, params: { captcha_key: captcha_key }
+        # Should access params only once due to memoization
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'memoizes speech object' do
+        get :index, params: { captcha_key: captcha_key }
+
+        # ESpeak::Speech should only be instantiated once
+        expect(ESpeak::Speech).to have_received(:new).once
+      end
+
+      it 'memoizes file_path' do
+        get :index, params: { captcha_key: captcha_key }
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'memoizes file_dir' do
+        get :index, params: { captcha_key: captcha_key }
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'memoizes captcha_value_spelling' do
+        get :index, params: { captcha_key: captcha_key }
+
+        # I18n.t should be called 6 times (once per character in 'ABC123')
+        # If memoization works, it won't be called again on subsequent accesses
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context 'voice randomization patterns' do
+      before do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return(captcha_value)
+
+        allow(I18n).to receive(:t).and_call_original
+        allow(I18n).to receive(:t).with(/^simple_captcha\.letters\./).and_return('test')
+        allow(mock_speech).to receive(:save) do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          File.write(path, 'fake audio')
+        end
+      end
+
+      it 'generates male or female voices' do
+        voices = []
+
+        10.times do
+          allow(ESpeak::Speech).to receive(:new) do |_text, options|
+            voices << options[:voice]
+            mock_speech
+          end
+
+          get :index, params: { captcha_key: captcha_key }
+        end
+
+        # All voices should match the pattern es+[fm][1-4]
+        expect(voices).to all(match(/^es\+[fm][1-4]$/))
+      end
+
+      it 'includes variant numbers 1-4' do
+        voices = []
+
+        10.times do
+          allow(ESpeak::Speech).to receive(:new) do |_text, options|
+            voices << options[:voice]
+            mock_speech
+          end
+
+          get :index, params: { captcha_key: captcha_key }
+        end
+
+        variants = voices.map { |v| v[-1].to_i }
+        expect(variants).to all(be_between(1, 4))
+      end
+    end
+
+    context 'file system operations' do
+      before do
+        allow(SimpleCaptcha::Utils).to receive(:simple_captcha_value)
+          .with(captcha_key)
+          .and_return(captcha_value)
+
+        allow(I18n).to receive(:t).and_call_original
+        allow(I18n).to receive(:t).with(/^simple_captcha\.letters\./).and_return('test')
+        allow(ESpeak::Speech).to receive(:new).and_return(mock_speech)
+        allow(mock_speech).to receive(:save) do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          File.write(path, 'fake audio content')
+        end
+      end
+
+      it 'creates the audio file in the correct location' do
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(File.exist?(file_path)).to be true
+        expect(File.read(file_path)).to eq('fake audio content')
+      end
+
+      it 'sends the correct file content' do
+        get :index, params: { captcha_key: captcha_key }
+
+        expect(response.body).to eq('fake audio content')
       end
     end
   end

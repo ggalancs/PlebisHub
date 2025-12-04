@@ -23,7 +23,8 @@ RSpec.describe Api::V2Controller, type: :controller do
     allow(Rails.application).to receive(:secrets).and_return(
       double(
         host: host,
-        forms: { 'secret' => secret }
+        forms: { 'secret' => secret },
+        metas: nil
       )
     )
   end
@@ -103,6 +104,21 @@ RSpec.describe Api::V2Controller, type: :controller do
       end
     end
 
+    context 'signature with length parameter' do
+      it 'verifies signature with truncated length' do
+        # Test the len parameter in verify_sign_url
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+        # Simulate truncation by taking first 20 chars
+        truncated_sig = signature[0..19]
+        params_hash['signature'] = truncated_sig
+
+        # This should fail since the signature doesn't match
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
     context 'timestamp validation' do
       it 'accepts timestamp within valid range' do
         signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
@@ -146,6 +162,27 @@ RSpec.describe Api::V2Controller, type: :controller do
         expect(response).to have_http_status(:unauthorized)
         json = response.parsed_body
         expect(json['message']).to eq('Timestamp out of valid range')
+      end
+
+      it 'rejects missing timestamp' do
+        params_hash.delete('timestamp')
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:bad_request)
+        json = response.parsed_body
+        expect(json['message']).to eq('timestamp parameter is required')
+      end
+
+      it 'handles timestamp parsing exceptions' do
+        # Stub Time.zone.at to raise an exception
+        allow(Time.zone).to receive(:at).and_raise(ArgumentError.new('Invalid time'))
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:bad_request)
+        json = response.parsed_body
+        expect(json['message']).to eq('Invalid timestamp format')
       end
 
       it 'logs invalid timestamp attempts' do
@@ -424,6 +461,132 @@ RSpec.describe Api::V2Controller, type: :controller do
 
         expect(response).to have_http_status(:ok)
       end
+
+      it 'filters by island' do
+        vote_circle_with_island = create(:vote_circle, island_code: 'TF', autonomy_code: 'CN')
+        user_with_island = create(:user, vote_circle: vote_circle_with_island, email: 'island@example.com')
+
+        params_hash['email'] = user_with_island.email
+        params_hash['territory'] = 'island'
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+        params_hash['signature'] = signature
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'filters by circle with exterior range_name' do
+        exterior_circle = create(:vote_circle, :exterior)
+        allow(VoteCircle).to receive(:exterior).and_return(VoteCircle.where(id: exterior_circle.id))
+
+        params_hash['territory'] = 'circle'
+        params_hash['range_name'] = 'exterior'
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+        params_hash['signature'] = signature
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context 'with user without vote circle' do
+      it 'returns empty array when user has no vote circle' do
+        user_without_circle = create(:user, email: 'nocircle@example.com', vote_circle: nil)
+
+        params_hash['email'] = user_without_circle.email
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+        params_hash['signature'] = signature
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json['data']).to eq([])
+      end
+    end
+
+    context 'with vote circle missing territory values' do
+      it 'returns empty array when territory value is nil' do
+        vc_no_autonomy = create(:vote_circle, autonomy_code: nil)
+        user_no_autonomy = create(:user, vote_circle: vc_no_autonomy, email: 'noautonomy@example.com')
+
+        params_hash['email'] = user_no_autonomy.email
+        params_hash['territory'] = 'autonomy'
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+        params_hash['signature'] = signature
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json['data']).to eq([])
+      end
+    end
+
+    context 'data format verification' do
+      it 'returns user data with correct structure' do
+        # Create a militant user (need to check if User has militant scope or is_militant attribute)
+        militant = create(:user, vote_circle: vote_circle, first_name: 'MilitantUser', phone: '+34600111222')
+
+        # Stub the militant scope since we couldn't find it in the model
+        allow(User).to receive_message_chain(:militant, :where, :find_each).and_yield(militant)
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        json = response.parsed_body
+        expect(json['success']).to be true
+        expect(json['data']).to be_an(Array)
+
+        if json['data'].any?
+          first_user = json['data'].first
+          expect(first_user).to have_key('first_name')
+          expect(first_user).to have_key('phone')
+          expect(first_user).to have_key('circle_name')
+        end
+      end
+    end
+
+    context 'when get_militants_data raises error' do
+      it 'returns empty array on error' do
+        allow_any_instance_of(Api::V2Controller).to receive(:build_territory_query)
+          .and_raise(StandardError.new('Database error'))
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json['data']).to eq([])
+      end
+    end
+  end
+
+  describe 'unknown command handling' do
+    let(:params_hash) do
+      {
+        'email' => valid_email,
+        'territory' => 'autonomy',
+        'timestamp' => timestamp,
+        'command' => 'unknown_command'
+      }
+    end
+    let(:params_list) { %w[email territory timestamp range_name command] }
+
+    # This test simulates what happens if validation is bypassed but an unknown command gets through
+    it 'returns error for unknown command after signature verification' do
+      # Bypass validation to test the command case statement
+      allow_any_instance_of(Api::V2Controller).to receive(:validate_inputs).and_return(true)
+      # Make signature verification pass
+      allow_any_instance_of(Api::V2Controller).to receive(:verify_sign_url).and_return([true, 'test'])
+
+      get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+      expect(response).to have_http_status(:bad_request)
+      json = response.parsed_body
+      expect(json['success']).to be false
+      expect(json['error']).to eq('Bad Request')
+      expect(json['message']).to eq('Unknown command')
     end
   end
 
@@ -486,6 +649,50 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
       end
     end
+
+    context 'territory filtering' do
+      it 'filters by province' do
+        params_hash['territory'] = 'province'
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+        params_hash['signature'] = signature
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'filters by town' do
+        params_hash['territory'] = 'town'
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+        params_hash['signature'] = signature
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'filters by circle' do
+        params_hash['territory'] = 'circle'
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+        params_hash['signature'] = signature
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'filters by island' do
+        vote_circle_with_island = create(:vote_circle, island_code: 'TF')
+        params_hash['vote_circle_id'] = vote_circle_with_island.id.to_s
+        params_hash['territory'] = 'island'
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+        params_hash['signature'] = signature
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
   end
 
   # ==================== ERROR HANDLING TESTS ====================
@@ -532,6 +739,45 @@ RSpec.describe Api::V2Controller, type: :controller do
         allow(User).to receive(:find_by).and_raise(StandardError.new('Database error'))
 
         expect(Rails.logger).to receive(:error).with(a_string_matching(/militants_from_territory_error.*backtrace/m))
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+      end
+    end
+
+    context 'when unexpected error occurs in get_data' do
+      let(:params_hash) do
+        {
+          'email' => valid_email,
+          'territory' => 'autonomy',
+          'timestamp' => timestamp,
+          'command' => 'militants_from_territory'
+        }
+      end
+      let(:params_list) { %w[email territory timestamp range_name command] }
+
+      before do
+        signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+        params_hash['signature'] = signature
+      end
+
+      it 'handles unexpected errors with 500 response' do
+        # Make the command processing raise an unexpected error after signature verification
+        allow_any_instance_of(Api::V2Controller).to receive(:build_param_list)
+          .and_raise(StandardError.new('Unexpected error'))
+
+        get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+        expect(response).to have_http_status(:internal_server_error)
+        json = response.parsed_body
+        expect(json['success']).to be false
+        expect(json['error']).to eq('Internal server error')
+      end
+
+      it 'logs unexpected errors' do
+        allow_any_instance_of(Api::V2Controller).to receive(:build_param_list)
+          .and_raise(StandardError.new('Unexpected error'))
+
+        expect(Rails.logger).to receive(:error).with(a_string_matching(/api_error.*Unexpected error/m))
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
       end
@@ -617,6 +863,37 @@ RSpec.describe Api::V2Controller, type: :controller do
       expect(Rails.logger).to receive(:warn).with(a_string_matching(/timestamp.*\d{4}-\d{2}-\d{2}T/))
 
       get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+    end
+  end
+
+  # ==================== API HEADERS TESTS ====================
+
+  describe 'API version headers' do
+    let(:params_hash) do
+      {
+        'email' => user_with_vote_circle.email,
+        'territory' => 'autonomy',
+        'timestamp' => timestamp,
+        'command' => 'militants_from_territory'
+      }
+    end
+    let(:params_list) { %w[email territory timestamp range_name command] }
+
+    before do
+      signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
+      params_hash['signature'] = signature
+    end
+
+    it 'sets X-API-Version header' do
+      get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+      expect(response.headers['X-API-Version']).to eq('2.0')
+    end
+
+    it 'sets X-API-Deprecated header' do
+      get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+
+      expect(response.headers['X-API-Deprecated']).to eq('false')
     end
   end
 

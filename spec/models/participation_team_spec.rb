@@ -4,6 +4,52 @@ require 'rails_helper'
 
 RSpec.describe ParticipationTeam, type: :model do
   # ====================
+  # MODEL CONFIGURATION TESTS
+  # ====================
+
+  describe 'model configuration' do
+    it 'uses the correct table name' do
+      expect(ParticipationTeam.table_name).to eq('participation_teams')
+    end
+
+    it 'inherits from PlebisParticipation::ParticipationTeam' do
+      expect(ParticipationTeam.superclass).to eq(PlebisParticipation::ParticipationTeam)
+    end
+
+    it 'ultimately inherits from ApplicationRecord' do
+      expect(PlebisParticipation::ParticipationTeam.superclass).to eq(ApplicationRecord)
+    end
+
+    it 'has correct class hierarchy' do
+      expect(ParticipationTeam.ancestors).to include(PlebisParticipation::ParticipationTeam)
+      expect(ParticipationTeam.ancestors).to include(ApplicationRecord)
+      expect(ParticipationTeam.ancestors).to include(ActiveRecord::Base)
+    end
+
+    it 'verifies table_name is set on class load' do
+      # This ensures the line "self.table_name = 'participation_teams'" is executed
+      expect(PlebisParticipation::ParticipationTeam.table_name).to eq('participation_teams')
+    end
+
+    it 'has HABTM association defined' do
+      # This ensures the has_and_belongs_to_many line is executed
+      reflection = ParticipationTeam.reflect_on_association(:users)
+      expect(reflection).not_to be_nil
+      expect(reflection.macro).to eq(:has_and_belongs_to_many)
+    end
+
+    it 'verifies active scope is defined' do
+      # This ensures the active scope line is executed
+      expect(ParticipationTeam).to respond_to(:active)
+    end
+
+    it 'verifies inactive scope is defined' do
+      # This ensures the inactive scope line is executed
+      expect(ParticipationTeam).to respond_to(:inactive)
+    end
+  end
+
+  # ====================
   # FACTORY TESTS
   # ====================
 
@@ -18,6 +64,21 @@ RSpec.describe ParticipationTeam, type: :model do
       expect(team.name).not_to be_nil
       expect(team.description).not_to be_nil
       expect(team.active).to eq(true)
+    end
+
+    it 'creates inactive team with trait' do
+      team = create(:participation_team, :inactive)
+      expect(team.active).to eq(false)
+    end
+
+    it 'creates team with users using trait' do
+      team = create(:participation_team, :with_users, users_count: 5)
+      expect(team.users.count).to eq(5)
+    end
+
+    it 'uses default users_count in with_users trait' do
+      team = create(:participation_team, :with_users)
+      expect(team.users.count).to eq(3)
     end
   end
 
@@ -124,6 +185,50 @@ RSpec.describe ParticipationTeam, type: :model do
       expect(team.users).to include(user)
       expect(user.participation_teams).to include(team)
     end
+
+    it 'allows assigning users collection directly' do
+      team = create(:participation_team)
+      users = create_list(:user, 3)
+
+      team.users = users
+
+      expect(team.reload.users.count).to eq(3)
+      users.each { |user| expect(team.users).to include(user) }
+    end
+
+    it 'replaces users when assigning new collection' do
+      team = create(:participation_team)
+      old_users = create_list(:user, 2)
+      new_users = create_list(:user, 3)
+
+      team.users = old_users
+      expect(team.reload.users.count).to eq(2)
+
+      team.users = new_users
+      expect(team.reload.users.count).to eq(3)
+      new_users.each { |user| expect(team.users).to include(user) }
+      old_users.each { |user| expect(team.users).not_to include(user) }
+    end
+
+    it 'allows clearing all users' do
+      team = create(:participation_team)
+      team.users << create_list(:user, 5)
+      expect(team.users.count).to eq(5)
+
+      team.users.clear
+
+      expect(team.reload.users.count).to eq(0)
+    end
+
+    it 'supports user_ids accessor' do
+      team = create(:participation_team)
+      users = create_list(:user, 3)
+
+      team.user_ids = users.map(&:id)
+
+      expect(team.reload.users.count).to eq(3)
+      expect(team.user_ids).to match_array(users.map(&:id))
+    end
   end
 
   # ====================
@@ -151,6 +256,99 @@ RSpec.describe ParticipationTeam, type: :model do
         expect(ParticipationTeam.active.count).to eq(3)
         expect(ParticipationTeam.count).to eq(5)
       end
+    end
+
+    describe '.inactive' do
+      it 'returns only inactive teams' do
+        active_team = create(:participation_team, active: true)
+        inactive_team = create(:participation_team, active: false)
+        nil_team = create(:participation_team, active: nil)
+
+        results = ParticipationTeam.inactive
+
+        expect(results).not_to include(active_team)
+        expect(results).to include(inactive_team)
+        expect(results).not_to include(nil_team)
+      end
+
+      it 'filters correctly' do
+        3.times { create(:participation_team, active: true) }
+        2.times { create(:participation_team, active: false) }
+
+        expect(ParticipationTeam.inactive.count).to eq(2)
+        expect(ParticipationTeam.count).to eq(5)
+      end
+
+      it 'can be chained with other scopes' do
+        inactive_team = create(:participation_team, active: false)
+
+        results = ParticipationTeam.inactive.where(id: inactive_team.id)
+
+        expect(results.count).to eq(1)
+        expect(results.first).to eq(inactive_team)
+      end
+    end
+  end
+
+  # ====================
+  # ATTRIBUTE TESTS
+  # ====================
+
+  describe 'attributes' do
+    it 'has id attribute' do
+      team = create(:participation_team)
+      expect(team.id).not_to be_nil
+      expect(team.id).to be_a(Integer)
+    end
+
+    it 'has name attribute' do
+      team = create(:participation_team, name: 'Test Name')
+      expect(team.name).to eq('Test Name')
+    end
+
+    it 'has description attribute' do
+      team = create(:participation_team, description: 'Test Description')
+      expect(team.description).to eq('Test Description')
+    end
+
+    it 'has active attribute' do
+      team = create(:participation_team, active: true)
+      expect(team.active).to eq(true)
+    end
+
+    it 'has created_at timestamp' do
+      team = create(:participation_team)
+      expect(team.created_at).not_to be_nil
+      expect(team.created_at).to be_a(ActiveSupport::TimeWithZone)
+    end
+
+    it 'has updated_at timestamp' do
+      team = create(:participation_team)
+      expect(team.updated_at).not_to be_nil
+      expect(team.updated_at).to be_a(ActiveSupport::TimeWithZone)
+    end
+
+    it 'updates updated_at on save' do
+      team = create(:participation_team)
+      original_time = team.updated_at
+
+      sleep 0.1 # Ensure time difference
+      team.update(name: 'Updated Name')
+
+      expect(team.updated_at).to be > original_time
+    end
+
+    it 'allows setting all attributes at once' do
+      team = ParticipationTeam.new(
+        name: 'Bulk Team',
+        description: 'Bulk Description',
+        active: false
+      )
+      team.save!
+
+      expect(team.name).to eq('Bulk Team')
+      expect(team.description).to eq('Bulk Description')
+      expect(team.active).to eq(false)
     end
   end
 
@@ -196,6 +394,106 @@ RSpec.describe ParticipationTeam, type: :model do
       team = create(:participation_team, active: nil)
       expect(team.active).to be_nil
       expect(ParticipationTeam.active).not_to include(team)
+    end
+
+    it 'handles SQL injection attempts in name' do
+      dangerous_name = "'; DROP TABLE participation_teams; --"
+      team = create(:participation_team, name: dangerous_name)
+
+      found = ParticipationTeam.find(team.id)
+      expect(found.name).to eq(dangerous_name)
+      expect(ParticipationTeam.count).to be > 0
+    end
+
+    it 'handles HTML in description' do
+      html_desc = '<script>alert("XSS")</script><strong>Bold</strong>'
+      team = create(:participation_team, description: html_desc)
+
+      expect(team.description).to eq(html_desc)
+    end
+
+    it 'persists through save and reload' do
+      team = create(:participation_team,
+                    name: 'Persist Test',
+                    description: 'Description',
+                    active: false)
+
+      team_id = team.id
+      team = nil
+
+      reloaded = ParticipationTeam.find(team_id)
+      expect(reloaded.name).to eq('Persist Test')
+      expect(reloaded.description).to eq('Description')
+      expect(reloaded.active).to eq(false)
+    end
+  end
+
+  # ====================
+  # DATABASE QUERY TESTS
+  # ====================
+
+  describe 'database queries' do
+    it 'can be found by id' do
+      team = create(:participation_team)
+      found = ParticipationTeam.find(team.id)
+      expect(found).to eq(team)
+    end
+
+    it 'can be found by name' do
+      team = create(:participation_team, name: 'Unique Team Name')
+      found = ParticipationTeam.find_by(name: 'Unique Team Name')
+      expect(found).to eq(team)
+    end
+
+    it 'returns nil for non-existent record with find_by' do
+      result = ParticipationTeam.find_by(name: 'Non-existent Team')
+      expect(result).to be_nil
+    end
+
+    it 'raises error for non-existent record with find' do
+      expect { ParticipationTeam.find(999_999) }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
+    it 'supports where queries' do
+      create(:participation_team, name: 'Alpha Team')
+      create(:participation_team, name: 'Beta Team')
+      create(:participation_team, name: 'Alpha Squad')
+
+      results = ParticipationTeam.where('name LIKE ?', 'Alpha%')
+      expect(results.count).to eq(2)
+    end
+
+    it 'supports count queries' do
+      create_list(:participation_team, 5)
+      expect(ParticipationTeam.count).to eq(5)
+    end
+
+    it 'supports exists? queries' do
+      team = create(:participation_team)
+      expect(ParticipationTeam.exists?(team.id)).to be true
+      expect(ParticipationTeam.exists?(999_999)).to be false
+    end
+
+    it 'supports pluck queries' do
+      teams = create_list(:participation_team, 3)
+      names = ParticipationTeam.pluck(:name)
+      expect(names.size).to eq(3)
+      expect(names).to include(teams.first.name)
+    end
+
+    it 'supports order queries' do
+      create(:participation_team, name: 'Zulu')
+      create(:participation_team, name: 'Alpha')
+      create(:participation_team, name: 'Bravo')
+
+      ordered = ParticipationTeam.order(:name).pluck(:name)
+      expect(ordered).to eq(['Alpha', 'Bravo', 'Zulu'])
+    end
+
+    it 'supports limit queries' do
+      create_list(:participation_team, 10)
+      limited = ParticipationTeam.limit(5)
+      expect(limited.count).to eq(5)
     end
   end
 

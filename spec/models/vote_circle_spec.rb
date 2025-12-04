@@ -151,6 +151,16 @@ RSpec.describe VoteCircle, type: :model do
         circle = create(:vote_circle, kind: :exterior)
         expect(circle).not_to be_in_spain
       end
+
+      it 'returns false for municipal' do
+        circle = create(:vote_circle, kind: :municipal)
+        expect(circle).not_to be_in_spain
+      end
+
+      it 'returns false for comarcal' do
+        circle = create(:vote_circle, kind: :comarcal)
+        expect(circle).not_to be_in_spain
+      end
     end
 
     describe '#code_in_spain?' do
@@ -178,6 +188,16 @@ RSpec.describe VoteCircle, type: :model do
         circle = create(:vote_circle, code: 'XX0101001')
         expect(circle).not_to be_code_in_spain
       end
+
+      it 'handles empty code' do
+        circle = create(:vote_circle, code: '')
+        expect(circle).not_to be_code_in_spain
+      end
+
+      it 'handles short code' do
+        circle = create(:vote_circle, code: 'T')
+        expect(circle).not_to be_code_in_spain
+      end
     end
 
     describe '#get_type_circle_from_original_code' do
@@ -193,22 +213,434 @@ RSpec.describe VoteCircle, type: :model do
         result = circle.get_type_circle_from_original_code
         expect(result).to eq('00')
       end
+
+      it 'returns 00 for interno' do
+        circle = create(:vote_circle, kind: :interno, original_code: 'INT123')
+        result = circle.get_type_circle_from_original_code
+        expect(result).to eq('00')
+      end
+    end
+
+    describe '#get_code_circle' do
+      let(:circle) { create(:vote_circle) }
+
+      context 'with TM (municipal) circle_type' do
+        it 'generates TM code for municipal' do
+          result = circle.get_code_circle('28079', 'TM')
+          expect(result).to match(/^TM\d{9}$/)
+          expect(result).to start_with('TM')
+        end
+
+        it 'generates correct code structure' do
+          result = circle.get_code_circle('28079', 'TM')
+          # TM + autonomy(2) + province(2) + town(3) + id(2) = 11 chars
+          expect(result.length).to eq(11)
+        end
+
+        it 'includes territory codes in result' do
+          result = circle.get_code_circle('28079', 'TM')
+          # Should contain province code 28 and town code 079
+          expect(result).to include('28')
+          expect(result).to include('079')
+        end
+      end
+
+      context 'with TB (barrial) circle_type' do
+        it 'generates TB code for barrial' do
+          result = circle.get_code_circle('28079', 'TB')
+          expect(result).to match(/^TB\d{9}$/)
+          expect(result).to start_with('TB')
+        end
+
+        it 'generates correct code structure' do
+          result = circle.get_code_circle('28079', 'TB')
+          expect(result.length).to eq(11)
+        end
+      end
+
+      context 'with TC (comarcal) circle_type' do
+        it 'generates TC code for comarcal' do
+          result = circle.get_code_circle('28079', 'TC')
+          expect(result).to match(/^TC\d{9}$/)
+          expect(result).to start_with('TC')
+        end
+
+        it 'uses get_next_circle_region_id for TC codes' do
+          result = circle.get_code_circle('28079', 'TC')
+          expect(result.length).to eq(11)
+        end
+
+        it 'handles different municipalities for TC' do
+          # Use same province to avoid autonomy lookup issues
+          result1 = circle.get_code_circle('m_28_001', 'TC')
+          result2 = circle.get_code_circle('m_28_079_8', 'TC')
+          expect(result1).not_to eq(result2)
+        end
+      end
+
+      context 'with exterior (00) circle_type' do
+        it 'returns 00 for exterior' do
+          result = circle.get_code_circle('28079', '00')
+          expect(result).to eq('00')
+        end
+      end
+
+      context 'with invalid circle_type' do
+        it 'returns empty string for invalid circle_type' do
+          result = circle.get_code_circle('28079', 'XX')
+          expect(result).to eq('')
+        end
+
+        it 'returns empty string for nil circle_type' do
+          result = circle.get_code_circle('28079', 'INVALID')
+          expect(result).to eq('')
+        end
+      end
+
+      context 'with different municipality codes' do
+        it 'handles different municipality codes' do
+          result1 = circle.get_code_circle('28001', 'TM')
+          result2 = circle.get_code_circle('28079', 'TM')
+          expect(result1).not_to eq(result2)
+        end
+
+        it 'handles Barcelona municipality' do
+          result = circle.get_code_circle('08019', 'TM')
+          expect(result).to match(/^TM\d{9}$/)
+        end
+      end
+    end
+
+    describe '#island_name' do
+      it 'returns empty string when no island_code or town' do
+        circle = create(:vote_circle, island_code: nil, town: nil)
+        expect(circle.island_name).to eq('')
+      end
+
+      it 'returns empty string when island_code not in ISLANDS hash' do
+        circle = create(:vote_circle, island_code: 'invalid', town: nil)
+        expect(circle.island_name).to eq('')
+      end
+
+      it 'returns empty string for non-island town' do
+        circle = create(:vote_circle, island_code: nil, town: 'm_28_079')
+        expect(circle.island_name).to eq('')
+      end
+
+      it 'handles town code that might be an island' do
+        # Town code may or may not be in ISLANDS hash
+        circle = create(:vote_circle, island_code: nil, town: 'm_35_001')
+        result = circle.island_name
+        # Will be empty unless the town is in the ISLANDS hash
+        expect(result).to be_a(String)
+      end
+
+      it 'returns empty when neither code is valid island' do
+        # When neither is a valid island, returns empty
+        circle = create(:vote_circle, island_code: 'invalid', town: 'm_28_079')
+        result = circle.island_name
+        expect(result).to eq('')
+      end
+
+      it 'handles island_code when town not present' do
+        # Tests the code path where island_code is used
+        circle = create(:vote_circle, island_code: 'test', town: nil)
+        result = circle.island_name
+        # Will return empty unless island_code is valid
+        expect(result).to be_a(String)
+      end
+    end
+
+    describe '#town_name' do
+      context 'when town exists' do
+        it 'returns error message for invalid town code' do
+          circle = create(:vote_circle, town: 'm_28_999_9')
+          # This executes lines 78-81: if town, get prov, get carmen_town, check present?
+          result = circle.town_name
+          expect(result).to include('no es un municipio válido')
+        end
+
+        it 'handles invalid town code with proper format' do
+          circle = create(:vote_circle, town: 'm_28_999')
+          result = circle.town_name
+          expect(result).to include('no es un municipio válido')
+        end
+
+        it 'works with the factory default town' do
+          circle = create(:vote_circle)
+          # The factory uses 'm_28_079' which should be valid with proper format
+          result = circle.town_name
+          expect(result).to be_a(String)
+        end
+
+        it 'handles town with leading spaces' do
+          circle = create(:vote_circle, town: '  m_28_999')
+          result = circle.town_name
+          # strip is called on line 80
+          expect(result).to be_a(String)
+        end
+
+        it 'handles town with trailing spaces' do
+          circle = create(:vote_circle, town: 'm_28_999  ')
+          result = circle.town_name
+          # strip is called on line 80
+          expect(result).to be_a(String)
+        end
+      end
+
+      context 'when town is nil' do
+        it 'returns empty string when town is nil' do
+          circle = create(:vote_circle, town: nil)
+          # This executes line 83: else clause
+          result = circle.town_name
+          expect(result).to eq('')
+        end
+      end
+
+    end
+
+    describe '#province_name' do
+      it 'returns province name for valid province_code' do
+        circle = create(:vote_circle, province_code: 'p_28')
+        # This should execute line 88 with province_code present
+        result = circle.province_name
+        expect(result).to eq('Madrid')
+        expect(result).not_to be_empty
+      end
+
+      it 'returns province name for Barcelona' do
+        circle = create(:vote_circle, province_code: 'p_08')
+        expect(circle.province_name).to eq('Barcelona')
+      end
+
+      it 'returns empty string when province_code is nil' do
+        circle = create(:vote_circle, province_code: nil)
+        # This should execute line 88 with province_code nil
+        result = circle.province_name
+        expect(result).to eq('')
+      end
+
+      it 'handles different provinces' do
+        circle1 = create(:vote_circle, province_code: 'p_28')
+        circle2 = create(:vote_circle, province_code: 'p_08')
+        expect(circle1.province_name).not_to eq(circle2.province_name)
+      end
+    end
+
+    describe '#autonomy_name' do
+      it 'returns autonomy name for valid province_code' do
+        circle = create(:vote_circle, province_code: 'p_28')
+        # This should execute line 92 with province_code present
+        result = circle.autonomy_name
+        expect(result).to eq('Comunidad de Madrid')
+        expect(result).not_to be_empty
+      end
+
+      it 'returns autonomy name for Catalonia' do
+        circle = create(:vote_circle, province_code: 'p_08')
+        # Catalonia has bilingual name
+        expect(circle.autonomy_name).to eq('Cataluña/Catalunya')
+      end
+
+      it 'returns empty string when province_code is nil' do
+        circle = create(:vote_circle, province_code: nil)
+        # This should execute line 92 with province_code nil
+        result = circle.autonomy_name
+        expect(result).to eq('')
+      end
+
+      it 'handles different autonomies' do
+        circle1 = create(:vote_circle, province_code: 'p_28')
+        circle2 = create(:vote_circle, province_code: 'p_08')
+        expect(circle1.autonomy_name).not_to eq(circle2.autonomy_name)
+      end
     end
 
     describe '#country_name' do
       it 'returns country name for valid code' do
         circle = create(:vote_circle, country_code: 'ES')
-        expect(circle.country_name).to eq('España')
+        # This should execute line 96 with valid country_code
+        result = circle.country_name
+        expect(result).to eq('España')
+        expect(result).not_to be_empty
       end
 
       it 'returns empty for invalid code' do
         circle = create(:vote_circle, country_code: 'INVALID')
-        expect(circle.country_name).to eq('')
+        # This should execute line 96 with invalid code (returns nil from Carmen)
+        result = circle.country_name
+        expect(result).to eq('')
       end
 
       it 'returns empty for nil code' do
         circle = create(:vote_circle, country_code: nil)
-        expect(circle.country_name).to eq('')
+        # This should execute line 96 with nil code
+        result = circle.country_name
+        expect(result).to eq('')
+      end
+
+      it 'returns country name for France' do
+        circle = create(:vote_circle, country_code: 'FR')
+        expect(circle.country_name).to eq('Francia')
+      end
+
+      it 'returns country name for Germany' do
+        circle = create(:vote_circle, country_code: 'DE')
+        expect(circle.country_name).to eq('Alemania')
+      end
+
+      it 'returns country name for United States' do
+        circle = create(:vote_circle, country_code: 'US')
+        expect(circle.country_name).to eq('Estados Unidos')
+      end
+
+      it 'returns country name for Portugal' do
+        circle = create(:vote_circle, country_code: 'PT')
+        expect(circle.country_name).to eq('Portugal')
+      end
+    end
+  end
+
+  # ====================
+  # PRIVATE METHOD TESTS
+  # ====================
+
+  describe 'private methods' do
+    let(:circle) { create(:vote_circle) }
+
+    describe '#get_next_circle_id' do
+      it 'returns 01 when no circles exist' do
+        VoteCircle.delete_all
+        result = circle.send(:get_next_circle_id, '2807900', 'TM')
+        expect(result).to eq('01')
+      end
+
+      it 'increments when circles exist' do
+        create(:vote_circle, code: 'TM280790001')
+        result = circle.send(:get_next_circle_id, '2807900', 'TM')
+        expect(result).to eq('02')
+      end
+
+      it 'pads with zeros for single digits' do
+        result = circle.send(:get_next_circle_id, '2807900', 'TM')
+        expect(result).to match(/^\d{2}$/)
+      end
+
+      it 'handles double digits' do
+        10.times do |i|
+          create(:vote_circle, code: "TM28079000#{i + 1}")
+        end
+        result = circle.send(:get_next_circle_id, '2807900', 'TM')
+        expect(result).to eq('11')
+      end
+    end
+
+    describe '#get_next_circle_region_id' do
+      it 'returns TC code with 01 when no circles exist' do
+        VoteCircle.delete_all
+        result = circle.send(:get_next_circle_region_id, 'm_28_079_8', 'ES')
+        expect(result).to match(/^TC\d{9}$/)
+        expect(result).to end_with('01')
+      end
+
+      it 'increments when circles exist' do
+        existing_code = 'TC1128079001'
+        create(:vote_circle, code: existing_code)
+        result = circle.send(:get_next_circle_region_id, 'm_28_079_8', 'ES')
+        expect(result).to eq('TC112807902')
+      end
+
+      it 'handles town_code with zeros' do
+        result = circle.send(:get_next_circle_region_id, 'm_28_000_0', 'ES')
+        expect(result).to match(/^TC\d{9}$/)
+      end
+
+      it 'handles different provinces' do
+        result1 = circle.send(:get_next_circle_region_id, 'm_28_079_8', 'ES')
+        result2 = circle.send(:get_next_circle_region_id, 'm_08_019_3', 'ES')
+        expect(result1).not_to eq(result2)
+      end
+    end
+  end
+
+  # ====================
+  # CLASS METHOD TESTS
+  # ====================
+
+  describe 'class methods' do
+    describe '.ransackable_attributes' do
+      it 'returns array of ransackable attributes' do
+        attrs = VoteCircle.ransackable_attributes
+        expect(attrs).to be_an(Array)
+        expect(attrs).to include('name', 'code', 'kind', 'country_code')
+        # Verify the actual implementation line is executed
+        expect(attrs.size).to be > 10
+      end
+
+      it 'includes all expected attributes' do
+        attrs = VoteCircle.ransackable_attributes
+        expected = %w[autonomy_code code country_code created_at id id_value
+                      island_code kind name original_code original_name
+                      province_code region_area_id town updated_at
+                      vote_circle_autonomy_id vote_circle_province_id]
+        expected.each do |attr|
+          expect(attrs).to include(attr)
+        end
+      end
+
+      it 'works with nil auth_object' do
+        attrs = VoteCircle.ransackable_attributes(nil)
+        expect(attrs).to be_an(Array)
+      end
+
+      it 'works with any auth_object' do
+        attrs = VoteCircle.ransackable_attributes("test")
+        expect(attrs).to be_an(Array)
+      end
+    end
+  end
+
+  # ====================
+  # RANSACKER INTEGRATION TESTS
+  # ====================
+
+  describe 'ransacker integration' do
+    describe 'vote_circle_province_id' do
+      it 'finds circles by province code pattern' do
+        circle = create(:vote_circle, code: 'TM2807901')
+        # The ransacker uses a LIKE query with the code column
+        expect(VoteCircle.where('code like ?', 'TM28%')).to include(circle)
+      end
+
+      it 'uses ransacker formatter to find matching codes' do
+        create(:vote_circle, code: 'TM2807901')
+        create(:vote_circle, code: 'TM2807902')
+        create(:vote_circle, code: 'TM0807901')
+
+        # This exercises the ransacker's formatter proc
+        # The ransacker returns codes that match the pattern
+        q = VoteCircle.ransack(vote_circle_province_id_cont: 'TM28')
+        results = q.result
+        expect(results).to be_an(ActiveRecord::Relation)
+      end
+    end
+
+    describe 'vote_circle_autonomy_id' do
+      it 'finds circles by autonomy code pattern' do
+        circle = create(:vote_circle, code: 'TM2807901')
+        # The ransacker uses a LIKE query with the code column
+        expect(VoteCircle.where('code like ?', 'TM28%')).to include(circle)
+      end
+
+      it 'uses ransacker formatter to find matching codes' do
+        create(:vote_circle, code: 'TM2807901')
+        create(:vote_circle, code: 'TM2807902')
+
+        # This exercises the ransacker's formatter proc
+        # The ransacker returns codes that match the pattern
+        q = VoteCircle.ransack(vote_circle_autonomy_id_cont: 'TM28')
+        results = q.result
+        expect(results).to be_an(ActiveRecord::Relation)
       end
     end
   end

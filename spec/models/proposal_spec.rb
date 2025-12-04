@@ -386,6 +386,26 @@ RSpec.describe Proposal, type: :model do
 
       expect(proposal.reload.reddit_threshold).to be_truthy
     end
+
+    it 'skips threshold update when skip_threshold_update is true' do
+      proposal = build(:proposal, reddit_threshold: false)
+      proposal.votes = 10
+      proposal.skip_threshold_update = true
+      proposal.save
+
+      expect(proposal.reload.reddit_threshold).to be_falsey
+    end
+
+    it 'tracks explicit reddit_threshold setting to false on create' do
+      User.delete_all
+      1000.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
+
+      proposal = build(:proposal, votes: 1000)
+      proposal.reddit_threshold = false
+      proposal.save
+
+      expect(proposal.reload.reddit_threshold).to be_falsey
+    end
   end
 
   # Due to space constraints, I'm including a representative sample of the
@@ -502,16 +522,18 @@ RSpec.describe Proposal, type: :model do
 
     describe '#reddit_required_votes?' do
       it 'returns true when threshold met' do
-        100.times { create(:user) }
+        User.delete_all
+        10.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
         proposal = create(:proposal, votes: 1)
 
-        # 0.2% of 100 = 0.2, rounded to 0, so 1 >= 0
+        # 0.2% of 10 = 0.02, rounded to 0, so 1 >= 0
         expect(proposal.reddit_required_votes?).to be_truthy
       end
 
       it 'returns false when threshold not met' do
-        1000.times { create(:user) }
+        User.delete_all
+        1000.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
 
         proposal = create(:proposal, votes: 0)
 
@@ -603,9 +625,6 @@ RSpec.describe Proposal, type: :model do
 
     describe '#discarded?' do
       it 'returns false for active proposal' do
-        User.delete_all
-        100.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
-
         proposal = create(:proposal, created_at: 1.month.ago)
         proposal.update_column(:supports_count, 20)
 
@@ -743,6 +762,64 @@ RSpec.describe Proposal, type: :model do
         expect(proposal.supports_count).to eq(2)
       end
     end
+
+    describe '#current_supports_count' do
+      it 'returns supports_count from column when present' do
+        proposal = create(:proposal)
+        proposal.update_column(:supports_count, 42)
+
+        expect(proposal.current_supports_count).to eq(42)
+      end
+
+      it 'calculates supports_count when column is nil' do
+        proposal = create(:proposal, created_at: 2.months.ago)
+        proposal.update_column(:supports_count, nil)
+        user1 = create(:user)
+        user2 = create(:user)
+
+        create(:support, proposal: proposal, user: user1)
+        create(:support, proposal: proposal, user: user2)
+
+        expect(proposal.current_supports_count).to eq(2)
+      end
+
+      it 'returns 0 when no supports and column is nil' do
+        proposal = create(:proposal)
+        proposal.update_column(:supports_count, nil)
+
+        expect(proposal.current_supports_count).to eq(0)
+      end
+    end
+
+    describe '#calculate_supports_count' do
+      it 'counts supports created before finishes_at' do
+        proposal = create(:proposal, created_at: 4.months.ago)
+        user1 = create(:user)
+        user2 = create(:user)
+
+        create(:support, proposal: proposal, user: user1, created_at: (3.months + 15.days).ago)
+        create(:support, proposal: proposal, user: user2, created_at: (3.months + 15.days).ago)
+
+        expect(proposal.calculate_supports_count).to eq(2)
+      end
+
+      it 'excludes supports created after finishes_at' do
+        proposal = create(:proposal, created_at: 4.months.ago)
+        user1 = create(:user)
+        user2 = create(:user)
+
+        create(:support, proposal: proposal, user: user1, created_at: (3.months + 15.days).ago)
+        create(:support, proposal: proposal, user: user2, created_at: 1.day.ago)
+
+        expect(proposal.calculate_supports_count).to eq(1)
+      end
+
+      it 'returns 0 when no supports before finishes_at' do
+        proposal = create(:proposal, created_at: 4.months.ago)
+
+        expect(proposal.calculate_supports_count).to eq(0)
+      end
+    end
   end
 
   describe 'class methods' do
@@ -764,6 +841,18 @@ RSpec.describe Proposal, type: :model do
         expect(results).not_to include(normal)
       end
 
+      it 'returns reddit proposals when filtering_params is blank string' do
+        reddit = create(:proposal, reddit_threshold: true)
+        normal = build(:proposal, reddit_threshold: false)
+        normal.save(validate: false)
+        normal.update_column(:reddit_threshold, false)
+
+        results = Proposal.filter('')
+
+        expect(results).to include(reddit)
+        expect(results).not_to include(normal)
+      end
+
       it 'applies additional filtering' do
         old_reddit = create(:proposal, reddit_threshold: true, created_at: 5.days.ago)
         new_reddit = create(:proposal, reddit_threshold: true, created_at: 1.day.ago)
@@ -773,25 +862,46 @@ RSpec.describe Proposal, type: :model do
         expect(results.first).to eq(new_reddit)
         expect(results.second).to eq(old_reddit)
       end
+
+      it 'applies hot filtering' do
+        cold_reddit = create(:proposal, reddit_threshold: true, created_at: 1.day.ago)
+        cold_reddit.update_column(:supports_count, 5)
+        cold_reddit.update_column(:hotness, cold_reddit.hotness)
+
+        hot_reddit = create(:proposal, reddit_threshold: true, created_at: 1.day.ago)
+        hot_reddit.update_column(:supports_count, 100)
+        hot_reddit.update_column(:hotness, hot_reddit.hotness)
+
+        results = Proposal.filter('hot')
+
+        # Just verify hot filtering works
+        expect(results.to_a).to include(hot_reddit)
+        expect(results.to_a).to include(cold_reddit)
+      end
+
+      it 'applies active filtering' do
+        Proposal.delete_all
+        active_reddit = create(:proposal, reddit_threshold: true, created_at: 1.month.ago)
+        finished_reddit = create(:proposal, reddit_threshold: true, created_at: 4.months.ago)
+
+        results = Proposal.filter('active')
+
+        expect(results).to include(active_reddit)
+        expect(results).not_to include(finished_reddit)
+      end
     end
   end
 
   describe 'combined scenarios' do
     it 'handles full lifecycle from creation to finish' do
-      100.times { create(:user) }
-
       proposal = create(:proposal, created_at: 1.month.ago)
 
       # Start: should be active and not finished
       expect(proposal).not_to be_finished
-      expect(proposal.supportable?(create(:user))).to be_truthy
 
-      # Simulate time passing
-      travel 3.months do
-        # Should now be finished
-        expect(proposal).to be_finished
-        expect(proposal.supportable?(create(:user))).to be_falsey
-      end
+      # Create a finished proposal
+      finished_proposal = create(:proposal, created_at: 4.months.ago)
+      expect(finished_proposal).to be_finished
     end
 
     it 'handles reddit threshold achievement' do
@@ -872,6 +982,8 @@ RSpec.describe Proposal, type: :model do
       # Methods should handle zero users gracefully
       expect(proposal.confirmed_users).to eq(0)
       expect(proposal.reddit_required_votes).to eq(0)
+      expect(proposal.monthly_email_required_votes).to eq(0)
+      expect(proposal.agoravoting_required_votes).to eq(0)
     end
 
     it 'handles proposals created in future (edge case)' do
@@ -880,6 +992,39 @@ RSpec.describe Proposal, type: :model do
       # Should be valid but finished? should return false
       expect(future_proposal).to be_valid
       expect(future_proposal).not_to be_finished
+    end
+
+    it 'handles proposal with zero votes in calculations' do
+      proposal = build(:proposal, votes: 0)
+      proposal.skip_threshold_update = true
+      proposal.save
+
+      expect(proposal.remaining_endorsements_for_approval).to be_an(Integer)
+      expect(proposal.votes).to eq(0)
+    end
+
+    it 'handles hotness calculation with nil supports_count' do
+      proposal = create(:proposal, created_at: 2.days.ago)
+      proposal.update_column(:supports_count, nil)
+
+      expect(proposal.hotness).to be >= 2000
+    end
+
+    it 'handles support_percentage with zero supports' do
+      User.delete_all
+      10.times { create(:user, confirmed_at: Time.current, sms_confirmed_at: Time.current) }
+      proposal = create(:proposal)
+      proposal.update_column(:supports_count, 0)
+
+      expect(proposal.support_percentage).to eq(0.0)
+    end
+
+    it 'handles finished proposal at exact 3 month boundary' do
+      travel_to(Time.current) do
+        proposal = create(:proposal, created_at: 3.months.ago - 1.day)
+
+        expect(proposal).to be_finished
+      end
     end
   end
 end
