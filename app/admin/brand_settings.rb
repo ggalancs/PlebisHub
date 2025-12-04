@@ -25,8 +25,10 @@ ActiveAdmin.register BrandSetting do
     column 'Primary' do |setting|
       color = setting.primary_color || setting.predefined_theme_colors[:primary]
       if color
-        content_tag(:div, color,
-                    style: "background-color: #{color}; color: white; padding: 8px; border-radius: 4px; text-align: center; font-family: monospace; font-size: 11px; font-weight: bold;")
+        tag_style = "background-color: #{color}; color: white; padding: 8px; " \
+                    'border-radius: 4px; text-align: center; font-family: monospace; ' \
+                    'font-size: 11px; font-weight: bold;'
+        content_tag(:div, color, style: tag_style)
       else
         'Default'
       end
@@ -34,8 +36,10 @@ ActiveAdmin.register BrandSetting do
     column 'Secondary' do |setting|
       color = setting.secondary_color || setting.predefined_theme_colors[:secondary]
       if color
-        content_tag(:div, color,
-                    style: "background-color: #{color}; color: white; padding: 8px; border-radius: 4px; text-align: center; font-family: monospace; font-size: 11px; font-weight: bold;")
+        tag_style = "background-color: #{color}; color: white; padding: 8px; " \
+                    'border-radius: 4px; text-align: center; font-family: monospace; ' \
+                    'font-size: 11px; font-weight: bold;'
+        content_tag(:div, color, style: tag_style)
       else
         'Default'
       end
@@ -97,7 +101,18 @@ ActiveAdmin.register BrandSetting do
 
               div style: 'margin-bottom: 15px;' do
                 div color_data[:label], style: 'font-weight: 600; margin-bottom: 5px; color: #555; font-size: 13px;'
-                div style: "background-color: #{color_data[:value]}; color: white; padding: 30px; border-radius: 8px; text-align: center; font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" do
+                color_box_style = [
+                  "background-color: #{color_data[:value]}",
+                  'color: white',
+                  'padding: 30px',
+                  'border-radius: 8px',
+                  'text-align: center',
+                  "font-family: 'Monaco', 'Courier New', monospace",
+                  'font-size: 14px',
+                  'font-weight: bold',
+                  'box-shadow: 0 2px 8px rgba(0,0,0,0.1)'
+                ].join('; ')
+                div style: color_box_style do
                   text_node color_data[:value]
                 end
               end
@@ -119,7 +134,18 @@ ActiveAdmin.register BrandSetting do
 
               div style: 'margin-bottom: 15px;' do
                 div color_data[:label], style: 'font-weight: 600; margin-bottom: 5px; color: #555; font-size: 13px;'
-                div style: "background-color: #{color_data[:value]}; color: white; padding: 30px; border-radius: 8px; text-align: center; font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" do
+                color_box_style = [
+                  "background-color: #{color_data[:value]}",
+                  'color: white',
+                  'padding: 30px',
+                  'border-radius: 8px',
+                  'text-align: center',
+                  "font-family: 'Monaco', 'Courier New', monospace",
+                  'font-size: 14px',
+                  'font-weight: bold',
+                  'box-shadow: 0 2px 8px rgba(0,0,0,0.1)'
+                ].join('; ')
+                div style: color_box_style do
                   text_node color_data[:value]
                 end
               end
@@ -152,11 +178,13 @@ ActiveAdmin.register BrandSetting do
     end
 
     f.inputs 'Scope & Organization' do
+      scope_hint = '<strong>Global:</strong> Applies to entire platform<br>' \
+                   '<strong>Organization:</strong> Specific to one organization'
       f.input :scope,
               as: :select,
               collection: BrandSetting::VALID_SCOPES,
               include_blank: false,
-              hint: '<strong>Global:</strong> Applies to entire platform<br><strong>Organization:</strong> Specific to one organization'.html_safe
+              hint: scope_hint.html_safe
       f.input :organization,
               as: :select,
               collection: Organization.all.map { |o| [o.name, o.id] },
