@@ -28,9 +28,9 @@ module EngineUser
     # @return [Boolean] Whether user is still a militant
     #
     def still_militant?
-      self.verified_for_militant? &&
-        self.in_vote_circle? &&
-        (self.exempt_from_payment? || self.collaborator_for_militant?)
+      verified_for_militant? &&
+        in_vote_circle? &&
+        (exempt_from_payment? || collaborator_for_militant?)
     end
 
     # Check if user was a militant at a specific date
@@ -45,25 +45,25 @@ module EngineUser
       collaborator_at = nil
 
       # Check vote circle
-      if self.vote_circle_id.present? && self.vote_circle_changed_at.present?
-        in_circle_at = Time.zone.parse(self.vote_circle_changed_at.to_s)
+      if vote_circle_id.present? && vote_circle_changed_at.present?
+        in_circle_at = Time.zone.parse(vote_circle_changed_at.to_s)
       end
 
       # Check verification
-      if self.user_verifications.any?
-        last_verification = self.user_verifications.last
+      if user_verifications.any?
+        last_verification = user_verifications.last
         status = last_verification.status
-        if self.verified? || (status == "pending" || status == "accepted")
+        if verified? || %w[pending accepted].include?(status)
           verified_at = Time.zone.parse(last_verification.updated_at.to_s)
         end
       end
 
       # Check collaboration
       min_amount = User::MIN_MILITANT_AMOUNT
-      valid_collaboration = self.collaborations
-                                .where.not(frequency: 0)
-                                .where("amount >= ?", min_amount)
-                                .where(status: [0, 2, 3])
+      valid_collaboration = collaborations
+                            .where.not(frequency: 0)
+                            .where(amount: min_amount..)
+                            .where(status: [0, 2, 3])
 
       if valid_collaboration.exists?
         last_collab = valid_collaboration.last
@@ -71,11 +71,11 @@ module EngineUser
       end
 
       # Check exempt from payment
-      if self.exempt_from_payment?
-        last_record = MilitantRecord.where(user_id: self.id)
-                                   .where(payment_type: 0)
-                                   .where.not(begin_payment: nil)
-                                   .last
+      if exempt_from_payment?
+        last_record = MilitantRecord.where(user_id: id)
+                                    .where(payment_type: 0)
+                                    .where.not(begin_payment: nil)
+                                    .last
         if last_record.present? && last_record.begin_payment.present?
           exempt_at = Time.zone.parse(last_record.begin_payment.to_s)
           collaborator_at = [collaborator_at, exempt_at].compact.min
@@ -95,17 +95,17 @@ module EngineUser
     # @return [String, nil] Explanation or nil
     #
     def get_not_militant_detail
-      is_militant = self.still_militant?
-      return if self.militant? && is_militant
-      self.update(militant: is_militant) && return if is_militant
+      is_militant = still_militant?
+      return if militant? && is_militant
+      update(militant: is_militant) && return if is_militant
 
       result = []
-      result.push("No esta verificado") unless self.verified_for_militant?
-      result.push("No esta inscrito en un circulo") unless self.in_vote_circle?
-      result.push("No tiene colaboración económica periódica suscrita, no está exento de pago") unless
-        self.exempt_from_payment? || self.collaborator_for_militant?
+      result.push('No esta verificado') unless verified_for_militant?
+      result.push('No esta inscrito en un circulo') unless in_vote_circle?
+      result.push('No tiene colaboración económica periódica suscrita, no está exento de pago') unless
+        exempt_from_payment? || collaborator_for_militant?
 
-      result.compact.flatten.join(", ").sub(/.*\K, /, ' y ')
+      result.compact.flatten.join(', ').sub(/.*\K, /, ' y ')
     end
 
     # Process militant data updates
@@ -113,16 +113,16 @@ module EngineUser
     # Called when vote circle changes
     #
     def process_militant_data
-      is_militant = self.still_militant?
-      lmr = self.militant_records.last
+      is_militant = still_militant?
+      lmr = militant_records.last
 
       # Send email if becoming militant
       if is_militant && (lmr.blank? || (lmr.present? && lmr.is_militant == false))
-        UsersMailer.new_militant_email(self.id).deliver_now
+        UsersMailer.new_militant_email(id).deliver_now
       end
 
       # Update militant records
-      self.militant_records_management(is_militant)
+      militant_records_management(is_militant)
     end
 
     # Manages militant record creation and updates
@@ -131,15 +131,15 @@ module EngineUser
     # @param is_militant [Boolean] Current militant status
     #
     def militant_records_management(is_militant)
-      last_record = self.militant_records.last || MilitantRecord.new
+      last_record = militant_records.last || MilitantRecord.new
       new_record = MilitantRecord.new
-      new_record.user_id = self.id
+      new_record.user_id = id
       now = DateTime.now
 
       # Track verification period
-      if self.verified_for_militant?
-        new_record.begin_verified = last_record.begin_verified unless last_record.end_verified.present?
-        new_record.begin_verified ||= self.user_verifications.pluck(:updated_at).last
+      if verified_for_militant?
+        new_record.begin_verified = last_record.begin_verified if last_record.end_verified.blank?
+        new_record.begin_verified ||= user_verifications.pluck(:updated_at).last
         new_record.end_verified = nil
       else
         new_record.begin_verified = last_record.begin_verified || nil
@@ -147,23 +147,22 @@ module EngineUser
       end
 
       # Track vote circle membership
-      if self.in_vote_circle?
-        if self.vote_circle&.name.present? &&
+      if in_vote_circle?
+        if vote_circle&.name.present? &&
            last_record.vote_circle_name.present? &&
-           self.vote_circle.name.downcase.strip == last_record.vote_circle_name.downcase.strip
-          new_record.begin_in_vote_circle = last_record.begin_in_vote_circle unless
-            last_record.end_in_vote_circle.present?
-          new_record.begin_in_vote_circle ||= self.vote_circle_changed_at
+           vote_circle.name.downcase.strip == last_record.vote_circle_name.downcase.strip
+          new_record.begin_in_vote_circle = last_record.begin_in_vote_circle if
+            last_record.end_in_vote_circle.blank?
+          new_record.begin_in_vote_circle ||= vote_circle_changed_at
           new_record.vote_circle_name = last_record.vote_circle_name if
             last_record.vote_circle_name.present? && last_record.end_in_vote_circle.nil?
-          new_record.vote_circle_name ||= self.vote_circle&.name
-          new_record.end_in_vote_circle = nil
+          new_record.vote_circle_name ||= vote_circle&.name
         else
-          last_record.update(end_in_vote_circle: self.vote_circle_changed_at) if self.vote_circle_changed_at.present?
-          new_record.begin_in_vote_circle = self.vote_circle_changed_at
-          new_record.vote_circle_name = self.vote_circle&.name
-          new_record.end_in_vote_circle = nil
+          last_record.update(end_in_vote_circle: vote_circle_changed_at) if vote_circle_changed_at.present?
+          new_record.begin_in_vote_circle = vote_circle_changed_at
+          new_record.vote_circle_name = vote_circle&.name
         end
+        new_record.end_in_vote_circle = nil
       else
         new_record.begin_in_vote_circle = last_record.begin_in_vote_circle if
           last_record.begin_in_vote_circle.present?
@@ -173,25 +172,25 @@ module EngineUser
       end
 
       # Track payment/collaboration
-      if self.exempt_from_payment? || self.collaborator_for_militant?
-        date_collaboration = last_record.begin_payment unless last_record.end_payment.present?
-        new_record.payment_type = last_record.payment_type unless last_record.end_payment.present?
+      if exempt_from_payment? || collaborator_for_militant?
+        date_collaboration = last_record.begin_payment if last_record.end_payment.blank?
+        new_record.payment_type = last_record.payment_type if last_record.end_payment.blank?
 
-        if self.exempt_from_payment?
+        if exempt_from_payment?
           date_collaboration ||= now
           new_record.payment_type ||= 0
           new_record.amount = 0
         else
           min_amount = User::MIN_MILITANT_AMOUNT
-          last_valid_collaboration = self.collaborations
-                                         .where.not(frequency: 0)
-                                         .where("amount >= ?", min_amount)
-                                         .where(status: 3)
-                                         .last
-          last_valid_collaboration ||= self.collaborations
-                                          .where.not(frequency: 0)
-                                          .where(status: [0, 2])
-                                          .last
+          last_valid_collaboration = collaborations
+                                     .where.not(frequency: 0)
+                                     .where(amount: min_amount..)
+                                     .where(status: 3)
+                                     .last
+          last_valid_collaboration ||= collaborations
+                                       .where.not(frequency: 0)
+                                       .where(status: [0, 2])
+                                       .last
           date_collaboration ||= last_valid_collaboration&.created_at
           new_record.payment_type ||= 1
           new_record.amount = last_valid_collaboration&.amount || 0

@@ -6,15 +6,14 @@ FactoryBot.define do
     # Using German address to avoid Spanish postal code validations
     user do
       # Spanish DNI format: 8 digits + check letter
-      dni_letters = "TRWAGMYFPDXBNJZSQVHLCKE"
-      number = rand(10000000..99999999)
+      dni_letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
+      number = rand(10_000_000..99_999_999)
       letter = dni_letters[number % 23]
 
       u = build(:user,
-        document_type: 1, # DNI
-        document_vatid: "#{number}#{letter}",
-        born_at: 25.years.ago # Ensure over 18
-      )
+                document_type: 1, # DNI
+                document_vatid: "#{number}#{letter}",
+                born_at: 25.years.ago) # Ensure over 18
       u.save(validate: false)
       u
     end
@@ -25,11 +24,11 @@ FactoryBot.define do
     # status is set by after_create :set_initial_status callback to 0
 
     # Acceptance attributes - Rails 7.2 requires "1" format for acceptance validation
-    terms_of_service { "1" }
-    minimal_year_old { "1" }
+    terms_of_service { '1' }
+    minimal_year_old { '1' }
 
     # Credit card fields (for payment_type = 1)
-    redsys_identifier { "999999999R" }
+    redsys_identifier { '999999999R' }
     redsys_expiration { 2.years.from_now }
 
     trait :with_ccc do
@@ -37,7 +36,7 @@ FactoryBot.define do
       ccc_entity { 2100 }
       ccc_office { 1234 }
       ccc_dc { 56 }
-      ccc_account { 1234567890 }
+      ccc_account { 1_234_567_890 }
       redsys_identifier { nil }
       redsys_expiration { nil }
       # Skip callbacks to avoid PlebisBrand::SpanishBIC dependency in check_spanish_bic
@@ -47,16 +46,16 @@ FactoryBot.define do
     trait :with_iban do
       payment_type { 3 } # IBAN
       # Use international IBAN by default to avoid PlebisBrand::SpanishBIC dependency
-      iban_account { "DE89370400440532013000" } # Valid German IBAN
-      iban_bic { "COBADEFFXXX" }
+      iban_account { 'DE89370400440532013000' } # Valid German IBAN
+      iban_bic { 'COBADEFFXXX' }
       redsys_identifier { nil }
       redsys_expiration { nil }
     end
 
     trait :with_spanish_iban do
       payment_type { 3 } # IBAN
-      iban_account { "ES9121000418450200051332" } # Valid Spanish IBAN
-      iban_bic { "CAIXESBBXXX" }
+      iban_account { 'ES9121000418450200051332' } # Valid Spanish IBAN
+      iban_bic { 'CAIXESBBXXX' }
       redsys_identifier { nil }
       redsys_expiration { nil }
       # Requires PlebisBrand::SpanishBIC constant - skip in tests if not available
@@ -64,8 +63,8 @@ FactoryBot.define do
 
     trait :with_international_iban do
       payment_type { 3 }
-      iban_account { "DE89370400440532013000" } # Valid German IBAN
-      iban_bic { "COBADEFFXXX" }
+      iban_account { 'DE89370400440532013000' } # Valid German IBAN
+      iban_bic { 'COBADEFFXXX' }
       redsys_identifier { nil }
       redsys_expiration { nil }
     end
@@ -141,21 +140,21 @@ FactoryBot.define do
       # Set non_user_email and non_user_document_vatid before callbacks
       after(:build) do |collab|
         # Generate unique values
-        n = rand(100000..999999)
+        n = rand(100_000..999_999)
         collab.non_user_email = "nonuser#{n}@example.com" unless collab.non_user_email
         collab.non_user_document_vatid = "1234567#{n % 10}Z" unless collab.non_user_document_vatid
 
         # Set non_user_data with NonUser object
         collab.instance_variable_set(:@non_user, Collaboration::NonUser.new(
-          full_name: "Non User Name",
-          document_vatid: collab.non_user_document_vatid,
-          email: collab.non_user_email,
-          address: "Test Address",
-          town_name: "Madrid",
-          postal_code: "28001",
-          country: "ES",
-          ine_town: "m_28_079_6"
-        ))
+                                                   full_name: 'Non User Name',
+                                                   document_vatid: collab.non_user_document_vatid,
+                                                   email: collab.non_user_email,
+                                                   address: 'Test Address',
+                                                   town_name: 'Madrid',
+                                                   postal_code: '28001',
+                                                   country: 'ES',
+                                                   ine_town: 'm_28_079_6'
+                                                 ))
         # Call format_non_user to serialize @non_user to non_user_data before validation
         collab.send(:format_non_user)
       end

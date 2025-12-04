@@ -1,40 +1,40 @@
+# frozen_string_literal: true
+
 module RegistrationsHelper
-  require "ffi-icu"
-  
+  require 'ffi-icu'
+
   def self.region_comparer
-    @collator ||= ICU::Collation::Collator.new("es_ES")
-    @comparer ||= lambda {|a, b| @collator.compare(a.name, b.name)}
+    @collator ||= ICU::Collation::Collator.new('es_ES')
+    @region_comparer ||= ->(a, b) { @collator.compare(a.name, b.name) }
   end
 
   # lists of countries, current country provinces and current province towns, sorted with spanish collation
   def get_countries
-    Carmen::Country.all.sort &RegistrationsHelper.region_comparer
+    Carmen::Country.all.sort(&RegistrationsHelper.region_comparer)
   end
 
-  def get_provinces country
+  def get_provinces(country)
     c = Carmen::Country.coded(country)
-    if not (c and c.subregions)
-      []
+    if c&.subregions
+      c.subregions.sort(&RegistrationsHelper.region_comparer)
     else
-      c.subregions.sort &RegistrationsHelper.region_comparer
+      []
     end
   end
 
-  def get_towns country, province
-    p = if province && country =="ES" then 
-          Carmen::Country.coded("ES").subregions.coded(province) 
-        end
+  def get_towns(country, province)
+    p = (Carmen::Country.coded('ES').subregions.coded(province) if province && country == 'ES')
 
-    if not (p and p.subregions)
-      []
+    if p&.subregions
+      p.subregions.sort(&RegistrationsHelper.region_comparer)
     else
-      p.subregions.sort &RegistrationsHelper.region_comparer
+      []
     end
   end
 
   def get_vote_circles
-    result = VoteCircle.all.where("code like 'IP%'").sort
-    result += VoteCircle.all.where.not("code like 'IP%'").order(:original_name)
+    result = VoteCircle.where("code like 'IP%'").sort
+    result += VoteCircle.where.not("code like 'IP%'").order(:original_name)
     result
   end
 end

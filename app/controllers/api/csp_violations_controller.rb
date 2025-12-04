@@ -44,7 +44,7 @@ class Api::CspViolationsController < ApplicationController
   rescue JSON::ParserError => e
     Rails.logger.warn("[CSP Violation] Invalid JSON format: #{e.message}")
     head :bad_request
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error("[CSP Violation] Unexpected error: #{e.message}")
     Airbrake.notify(e, component: 'CSP Violations API') if defined?(Airbrake)
     head :internal_server_error
@@ -76,7 +76,7 @@ class Api::CspViolationsController < ApplicationController
     violated_directive = sanitize_for_log(report['violated-directive'])
 
     Rails.logger.warn(
-      "[CSP Violation] " \
+      '[CSP Violation] ' \
       "Document: #{document_uri} | " \
       "Blocked: #{blocked_uri} | " \
       "Directive: #{violated_directive} | " \
@@ -90,21 +90,21 @@ class Api::CspViolationsController < ApplicationController
     return unless defined?(Airbrake)
 
     # Only notify on repeated violations or high-risk directives
-    if critical_violation?(report)
-      Airbrake.notify(
-        "CSP Violation: #{report['violated-directive']}",
-        parameters: {
-          document_uri: report['document-uri'],
-          blocked_uri: report['blocked-uri'],
-          violated_directive: report['violated-directive'],
-          disposition: report['disposition'],
-          ip: request.remote_ip,
-          user_agent: request.user_agent
-        },
-        component: 'Content Security Policy',
-        action: 'csp_violation'
-      )
-    end
+    return unless critical_violation?(report)
+
+    Airbrake.notify(
+      "CSP Violation: #{report['violated-directive']}",
+      parameters: {
+        document_uri: report['document-uri'],
+        blocked_uri: report['blocked-uri'],
+        violated_directive: report['violated-directive'],
+        disposition: report['disposition'],
+        ip: request.remote_ip,
+        user_agent: request.user_agent
+      },
+      component: 'Content Security Policy',
+      action: 'csp_violation'
+    )
   end
 
   # Check if violation is critical (indicates potential attack)

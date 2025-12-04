@@ -21,7 +21,7 @@ RSpec.describe VoteCircleType, type: :model do
   end
 
   it 'table does not exist in database' do
-    skip "VoteCircleType has no corresponding database table - legacy model"
+    skip 'VoteCircleType has no corresponding database table - legacy model'
     # This test documents that the model exists but is not actively used
   end
 end

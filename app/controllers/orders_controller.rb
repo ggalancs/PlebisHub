@@ -18,7 +18,7 @@ class OrdersController < ApplicationController
 
       # MEDIUM PRIORITY FIX: Added nil check for order
       unless order
-        log_callback_error("Order not found in processor result")
+        log_callback_error('Order not found in processor result')
         render_error_response(result[:is_soap])
         return
       end
@@ -27,17 +27,17 @@ class OrdersController < ApplicationController
       if result[:is_soap]
         render xml: order.redsys_callback_response
       else
-        render plain: order.is_paid? ? "OK" : "KO"
+        render plain: order.is_paid? ? 'OK' : 'KO'
       end
 
       log_callback_success(order)
     rescue ActiveRecord::RecordNotFound => e
       # Order ID was parsed but order doesn't exist in database
-      log_callback_error("Order not found in database", e)
+      log_callback_error('Order not found in database', e)
       render_error_response(false)
     rescue StandardError => e
       # Catch-all for XML parsing errors, signature validation failures, etc.
-      log_callback_error("Unexpected error processing callback", e)
+      log_callback_error('Unexpected error processing callback', e)
       render_error_response(false)
     end
   end
@@ -71,10 +71,10 @@ class OrdersController < ApplicationController
   def render_error_response(is_soap)
     if is_soap
       # SOAP error response format
-      render xml: "<error>Payment processing failed</error>", status: :unprocessable_entity
+      render xml: '<error>Payment processing failed</error>', status: :unprocessable_content
     else
       # HTTP POST error response
-      render plain: "KO", status: :unprocessable_entity
+      render plain: 'KO', status: :unprocessable_content
     end
   end
 end

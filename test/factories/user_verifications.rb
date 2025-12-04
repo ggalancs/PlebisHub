@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :user_verification, class: 'UserVerification' do
     association :user
     status { :pending }
-    terms_of_service { "1" } # Rails 7.2 requires "1" format for acceptance validation
+    terms_of_service { '1' } # Rails 7.2 requires "1" format for acceptance validation
     wants_card { false }
 
     # Skip validations for tests since we can't easily create actual image files
@@ -16,13 +18,13 @@ FactoryBot.define do
     trait :rejected do
       status { :rejected }
       processed_at { 1.day.ago }
-      comment { "Verification rejected" }
+      comment { 'Verification rejected' }
     end
 
     trait :issues do
       status { :issues }
       processed_at { 1.day.ago }
-      comment { "Issues found with verification" }
+      comment { 'Issues found with verification' }
     end
 
     trait :accepted_by_email do

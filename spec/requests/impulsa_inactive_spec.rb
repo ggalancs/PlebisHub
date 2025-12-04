@@ -12,9 +12,7 @@ RSpec.describe 'Impulsa Inactive', type: :request do
 
       it 'muestra título de IMPULSA' do
         get '/es/impulsa'
-        if response.status == 200
-          expect(response.body).to match(/IMPULSA|Impulsa/)
-        end
+        expect(response.body).to match(/IMPULSA|Impulsa/) if response.status == 200
       end
     end
 
@@ -31,16 +29,12 @@ RSpec.describe 'Impulsa Inactive', type: :request do
     describe 'C. ESTRUCTURA HTML' do
       it 'usa estructura content-content' do
         get '/es/impulsa'
-        if response.status == 200
-          expect(response.body).to include('content-content')
-        end
+        expect(response.body).to include('content-content') if response.status == 200
       end
 
       it 'tiene h2 para título principal' do
         get '/es/impulsa'
-        if response.status == 200
-          expect(response.body).to match(/<h2>/)
-        end
+        expect(response.body).to match(/<h2>/) if response.status == 200
       end
     end
   end

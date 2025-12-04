@@ -19,7 +19,8 @@ module PlebisCms
     # Instance methods
     def external_plebisbrand_link?
       return false if link.blank?
-      /https:\/\/[^\/]*\.plebisbrand.info\/.*/.match?(link)
+
+      %r{https://[^/]*\.plebisbrand.info/.*}.match?(link)
     end
   end
 end

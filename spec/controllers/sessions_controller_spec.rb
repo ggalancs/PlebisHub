@@ -113,7 +113,7 @@ RSpec.describe SessionsController, type: :controller do
 
       it 'redirects after login' do
         # Rails 7.2: This test validates Devise behavior, skip in favor of integration tests
-        skip "Devise authentication in controller specs requires complex mocking. Use request specs for full integration testing."
+        skip 'Devise authentication in controller specs requires complex mocking. Use request specs for full integration testing.'
       end
     end
 
@@ -197,7 +197,7 @@ RSpec.describe SessionsController, type: :controller do
       it 'does not have skip_before_action for destroy' do
         # Rails 7.2: Simplified check for skip_before_action
         # The absence of skip_before_action means CSRF is enabled
-        skip "This is implicitly tested by the previous test in Rails 7.2"
+        skip 'This is implicitly tested by the previous test in Rails 7.2'
       end
     end
   end

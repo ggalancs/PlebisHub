@@ -30,9 +30,7 @@ RSpec.describe 'Impulsa Project Step', type: :request do
       end
 
       it 'si renderiza, muestra título de IMPULSA' do
-        if response.status == 200
-          expect(response.body).to match(/IMPULSA|Impulsa/)
-        end
+        expect(response.body).to match(/IMPULSA|Impulsa/) if response.status == 200
       end
     end
 
@@ -43,9 +41,7 @@ RSpec.describe 'Impulsa Project Step', type: :request do
       end
 
       it 'si renderiza, tiene partial de steps' do
-        if response.status == 200
-          expect(response.body).to include('step')
-        end
+        expect(response.body).to include('step') if response.status == 200
       end
     end
 
@@ -56,15 +52,11 @@ RSpec.describe 'Impulsa Project Step', type: :request do
       end
 
       it 'si renderiza, tiene data-form-container' do
-        if response.status == 200
-          expect(response.body).to include('data-form-container')
-        end
+        expect(response.body).to include('data-form-container') if response.status == 200
       end
 
       it 'si renderiza, tiene h2 para título del paso' do
-        if response.status == 200
-          expect(response.body).to include('<h2>')
-        end
+        expect(response.body).to include('<h2>') if response.status == 200
       end
 
       it 'si renderiza, puede tener box-info con mensaje de completitud' do
@@ -82,15 +74,11 @@ RSpec.describe 'Impulsa Project Step', type: :request do
       end
 
       it 'si renderiza, tiene formulario' do
-        if response.status == 200
-          expect(response.body).to include('<form')
-        end
+        expect(response.body).to include('<form') if response.status == 200
       end
 
       it 'si renderiza, usa autocomplete off' do
-        if response.status == 200
-          expect(response.body).to include('autocomplete="off"')
-        end
+        expect(response.body).to include('autocomplete="off"') if response.status == 200
       end
 
       it 'si renderiza, puede tener fieldsets para grupos de campos' do
@@ -116,7 +104,7 @@ RSpec.describe 'Impulsa Project Step', type: :request do
 
       it 'si renderiza con campos editables, tiene botón de submit' do
         if response.status == 200
-          has_submit = response.body.match?(/submit|Guardar|next_step/) || !response.body.include?('form')
+          has_submit = response.body.match?(/submit|Guardar|next_step/) || response.body.exclude?('form')
           expect(has_submit).to be true
         end
       end

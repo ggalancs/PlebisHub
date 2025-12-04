@@ -38,7 +38,4 @@ end
 
 # Prepend the test override to BlogHelper to replace auto_html methods
 # Check if the constant is defined before prepending to avoid autoloading issues
-if Rails.env.test? && defined?(PlebisCms::BlogHelper)
-  PlebisCms::BlogHelper.prepend(BlogHelperTestOverride)
-end
-
+PlebisCms::BlogHelper.prepend(BlogHelperTestOverride) if Rails.env.test? && defined?(PlebisCms::BlogHelper)

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
-  menu :parent => "Votación"
+  menu parent: 'Votación'
 
   permit_params :title, :info_url, :election_type, :agora_election_id, :scope, :census_file, :server, :starts_at, :ends_at, :close_message, :locations,
                 :user_created_at_max, :priority, :info_text, :requires_vatid_check, :requires_sms_check, :show_on_index,
@@ -20,7 +20,7 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
     actions
   end
 
-  sidebar "Modificar la versión de todos los territorios implicados ", :only => :show do
+  sidebar 'Modificar la versión de todos los territorios implicados ', only: :show do
     render('set_election_location_versions')
   end
 
@@ -30,18 +30,26 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
 
   show do
     attributes_table do
-      row :requires_sms_check do
-        status_tag("SMS CHECK", :ok)
-      end if election.requires_sms_check
-      row :requires_vatid_check do
-        status_tag("DNI CHECK", :ok)
-      end if election.requires_vatid_check
-      row :show_on_index do
-        status_tag("SHOW ON INDEX", :ok)
-      end if election.show_on_index
-      row :ignore_multiple_territories do
-        status_tag("IGNORE MULTIPLE TERRITORIES", :ok)
-      end if election.ignore_multiple_territories
+      if election.requires_sms_check
+        row :requires_sms_check do
+          status_tag('SMS CHECK', :ok)
+        end
+      end
+      if election.requires_vatid_check
+        row :requires_vatid_check do
+          status_tag('DNI CHECK', :ok)
+        end
+      end
+      if election.show_on_index
+        row :show_on_index do
+          status_tag('SHOW ON INDEX', :ok)
+        end
+      end
+      if election.ignore_multiple_territories
+        row :ignore_multiple_territories do
+          status_tag('IGNORE MULTIPLE TERRITORIES', :ok)
+        end
+      end
       row :title
       row :info_url
       row :info_text
@@ -50,8 +58,8 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
       row :priority
       row :election_type
       row :external_link if election.external?
-      row :server if !election.external?
-      row :agora_election_id if !election.external?
+      row :server unless election.external?
+      row :agora_election_id unless election.external?
       row :voter_id_template
       row :scope_name
       row :census_file do |election|
@@ -63,67 +71,75 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
       row :close_message do
         raw election.close_message
       end
-      row "Crear Aviso" do
-        link_to "Crear aviso para móviles para esta votación", new_admin_notice_path(notice: { link: create_vote_url(election_id: election.id), title: "PlebisBrand", body: "Nueva votación disponible: #{election.title}" }), class: "button"
+      row 'Crear Aviso' do
+        link_to 'Crear aviso para móviles para esta votación',
+                new_admin_notice_path(notice: { link: create_vote_url(election_id: election.id), title: 'PlebisBrand', body: "Nueva votación disponible: #{election.title}" }), class: 'button'
       end
     end
 
-    panel "Lugares donde se vota" do
+    panel 'Lugares donde se vota' do
       paginated_collection(election.election_locations.page(params[:page]).per(15), download_links: false) do
         table_for collection.order(:location) do
-          column "Territorio" do |el|
-            el.territory
+          column 'Territorio', &:territory
+          column 'version', &:agora_version
+          column 'version nueva', &:new_agora_version
+          if election.nvotes?
+            column 'Cabina de votación' do |el|
+              span link_to el.link, el.link
+              br
+              span link_to el.new_link, el.new_link if el.new_version_pending
+            end
           end
-          column "version" do |el|
-            el.agora_version
+          unless election.external?
+            column 'Votos' do |el|
+              span link_to el.valid_votes_count.to_s,
+                           election_location_votes_count_path(el.election, el, el.counter_token)
+            end
           end
-          column "version nueva" do |el|
-            el.new_agora_version
+          if election.paper?
+            column 'Voto presencial' do |el|
+              span link_to 'Votar', election_location_paper_vote_path(el.election, el, el.paper_token)
+            end
           end
-          column "Cabina de votación" do |el|
-            span link_to el.link, el.link
-            br
-            span link_to el.new_link, el.new_link if el.new_version_pending
-          end if election.nvotes?
-          column "Votos" do |el|
-            span link_to "#{el.valid_votes_count}", election_location_votes_count_path(el.election, el, el.counter_token)
-          end if !election.external?
-          column "Voto presencial" do |el|
-            span link_to "Votar", election_location_paper_vote_path(el.election, el, el.paper_token)
-          end if election.paper?
-          column "Acciones" do |el|
-            span link_to "Modificar", edit_admin_election_election_location_path(el.election, el)
-            span link_to "Borrar", admin_election_election_location_path(el.election, el), method: :delete, data: { confirm: "¿Estas segura de borrar esta ubicación?" }
-            span link_to "TSV", download_voting_definition_admin_election_path(el) if el.has_voting_info && !election.external?
-            status_tag("VERSION NUEVA", :error) if el.new_version_pending
+          column 'Acciones' do |el|
+            span link_to 'Modificar', edit_admin_election_election_location_path(el.election, el)
+            span link_to 'Borrar', admin_election_election_location_path(el.election, el), method: :delete,
+                                                                                           data: { confirm: '¿Estas segura de borrar esta ubicación?' }
+            if el.has_voting_info && !election.external?
+              span link_to 'TSV',
+                           download_voting_definition_admin_election_path(el)
+            end
+            status_tag('VERSION NUEVA', :error) if el.new_version_pending
           end
         end
       end
-      span link_to "Añadir ubicación", new_admin_election_election_location_path(election)
+      span link_to 'Añadir ubicación', new_admin_election_election_location_path(election)
     end
 
-    panel "Evolución" do
-      svg class: "js-election-graph", "data-url" => votes_analysis_admin_election_path(election.id), "data-height"=>700
+    panel 'Evolución' do
+      svg class: 'js-election-graph', 'data-url' => votes_analysis_admin_election_path(election.id),
+          'data-height' => 700
     end
 
     active_admin_comments
   end
 
-  member_action :set_election_location_versions, :method => :post do
-    version_locations = params["set_election_location_versions"]["version"]
-    @election = PlebisVotes::Election.find_by_id(params["id"].to_i)
+  member_action :set_election_location_versions, method: :post do
+    version_locations = params['set_election_location_versions']['version']
+    @election = PlebisVotes::Election.find_by(id: params['id'].to_i)
     @election.election_locations.each do |el|
-      el.update(agora_version: version_locations,new_agora_version: version_locations)
+      el.update(agora_version: version_locations, new_agora_version: version_locations)
     end
 
-    redirect_to(admin_election_path(@election.id),flash: {notice: "Se ha actualizado correctamente la versión en todos los territorios de la votación" })
+    redirect_to(admin_election_path(@election.id),
+                flash: { notice: 'Se ha actualizado correctamente la versión en todos los territorios de la votación' })
   end
 
   member_action :download_voting_definition do
     election_location = PlebisVotes::ElectionLocation.find(params[:id])
-    headers["Content-Type"] ||= 'text/csv'
-    headers["Content-Disposition"] = "attachment; filename=\"#{election_location.new_vote_id}.tsv\""
-    render "election_location.tsv", layout: false, locals: { election_location: election_location }
+    headers['Content-Type'] ||= 'text/csv'
+    headers['Content-Disposition'] = "attachment; filename=\"#{election_location.new_vote_id}.tsv\""
+    render 'election_location.tsv', layout: false, locals: { election_location: election_location }
   end
 
   member_action :votes_analysis do
@@ -133,23 +149,27 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
 
   form do |f|
     f.object.requires_sms_check = true if f.object.new_record?
-    f.inputs "Election" do
+    f.inputs 'Election' do
       f.input :title
       f.input :info_url
       f.input :info_text
-      f.input :meta_description, label: "Descripción del sitio para redes sociales durante la votación"
-      f.input :meta_image, label: "URL de la imagen del sitio para redes sociales durante la votación"
+      f.input :meta_description, label: 'Descripción del sitio para redes sociales durante la votación'
+      f.input :meta_image, label: 'URL de la imagen del sitio para redes sociales durante la votación'
       f.input :priority
 
-      f.input :agora_election_id, label: "Prefijo del identificador"
-      f.input :election_type, as: :radio, collection: PlebisVotes::Election.election_types.keys, label: "Tipo de elección"
-      f.input :server, as: :select, collection: PlebisVotes::Election.available_servers, label: "Servidor de nVotes"
+      f.input :agora_election_id, label: 'Prefijo del identificador'
+      f.input :election_type, as: :radio, collection: PlebisVotes::Election.election_types.keys,
+                              label: 'Tipo de elección'
+      f.input :server, as: :select, collection: PlebisVotes::Election.available_servers, label: 'Servidor de nVotes'
       f.input :voter_id_template
       f.input :external_link
 
       f.input :scope, as: :select, collection: PlebisVotes::Election::SCOPE
       f.input :census_file, as: :file
-      f.input :locations, as: :text, :input_html => { :class => 'autogrow', :rows => 10, :cols => 10  } if !resource.persisted?
+      unless resource.persisted?
+        f.input :locations, as: :text,
+                            input_html: { class: 'autogrow', rows: 10, cols: 10 }
+      end
       f.input :starts_at
       f.input :ends_at
       f.input :close_message
@@ -167,24 +187,27 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
 
     csv = CSV.generate(encoding: 'utf-8', col_sep: "\t") do |csv|
       prev_user_id = nil
-      PlebisVotes::Vote.joins(:user).merge!(::User.confirmed.not_banned).where(election_id: election_id).select(:user_id, :voter_id).order(user_id: :asc, created_at: :desc).each do |vote|
+      PlebisVotes::Vote.joins(:user).merge!(User.confirmed.not_banned).where(election_id: election_id).select(:user_id, :voter_id).order(
+        user_id: :asc, created_at: :desc
+      ).each do |vote|
         csv << [vote.voter_id] if prev_user_id != vote.user_id
         prev_user_id = vote.user_id
       end
     end
     send_data csv.encode('utf-8'),
-      type: 'text/tsv; charset=utf-8; header=present',
-      disposition: "attachment; filename=voter_ids.#{election_id}.tsv"
+              type: 'text/tsv; charset=utf-8; header=present',
+              disposition: "attachment; filename=voter_ids.#{election_id}.tsv"
   end
 
-  sidebar "Progreso", only: :show, priority: 0 do
+  sidebar 'Progreso', only: :show, priority: 0 do
     ul do
       li do
-        a "Votos totales: #{election.valid_votes_count}", href: election_votes_count_path(election, election.counter_token)
+        a "Votos totales: #{election.valid_votes_count}",
+          href: election_votes_count_path(election, election.counter_token)
       end
       li "Censo activos: #{election.current_active_census}"
       li "Censo actual: #{election.current_total_census}"
-      li "Votos de usuarios baneados: #{election.votes.joins(:user).merge(::User.banned).count}"
+      li "Votos de usuarios baneados: #{election.votes.joins(:user).merge(User.banned).count}"
       li do
         a 'Descargar voter ids', href: download_voter_ids_admin_election_path(election)
       end
@@ -198,19 +221,19 @@ ActiveAdmin.register PlebisVotes::ElectionLocation, namespace: :admin do
   navigation_menu :default
 
   permit_params :election_id, :location, :agora_version, :new_agora_version, :override, :title, :layout, :description, :share_text, :theme, :has_voting_info,
-                election_location_questions_attributes: [ :id, :_destroy, :title, :description, :voting_system, :layout, :winners, :minimum, :maximum, :random_order, :totals, :options, options_headers: [] ]
+                election_location_questions_attributes: [:id, :_destroy, :title, :description, :voting_system, :layout, :winners, :minimum, :maximum, :random_order, :totals, :options, { options_headers: [] }]
 
-  form partial: "election_location", locals: { spain: Carmen::Country.coded("ES") }
+  form partial: 'election_location', locals: { spain: Carmen::Country.coded('ES') }
 
   controller do
     def create
-      super do |format|
+      super do |_format|
         redirect_to admin_election_path(resource.election) and return if resource.valid?
       end
     end
 
     def update
-      super do |format|
+      super do |_format|
         redirect_to admin_election_path(resource.election) and return if resource.valid?
       end
     end

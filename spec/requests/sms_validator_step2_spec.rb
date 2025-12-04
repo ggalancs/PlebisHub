@@ -30,15 +30,11 @@ RSpec.describe 'SMS Validator Step2', type: :request do
       end
 
       it 'si renderiza, muestra título de captcha' do
-        if response.status == 200
-          expect(response.body).to match(/código.*imagen|captcha/i)
-        end
+        expect(response.body).to match(/código.*imagen|captcha/i) if response.status == 200
       end
 
       it 'si renderiza, tiene el title tag correcto' do
-        if response.status == 200
-          expect(response.body).to match(/<title>/)
-        end
+        expect(response.body).to match(/<title>/) if response.status == 200
       end
     end
 
@@ -49,9 +45,7 @@ RSpec.describe 'SMS Validator Step2', type: :request do
       end
 
       it 'si renderiza, muestra step 2' do
-        if response.status == 200
-          expect(response.body).to include('step')
-        end
+        expect(response.body).to include('step') if response.status == 200
       end
     end
 
@@ -62,27 +56,19 @@ RSpec.describe 'SMS Validator Step2', type: :request do
       end
 
       it 'si renderiza, tiene formulario de captcha' do
-        if response.status == 200
-          expect(response.body).to include('<form')
-        end
+        expect(response.body).to include('<form') if response.status == 200
       end
 
       it 'si renderiza, muestra captcha simple' do
-        if response.status == 200
-          expect(response.body).to match(/captcha|simple_captcha/)
-        end
+        expect(response.body).to match(/captcha|simple_captcha/) if response.status == 200
       end
 
       it 'si renderiza, tiene campo de captcha' do
-        if response.status == 200
-          expect(response.body).to include('captcha')
-        end
+        expect(response.body).to include('captcha') if response.status == 200
       end
 
       it 'si renderiza, tiene botón de submit' do
-        if response.status == 200
-          expect(response.body).to match(/submit|button/)
-        end
+        expect(response.body).to match(/submit|button/) if response.status == 200
       end
     end
 
@@ -93,9 +79,7 @@ RSpec.describe 'SMS Validator Step2', type: :request do
       end
 
       it 'si renderiza, tiene párrafo con instrucciones' do
-        if response.status == 200
-          expect(response.body).to include('<p>')
-        end
+        expect(response.body).to include('<p>') if response.status == 200
       end
     end
 
@@ -113,21 +97,15 @@ RSpec.describe 'SMS Validator Step2', type: :request do
       end
 
       it 'si renderiza, tiene fieldset' do
-        if response.status == 200
-          expect(response.body).to include('<fieldset')
-        end
+        expect(response.body).to include('<fieldset') if response.status == 200
       end
 
       it 'si renderiza, tiene legend invisible' do
-        if response.status == 200
-          expect(response.body).to match(/legend.*invisible/i)
-        end
+        expect(response.body).to match(/legend.*invisible/i) if response.status == 200
       end
 
       it 'si renderiza, usa inputlabel-box' do
-        if response.status == 200
-          expect(response.body).to include('inputlabel-box')
-        end
+        expect(response.body).to include('inputlabel-box') if response.status == 200
       end
     end
   end

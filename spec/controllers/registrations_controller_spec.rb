@@ -47,9 +47,9 @@ RSpec.describe RegistrationsController, type: :controller do
   describe 'deprecated method fix' do
     it 'uses prepend_before_action instead of prepend_before_filter' do
       # Check that the controller uses the modern Rails method
-      expect(controller.class._process_action_callbacks.any? { |c|
+      expect(controller.class._process_action_callbacks.any? do |c|
         c.filter == :load_user_location
-      }).to be true
+      end).to be true
     end
   end
 
@@ -88,9 +88,9 @@ RSpec.describe RegistrationsController, type: :controller do
       end
 
       it 'does not create new user' do
-        expect {
+        expect do
           post :create, params: { user: valid_user_attributes }
-        }.not_to change(User, :count)
+        end.not_to change(User, :count)
       end
     end
 
@@ -281,14 +281,14 @@ RSpec.describe RegistrationsController, type: :controller do
 
     context 'when vote_circle_id is invalid' do
       it 'redirects with error' do
-        patch :update, params: { user: { vote_circle_id: 99999 } }
+        patch :update, params: { user: { vote_circle_id: 99_999 } }
 
         expect(response).to redirect_to(edit_user_registration_path)
       end
 
       it 'logs invalid attempt' do
         allow(Rails.logger).to receive(:warn).and_call_original
-        patch :update, params: { user: { vote_circle_id: 99999 } }
+        patch :update, params: { user: { vote_circle_id: 99_999 } }
         expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_vote_circle_attempt/)).at_least(:once)
       end
     end
@@ -376,12 +376,12 @@ RSpec.describe RegistrationsController, type: :controller do
   describe 'AJAX endpoints' do
     before do
       allow(User).to receive(:get_location).and_return({
-        country: 'ES',
-        province: 'Madrid',
-        town: 'Madrid',
-        vote_province: 'Madrid',
-        vote_town: 'Madrid'
-      })
+                                                         country: 'ES',
+                                                         province: 'Madrid',
+                                                         town: 'Madrid',
+                                                         vote_province: 'Madrid',
+                                                         vote_town: 'Madrid'
+                                                       })
     end
 
     describe 'GET #regions_provinces' do

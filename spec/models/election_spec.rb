@@ -11,31 +11,31 @@ RSpec.describe Election, type: :model do
     it 'validates presence of title' do
       election = build(:election, title: nil)
       expect(election).not_to be_valid
-      expect(election.errors[:title]).to include("no puede estar en blanco")
+      expect(election.errors[:title]).to include('no puede estar en blanco')
     end
 
     it 'validates presence of starts_at' do
       election = build(:election, starts_at: nil)
       expect(election).not_to be_valid
-      expect(election.errors[:starts_at]).to include("no puede estar en blanco")
+      expect(election.errors[:starts_at]).to include('no puede estar en blanco')
     end
 
     it 'validates presence of ends_at' do
       election = build(:election, ends_at: nil)
       expect(election).not_to be_valid
-      expect(election.errors[:ends_at]).to include("no puede estar en blanco")
+      expect(election.errors[:ends_at]).to include('no puede estar en blanco')
     end
 
     it 'validates presence of agora_election_id' do
       election = build(:election, agora_election_id: nil)
       expect(election).not_to be_valid
-      expect(election.errors[:agora_election_id]).to include("no puede estar en blanco")
+      expect(election.errors[:agora_election_id]).to include('no puede estar en blanco')
     end
 
     it 'validates presence of scope' do
       election = build(:election, scope: nil)
       expect(election).not_to be_valid
-      expect(election.errors[:scope]).to include("no puede estar en blanco")
+      expect(election.errors[:scope]).to include('no puede estar en blanco')
     end
 
     it 'creates valid election with all required attributes' do
@@ -62,7 +62,7 @@ RSpec.describe Election, type: :model do
 
     it 'destroys associated election_locations when destroyed' do
       election = create(:election)
-      location = create(:election_location, election: election)
+      create(:election_location, election: election)
 
       expect { election.destroy }.to change(ElectionLocation, :count).by(-1)
     end
@@ -153,7 +153,7 @@ RSpec.describe Election, type: :model do
         future_elections = Election.future
 
         expect(future_elections).to include(future)
-        expect(future_elections).to include(active)  # Still has ends_at in future
+        expect(future_elections).to include(active) # Still has ends_at in future
         expect(future_elections).not_to include(finished)
       end
     end
@@ -278,17 +278,15 @@ RSpec.describe Election, type: :model do
     describe '#duration' do
       it 'returns duration in hours' do
         election = create(:election,
-          starts_at: Time.parse('2025-01-01 00:00:00'),
-          ends_at: Time.parse('2025-01-01 12:00:00')
-        )
+                          starts_at: Time.zone.parse('2025-01-01 00:00:00'),
+                          ends_at: Time.zone.parse('2025-01-01 12:00:00'))
         expect(election.duration).to eq(12)
       end
 
       it 'handles day-long elections' do
         election = create(:election,
-          starts_at: Time.parse('2025-01-01 00:00:00'),
-          ends_at: Time.parse('2025-01-02 00:00:00')
-        )
+                          starts_at: Time.zone.parse('2025-01-01 00:00:00'),
+                          ends_at: Time.zone.parse('2025-01-02 00:00:00'))
         expect(election.duration).to eq(24)
       end
     end
@@ -359,7 +357,7 @@ RSpec.describe Election, type: :model do
 
         expect(token).not_to be_nil
         expect(token).to be_a(String)
-        expect(token.length).to eq(17)  # Token is truncated to 17 chars
+        expect(token.length).to eq(17) # Token is truncated to 17 chars
       end
 
       it 'is deterministic' do
@@ -405,9 +403,9 @@ RSpec.describe Election, type: :model do
       it 'parses and creates election_locations' do
         election = create(:election)
 
-        expect {
+        expect do
           election.locations = "01,1\n02,2"
-        }.to change { election.election_locations.count }.by(2)
+        end.to change { election.election_locations.count }.by(2)
 
         expect(election.election_locations.find_by(location: '01')).to be_present
         expect(election.election_locations.find_by(location: '02')).to be_present
@@ -425,9 +423,9 @@ RSpec.describe Election, type: :model do
       it 'skips empty lines' do
         election = create(:election)
 
-        expect {
+        expect do
           election.locations = "01,1\n\n02,2\n  \n"
-        }.to change { election.election_locations.count }.by(2)
+        end.to change { election.election_locations.count }.by(2)
       end
     end
   end
@@ -512,7 +510,7 @@ RSpec.describe Election, type: :model do
       allow(Rails.application.secrets.users).to receive(:[]).with('active_census_range').and_return("system('rm -rf /'); 1.year")
       expect(Rails.logger).to receive(:error).with(/Failed to parse duration config/)
       result = election.send(:parse_duration_config, 'active_census_range')
-      expect(result).to eq(1.year)  # Should fallback safely
+      expect(result).to eq(1.year) # Should fallback safely
     end
 
     it 'logs error on parse failure' do
@@ -558,7 +556,7 @@ RSpec.describe Election, type: :model do
 
   describe 'edge cases' do
     it 'handles election starting and ending at same time' do
-      time = Time.now
+      time = Time.zone.now
       election = build(:election, starts_at: time, ends_at: time)
 
       expect(election).to be_valid
@@ -567,11 +565,10 @@ RSpec.describe Election, type: :model do
 
     it 'handles very long election duration' do
       election = create(:election,
-        starts_at: Time.parse('2025-01-01 00:00:00'),
-        ends_at: Time.parse('2025-12-31 23:59:59')
-      )
+                        starts_at: Time.zone.parse('2025-01-01 00:00:00'),
+                        ends_at: Time.zone.parse('2025-12-31 23:59:59'))
 
-      expect(election.duration).to be > 8700  # More than 8700 hours in a year
+      expect(election.duration).to be > 8700 # More than 8700 hours in a year
     end
 
     it 'handles election with empty server' do

@@ -30,13 +30,13 @@ RSpec.describe Vote, type: :model do
     it 'requires user_id' do
       vote = build(:vote, user: nil)
       expect(vote).not_to be_valid
-      expect(vote.errors[:user_id]).to include("no puede estar en blanco")
+      expect(vote.errors[:user_id]).to include('no puede estar en blanco')
     end
 
     it 'requires election_id' do
       vote = build(:vote, election: nil)
       expect(vote).not_to be_valid
-      expect(vote.errors[:election_id]).to include("no puede estar en blanco")
+      expect(vote.errors[:election_id]).to include('no puede estar en blanco')
     end
 
     it 'requires voter_id after generation' do
@@ -46,7 +46,7 @@ RSpec.describe Vote, type: :model do
       vote.valid? # Trigger validations
 
       expect(vote).not_to be_valid
-      expect(vote.errors[:voter_id]).to include("no puede estar en blanco")
+      expect(vote.errors[:voter_id]).to include('no puede estar en blanco')
     end
 
     it 'validates uniqueness of voter_id scoped to user_id' do
@@ -58,7 +58,7 @@ RSpec.describe Vote, type: :model do
       vote2.voter_id = vote1.voter_id
 
       expect(vote2).not_to be_valid
-      expect(vote2.errors[:voter_id]).to include("ya está en uso")
+      expect(vote2.errors[:voter_id]).to include('ya está en uso')
     end
 
     it 'allows same voter_id for different users' do
@@ -186,7 +186,7 @@ RSpec.describe Vote, type: :model do
       end
 
       it 'uses voter_id_template from election' do
-        election = create(:election, voter_id_template: '%{user_id}:%{election_id}')
+        election = create(:election, voter_id_template: '%<user_id>s:%<election_id>s')
         vote = create(:vote, election: election)
         voter_id = vote.generate_voter_id
 
@@ -201,16 +201,16 @@ RSpec.describe Vote, type: :model do
         message = vote.generate_message
 
         expect(message).to include(vote.voter_id)
-        expect(message).to include("AuthEvent")
+        expect(message).to include('AuthEvent')
         expect(message).to include(vote.scoped_agora_election_id.to_s)
-        expect(message).to include("vote")
+        expect(message).to include('vote')
       end
     end
 
     describe '#generate_hash' do
       it 'returns HMAC hash' do
         vote = create(:vote)
-        message = "test_message"
+        message = 'test_message'
         hash = vote.generate_hash(message)
 
         expect(hash).not_to be_nil
@@ -220,7 +220,7 @@ RSpec.describe Vote, type: :model do
 
       it 'is consistent for same message' do
         vote = create(:vote)
-        message = "test_message"
+        message = 'test_message'
         hash1 = vote.generate_hash(message)
         hash2 = vote.generate_hash(message)
 
@@ -245,9 +245,9 @@ RSpec.describe Vote, type: :model do
 
         expect(url).not_to be_nil
         expect(url).to include(vote.election.server_url)
-        expect(url).to include("booth")
+        expect(url).to include('booth')
         expect(url).to include(vote.scoped_agora_election_id.to_s)
-        expect(url).to include("vote")
+        expect(url).to include('vote')
       end
 
       it 'includes HMAC hash and message' do
@@ -258,7 +258,7 @@ RSpec.describe Vote, type: :model do
         parts = url.split('/')
 
         expect(parts.length).to be >= 7
-        expect(parts[-3]).to eq("vote")
+        expect(parts[-3]).to eq('vote')
       end
     end
 
@@ -269,7 +269,7 @@ RSpec.describe Vote, type: :model do
 
         expect(url).not_to be_nil
         expect(url).to include(vote.election.server_url)
-        expect(url).to include("test_hmac")
+        expect(url).to include('test_hmac')
       end
 
       it 'includes key, hash and message' do
@@ -280,7 +280,7 @@ RSpec.describe Vote, type: :model do
         parts = url.split('/')
 
         expect(parts.length).to be >= 5
-        expect(parts[-4]).to eq("test_hmac")
+        expect(parts[-4]).to eq('test_hmac')
       end
     end
   end
@@ -362,14 +362,14 @@ RSpec.describe Vote, type: :model do
       vote = Vote.new(election: create(:election))
 
       expect(vote.save).to be_falsey
-      expect(vote.errors[:user_id]).to include("no puede estar en blanco")
+      expect(vote.errors[:user_id]).to include('no puede estar en blanco')
     end
 
     it 'handles missing election when creating vote' do
       vote = Vote.new(user: create(:user))
 
       expect(vote.save).to be_falsey
-      expect(vote.errors[:election_id]).to include("no puede estar en blanco")
+      expect(vote.errors[:election_id]).to include('no puede estar en blanco')
     end
   end
 
@@ -385,9 +385,9 @@ RSpec.describe Vote, type: :model do
 
       vote = nil
 
-      expect {
+      expect do
         vote = create(:vote, user: user, election: election, paper_authority: paper_authority)
-      }.to change(Vote, :count).by(1)
+      end.to change(Vote, :count).by(1)
 
       expect(vote.voter_id).not_to be_nil
       expect(vote.agora_id).not_to be_nil

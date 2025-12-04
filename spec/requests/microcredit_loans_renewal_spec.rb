@@ -12,9 +12,7 @@ RSpec.describe 'Microcredit Loans Renewal', type: :request do
 
       it 'si renderiza, muestra título de Microcréditos' do
         get '/es/microcreditos/1/prestamos/renovar'
-        if response.status == 200
-          expect(response.body).to include('Microcrédito')
-        end
+        expect(response.body).to include('Microcrédito') if response.status == 200
       end
     end
 
@@ -31,14 +29,14 @@ RSpec.describe 'Microcredit Loans Renewal', type: :request do
     describe 'C. CON MICROCRÉDITOS PARA RENOVAR' do
       it 'si tiene renovables, agradece la confianza' do
         get '/es/microcreditos/1/prestamos/renovar'
-        if response.status == 200 && !response.body.include?('No hemos encontrado')
+        if response.status == 200 && response.body.exclude?('No hemos encontrado')
           expect(response.body).to match(/Gracias.*confianza/)
         end
       end
 
       it 'si tiene renovables, explica proceso de renovación' do
         get '/es/microcreditos/1/prestamos/renovar'
-        if response.status == 200 && !response.body.include?('No hemos encontrado')
+        if response.status == 200 && response.body.exclude?('No hemos encontrado')
           has_instructions = response.body.match?(/renovar.*suscripci|lista ordenada/) || true
           expect(has_instructions).to be true
         end
@@ -46,7 +44,7 @@ RSpec.describe 'Microcredit Loans Renewal', type: :request do
 
       it 'si tiene renovables, puede tener lista de otros microcréditos' do
         get '/es/microcreditos/1/prestamos/renovar'
-        if response.status == 200 && !response.body.include?('No hemos encontrado')
+        if response.status == 200 && response.body.exclude?('No hemos encontrado')
           has_other_loans = response.body.include?('other_loans') || true
           expect(has_other_loans).to be true
         end
@@ -97,16 +95,12 @@ RSpec.describe 'Microcredit Loans Renewal', type: :request do
     describe 'E. ESTRUCTURA HTML' do
       it 'si renderiza, usa microcredits-wrapper' do
         get '/es/microcreditos/1/prestamos/renovar'
-        if response.status == 200
-          expect(response.body).to include('microcredits-wrapper')
-        end
+        expect(response.body).to include('microcredits-wrapper') if response.status == 200
       end
 
       it 'si renderiza, tiene h2 para título' do
         get '/es/microcreditos/1/prestamos/renovar'
-        if response.status == 200
-          expect(response.body).to include('<h2>')
-        end
+        expect(response.body).to include('<h2>') if response.status == 200
       end
     end
   end

@@ -12,53 +12,39 @@ RSpec.describe 'Page Formview Iframe', type: :request do
 
       it 'si renderiza, tiene título dinámico' do
         get '/es/formview-iframe'
-        if response.status == 200
-          expect(response.body).to match(/<h2>/)
-        end
+        expect(response.body).to match(/<h2>/) if response.status == 200
       end
     end
 
     describe 'B. IFRAME DE FORMULARIO' do
       it 'si renderiza, tiene elemento iframe' do
         get '/es/formview-iframe'
-        if response.status == 200
-          expect(response.body).to include('<iframe')
-        end
+        expect(response.body).to include('<iframe') if response.status == 200
       end
 
       it 'si renderiza, iframe tiene id formview_iframe' do
         get '/es/formview-iframe'
-        if response.status == 200
-          expect(response.body).to include('id="formview_iframe"')
-        end
+        expect(response.body).to include('id="formview_iframe"') if response.status == 200
       end
 
       it 'si renderiza, iframe tiene clase gfiframe' do
         get '/es/formview-iframe'
-        if response.status == 200
-          expect(response.body).to include('gfiframe')
-        end
+        expect(response.body).to include('gfiframe') if response.status == 200
       end
 
       it 'si renderiza, iframe tiene ancho 100%' do
         get '/es/formview-iframe'
-        if response.status == 200
-          expect(response.body).to match(/width="100%"/)
-        end
+        expect(response.body).to match(/width="100%"/) if response.status == 200
       end
 
       it 'si renderiza, iframe tiene altura mayor (1500)' do
         get '/es/formview-iframe'
-        if response.status == 200
-          expect(response.body).to match(/height="1500"/)
-        end
+        expect(response.body).to match(/height="1500"/) if response.status == 200
       end
 
       it 'si renderiza, iframe tiene frameBorder 0' do
         get '/es/formview-iframe'
-        if response.status == 200
-          expect(response.body).to include('frameBorder="0"')
-        end
+        expect(response.body).to include('frameBorder="0"') if response.status == 200
       end
     end
 

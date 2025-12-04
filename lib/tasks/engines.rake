@@ -1,29 +1,29 @@
 # frozen_string_literal: true
 
 namespace :engines do
-  desc "List all available engines"
+  desc 'List all available engines'
   task list: :environment do
     puts "\nAvailable Engines:"
-    puts "-" * 80
+    puts '-' * 80
 
     EngineActivation.order(:engine_name).each do |ea|
-      status = ea.enabled? ? "✓ ACTIVE" : "✗ inactive"
-      puts sprintf("%-30s %s", ea.engine_name, status)
+      status = ea.enabled? ? '✓ ACTIVE' : '✗ inactive'
+      puts format('%-30s %s', ea.engine_name, status)
       puts "  #{ea.description}" if ea.description.present?
     end
 
-    puts "-" * 80
+    puts '-' * 80
     puts "Total: #{EngineActivation.count} engines"
     puts "  - Active: #{EngineActivation.where(enabled: true).count}"
     puts "  - Inactive: #{EngineActivation.where(enabled: false).count}"
   end
 
-  desc "Enable an engine"
-  task :enable, [:engine_name] => :environment do |t, args|
+  desc 'Enable an engine'
+  task :enable, [:engine_name] => :environment do |_t, args|
     engine_name = args[:engine_name]
 
     unless engine_name
-      puts "Usage: rake engines:enable[engine_name]"
+      puts 'Usage: rake engines:enable[engine_name]'
       exit 1
     end
 
@@ -38,8 +38,8 @@ namespace :engines do
       EngineActivation.enable!(engine_name)
       puts "✓ Engine '#{engine_name}' enabled"
       puts "\n⚠️ IMPORTANT: You MUST restart the application for changes to take effect"
-      puts "   Run: touch tmp/restart.txt  (Passenger)"
-      puts "   Or restart your Rails server manually"
+      puts '   Run: touch tmp/restart.txt  (Passenger)'
+      puts '   Or restart your Rails server manually'
     else
       # Cache enabled engines to avoid N+1 queries
       enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
@@ -52,12 +52,12 @@ namespace :engines do
     end
   end
 
-  desc "Disable an engine"
-  task :disable, [:engine_name] => :environment do |t, args|
+  desc 'Disable an engine'
+  task :disable, [:engine_name] => :environment do |_t, args|
     engine_name = args[:engine_name]
 
     unless engine_name
-      puts "Usage: rake engines:disable[engine_name]"
+      puts 'Usage: rake engines:disable[engine_name]'
       exit 1
     end
 
@@ -78,16 +78,16 @@ namespace :engines do
     EngineActivation.disable!(engine_name)
     puts "✓ Engine '#{engine_name}' disabled"
     puts "\n⚠️ IMPORTANT: You MUST restart the application for changes to take effect"
-    puts "   Run: touch tmp/restart.txt  (Passenger)"
-    puts "   Or restart your Rails server manually"
+    puts '   Run: touch tmp/restart.txt  (Passenger)'
+    puts '   Or restart your Rails server manually'
   end
 
-  desc "Show engine info"
-  task :info, [:engine_name] => :environment do |t, args|
+  desc 'Show engine info'
+  task :info, [:engine_name] => :environment do |_t, args|
     engine_name = args[:engine_name]
 
     unless engine_name
-      puts "Usage: rake engines:info[engine_name]"
+      puts 'Usage: rake engines:info[engine_name]'
       exit 1
     end
 
@@ -101,7 +101,7 @@ namespace :engines do
     activation = EngineActivation.find_by(engine_name: engine_name)
 
     puts "\nEngine: #{engine_name}"
-    puts "-" * 80
+    puts '-' * 80
     puts "Name:        #{info[:name]}"
     puts "Description: #{info[:description]}"
     puts "Version:     #{info[:version]}"
@@ -112,12 +112,12 @@ namespace :engines do
     puts "\nDependencies:"
     deps = info[:dependencies] || []
     if deps.empty?
-      puts "  None"
+      puts '  None'
     else
       # Cache enabled engines to avoid N+1 queries
       enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
       deps.each do |dep|
-        status = (dep == 'User' || enabled_engines.include?(dep)) ? '✓' : '✗'
+        status = dep == 'User' || enabled_engines.include?(dep) ? '✓' : '✗'
         puts "  #{status} #{dep}"
       end
     end
@@ -125,27 +125,27 @@ namespace :engines do
     if activation
       puts "\nConfiguration:"
       if activation.configuration.empty?
-        puts "  (using defaults)"
+        puts '  (using defaults)'
       else
         activation.configuration.each do |key, value|
           puts "  #{key}: #{value}"
         end
       end
     end
-    puts "-" * 80
+    puts '-' * 80
   end
 
-  desc "Verify engine dependencies"
+  desc 'Verify engine dependencies'
   task verify: :environment do
     puts "\nVerifying Engine Dependencies:"
-    puts "-" * 80
+    puts '-' * 80
 
     has_errors = false
 
     # Cache enabled engines to avoid N+1 queries
     enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
 
-    EngineActivation.where(enabled: true).each do |ea|
+    EngineActivation.where(enabled: true).find_each do |ea|
       deps = PlebisCore::EngineRegistry.dependencies_for(ea.engine_name)
       missing = deps.reject { |d| d == 'User' || enabled_engines.include?(d) }
 
@@ -157,7 +157,7 @@ namespace :engines do
       end
     end
 
-    puts "-" * 80
+    puts '-' * 80
 
     if has_errors
       puts "\n⚠ Some engines have missing dependencies!"
@@ -167,23 +167,23 @@ namespace :engines do
     end
   end
 
-  desc "Seed engine activations"
+  desc 'Seed engine activations'
   task seed: :environment do
     puts "\nSeeding EngineActivations..."
-    puts "-" * 80
+    puts '-' * 80
 
     EngineActivation.seed_all
 
     puts "✓ Created #{EngineActivation.count} engine activation records"
     puts "  - Active: #{EngineActivation.where(enabled: true).count}"
     puts "  - Inactive: #{EngineActivation.where(enabled: false).count}"
-    puts "-" * 80
+    puts '-' * 80
   end
 
-  desc "Show engine dependency graph"
+  desc 'Show engine dependency graph'
   task graph: :environment do
     puts "\nEngine Dependency Graph:"
-    puts "=" * 80
+    puts '=' * 80
 
     # Cache all activations to avoid N+1 queries
     activations_by_name = EngineActivation.all.index_by(&:engine_name)
@@ -202,22 +202,22 @@ namespace :engines do
           puts "  └─> #{dep_status} #{dep}"
         end
       else
-        puts "  └─> (no dependencies)"
+        puts '  └─> (no dependencies)'
       end
 
       # Show what depends on this engine
       dependents = PlebisCore::EngineRegistry.dependents_of(engine_name)
-      if dependents.any?
-        puts "  ┌─< Required by:"
-        dependents.each do |dependent|
-          dep_status = enabled_engines.include?(dependent) ? '✓' : '✗'
-          puts "  │   #{dep_status} #{dependent}"
-        end
+      next unless dependents.any?
+
+      puts '  ┌─< Required by:'
+      dependents.each do |dependent|
+        dep_status = enabled_engines.include?(dependent) ? '✓' : '✗'
+        puts "  │   #{dep_status} #{dependent}"
       end
     end
 
-    puts "\n" + "=" * 80
-    puts "Legend: ✓ = enabled, ✗ = disabled"
-    puts "=" * 80
+    puts "\n#{'=' * 80}"
+    puts 'Legend: ✓ = enabled, ✗ = disabled'
+    puts '=' * 80
   end
 end

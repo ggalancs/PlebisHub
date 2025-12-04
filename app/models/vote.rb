@@ -5,9 +5,9 @@ class Vote < ApplicationRecord
 
   belongs_to :user
   belongs_to :election
-  belongs_to :paper_authority, class_name: "User"
+  belongs_to :paper_authority, class_name: 'User'
 
-  validates :user_id, :election_id, :voter_id, presence: true
+  validates :voter_id, presence: true
   validates :voter_id, uniqueness: { scope: :user_id }
 
   before_validation :save_voter_id, on: :create
@@ -16,48 +16,48 @@ class Vote < ApplicationRecord
     Digest::SHA256.hexdigest(
       (
         election.voter_id_template.presence ||
-        '%{secret_key_base}:%{user_id}:%{election_id}:%{scoped_agora_election_id}'
+        '%<secret_key_base>s:%<user_id>s:%<election_id>s:%<scoped_agora_election_id>s'
       ) % voter_id_template_values
     )
   end
 
   def generate_message
-    "#{self.voter_id}:AuthEvent:#{self.scoped_agora_election_id}:vote:#{Time.now.to_i}"
+    "#{voter_id}:AuthEvent:#{scoped_agora_election_id}:vote:#{Time.now.to_i}"
   end
 
   def generate_hash(message)
-    key = self.election.server_shared_key
-    OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA256.new('sha256'), key, message)
+    key = election.server_shared_key
+    OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('SHA256', 'sha256'), key, message)
   end
 
   def scoped_agora_election_id
-    self.election.scoped_agora_election_id self.user
+    election.scoped_agora_election_id user
   end
 
   def url
-    key = self.election.server_shared_key
-    message =  self.generate_message
-    hash = self.generate_hash message
-    "#{self.election.server_url}booth/#{self.scoped_agora_election_id}/vote/#{hash}/#{message}"
+    election.server_shared_key
+    message = generate_message
+    hash = generate_hash message
+    "#{election.server_url}booth/#{scoped_agora_election_id}/vote/#{hash}/#{message}"
   end
 
   def test_url
-    key = self.election.server_shared_key
-    message =  self.generate_message
-    hash = self.generate_hash message
-    "#{self.election.server_url}test_hmac/#{key}/#{hash}/#{message}"
+    key = election.server_shared_key
+    message = generate_message
+    hash = generate_hash message
+    "#{election.server_url}test_hmac/#{key}/#{hash}/#{message}"
   end
 
   private
 
   def save_voter_id
-    if self.election and self.user
+    if election && user
       # Rails 7.2: Set attributes directly in before_validation callback
       # Cannot use update_column here as record is not yet persisted
       self.agora_id = scoped_agora_election_id
       self.voter_id = generate_voter_id
     else
-      self.errors.add(:voter_id, 'No se pudo generar')
+      errors.add(:voter_id, 'No se pudo generar')
     end
   end
 
@@ -70,7 +70,7 @@ class Vote < ApplicationRecord
                   when :user_id then user_id
                   when :election_id then election_id
                   when :scoped_agora_election_id then scoped_agora_election_id
-                  else '%{key}'
+                  else '%<key>s'
                   end
     end
   end

@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Devise Unlocks New', type: :request, skip: "Unlock routes not enabled" do
+RSpec.describe 'Devise Unlocks New', type: :request, skip: 'Unlock routes not enabled' do
   describe 'GET /es/unlock/nuevo' do
     describe 'A. RENDERING BÁSICO' do
       it 'renderiza correctamente sin autenticación', :skip_auth do

@@ -14,15 +14,15 @@ module PlebisVerification
   class UserVerificationsController < ApplicationController
     include Redirectable
 
-    before_action :authenticate_user!, only: [:new, :create]
-    before_action :check_valid_and_verified, only: [:new, :create]
-    before_action :authenticate_admin_user!, only: [:report, :report_town, :report_exterior]
-    before_action :validate_report_code, only: [:report, :report_town, :report_exterior]
+    before_action :authenticate_user!, only: %i[new create]
+    before_action :check_valid_and_verified, only: %i[new create]
+    before_action :authenticate_admin_user!, only: %i[report report_town report_exterior]
+    before_action :validate_report_code, only: %i[report report_town report_exterior]
 
     def new
       @user_verification = UserVerification.for current_user
     rescue StandardError => e
-      log_error("user_verification_new_failed", e)
+      log_error('user_verification_new_failed', e)
       redirect_to root_path, flash: { alert: t('plebisbrand.errors.generic_error') }
     end
 
@@ -39,7 +39,7 @@ module PlebisVerification
         render :new
       end
     rescue StandardError => e
-      log_error("user_verification_create_failed", e, user_id: current_user&.id)
+      log_error('user_verification_create_failed', e, user_id: current_user&.id)
       redirect_to root_path, flash: { alert: t('plebisbrand.errors.generic_error') }
     end
 
@@ -47,7 +47,7 @@ module PlebisVerification
       @report = UserVerificationReportService.new(params[:report_code]).generate
       log_report_access('province_report')
     rescue StandardError => e
-      log_error("user_verification_report_failed", e, report_code: params[:report_code])
+      log_error('user_verification_report_failed', e, report_code: params[:report_code])
       redirect_to root_path, flash: { alert: t('plebisbrand.errors.report_generation_failed') }
     end
 
@@ -55,7 +55,7 @@ module PlebisVerification
       @report_town = TownVerificationReportService.new(params[:report_code]).generate
       log_report_access('town_report')
     rescue StandardError => e
-      log_error("town_verification_report_failed", e, report_code: params[:report_code])
+      log_error('town_verification_report_failed', e, report_code: params[:report_code])
       redirect_to root_path, flash: { alert: t('plebisbrand.errors.report_generation_failed') }
     end
 
@@ -63,7 +63,7 @@ module PlebisVerification
       @report_exterior = ExteriorVerificationReportService.new(params[:report_code]).generate
       log_report_access('exterior_report')
     rescue StandardError => e
-      log_error("exterior_verification_report_failed", e, report_code: params[:report_code])
+      log_error('exterior_verification_report_failed', e, report_code: params[:report_code])
       redirect_to root_path, flash: { alert: t('plebisbrand.errors.report_generation_failed') }
     end
 
@@ -94,7 +94,7 @@ module PlebisVerification
         redirect_to root_path, flash: { alert: t('plebisbrand.errors.invalid_report_code') }
       end
     rescue StandardError => e
-      log_error("report_code_validation_failed", e)
+      log_error('report_code_validation_failed', e)
       redirect_to root_path, flash: { alert: t('plebisbrand.errors.generic_error') }
     end
 
@@ -146,7 +146,7 @@ module PlebisVerification
     # SECURITY LOGGING: Log verification creation
     def log_verification_created
       Rails.logger.info({
-        event: "user_verification_created",
+        event: 'user_verification_created',
         user_id: current_user.id,
         verification_id: @user_verification.id,
         status: @user_verification.status,
@@ -160,7 +160,7 @@ module PlebisVerification
     # SECURITY LOGGING: Log report access
     def log_report_access(report_type)
       Rails.logger.info({
-        event: "verification_report_accessed",
+        event: 'verification_report_accessed',
         report_type: report_type,
         report_code: params[:report_code],
         user_id: current_user&.id,

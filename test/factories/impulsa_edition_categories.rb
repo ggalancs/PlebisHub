@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :impulsa_edition_category, class: 'ImpulsaEditionCategory' do
     association :impulsa_edition
@@ -18,7 +20,7 @@ FactoryBot.define do
     trait :territorial do
       category_type { 2 }
       after(:build) do |category|
-        category[:territories] = "a_01|a_02"
+        category[:territories] = 'a_01|a_02'
       end
     end
 
@@ -31,7 +33,7 @@ FactoryBot.define do
     end
 
     trait :with_coofficial_language do
-      coofficial_language { "ca" }
+      coofficial_language { 'ca' }
     end
   end
 end

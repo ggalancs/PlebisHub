@@ -12,18 +12,14 @@ RSpec.describe 'Vote Paper Vote', type: :request do
 
       it 'si renderiza, muestra título de mesa de votación presencial' do
         get '/es/votacion/1/presencial'
-        if response.status == 200
-          expect(response.body).to match(/mesa.*votación.*presencial/i)
-        end
+        expect(response.body).to match(/mesa.*votación.*presencial/i) if response.status == 200
       end
     end
 
     describe 'B. INFORMACIÓN DE LA MESA' do
       it 'si renderiza, muestra territorio' do
         get '/es/votacion/1/presencial'
-        if response.status == 200
-          expect(response.body).to match(/territorio/i)
-        end
+        expect(response.body).to match(/territorio/i) if response.status == 200
       end
 
       it 'si renderiza, puede mostrar votos emitidos' do
@@ -60,9 +56,7 @@ RSpec.describe 'Vote Paper Vote', type: :request do
 
       it 'si renderiza búsqueda, tiene botón buscar' do
         get '/es/votacion/1/presencial'
-        if response.status == 200 && response.body.include?('Localizar')
-          expect(response.body).to include('Buscar')
-        end
+        expect(response.body).to include('Buscar') if response.status == 200 && response.body.include?('Localizar')
       end
     end
 
@@ -113,23 +107,17 @@ RSpec.describe 'Vote Paper Vote', type: :request do
     describe 'F. ESTRUCTURA HTML' do
       it 'si renderiza, usa content-content' do
         get '/es/votacion/1/presencial'
-        if response.status == 200
-          expect(response.body).to include('content-content')
-        end
+        expect(response.body).to include('content-content') if response.status == 200
       end
 
       it 'si renderiza, tiene h2 para título' do
         get '/es/votacion/1/presencial'
-        if response.status == 200
-          expect(response.body).to include('<h2>')
-        end
+        expect(response.body).to include('<h2>') if response.status == 200
       end
 
       it 'si renderiza, tiene h3 para subtítulos' do
         get '/es/votacion/1/presencial'
-        if response.status == 200
-          expect(response.body).to include('<h3>')
-        end
+        expect(response.body).to include('<h3>') if response.status == 200
       end
 
       it 'si renderiza, usa autocomplete off' do

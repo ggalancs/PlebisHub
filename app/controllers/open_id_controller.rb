@@ -33,6 +33,7 @@ require 'openid/store/filesystem'
 # to authenticate with external services using their application credentials.
 class OpenIdController < ApplicationController
   include OpenID::Server
+
   layout nil
 
   SERVER_APPROVALS = [].freeze
@@ -41,7 +42,7 @@ class OpenIdController < ApplicationController
   # This is required for OpenID protocol which doesn't support CSRF tokens
   # The OpenID protocol itself provides protection via signed requests
   protect_from_forgery except: :create
-  before_action :authenticate_user!, except: [:create, :discover, :user, :xrds]
+  before_action :authenticate_user!, except: %i[create discover user xrds]
 
   # OpenID discovery endpoint
   def discover
@@ -56,19 +57,6 @@ class OpenIdController < ApplicationController
     head :internal_server_error
   end
 
-  # Main OpenID authentication endpoint
-  def create
-    oidreq = server.decode_request(params)
-    oidresp = process_openid_request(oidreq)
-    render_response(oidresp)
-  rescue ProtocolError => e
-    log_error('openid_protocol_error', e)
-    render plain: e.to_s, status: :internal_server_error
-  rescue StandardError => e
-    log_error('openid_create_error', e)
-    render plain: 'OpenID authentication error', status: :internal_server_error
-  end
-
   # Alternative OpenID endpoint
   def index
     oidreq = server.decode_request(params)
@@ -79,6 +67,19 @@ class OpenIdController < ApplicationController
     render plain: e.to_s, status: :internal_server_error
   rescue StandardError => e
     log_error('openid_index_error', e)
+    render plain: 'OpenID authentication error', status: :internal_server_error
+  end
+
+  # Main OpenID authentication endpoint
+  def create
+    oidreq = server.decode_request(params)
+    oidresp = process_openid_request(oidreq)
+    render_response(oidresp)
+  rescue ProtocolError => e
+    log_error('openid_protocol_error', e)
+    render plain: e.to_s, status: :internal_server_error
+  rescue StandardError => e
+    log_error('openid_create_error', e)
     render plain: 'OpenID authentication error', status: :internal_server_error
   end
 
@@ -124,11 +125,9 @@ class OpenIdController < ApplicationController
   protected
 
   def process_openid_request(oidreq)
-    unless oidreq
-      return OpenID::Server::WebResponse.new(200, {}, 'This is an OpenID server endpoint.')
-    end
+    return OpenID::Server::WebResponse.new(200, {}, 'This is an OpenID server endpoint.') unless oidreq
 
-    return handle_check_id_request(oidreq) if oidreq.kind_of?(CheckIDRequest)
+    return handle_check_id_request(oidreq) if oidreq.is_a?(CheckIDRequest)
 
     server.handle_request(oidreq)
   end
@@ -142,7 +141,7 @@ class OpenIdController < ApplicationController
         return oidreq.answer(false)
       elsif current_user.nil?
         log_security_event('openid_unauthenticated_request')
-        return nil  # Will trigger redirect in create/index
+        return nil # Will trigger redirect in create/index
       else
         identity = url_for_user
       end
@@ -150,9 +149,8 @@ class OpenIdController < ApplicationController
 
     if is_authorized(identity, oidreq.trust_root)
       log_security_event('openid_authentication_approved',
-        user_id: current_user&.id,
-        trust_root: oidreq.trust_root
-      )
+                         user_id: current_user&.id,
+                         trust_root: oidreq.trust_root)
 
       oidresp = oidreq.answer(true, nil, identity)
       add_sreg(oidreq, oidresp)
@@ -160,9 +158,8 @@ class OpenIdController < ApplicationController
       oidresp
     else
       log_security_event('openid_authentication_denied',
-        identity: identity,
-        trust_root: oidreq.trust_root
-      )
+                         identity: identity,
+                         trust_root: oidreq.trust_root)
       oidreq.answer(false, open_id_create_url)
     end
   end
@@ -173,13 +170,13 @@ class OpenIdController < ApplicationController
 
   def server
     @server ||= begin
-      dir = Rails.root.join('db', 'openid-store')
+      dir = Rails.root.join('db/openid-store')
       store = OpenID::Store::Filesystem.new(dir)
       Server.new(store, open_id_create_url)
     end
   end
 
-  def approved(trust_root)
+  def approved(_trust_root)
     true
     # Could implement trust_root whitelist: SERVER_APPROVALS.member?(trust_root)
   end
@@ -224,7 +221,7 @@ class OpenIdController < ApplicationController
 
     # Only return fields that were actually requested
     requested_fields = (sregreq.required.to_a + sregreq.optional.to_a).map(&:to_s)
-    filtered_data = available_data.select { |k, _| requested_fields.include?(k) }
+    filtered_data = available_data.slice(*requested_fields)
 
     # Log PII disclosure for audit
     Rails.logger.warn({
@@ -251,7 +248,7 @@ class OpenIdController < ApplicationController
   def render_response(oidresp)
     return redirect_to root_path, notice: I18n.t('devise.failure.unauthenticated') if oidresp.nil?
 
-    signed_response = server.signatory.sign(oidresp) if oidresp.needs_signing
+    server.signatory.sign(oidresp) if oidresp.needs_signing
     web_response = server.encode_response(oidresp)
 
     case web_response.code

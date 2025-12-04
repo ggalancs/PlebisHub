@@ -150,7 +150,7 @@ class ThemeSetting < ApplicationRecord
       /expression\(/i,
       /<script/i,
       /<iframe/i,
-      /on\w+\s*=/i,  # onclick, onload, etc
+      /on\w+\s*=/i, # onclick, onload, etc
       /url\(\s*['"]?javascript:/i
     ]
 
@@ -163,9 +163,9 @@ class ThemeSetting < ApplicationRecord
 
     # Remover automáticamente contenido peligroso
     self.custom_css = custom_css.gsub(/javascript:/i, '')
-                                  .gsub(/expression\(/i, '')
-                                  .gsub(/<script/i, '')
-                                  .gsub(/<iframe/i, '')
+                                .gsub(/expression\(/i, '')
+                                .gsub(/<script/i, '')
+                                .gsub(/<iframe/i, '')
   end
 
   # Convierte hex a RGB
@@ -191,7 +191,7 @@ class ThemeSetting < ApplicationRecord
     l = (max + min) / 2.0
 
     # Si no hay diferencia, es gris
-    return [0, 0, (l * 100).round] if delta == 0
+    return [0, 0, (l * 100).round] if delta.zero?
 
     # Saturation
     s = if l < 0.5
@@ -202,11 +202,11 @@ class ThemeSetting < ApplicationRecord
 
     # Hue
     h = if max == r
-          ((g - b) / delta + (g < b ? 6 : 0)) / 6.0
+          (((g - b) / delta) + (g < b ? 6 : 0)) / 6.0
         elsif max == g
-          ((b - r) / delta + 2) / 6.0
+          (((b - r) / delta) + 2) / 6.0
         else
-          ((r - g) / delta + 4) / 6.0
+          (((r - g) / delta) + 4) / 6.0
         end
 
     [(h * 360).round, (s * 100).round, (l * 100).round]
@@ -214,33 +214,34 @@ class ThemeSetting < ApplicationRecord
 
   # Convierte HSL a Hex
   def hsl_to_hex(h, s, l)
-    h = h / 360.0
-    s = s / 100.0
-    l = l / 100.0
+    h /= 360.0
+    s /= 100.0
+    l /= 100.0
 
-    if s == 0
+    if s.zero?
       # Acromático (gris)
       r = g = b = (l * 255).round
     else
-      q = l < 0.5 ? l * (1 + s) : l + s - l * s
-      p = 2 * l - q
+      q = l < 0.5 ? l * (1 + s) : l + s - (l * s)
+      p = (2 * l) - q
 
-      r = (hue_to_rgb(p, q, h + 1.0/3.0) * 255).round
+      r = (hue_to_rgb(p, q, h + (1.0 / 3.0)) * 255).round
       g = (hue_to_rgb(p, q, h) * 255).round
-      b = (hue_to_rgb(p, q, h - 1.0/3.0) * 255).round
+      b = (hue_to_rgb(p, q, h - (1.0 / 3.0)) * 255).round
     end
 
-    '#%02x%02x%02x' % [r, g, b]
+    format('#%02x%02x%02x', r, g, b)
   end
 
   # Helper para convertir matiz a RGB
   def hue_to_rgb(p, q, t)
-    t += 1 if t < 0
+    t += 1 if t.negative?
     t -= 1 if t > 1
 
-    return p + (q - p) * 6 * t if t < 1.0/6.0
-    return q if t < 1.0/2.0
-    return p + (q - p) * (2.0/3.0 - t) * 6 if t < 2.0/3.0
+    return p + ((q - p) * 6 * t) if t < 1.0 / 6.0
+    return q if t < 1.0 / 2.0
+    return p + ((q - p) * ((2.0 / 3.0) - t) * 6) if t < 2.0 / 3.0
+
     p
   end
 end

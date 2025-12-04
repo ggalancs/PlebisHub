@@ -10,7 +10,7 @@ RSpec.describe ParticipationTeam, type: :model do
   describe 'factory' do
     it 'creates valid participation_team' do
       team = build(:participation_team)
-      expect(team).to be_valid, "Factory should create a valid participation_team"
+      expect(team).to be_valid, 'Factory should create a valid participation_team'
     end
 
     it 'creates team with attributes' do
@@ -38,7 +38,7 @@ RSpec.describe ParticipationTeam, type: :model do
     end
 
     it 'defaults active to nil if not specified' do
-      team = ParticipationTeam.new(name: "Test")
+      team = ParticipationTeam.new(name: 'Test')
       expect(team.active).to be_nil
     end
   end
@@ -54,23 +54,22 @@ RSpec.describe ParticipationTeam, type: :model do
 
     it 'reads participation_team attributes correctly' do
       team = create(:participation_team,
-        name: "Test Team",
-        description: "Test Description",
-        active: true
-      )
+                    name: 'Test Team',
+                    description: 'Test Description',
+                    active: true)
 
       found_team = ParticipationTeam.find(team.id)
-      expect(found_team.name).to eq("Test Team")
-      expect(found_team.description).to eq("Test Description")
+      expect(found_team.name).to eq('Test Team')
+      expect(found_team.description).to eq('Test Description')
       expect(found_team.active).to eq(true)
     end
 
     it 'updates participation_team attributes' do
-      team = create(:participation_team, name: "Original Name")
+      team = create(:participation_team, name: 'Original Name')
 
-      team.update(name: "Updated Name")
+      team.update(name: 'Updated Name')
 
-      expect(team.reload.name).to eq("Updated Name")
+      expect(team.reload.name).to eq('Updated Name')
     end
 
     it 'deletes participation_team' do
@@ -161,33 +160,33 @@ RSpec.describe ParticipationTeam, type: :model do
 
   describe 'edge cases' do
     it 'handles empty name' do
-      team = build(:participation_team, name: "")
+      team = build(:participation_team, name: '')
       expect(team).to be_valid
     end
 
     it 'handles very long name' do
-      team = build(:participation_team, name: "A" * 1000)
+      team = build(:participation_team, name: 'A' * 1000)
       expect(team).to be_valid
     end
 
     it 'handles very long description' do
-      team = build(:participation_team, description: "A" * 10000)
+      team = build(:participation_team, description: 'A' * 10_000)
       expect(team).to be_valid
     end
 
     it 'handles special characters in name' do
-      team = build(:participation_team, name: "Team with émojis 🎉 and symbols &@#")
+      team = build(:participation_team, name: 'Team with émojis 🎉 and symbols &@#')
       expect(team).to be_valid
     end
 
     it 'handles unicode in description' do
-      team = build(:participation_team, description: "Description with unicode: 你好 مرحبا שלום")
+      team = build(:participation_team, description: 'Description with unicode: 你好 مرحبا שלום')
       expect(team).to be_valid
     end
 
     it 'allows duplicate names' do
-      team1 = create(:participation_team, name: "Duplicate")
-      team2 = build(:participation_team, name: "Duplicate")
+      create(:participation_team, name: 'Duplicate')
+      team2 = build(:participation_team, name: 'Duplicate')
 
       # No uniqueness constraint
       expect(team2).to be_valid
@@ -209,7 +208,7 @@ RSpec.describe ParticipationTeam, type: :model do
       initial_count = ParticipationTeam.count
 
       # Create team
-      team = create(:participation_team, name: "Lifecycle Team")
+      team = create(:participation_team, name: 'Lifecycle Team')
       expect(ParticipationTeam.count).to eq(initial_count + 1)
 
       # Add users
@@ -236,9 +235,9 @@ RSpec.describe ParticipationTeam, type: :model do
     end
 
     it 'handles multiple teams with shared users' do
-      team1 = create(:participation_team, name: "Team 1")
-      team2 = create(:participation_team, name: "Team 2")
-      team3 = create(:participation_team, name: "Team 3")
+      team1 = create(:participation_team, name: 'Team 1')
+      team2 = create(:participation_team, name: 'Team 2')
+      team3 = create(:participation_team, name: 'Team 3')
 
       user1 = create(:user)
       user2 = create(:user)
@@ -262,7 +261,7 @@ RSpec.describe ParticipationTeam, type: :model do
     end
 
     it 'maintains referential integrity' do
-      team = create(:participation_team, name: "Integrity Test")
+      team = create(:participation_team, name: 'Integrity Test')
       user = create(:user)
 
       team.users << user
@@ -280,9 +279,9 @@ RSpec.describe ParticipationTeam, type: :model do
     end
 
     it 'handles active scope with mixed statuses' do
-      active = create(:participation_team, name: "Active", active: true)
-      inactive = create(:participation_team, name: "Inactive", active: false)
-      nil_status = create(:participation_team, name: "Nil Status", active: nil)
+      active = create(:participation_team, name: 'Active', active: true)
+      create(:participation_team, name: 'Inactive', active: false)
+      create(:participation_team, name: 'Nil Status', active: nil)
 
       active_teams = ParticipationTeam.active
 

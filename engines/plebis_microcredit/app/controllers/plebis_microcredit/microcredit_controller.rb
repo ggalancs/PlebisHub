@@ -21,8 +21,8 @@ module PlebisMicrocredit
     helper Rails.application.routes.url_helpers
 
     before_action :init_env
-    before_action :validate_microcredit_id, only: [:new_loan, :create_loan, :loans_renewal, :loans_renew, :show_options]
-    before_action :check_renewal_authentication, only: [:renewal, :loans_renewal, :loans_renew]
+    before_action :validate_microcredit_id, only: %i[new_loan create_loan loans_renewal loans_renew show_options]
+    before_action :check_renewal_authentication, only: %i[renewal loans_renewal loans_renew]
     layout :external_layout
 
     def provinces
@@ -33,7 +33,7 @@ module PlebisMicrocredit
         province: params[:microcredit_loan_province],
         disabled: false,
         required: true,
-        title: "Provincia"
+        title: 'Provincia'
       }
     rescue StandardError => e
       log_microcredit_error(:provinces_render_failed, e)
@@ -49,7 +49,7 @@ module PlebisMicrocredit
         town: params[:microcredit_loan_town],
         disabled: false,
         required: true,
-        title: "Municipio"
+        title: 'Municipio'
       }
     rescue StandardError => e
       log_microcredit_error(:towns_render_failed, e)
@@ -63,17 +63,17 @@ module PlebisMicrocredit
       microcredits_config = Rails.application.secrets.microcredits&.with_indifferent_access
 
       unless microcredits_config &&
-             microcredits_config["default_brand"] &&
-             microcredits_config["brands"]
+             microcredits_config['default_brand'] &&
+             microcredits_config['brands']
         log_microcredit_security_event(:missing_configuration)
         flash[:error] = I18n.t('microcredit.errors.configuration_error')
         redirect_to root_path
         return
       end
 
-      default_brand = microcredits_config["default_brand"]
+      default_brand = microcredits_config['default_brand']
       @brand = params[:brand].presence || default_brand
-      brands_config = microcredits_config["brands"].with_indifferent_access
+      brands_config = microcredits_config['brands'].with_indifferent_access
       @brand_config = brands_config[@brand]
 
       # SECURITY FIX: Validate brand exists
@@ -93,7 +93,7 @@ module PlebisMicrocredit
 
       # Ensure brand_config also uses indifferent access
       @brand_config = @brand_config.with_indifferent_access if @brand_config.is_a?(Hash)
-      @external = @brand_config["external"] || false
+      @external = @brand_config['external'] || false
       @url_params = @brand == default_brand ? {} : { brand: @brand }
     rescue StandardError => e
       log_microcredit_error(:init_env_failed, e)
@@ -102,7 +102,7 @@ module PlebisMicrocredit
     end
 
     def external_layout
-      @external ? "noheader" : "application"
+      @external ? 'noheader' : 'application'
     end
 
     def index
@@ -187,7 +187,9 @@ module PlebisMicrocredit
         loan.microcredit = @microcredit
         loan.user = current_user if current_user
         loan.ip = request.remote_ip
-        child_id = params[:microcredit_loan]["microcredit_option_id_#{loan.microcredit_option_id}"] if params[:microcredit_loan].key?("microcredit_option_id_#{loan.microcredit_option_id}") && params[:microcredit_loan]["microcredit_option_id_#{loan.microcredit_option_id}"].present?
+        if params[:microcredit_loan].key?("microcredit_option_id_#{loan.microcredit_option_id}") && params[:microcredit_loan]["microcredit_option_id_#{loan.microcredit_option_id}"].present?
+          child_id = params[:microcredit_loan]["microcredit_option_id_#{loan.microcredit_option_id}"]
+        end
         loan.microcredit_option_id = child_id if child_id
       end
 
@@ -278,7 +280,7 @@ module PlebisMicrocredit
             end
           end
 
-          if total_amount > 0
+          if total_amount.positive?
             log_microcredit_event(:loans_renewed,
                                   microcredit_id: @microcredit.id,
                                   loan_id: @renewal.loan.id,
@@ -290,7 +292,7 @@ module PlebisMicrocredit
               @renewal.loan.id,
               @renewal.loan.unique_hash
             ), notice: I18n.t('microcredit.loans_renewal.renewal_success',
-                              name: @brand_config["name"],
+                              name: @brand_config['name'],
                               amount: number_to_euro(total_amount * 100),
                               campaign: @microcredit.title)
             return
@@ -315,7 +317,7 @@ module PlebisMicrocredit
     end
 
     def show_options
-      @colors = ["#683064", "#6b478e", "#b052a9", "#c4a0d8"]
+      @colors = ['#683064', '#6b478e', '#b052a9', '#c4a0d8']
       @microcredit = PlebisMicrocredit::Microcredit.find(params[:id])
 
       summary = @microcredit.options_summary
@@ -335,21 +337,21 @@ module PlebisMicrocredit
 
     # SECURITY: Input validation before database queries
     def validate_microcredit_id
-      unless params[:id].to_s.match?(/\A\d+\z/)
-        log_microcredit_security_event(:invalid_microcredit_id, microcredit_id: params[:id])
-        flash[:error] = I18n.t('microcredit.errors.invalid_id')
-        redirect_to root_path
-      end
+      return if params[:id].to_s.match?(/\A\d+\z/)
+
+      log_microcredit_security_event(:invalid_microcredit_id, microcredit_id: params[:id])
+      flash[:error] = I18n.t('microcredit.errors.invalid_id')
+      redirect_to root_path
     end
 
     # SECURITY: Validate country parameter against allowed list
     def validate_country_param(country_param)
       allowed_countries = %w[ES AD GB FR DE IT PT]
-      country = country_param.presence || "ES"
+      country = country_param.presence || 'ES'
 
       unless allowed_countries.include?(country)
         log_microcredit_security_event(:invalid_country, country: country)
-        return "ES"
+        return 'ES'
       end
 
       country
@@ -369,34 +371,36 @@ module PlebisMicrocredit
         I18n.t('microcredit.new_loan.will_receive_email', name: sanitize_brand_name)
       ]
 
-      if @brand_config["twitter_account"].present?
+      if @brand_config['twitter_account'].present?
         message_parts << I18n.t('microcredit.new_loan.tweet_campaign',
-                                 main_url: sanitize_brand_url,
-                                 twitter_account: sanitize_twitter_account)
+                                main_url: sanitize_brand_url,
+                                twitter_account: sanitize_twitter_account)
       end
 
       # Join with HTML line break - will be marked html_safe in view
-      message_parts.join("<br/>")
+      message_parts.join('<br/>')
     end
 
     # SECURITY: Sanitize brand configuration values
     def sanitize_brand_name
-      ERB::Util.html_escape(@brand_config["name"])
+      ERB::Util.html_escape(@brand_config['name'])
     end
 
     def sanitize_brand_url
-      ERB::Util.html_escape(@brand_config["main_url"])
+      ERB::Util.html_escape(@brand_config['main_url'])
     end
 
     def sanitize_twitter_account
-      ERB::Util.html_escape(@brand_config["twitter_account"])
+      ERB::Util.html_escape(@brand_config['twitter_account'])
     end
 
     def loan_params
       if current_user
-        params.require(:microcredit_loan).permit(:amount, :terms_of_service, :minimal_year_old, :iban_account, :iban_bic, :microcredit_option_id)
+        params.require(:microcredit_loan).permit(:amount, :terms_of_service, :minimal_year_old, :iban_account,
+                                                 :iban_bic, :microcredit_option_id)
       else
-        params.require(:microcredit_loan).permit(:first_name, :last_name, :document_vatid, :email, :address, :postal_code, :town, :province, :country, :amount, :terms_of_service, :minimal_year_old, :captcha, :captcha_key, :iban_account, :iban_bic, :microcredit_option_id)
+        params.require(:microcredit_loan).permit(:first_name, :last_name, :document_vatid, :email, :address,
+                                                 :postal_code, :town, :province, :country, :amount, :terms_of_service, :minimal_year_old, :captcha, :captcha_key, :iban_account, :iban_bic, :microcredit_option_id)
       end
     end
 
@@ -419,16 +423,15 @@ module PlebisMicrocredit
         loan = PlebisMicrocredit::MicrocreditLoan.find_by(id: params[:loan_id])
 
         # SECURITY: Hash validation prevents unauthorized renewal access
-        if loan && loan.unique_hash == params[:hash] && loan.microcredit.renewable?
-          return true
-        else
-          log_microcredit_security_event(:invalid_renewal_hash,
-                                          loan_id: params[:loan_id],
-                                          hash_provided: params[:hash].present?)
-          return false
-        end
+        return true if loan && loan.unique_hash == params[:hash] && loan.microcredit.renewable?
+
+        log_microcredit_security_event(:invalid_renewal_hash,
+                                       loan_id: params[:loan_id],
+                                       hash_provided: params[:hash].present?)
+        false
+
       else
-        current_user && current_user.any_microcredit_renewable?
+        current_user&.any_microcredit_renewable?
       end
     rescue StandardError => e
       log_microcredit_error(:renewable_check_failed, e)

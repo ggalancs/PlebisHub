@@ -46,7 +46,7 @@ class EventBus
   # @param callable [Proc, Class] Subscriber (proc or class with #call method)
   def subscribe(event_name, callable = nil, &block)
     subscriber = callable || block
-    raise ArgumentError, "Subscriber must respond to #call" unless subscriber.respond_to?(:call)
+    raise ArgumentError, 'Subscriber must respond to #call' unless subscriber.respond_to?(:call)
 
     @subscribers[event_name.to_s] << subscriber
     Rails.logger.info "[EventBus] Subscribed to: #{event_name}"
@@ -56,7 +56,7 @@ class EventBus
   # @param event_name [String, Symbol] Event to subscribe to
   # @param listener_class [Class] Class with .call class method
   def subscribe_async(event_name, listener_class)
-    raise ArgumentError, "Listener must respond to .call" unless listener_class.respond_to?(:call)
+    raise ArgumentError, 'Listener must respond to .call' unless listener_class.respond_to?(:call)
 
     @async_subscribers[event_name.to_s] << listener_class
     Rails.logger.info "[EventBus] Async subscribed to: #{event_name}"
@@ -168,6 +168,6 @@ def publish_event(event_name, payload = {})
   EventBus.instance.publish(event_name, payload)
 end
 
-def subscribe_to_event(event_name, &block)
-  EventBus.instance.subscribe(event_name, &block)
+def subscribe_to_event(event_name, &)
+  EventBus.instance.subscribe(event_name, &)
 end

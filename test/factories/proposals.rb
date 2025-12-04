@@ -1,10 +1,12 @@
- FactoryBot.define do
+# frozen_string_literal: true
+
+FactoryBot.define do
   factory :proposal, class: 'Proposal' do
     sequence(:title) { |n| "Proposal #{n}" }
     sequence(:description) { |n| "Description for proposal #{n}. This is a detailed explanation of what this proposal aims to achieve." }
 
     votes { 0 }
-    # Note: supports_count is a counter_cache AND has an overridden getter method
+    # NOTE: supports_count is a counter_cache AND has an overridden getter method
     # Don't set it here, let Rails handle it
     hotness { 0 }
     reddit_threshold { false }

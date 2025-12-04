@@ -67,22 +67,22 @@ RSpec.describe 'User Verifications New', type: :request do
 
       it 'puede tener campos para foto frontal del documento' do
         # Only if photos_necessary? is true
-        has_front = response.body.include?('front_vatid') || !response.body.include?('js-user-verification')
+        has_front = response.body.include?('front_vatid') || response.body.exclude?('js-user-verification')
         expect(has_front).to be true
       end
 
       it 'puede tener campos para foto trasera del documento' do
-        has_back = response.body.include?('back_vatid') || !response.body.include?('js-user-verification')
+        has_back = response.body.include?('back_vatid') || response.body.exclude?('js-user-verification')
         expect(has_back).to be true
       end
 
       it 'puede mostrar imágenes de muestra del documento' do
-        has_sample = response.body.include?('vatid_sample') || response.body.match?(/sample\d_description/) || !response.body.include?('js-user-verification')
+        has_sample = response.body.include?('vatid_sample') || response.body.match?(/sample\d_description/) || response.body.exclude?('js-user-verification')
         expect(has_sample).to be true
       end
 
       it 'puede tener botón de subir imagen' do
-        has_upload = response.body.match?(/upload|subir/i) || !response.body.include?('js-user-verification')
+        has_upload = response.body.match?(/upload|subir/i) || response.body.exclude?('js-user-verification')
         expect(has_upload).to be true
       end
     end
@@ -132,12 +132,12 @@ RSpec.describe 'User Verifications New', type: :request do
       end
 
       it 'puede mostrar instrucciones completas' do
-        has_directions = response.body.match?(/full_directions|direcciones|instrucciones/i) || !response.body.include?('photos_necessary')
+        has_directions = response.body.match?(/full_directions|direcciones|instrucciones/i) || response.body.exclude?('photos_necessary')
         expect(has_directions).to be true
       end
 
       it 'puede mostrar mensaje de pendiente' do
-        has_pending = response.body.include?('pending') || !response.body.include?('photos_necessary')
+        has_pending = response.body.include?('pending') || response.body.exclude?('photos_necessary')
         expect(has_pending).to be true
       end
     end
@@ -184,7 +184,7 @@ RSpec.describe 'User Verifications New', type: :request do
       it 'puede adaptar imágenes de muestra según tipo de documento' do
         get '/es/verificacion-identidad'
         # Checks if document_type_name is used for sample images
-        has_doc_type = response.body.include?('document_type') || response.body.match?(/dni|nie|pasaporte/i) || !response.body.include?('sample')
+        has_doc_type = response.body.include?('document_type') || response.body.match?(/dni|nie|pasaporte/i) || response.body.exclude?('sample')
         expect(has_doc_type).to be true
       end
     end

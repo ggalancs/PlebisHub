@@ -17,7 +17,7 @@ module ThemeHelper
 
   # Retorna el atributo data-theme para el HTML tag
   def theme_data_attribute
-    if current_theme && current_theme.persisted?
+    if current_theme&.persisted?
       "custom-#{current_theme.id}"
     else
       'default'
@@ -54,7 +54,10 @@ module ThemeHelper
 
     tags = []
     tags << tag.meta(name: 'theme-color', content: current_theme.primary_color) if current_theme.primary_color.present?
-    tags << tag.meta(name: 'msapplication-TileColor', content: current_theme.primary_color) if current_theme.primary_color.present?
+    if current_theme.primary_color.present?
+      tags << tag.meta(name: 'msapplication-TileColor',
+                       content: current_theme.primary_color)
+    end
     safe_join(tags, "\n")
   end
 

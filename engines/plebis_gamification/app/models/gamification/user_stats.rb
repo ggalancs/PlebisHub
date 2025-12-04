@@ -16,13 +16,14 @@ module Gamification
     has_many :badges, through: :user_badges
 
     # Validations
-    validates :user_id, presence: true, uniqueness: true
-    validates :total_points, :level, :xp, :current_streak, :longest_streak, numericality: { greater_than_or_equal_to: 0 }
+    validates :user_id, uniqueness: true
+    validates :total_points, :level, :xp, :current_streak, :longest_streak,
+              numericality: { greater_than_or_equal_to: 0 }
 
     # Scopes
     scope :top_users, ->(limit = 10) { order(total_points: :desc).limit(limit) }
     scope :by_level, ->(level) { where(level: level) }
-    scope :active_today, -> { where('last_active_date = ?', Date.today) }
+    scope :active_today, -> { where(last_active_date: Time.zone.today) }
 
     # Level configuration
     LEVELS = {
@@ -33,8 +34,8 @@ module Gamification
       5 => { name: 'Defensor', xp: 1000 },
       10 => { name: 'Líder Comunitario', xp: 2500 },
       15 => { name: 'Agente de Cambio', xp: 5000 },
-      20 => { name: 'Visionario', xp: 10000 },
-      25 => { name: 'Leyenda', xp: 25000 }
+      20 => { name: 'Visionario', xp: 10_000 },
+      25 => { name: 'Leyenda', xp: 25_000 }
     }.freeze
 
     # Earn points
@@ -64,12 +65,12 @@ module Gamification
 
         # Publish event
         publish_event('gamification.points_earned', {
-          user_id: user_id,
-          amount: amount,
-          reason: reason,
-          total_points: total_points,
-          level: level
-        })
+                        user_id: user_id,
+                        amount: amount,
+                        reason: reason,
+                        total_points: total_points,
+                        level: level
+                      })
 
         # Check for new badges
         Gamification::BadgeAwarder.check_and_award!(user)
@@ -108,10 +109,10 @@ module Gamification
       while should_level_up?
         self.level += 1
         publish_event('gamification.level_up', {
-          user_id: user_id,
-          new_level: level,
-          level_name: level_name
-        })
+                        user_id: user_id,
+                        new_level: level,
+                        level_name: level_name
+                      })
       end
     end
 
@@ -124,7 +125,7 @@ module Gamification
 
     # Update streak
     def update_streak!
-      today = Date.today
+      today = Time.zone.today
 
       if last_active_date.nil?
         # First activity
@@ -139,7 +140,7 @@ module Gamification
         self.longest_streak = [longest_streak, current_streak].max
 
         # Streak milestone rewards
-        award_streak_bonus! if current_streak % 7 == 0
+        award_streak_bonus! if (current_streak % 7).zero?
       else
         # Streak broken
         self.current_streak = 1
@@ -188,9 +189,9 @@ module Gamification
         when :today
           query = query.active_today
         when :week
-          query = query.where('last_active_date >= ?', 1.week.ago)
+          query = query.where(last_active_date: 1.week.ago..)
         when :month
-          query = query.where('last_active_date >= ?', 1.month.ago)
+          query = query.where(last_active_date: 1.month.ago..)
         end
 
         query.includes(:user)
@@ -199,7 +200,7 @@ module Gamification
              .map.with_index(1) do |stats, index|
                {
                  rank: index,
-                 user: stats.user.as_json(only: [:id, :first_name, :last_name]),
+                 user: stats.user.as_json(only: %i[id first_name last_name]),
                  stats: stats.summary
                }
              end

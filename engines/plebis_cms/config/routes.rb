@@ -27,14 +27,20 @@ PlebisCms::Engine.routes.draw do
   get '/listas-primarias-andaluzas', to: 'page#listas_primarias_andaluzas', as: 'listas_primarias_andaluzas'
 
   # Municipal organization pages
-  get '/responsables-organizacion-municipales', to: 'page#responsables_organizacion_municipales', as: 'responsables_organizacion_municipales'
-  get '/responsables-municipales-andalucia', to: 'page#responsables_municipales_andalucia', as: 'responsables_municipales_andalucia'
+  get '/responsables-organizacion-municipales', to: 'page#responsables_organizacion_municipales',
+                                                as: 'responsables_organizacion_municipales'
+  get '/responsables-municipales-andalucia', to: 'page#responsables_municipales_andalucia',
+                                             as: 'responsables_municipales_andalucia'
   get '/plaza-podemos-municipal', to: 'page#plaza_podemos_municipal', as: 'plaza_podemos_municipal'
-  get '/portal-transparencia-cc-estatal', to: 'page#portal_transparencia_cc_estatal', as: 'portal_transparencia_cc_estatal'
+  get '/portal-transparencia-cc-estatal', to: 'page#portal_transparencia_cc_estatal',
+                                          as: 'portal_transparencia_cc_estatal'
   get '/mujer-igualdad', to: 'page#mujer_igualdad', as: 'mujer_igualdad'
-  get '/solicitud-consulta-ciudadana-candidatura-unidad-popular', to: 'page#alta_consulta_ciudadana', as: 'alta_consulta_ciudadana'
-  get '/representantes-electorales-extranjeros', to: 'page#representantes_electorales_extranjeros', as: 'representantes_electorales_extranjeros'
-  get '/responsables-areas-cc-autonomicos', to: 'page#responsables_areas_cc_autonomicos', as: 'responsables_areas_cc_autonomicos'
+  get '/solicitud-consulta-ciudadana-candidatura-unidad-popular', to: 'page#alta_consulta_ciudadana',
+                                                                  as: 'alta_consulta_ciudadana'
+  get '/representantes-electorales-extranjeros', to: 'page#representantes_electorales_extranjeros',
+                                                 as: 'representantes_electorales_extranjeros'
+  get '/responsables-areas-cc-autonomicos', to: 'page#responsables_areas_cc_autonomicos',
+                                            as: 'responsables_areas_cc_autonomicos'
   get '/boletin-correo-electronico', to: 'page#boletin_correo_electronico', as: 'boletin_correo_electronico'
   get '/responsable-web-autonomico', to: 'page#responsable_web_autonomico', as: 'responsable_web_autonomico'
 
@@ -45,12 +51,16 @@ PlebisCms::Engine.routes.draw do
   get '/comparte-el-cambio/encuentra-viaje-sevilla', to: 'page#find_car_sevilla', as: 'find_car_sevilla'
   get '/comparte-el-cambio/compartir-coche-doshermanas', to: 'page#share_car_doshermanas', as: 'share_car_doshermanas'
   get '/comparte-el-cambio/encuentra-viaje-doshermanas', to: 'page#find_car_doshermanas', as: 'find_car_doshermanas'
-  get '/comparte-el-cambio/valoracion-propietarios', to: 'page#comparte_cambio_valoracion_propietarios', as: 'comparte_cambio_valoracion_propietarios'
-  get '/comparte-el-cambio/valoracion-usuarios', to: 'page#comparte_cambio_valoracion_usuarios', as: 'comparte_cambio_valoracion_usuarios'
+  get '/comparte-el-cambio/valoracion-propietarios', to: 'page#comparte_cambio_valoracion_propietarios',
+                                                     as: 'comparte_cambio_valoracion_propietarios'
+  get '/comparte-el-cambio/valoracion-usuarios', to: 'page#comparte_cambio_valoracion_usuarios',
+                                                 as: 'comparte_cambio_valoracion_usuarios'
 
   # Electoral pages
-  get '/apoderados-campana-autonomica-andalucia', to: 'page#apoderados_campana_autonomica_andalucia', as: 'apoderados_campana_autonomica_andalucia'
-  get '/candidaturas-primarias-autonomicas', to: 'page#candidaturas_primarias_autonomicas', as: 'candidaturas_primarias_autonomicas'
+  get '/apoderados-campana-autonomica-andalucia', to: 'page#apoderados_campana_autonomica_andalucia',
+                                                  as: 'apoderados_campana_autonomica_andalucia'
+  get '/candidaturas-primarias-autonomicas', to: 'page#candidaturas_primarias_autonomicas',
+                                             as: 'candidaturas_primarias_autonomicas'
   get '/listas-primarias-autonomicas', to: 'page#listas_primarias_autonomicas', as: 'listas_primarias_autonomicas'
   get '/avales-candidaturas-primarias', to: 'page#avales_candidaturas_primarias', as: 'avales_candidaturas_primarias'
   get '/iniciativa-ciudadana', to: 'page#iniciativa_ciudadana', as: 'iniciativa_ciudadana'

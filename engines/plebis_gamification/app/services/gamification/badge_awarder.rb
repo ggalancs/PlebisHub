@@ -11,7 +11,7 @@ module Gamification
     class << self
       # Check and award all eligible badges for user
       def check_and_award!(user)
-        stats = UserStats.for_user(user)
+        UserStats.for_user(user)
         awarded_badges = []
 
         Badge.find_each do |badge|
@@ -36,7 +36,7 @@ module Gamification
         )
 
         # Award bonus points
-        if badge.points_reward > 0
+        if badge.points_reward.positive?
           stats = UserStats.for_user(user)
           stats.earn_points!(
             badge.points_reward,
@@ -47,11 +47,11 @@ module Gamification
 
         # Publish event
         publish_event('gamification.badge_earned', {
-          user_id: user.id,
-          badge_id: badge.id,
-          badge_name: badge.name,
-          points_reward: badge.points_reward
-        })
+                        user_id: user.id,
+                        badge_id: badge.id,
+                        badge_name: badge.name,
+                        points_reward: badge.points_reward
+                      })
 
         # Send notification
         Notification.create!(
@@ -60,7 +60,7 @@ module Gamification
           title: "¡Badge desbloqueado! #{badge.icon}",
           body: "Has ganado el badge '#{badge.name}': #{badge.description}",
           notifiable: user_badge,
-          channels: ['push', 'in_app']
+          channels: %w[push in_app]
         )
 
         user_badge

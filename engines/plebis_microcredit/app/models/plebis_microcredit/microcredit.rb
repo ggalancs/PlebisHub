@@ -10,11 +10,13 @@ module PlebisMicrocredit
     self.table_name = 'microcredits'
 
     extend FriendlyId
-    friendly_id :slug_candidates, use: [:slugged, :finders]
+
+    friendly_id :slug_candidates, use: %i[slugged finders]
 
     acts_as_paranoid
-    has_many :loans, class_name: "PlebisMicrocredit::MicrocreditLoan", foreign_key: 'microcredit_id'
-    has_many :microcredit_options, class_name: "PlebisMicrocredit::MicrocreditOption", foreign_key: 'microcredit_id', dependent: :destroy
+    has_many :loans, class_name: 'PlebisMicrocredit::MicrocreditLoan'
+    has_many :microcredit_options, class_name: 'PlebisMicrocredit::MicrocreditOption',
+                                   dependent: :destroy
 
     # ActiveStorage attachment (replaces Paperclip)
     has_one_attached :renewal_terms
@@ -27,34 +29,36 @@ module PlebisMicrocredit
     def validate_renewal_terms_content_type
       return unless renewal_terms.attached?
 
-      allowed_types = ["application/pdf", "application/x-pdf"]
-      unless allowed_types.include?(renewal_terms.content_type)
-        errors.add(:renewal_terms, "debe ser un archivo PDF")
-      end
+      allowed_types = ['application/pdf', 'application/x-pdf']
+      return if allowed_types.include?(renewal_terms.content_type)
+
+      errors.add(:renewal_terms, 'debe ser un archivo PDF')
     end
 
     def validate_renewal_terms_size
       return unless renewal_terms.attached?
 
-      if renewal_terms.byte_size > 2.megabytes
-        errors.add(:renewal_terms, "debe ser menor de 2MB")
-      end
+      return unless renewal_terms.byte_size > 2.megabytes
+
+      errors.add(:renewal_terms, 'debe ser menor de 2MB')
     end
 
     public
- 
-    # example: "100€: 100\r500€: 22\r1000€: 10"
-    validates :limits, format: { with: /\A(\D*\d+\D*\d+\D*)+\z/, message: "Introduce pares (monto, cantidad)"}
-    validate :check_limits_with_phase
-    validate :check_bank_counted_amount,  :on => :update
 
-    scope :active, -> {where("? between starts_at and ends_at", DateTime.now)}
-    scope :upcoming_finished, -> { where("ends_at > ? AND starts_at < ?", 7.days.ago, 1.day.from_now).order(:title)}
-    scope :upcoming_finished_by_priority, -> { where("ends_at > ? AND starts_at < ?", 7.days.ago, 1.day.from_now).order(priority: :desc, title: :asc)}
-    scope :non_finished, -> { where("ends_at > ?", DateTime.now) }
+    # example: "100€: 100\r500€: 22\r1000€: 10"
+    validates :limits, format: { with: /\A(\D*\d+\D*\d+\D*)+\z/, message: 'Introduce pares (monto, cantidad)' }
+    validate :check_limits_with_phase
+    validate :check_bank_counted_amount, on: :update
+
+    scope :active, -> { where('? between starts_at and ends_at', DateTime.now) }
+    scope :upcoming_finished, -> { where('ends_at > ? AND starts_at < ?', 7.days.ago, 1.day.from_now).order(:title) }
+    scope :upcoming_finished_by_priority, lambda {
+      where('ends_at > ? AND starts_at < ?', 7.days.ago, 1.day.from_now).order(priority: :desc, title: :asc)
+    }
+    scope :non_finished, -> { where('ends_at > ?', DateTime.now) }
     scope :renewables, -> { joins(:renewal_terms_attachment) }
-    scope :standard, ->{where("flags = 0")}
-    scope :mailing, ->{where("flags = 1")}
+    scope :standard, -> { where('flags = 0') }
+    scope :mailing, -> { where('flags = 1') }
 
     # Scopes for filtering active/upcoming/finished campaigns by type
     scope :active_standard, -> { active.standard }
@@ -64,25 +68,27 @@ module PlebisMicrocredit
     scope :finished_standard, -> { upcoming_finished_by_priority.standard.select(&:recently_finished?) }
     scope :finished_mailing, -> { upcoming_finished_by_priority.mailing.select(&:recently_finished?) }
     def is_standard?
-      (!self.mailing)
+      !mailing
     end
+
     def is_mailing?
-      (self.mailing)
+      mailing
     end
+
     def is_active?
-      ( self.starts_at .. self.ends_at ).cover? DateTime.now
+      (starts_at..ends_at).cover? DateTime.now
     end
 
     def is_upcoming?
-      self.starts_at > DateTime.now and self.starts_at < 1.day.from_now
+      starts_at > DateTime.now and starts_at < 1.day.from_now
     end
 
     def has_finished?
-      self.ends_at < DateTime.now
+      ends_at < DateTime.now
     end
 
     def recently_finished?
-      self.ends_at > 7.days.ago and self.ends_at < DateTime.now 
+      ends_at > 7.days.ago and ends_at < DateTime.now
     end
 
     def limits
@@ -97,155 +103,166 @@ module PlebisMicrocredit
     def single_limit
       @limits
     end
-  
-    def method_missing(name, *args, &blk)
-      if name.to_s.start_with? "single_limit_"
-        amount = name[13..-1].to_i
-        if @limits.include? amount
-          @limits[amount]
-        end
+
+    def method_missing(name, *args, &)
+      if name.to_s.start_with? 'single_limit_'
+        amount = name[13..].to_i
+        @limits[amount] if @limits.include? amount
       else
         super
       end
     end
 
-    def parse_limits limits_string
-      Hash[* limits_string.scan(/\d+/).map {|x| x.to_i} ] if limits_string
+    def parse_limits(limits_string)
+      Hash[* limits_string.scan(/\d+/).map(&:to_i)] if limits_string
     end
 
     def campaign_status
       # field IS NOT NULL returns integer on SQLite and boolean in postgres, so both values are checked and converted to boolean
       # RAILS 7.2 FIX: Wrap raw SQL in Arel.sql() for security
-    @campaign_status ||= loans.group(:amount, Arel.sql("confirmed_at IS NOT NULL"), Arel.sql("counted_at IS NOT NULL"), Arel.sql("discarded_at IS NOT NULL")).pluck(:amount, Arel.sql("confirmed_at IS NOT NULL"), Arel.sql("counted_at IS NOT NULL"), Arel.sql("discarded_at IS NOT NULL"), Arel.sql("COUNT(*)")).sort_by(&:first).map {|x| [x[0], (x[1]==true||x[1]==1), (x[2]==true||x[2]==1), (x[3]==true||x[3]==1), x[4]] }
+      @campaign_status ||= loans.group(:amount, Arel.sql('confirmed_at IS NOT NULL'), Arel.sql('counted_at IS NOT NULL'), Arel.sql('discarded_at IS NOT NULL')).pluck(
+        :amount, Arel.sql('confirmed_at IS NOT NULL'), Arel.sql('counted_at IS NOT NULL'), Arel.sql('discarded_at IS NOT NULL'), Arel.sql('COUNT(*)')
+      ).sort_by(&:first).map do |x|
+        [x[0], [true, 1].include?(x[1]), [true, 1].include?(x[2]), [true, 1].include?(x[3]), x[4]]
+      end
     end
 
     def phase_status
       # field IS NOT NULL returns integer on SQLite and boolean in postgres, so both values are checked and converted to boolean
       # RAILS 7.2 FIX: Wrap raw SQL in Arel.sql() for security
-    @phase_status ||= loans.phase.group(:amount, Arel.sql("confirmed_at IS NOT NULL"), Arel.sql("counted_at IS NOT NULL"), Arel.sql("discarded_at IS NOT NULL")).pluck(:amount, Arel.sql("confirmed_at IS NOT NULL"), Arel.sql("counted_at IS NOT NULL"), Arel.sql("discarded_at IS NOT NULL"), Arel.sql("COUNT(*)")).sort_by(&:first).map {|x| [x[0], (x[1]==true||x[1]==1), (x[2]==true||x[2]==1), (x[3]==true||x[3]==1), x[4]] }
+      @phase_status ||= loans.phase.group(:amount, Arel.sql('confirmed_at IS NOT NULL'), Arel.sql('counted_at IS NOT NULL'), Arel.sql('discarded_at IS NOT NULL')).pluck(
+        :amount, Arel.sql('confirmed_at IS NOT NULL'), Arel.sql('counted_at IS NOT NULL'), Arel.sql('discarded_at IS NOT NULL'), Arel.sql('COUNT(*)')
+      ).sort_by(&:first).map do |x|
+        [x[0], [true, 1].include?(x[1]), [true, 1].include?(x[2]), [true, 1].include?(x[3]), x[4]]
+      end
     end
 
     def remaining_percent
       amount_to_count = campaign_counted_amount
       amount_to_count = bank_counted_amount if bank_counted_amount && bank_counted_amount > amount_to_count
-      time = 1-[ [(DateTime.now.to_f-starts_at.to_f) / (ends_at.to_f-starts_at.to_f), 0.0].max, 1.0].min
-      progress = 1-[ [1.0*amount_to_count / self.total_goal, 0.0].max, 1.0].min
-      progress*time
+      time = 1 - [[(DateTime.now.to_f - starts_at.to_f) / (ends_at.to_f - starts_at.to_f), 0.0].max, 1.0].min
+      progress = 1 - [[1.0 * amount_to_count / total_goal, 0.0].max, 1.0].min
+      progress * time
     end
 
-    def current_percent amount
-      current = campaign_status.collect {|x| x[4] if x[0]==amount and not x[1] and (not x[3] or x[2])} .compact.sum
-      current_counted = campaign_status.collect {|x| x[4] if x[0]==amount and not x[1] and x[2]} .compact.sum
-      current==0 ? 0.0 : 1.0*current_counted/current
+    def current_percent(amount)
+      current = campaign_status.collect { |x| x[4] if (x[0] == amount) && !x[1] && (!x[3] || x[2]) }.compact.sum
+      current_counted = campaign_status.collect { |x| x[4] if (x[0] == amount) && !x[1] && x[2] }.compact.sum
+      current.zero? ? 0.0 : 1.0 * current_counted / current
     end
 
-    def next_percent amount
-      current = campaign_status.collect {|x| x[4] if x[0]==amount and not x[1] and (not x[3] or x[2])} .compact.sum
-      current_counted = campaign_status.collect {|x| x[4] if x[0]==amount and not x[1] and x[2]} .compact.sum
-      current==0 ? 1.0 : (current_counted+1.0)/(current)
+    def next_percent(amount)
+      current = campaign_status.collect { |x| x[4] if (x[0] == amount) && !x[1] && (!x[3] || x[2]) }.compact.sum
+      current_counted = campaign_status.collect { |x| x[4] if (x[0] == amount) && !x[1] && x[2] }.compact.sum
+      current.zero? ? 1.0 : (current_counted + 1.0) / current
     end
 
-    def has_amount_available? amount
-      current = phase_status.collect {|x| x[4] if x[0]==amount and x[2] } .compact.sum
+    def has_amount_available?(amount)
+      current = phase_status.collect { |x| x[4] if (x[0] == amount) && x[2] }.compact.sum
       limits[amount] and limits[amount] > current
     end
 
-    def should_count? amount, confirmed
+    def should_count?(amount, confirmed)
       # check that there is any remaining loan for this amount and phase
       remaining = phase_remaining(amount)
-      return false if (remaining.none? || remaining.first.last<=0)
-    
+      return false if remaining.none? || remaining.first.last <= 0
+
       if confirmed
         true
       else
-        next_percent(amount)<self.remaining_percent
+        next_percent(amount) < remaining_percent
       end
     end
 
-    def phase_current_for_amount amount
-      phase_status.collect {|x| x[4] if x[0]==amount and x[2]} .compact.sum
+    def phase_current_for_amount(amount)
+      phase_status.collect { |x| x[4] if (x[0] == amount) && x[2] }.compact.sum
     end
 
-    def phase_remaining filter_amount=nil
+    def phase_remaining(filter_amount = nil)
       limits.map do |amount, limit|
-        [amount, [0, limit-phase_status.collect {|x| x[4] if x[0]==amount and x[2]} .compact.sum].max ] if filter_amount.nil? or filter_amount==amount
-      end .compact
+        next unless filter_amount.nil? || (filter_amount == amount)
+
+        [amount, [0, limit - phase_status.collect { |x|
+          x[4] if (x[0] == amount) && x[2]
+        }.compact.sum].max]
+      end.compact
     end
 
     def phase_limit_amount
-      limits.map do |k,v| k*v end .sum
+      limits.map do |k, v|
+        k * v
+      end.sum
     end
 
     def check_limits_with_phase
-      if self.limits.any? { |amount, limit| limit < self.phase_current_for_amount(amount) }
-        self.errors.add(:limits, "No puedes establecer un limite para un monto por debajo de los microcréditos visibles en la web con ese monto en la fase actual.")
-      end
+      return unless limits.any? { |amount, limit| limit < phase_current_for_amount(amount) }
+
+      errors.add(:limits,
+                 'No puedes establecer un limite para un monto por debajo de los microcréditos visibles en la web con ese monto en la fase actual.')
     end
 
     def phase_counted_amount
-      phase_status.collect {|x| x[0]*x[4] if x[2] } .compact.sum
+      phase_status.collect { |x| x[0] * x[4] if x[2] }.compact.sum
     end
 
     def campaign_created_amount
-      campaign_status.collect {|x| x[0]*x[4] } .compact.sum
+      campaign_status.collect { |x| x[0] * x[4] }.compact.sum
     end
 
     def campaign_unconfirmed_amount
-      campaign_status.collect {|x| x[0] * x[4] unless x[1] } .compact.sum
+      campaign_status.collect { |x| x[0] * x[4] unless x[1] }.compact.sum
     end
 
     def campaign_confirmed_amount
-      campaign_status.collect {|x| x[0]*x[4] if x[1] } .compact.sum
+      campaign_status.collect { |x| x[0] * x[4] if x[1] }.compact.sum
     end
 
     def campaign_not_counted_amount
-      campaign_status.collect {|x| x[0] * x[4] unless x[2] } .compact.sum
+      campaign_status.collect { |x| x[0] * x[4] unless x[2] }.compact.sum
     end
 
     def campaign_counted_amount
-      campaign_status.collect {|x| x[0]*x[4] if x[2] } .compact.sum
+      campaign_status.collect { |x| x[0] * x[4] if x[2] }.compact.sum
     end
 
     def campaign_discarded_amount
-      campaign_status.collect {|x| x[0]*x[4] if x[3] } .compact.sum
+      campaign_status.collect { |x| x[0] * x[4] if x[3] }.compact.sum
     end
 
     def campaign_created_count
-      campaign_status.collect {|x| x[4] } .compact.sum
+      campaign_status.pluck(4).compact.sum
     end
 
     def campaign_unconfirmed_count
-      campaign_status.collect {|x| x[4] unless x[1] } .compact.sum
+      campaign_status.collect { |x| x[4] unless x[1] }.compact.sum
     end
 
     def campaign_confirmed_count
-      campaign_status.collect {|x| x[4] if x[1] } .compact.sum
+      campaign_status.collect { |x| x[4] if x[1] }.compact.sum
     end
 
     def campaign_not_counted_count
-      campaign_status.collect {|x| x[4] unless x[2] } .compact.sum
+      campaign_status.collect { |x| x[4] unless x[2] }.compact.sum
     end
 
     def campaign_counted_count
-      campaign_status.collect {|x| x[4] if x[2] } .compact.sum
+      campaign_status.collect { |x| x[4] if x[2] }.compact.sum
     end
 
     def campaign_discarded_count
-      campaign_status.collect {|x| x[4] if x[3] } .compact.sum
+      campaign_status.collect { |x| x[4] if x[3] }.compact.sum
     end
 
     def completed
-      self.campaign_confirmed_amount>=self.total_goal
+      campaign_confirmed_amount >= total_goal
     end
 
     def change_phase!
       # Rails 7.2: Use update_column instead of deprecated update_attribute
-      if self.update_column(:reset_at, DateTime.current)
-        self.clear_cache
-        self.loans.where.not(confirmed_at:nil).where(counted_at:nil).each do |loan|
-          loan.update_counted_at
-        end
-      end
+      return unless update_column(:reset_at, DateTime.current)
+
+      clear_cache
+      loans.where.not(confirmed_at: nil).where(counted_at: nil).find_each(&:update_counted_at)
     end
 
     def slug_candidates
@@ -258,16 +275,19 @@ module PlebisMicrocredit
     end
 
     def self.total_current_amount(ids)
-      Microcredit.where(id:ids).sum(:total_goal)
+      Microcredit.where(id: ids).sum(:total_goal)
     end
 
     def subgoals
       # SECURITY: Use safe_load with permitted classes instead of unsafe_load
-      @subgoals ||= YAML.safe_load(self[:subgoals], permitted_classes: [Symbol, Date, Time], aliases: true) if self[:subgoals]
+      return unless self[:subgoals]
+
+      @subgoals ||= YAML.safe_load(self[:subgoals], permitted_classes: [Symbol, Date, Time],
+                                                    aliases: true)
     end
 
     def renewable?
-      self.has_finished? && self.renewal_terms.attached?
+      has_finished? && renewal_terms.attached?
     end
 
     def clear_cache
@@ -275,25 +295,36 @@ module PlebisMicrocredit
     end
 
     def get_microcredit_index_upcoming_text
-      date = self.starts_at
+      date = starts_at
       now = Time.zone.now
       date_diff = date - now
       days_diff = (date_diff / 1.day).round
       hours_diff = (date_diff / 1.hour).round
       minutes_diff = (date_diff / 1.minute).round
-      seconds_diff = (date_diff).round
+      seconds_diff = date_diff.round
       return "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.no_campaigns')}" if days_diff > 15
-      return "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.few_days')}" if days_diff.between?(2,15)
-      return "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.tomorrow')}" if days_diff == 1 || days_diff == 0 && (date.day - now.day).positive?
-      return "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.few_hours')}" if hours_diff.between?(1,23)
-      return "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.few_minutes')}" if minutes_diff.between?(1,59)
-      return "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.immediatly')}" if seconds_diff.between?(1,59)
+      return "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.few_days')}" if days_diff.between?(
+        2, 15
+      )
+      if days_diff == 1 || (days_diff.zero? && (date.day - now.day).positive?)
+        return "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.tomorrow')}"
+      end
+      return "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.few_hours')}" if hours_diff.between?(
+        1, 23
+      )
+      return "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.few_minutes')}" if minutes_diff.between?(
+        1, 59
+      )
+
+      "#{I18n.t('microcredit.index.will_start')} #{I18n.t('microcredit.index.immediatly')}" if seconds_diff.between?(
+        1, 59
+      )
     end
 
     def check_bank_counted_amount
-      if self.bank_counted_amount < bank_counted_amount_was
-        self.errors.add("Saldo erróneo", "No puedes establecer un saldo bancario inferior al que ya había.")
-      end
+      return unless bank_counted_amount < bank_counted_amount_was
+
+      errors.add('Saldo erróneo', 'No puedes establecer un saldo bancario inferior al que ya había.')
     end
 
     # Generate detailed summary of loan amounts grouped by microcredit options
@@ -305,22 +336,20 @@ module PlebisMicrocredit
           total: total
         }
       end
-
-      data_detail = []
       no_children = []
       with_children = []
       grand_total = 0
 
-      PlebisMicrocredit::MicrocreditOption.root_parents.where(microcredit_id: id).each do |parent|
+      PlebisMicrocredit::MicrocreditOption.root_parents.where(microcredit_id: id).find_each do |parent|
         if data_temp[parent.id].present? && parent.children.none?
-          data_temp[parent.id][:class_name] = "microcredit_option_detail_parent"
+          data_temp[parent.id][:class_name] = 'microcredit_option_detail_parent'
           no_children.push(data_temp[parent.id])
           grand_total += data_temp[parent.id][:total]
         else
           parent_data = {
             option_name: parent.name,
             total: 0,
-            class_name: "microcredit_option_detail_parent"
+            class_name: 'microcredit_option_detail_parent'
           }
           children_data = []
 
@@ -328,7 +357,7 @@ module PlebisMicrocredit
             next if data_temp[child.id].blank?
 
             parent_data[:total] += data_temp[child.id][:total]
-            data_temp[child.id][:class_name] = "microcredit_option_detail_child"
+            data_temp[child.id][:class_name] = 'microcredit_option_detail_child'
             children_data.push(data_temp[child.id])
           end
 

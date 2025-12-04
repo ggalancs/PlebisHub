@@ -154,12 +154,12 @@ RSpec.describe 'Proposals Info', type: :request do
       end
 
       it 'tiene h3 para cada fase' do
-        h3_count = response.body.scan(/<h3>/).count
+        h3_count = response.body.scan('<h3>').count
         expect(h3_count).to be >= 4
       end
 
       it 'tiene múltiples párrafos explicativos' do
-        p_count = response.body.scan(/<p>/).count
+        p_count = response.body.scan('<p>').count
         expect(p_count).to be >= 5
       end
     end

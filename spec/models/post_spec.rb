@@ -10,7 +10,7 @@ RSpec.describe Post, type: :model do
   describe 'factory' do
     it 'creates valid post' do
       post = build(:post)
-      expect(post).to be_valid, "Factory should create a valid post"
+      expect(post).to be_valid, 'Factory should create a valid post'
     end
 
     it 'creates published post by default' do
@@ -39,17 +39,17 @@ RSpec.describe Post, type: :model do
     it 'requires title' do
       post = build(:post, title: nil)
       expect(post).not_to be_valid
-      expect(post.errors[:title]).to include("no puede estar en blanco")
+      expect(post.errors[:title]).to include('no puede estar en blanco')
     end
 
     it 'requires status' do
       post = build(:post, status: nil)
       expect(post).not_to be_valid
-      expect(post.errors[:status]).to include("no puede estar en blanco")
+      expect(post.errors[:status]).to include('no puede estar en blanco')
     end
 
     it 'accepts valid title and status' do
-      post = build(:post, title: "Valid Title", status: 1)
+      post = build(:post, title: 'Valid Title', status: 1)
       expect(post).to be_valid
     end
   end
@@ -70,9 +70,9 @@ RSpec.describe Post, type: :model do
     end
 
     it 'updates post' do
-      post = create(:post, title: "Original Title")
-      post.update(title: "Updated Title")
-      expect(post.reload.title).to eq("Updated Title")
+      post = create(:post, title: 'Original Title')
+      post.update(title: 'Updated Title')
+      expect(post.reload.title).to eq('Updated Title')
     end
 
     it 'soft deletes post' do
@@ -80,8 +80,8 @@ RSpec.describe Post, type: :model do
       post.destroy
 
       expect(post.deleted_at).not_to be_nil
-      expect(Post.exists?(post.id)).to be_falsey, "Post should not be in default scope"
-      expect(Post.with_deleted.exists?(post.id)).to be_truthy, "Post should exist with with_deleted scope"
+      expect(Post.exists?(post.id)).to be_falsey, 'Post should not be in default scope'
+      expect(Post.with_deleted.exists?(post.id)).to be_truthy, 'Post should exist with with_deleted scope'
     end
   end
 
@@ -174,8 +174,8 @@ RSpec.describe Post, type: :model do
 
       post.categories << category
 
-      expect(category.posts).to include(post), "Category should have post in its posts"
-      expect(post.categories).to include(category), "Post should have category in its categories"
+      expect(category.posts).to include(post), 'Category should have post in its posts'
+      expect(post.categories).to include(category), 'Post should have category in its categories'
     end
   end
 
@@ -211,13 +211,13 @@ RSpec.describe Post, type: :model do
 
   describe 'FriendlyId / slug' do
     it 'generates slug from title' do
-      post = create(:post, title: "My Awesome Post")
+      post = create(:post, title: 'My Awesome Post')
       expect(post.slug).not_to be_nil
       expect(post.slug).to match(/my-awesome-post/)
     end
 
     it 'is findable by slug' do
-      post = create(:post, title: "Findable Post")
+      post = create(:post, title: 'Findable Post')
 
       # FriendlyId should allow finding by slug
       found_post = Post.find(post.slug)
@@ -225,10 +225,10 @@ RSpec.describe Post, type: :model do
     end
 
     it 'updates slug when title changes' do
-      post = create(:post, title: "Original Title")
-      original_slug = post.slug
+      post = create(:post, title: 'Original Title')
+      post.slug
 
-      post.update(title: "New Title")
+      post.update(title: 'New Title')
       post.reload
 
       # Slug may or may not change depending on FriendlyId configuration
@@ -237,10 +237,10 @@ RSpec.describe Post, type: :model do
     end
 
     it 'handles duplicate titles with slug candidates' do
-      post1 = create(:post, title: "Duplicate Title")
-      post2 = create(:post, title: "Duplicate Title")
+      post1 = create(:post, title: 'Duplicate Title')
+      post2 = create(:post, title: 'Duplicate Title')
 
-      expect(post1.slug).not_to eq(post2.slug), "Slugs should be different for duplicate titles"
+      expect(post1.slug).not_to eq(post2.slug), 'Slugs should be different for duplicate titles'
     end
   end
 
@@ -288,7 +288,7 @@ RSpec.describe Post, type: :model do
   describe 'combined scenarios' do
     it 'completes blog post workflow' do
       # Create draft
-      post = create(:post, :draft, title: "My Blog Post")
+      post = create(:post, :draft, title: 'My Blog Post')
       expect(post.status).to eq(0)
       expect(post).not_to be_published
 

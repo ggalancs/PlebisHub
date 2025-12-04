@@ -1,4 +1,6 @@
- FactoryBot.define do
+# frozen_string_literal: true
+
+FactoryBot.define do
   factory :support, class: 'Support' do
     association :user
     association :proposal
@@ -12,11 +14,11 @@
     end
 
     trait :for_active_proposal do
-      association :proposal, factory: [:proposal, :active]
+      association :proposal, factory: %i[proposal active]
     end
 
     trait :for_finished_proposal do
-      association :proposal, factory: [:proposal, :finished]
+      association :proposal, factory: %i[proposal finished]
     end
   end
 end

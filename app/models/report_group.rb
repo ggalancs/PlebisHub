@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ReportGroup < ApplicationRecord
   validates :transformation_rules, presence: true, if: :using_safe_mode?
   validate :validate_transformation_structure, if: :using_safe_mode?
@@ -10,14 +12,20 @@ class ReportGroup < ApplicationRecord
     'strip' => ->(v) { v.to_s.strip },
     'to_s' => ->(v) { v.to_s },
     'to_i' => ->(v) { v.to_i },
-    'truncate' => ->(v, len=50) { v.to_s.truncate(len) },
-    'first' => ->(v, n=1) { v.to_s.first(n) },
-    'last' => ->(v, n=1) { v.to_s.last(n) }
+    'truncate' => ->(v, len = 50) { v.to_s.truncate(len) },
+    'first' => ->(v, n = 1) { v.to_s.first(n) },
+    'last' => ->(v, n = 1) { v.to_s.last(n) }
   }.freeze
 
   ALLOWED_FORMATS = {
-    'currency' => ->(v) { "%.2f" % v.to_f },
-    'date' => ->(v) { v.to_date.strftime('%Y-%m-%d') rescue v.to_s },
+    'currency' => ->(v) { format('%.2f', v.to_f) },
+    'date' => lambda { |v|
+      begin
+        v.to_date.strftime('%Y-%m-%d')
+      rescue StandardError
+        v.to_s
+      end
+    },
     'percentage' => ->(v) { "#{v.to_f * 100}%" },
     'integer' => ->(v) { v.to_i.to_s }
   }.freeze
@@ -31,17 +39,17 @@ class ReportGroup < ApplicationRecord
       Rails.logger.warn("SECURITY: ReportGroup #{id} using deprecated eval(). Migrate to JSON transformations!")
       get_proc.call(row)
     end
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error("ReportGroup #{id} error: #{e.message}")
-    [["ERROR", "ERROR"]]
+    [%w[ERROR ERROR]]
   end
 
   def format_group_name(name)
-    name.ljust(width)[0..width-1]
+    name.ljust(width)[0..(width - 1)]
   end
 
   def create_temp_file(folder)
-    @file = File.open("#{folder}/#{self.id}.dat", 'w:UTF-8')
+    @file = File.open("#{folder}/#{id}.dat", 'w:UTF-8')
   end
 
   def write(data)
@@ -59,19 +67,20 @@ class ReportGroup < ApplicationRecord
     # New reports should use the safe JSON-based transformation_rules instead
     # This is maintained for backwards compatibility with existing admin-created reports
     # brakeman:disable:Evaluation
-    if self[:proc].present?
-      Rails.logger.warn("SECURITY: ReportGroup #{id} using deprecated eval() proc. Migrate to transformation_rules!")
-      @proc ||= eval("Proc.new { |row| #{self[:proc]} }")
-    end
+    return if self[:proc].blank?
+
+    Rails.logger.warn("SECURITY: ReportGroup #{id} using deprecated eval() proc. Migrate to transformation_rules!")
+    @get_proc ||= eval("Proc.new { |row| #{self[:proc]} }")
+
     # brakeman:enable:Evaluation
   end
 
   def get_whitelist
-    @whitelist ||= self[:whitelist].to_s.split("\r\n")
+    @get_whitelist ||= self[:whitelist].to_s.split("\r\n")
   end
 
   def get_blacklist
-    @blacklist ||= self[:blacklist].to_s.split("\r\n")
+    @get_blacklist ||= self[:blacklist].to_s.split("\r\n")
   end
 
   def proc=(value)
@@ -99,7 +108,7 @@ class ReportGroup < ApplicationRecord
 
   def self.serialize(data)
     if data.is_a? Array
-      data.map {|d| d.attributes.to_yaml }.to_yaml
+      data.map { |d| d.attributes.to_yaml }.to_yaml
     else
       data.attributes.to_yaml
     end
@@ -146,7 +155,7 @@ class ReportGroup < ApplicationRecord
     end
   rescue JSON::ParserError => e
     Rails.logger.error("Invalid JSON in ReportGroup #{id}: #{e.message}")
-    [["ERROR", "ERROR"]]
+    [%w[ERROR ERROR]]
   end
 
   def extract_value(row, source_path)
@@ -165,7 +174,7 @@ class ReportGroup < ApplicationRecord
     end
 
     value
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error("Failed to extract '#{source_path}': #{e.message}")
     nil
   end
@@ -181,13 +190,9 @@ class ReportGroup < ApplicationRecord
     end
 
     rules['columns'].each do |column|
-      unless column['source'].present?
-        errors.add(:transformation_rules, "each column must have 'source'")
-      end
+      errors.add(:transformation_rules, "each column must have 'source'") if column['source'].blank?
 
-      unless column['output'].present?
-        errors.add(:transformation_rules, "each column must have 'output'")
-      end
+      errors.add(:transformation_rules, "each column must have 'output'") if column['output'].blank?
 
       column['transformations']&.each do |transform|
         unless ALLOWED_TRANSFORMATIONS.key?(transform)
@@ -200,6 +205,6 @@ class ReportGroup < ApplicationRecord
       end
     end
   rescue JSON::ParserError
-    errors.add(:transformation_rules, "must be valid JSON")
+    errors.add(:transformation_rules, 'must be valid JSON')
   end
 end

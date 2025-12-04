@@ -5,7 +5,8 @@ module PlebisCms
     self.table_name = 'categories'
 
     extend FriendlyId
-    friendly_id :slug_candidates, use: [:slugged, :finders]
+
+    friendly_id :slug_candidates, use: %i[slugged finders]
 
     # Associations
     has_and_belongs_to_many :posts, class_name: 'PlebisCms::Post'
@@ -31,14 +32,12 @@ module PlebisCms
       !active?
     end
 
-    def posts_count
-      posts.count
-    end
+    delegate :count, to: :posts, prefix: true
 
     def slug_candidates
       [
         :name,
-        [:name, :id]
+        %i[name id]
       ]
     end
 

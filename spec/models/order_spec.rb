@@ -40,19 +40,19 @@ RSpec.describe Order, type: :model do
     it 'requires payment_type' do
       order = build(:order, payment_type: nil)
       expect(order).not_to be_valid
-      expect(order.errors[:payment_type]).to include("no puede estar en blanco")
+      expect(order.errors[:payment_type]).to include('no puede estar en blanco')
     end
 
     it 'requires amount' do
       order = build(:order, amount: nil)
       expect(order).not_to be_valid
-      expect(order.errors[:amount]).to include("no puede estar en blanco")
+      expect(order.errors[:amount]).to include('no puede estar en blanco')
     end
 
     it 'requires payable_at' do
       order = build(:order, payable_at: nil)
       expect(order).not_to be_valid
-      expect(order.errors[:payable_at]).to include("no puede estar en blanco")
+      expect(order.errors[:payable_at]).to include('no puede estar en blanco')
     end
   end
 
@@ -219,7 +219,7 @@ RSpec.describe Order, type: :model do
     it 'belongs to parent polymorphically' do
       order = create(:order)
       expect(order).to respond_to(:parent)
-      expect(order.parent_type).to eq("Collaboration")
+      expect(order.parent_type).to eq('Collaboration')
     end
 
     it 'belongs to collaboration' do
@@ -227,7 +227,7 @@ RSpec.describe Order, type: :model do
       order = create(:order, parent: collaboration)
 
       expect(order.parent_id).to eq(collaboration.id)
-      expect(order.parent_type).to eq("Collaboration")
+      expect(order.parent_type).to eq('Collaboration')
     end
   end
 
@@ -314,14 +314,14 @@ RSpec.describe Order, type: :model do
     describe '#status_name' do
       it 'returns correct name' do
         order = create(:order, :ok)
-        expect(order.status_name).to eq("OK")
+        expect(order.status_name).to eq('OK')
       end
     end
 
     describe '#payment_type_name' do
       it 'returns correct name' do
         order = create(:order, :credit_card)
-        expect(order.payment_type_name).to eq("Suscripción con Tarjeta de Crédito/Débito")
+        expect(order.payment_type_name).to eq('Suscripción con Tarjeta de Crédito/Débito')
       end
     end
 
@@ -370,12 +370,12 @@ RSpec.describe Order, type: :model do
     describe '#due_code' do
       it 'returns FRST for first orders' do
         order = create(:order, :first_order)
-        expect(order.due_code).to eq("FRST")
+        expect(order.due_code).to eq('FRST')
       end
 
       it 'returns RCUR for recurring orders' do
         order = create(:order, first: false)
-        expect(order.due_code).to eq("RCUR")
+        expect(order.due_code).to eq('RCUR')
       end
     end
   end
@@ -397,7 +397,7 @@ RSpec.describe Order, type: :model do
     describe '#mark_as_paid!' do
       it 'sets status to 2 and payed_at' do
         order = create(:order, :nueva)
-        date = Time.now
+        date = Time.zone.now
 
         order.mark_as_paid!(date)
 
@@ -447,11 +447,11 @@ RSpec.describe Order, type: :model do
 
     describe '.by_month_count' do
       it 'counts orders for a date' do
-        create(:order, payable_at: Date.today)
-        create(:order, payable_at: Date.today)
+        create(:order, payable_at: Time.zone.today)
+        create(:order, payable_at: Time.zone.today)
         create(:order, payable_at: 1.month.ago)
 
-        count = Order.by_month_count(Date.today)
+        count = Order.by_month_count(Time.zone.today)
 
         expect(count).to eq(2)
       end
@@ -459,11 +459,11 @@ RSpec.describe Order, type: :model do
 
     describe '.by_month_amount' do
       it 'sums amounts for a date' do
-        create(:order, payable_at: Date.today, amount: 1000)
-        create(:order, payable_at: Date.today, amount: 2000)
+        create(:order, payable_at: Time.zone.today, amount: 1000)
+        create(:order, payable_at: Time.zone.today, amount: 2000)
         create(:order, payable_at: 1.month.ago, amount: 5000)
 
-        amount = Order.by_month_amount(Date.today)
+        amount = Order.by_month_amount(Time.zone.today)
 
         expect(amount).to eq(30.0)
       end
@@ -528,7 +528,7 @@ RSpec.describe Order, type: :model do
       expect(order).not_to be_is_chargeable
 
       # Mark as paid
-      order.mark_as_paid!(Time.now)
+      order.mark_as_paid!(Time.zone.now)
       expect(order.reload.status).to eq(2)
       expect(order).not_to be_is_payable
       expect(order).to be_is_paid
@@ -539,15 +539,14 @@ RSpec.describe Order, type: :model do
       user = collaboration.user
 
       order = create(:order,
-        user: user,
-        parent: collaboration,
-        amount: 1000,
-        payment_type: 1,
-        reference: "Test collaboration order"
-      )
+                     user: user,
+                     parent: collaboration,
+                     amount: 1000,
+                     payment_type: 1,
+                     reference: 'Test collaboration order')
 
       expect(order.parent_id).to eq(collaboration.id)
-      expect(order.parent_type).to eq("Collaboration")
+      expect(order.parent_type).to eq('Collaboration')
       expect(order.user_id).to eq(user.id)
       expect(order).to be_is_credit_card
     end
@@ -560,7 +559,7 @@ RSpec.describe Order, type: :model do
       expect(order).not_to be_is_credit_card
       expect(order.payment_type).to eq(3)
 
-      order.mark_as_paid!(Time.now)
+      order.mark_as_paid!(Time.zone.now)
 
       expect(order).to be_is_paid
       expect(order.reload.status).to eq(2)

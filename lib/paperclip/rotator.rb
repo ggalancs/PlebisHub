@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Paperclip
   class Rotator < Thumbnail
     def transformation_command
@@ -10,7 +12,9 @@ module Paperclip
 
     def rotate_command
       target = @attachment.instance
-      " -rotate #{target.rotate[@attachment.name]} " if target.respond_to?(:rotate) && target.rotate[@attachment.name].present?
+      return unless target.respond_to?(:rotate) && target.rotate[@attachment.name].present?
+
+      " -rotate #{target.rotate[@attachment.name]} "
     end
   end
 end

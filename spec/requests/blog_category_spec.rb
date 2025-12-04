@@ -12,18 +12,14 @@ RSpec.describe 'Blog Category', type: :request do
 
       it 'si renderiza, muestra título de la categoría' do
         get '/brujula/categoria/1'
-        if response.status == 200
-          expect(response.body).to match(/<h1>.*Entradas/i)
-        end
+        expect(response.body).to match(/<h1>.*Entradas/i) if response.status == 200
       end
     end
 
     describe 'B. LISTADO DE POSTS' do
       it 'si renderiza, tiene contenedor principal' do
         get '/brujula/categoria/1'
-        if response.status == 200
-          expect(response.body).to include('container')
-        end
+        expect(response.body).to include('container') if response.status == 200
       end
 
       it 'si renderiza, puede renderizar posts de la categoría' do
@@ -47,38 +43,30 @@ RSpec.describe 'Blog Category', type: :request do
 
       it 'si renderiza, usa iconos Font Awesome para paginación' do
         get '/brujula/categoria/1'
-        if response.status == 200
-          expect(response.body).to match(/fa-|chevron/)
-        end
+        expect(response.body).to match(/fa-|chevron/) if response.status == 200
       end
     end
 
     describe 'D. SIDEBAR DE CATEGORÍAS' do
       it 'si renderiza, tiene sidebar' do
         get '/brujula/categoria/1'
-        if response.status == 200
-          expect(response.body).to include('sidebar')
-        end
+        expect(response.body).to include('sidebar') if response.status == 200
       end
 
       it 'si renderiza, muestra h2 de Categorias' do
         get '/brujula/categoria/1'
-        if response.status == 200
-          expect(response.body).to match(/<h2>.*Categorias/i)
-        end
+        expect(response.body).to match(/<h2>.*Categorias/i) if response.status == 200
       end
 
       it 'si renderiza, tiene lista de categorías' do
         get '/brujula/categoria/1'
-        if response.status == 200
-          expect(response.body).to include('<ul>')
-        end
+        expect(response.body).to include('<ul>') if response.status == 200
       end
 
       it 'si renderiza, marca categoría activa' do
         get '/brujula/categoria/1'
         if response.status == 200
-          has_active = response.body.include?('active') || !response.body.include?('<li')
+          has_active = response.body.include?('active') || response.body.exclude?('<li')
           expect(has_active).to be true
         end
       end
@@ -95,16 +83,12 @@ RSpec.describe 'Blog Category', type: :request do
 
       it 'si renderiza, tiene h1 para título' do
         get '/brujula/categoria/1'
-        if response.status == 200
-          expect(response.body).to include('<h1>')
-        end
+        expect(response.body).to include('<h1>') if response.status == 200
       end
 
       it 'si renderiza, usa párrafo con clase links para navegación' do
         get '/brujula/categoria/1'
-        if response.status == 200
-          expect(response.body).to include('links')
-        end
+        expect(response.body).to include('links') if response.status == 200
       end
     end
   end

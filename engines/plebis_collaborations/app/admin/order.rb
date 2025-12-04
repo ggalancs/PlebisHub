@@ -4,9 +4,10 @@ ActiveAdmin.register PlebisCollaborations::Order, namespace: :admin do
   scope_to PlebisCollaborations::Order, association_method: :full_view
   config.sort_order = 'updated_at_desc'
 
-  menu :parent => "Colaboraciones"
+  menu parent: 'Colaboraciones'
 
-  permit_params :status, :reference, :amount, :first, :payment_type, :payment_identifier, :payment_response, :payable_at, :payed_at, :created_at
+  permit_params :status, :reference, :amount, :first, :payment_type, :payment_identifier, :payment_response,
+                :payable_at, :payed_at, :created_at
 
   # Nº RECIBO Es el identificador del cargo a todos los efectos y no se ha de repetir en la remesa y en las remesas sucesivas. Es un nº correlativo
   # NOMBRE
@@ -30,7 +31,7 @@ ActiveAdmin.register PlebisCollaborations::Order, namespace: :admin do
   # FRECUENCIA  Perioricidad
   # TITULAR Titular de la cuenta. Si no indican nada en contra se pondra el mismo que en "nombre".
   #
-  #"Nº RECIBO", "NOMBRE", "DNI/NIE/PASAPORTE", "EMAIL", "DIRECCIÓN", "CIUDAD", "CÓDIGO POSTAL", "CODIGO PAIS", "IBAN", "CCC", "BIC/SWIFT", "TOTAL", "CÓDIGO DE ADEUDO", "URL FUENTE", "ID - ENTRADA", "FECHA DE LA ENTRADA", "COMPROBACIÓN", "FECHA TRIODOS", "FRECUENCIA", "TITULAR"
+  # "Nº RECIBO", "NOMBRE", "DNI/NIE/PASAPORTE", "EMAIL", "DIRECCIÓN", "CIUDAD", "CÓDIGO POSTAL", "CODIGO PAIS", "IBAN", "CCC", "BIC/SWIFT", "TOTAL", "CÓDIGO DE ADEUDO", "URL FUENTE", "ID - ENTRADA", "FECHA DE LA ENTRADA", "COMPROBACIÓN", "FECHA TRIODOS", "FRECUENCIA", "TITULAR"
   #
 
   scope :to_be_paid
@@ -93,9 +94,9 @@ ActiveAdmin.register PlebisCollaborations::Order, namespace: :admin do
     active_admin_comments
   end
 
-  filter :status, :as => :select, :collection => PlebisCollaborations::Order::STATUS.to_a
-  filter :payment_type, :as => :select, :collection => PlebisCollaborations::Order::PAYMENT_TYPES.to_a
-  filter :amount, :as => :select, :collection => PlebisCollaborations::Collaboration::AMOUNTS.to_a
+  filter :status, as: :select, collection: PlebisCollaborations::Order::STATUS.to_a
+  filter :payment_type, as: :select, collection: PlebisCollaborations::Order::PAYMENT_TYPES.to_a
+  filter :amount, as: :select, collection: PlebisCollaborations::Collaboration::AMOUNTS.to_a
   filter :first
   filter :payable_at
   filter :payed_at
@@ -104,7 +105,7 @@ ActiveAdmin.register PlebisCollaborations::Order, namespace: :admin do
   filter :autonomy_code
 
   form do |f|
-    f.inputs "Order" do
+    f.inputs 'Order' do
       f.input :status, as: :select, collection: PlebisCollaborations::Order::STATUS.to_a
       f.input :reference
       f.input :amount
@@ -120,80 +121,86 @@ ActiveAdmin.register PlebisCollaborations::Order, namespace: :admin do
   end
 
   member_action :return_order do
-    if resource.is_paid?
-      resource.processed!
-    end
+    resource.processed! if resource.is_paid?
     redirect_to admin_order_path(id: resource.id)
   end
 
   action_item(:return_order, only: :show) do
     if resource.is_paid?
-      link_to 'Orden devuelta', return_order_admin_order_path(id: resource.id), data: { confirm: "Esta orden no será contabilizada como cobrada. ¿Deseas continuar?" }
+      link_to 'Orden devuelta', return_order_admin_order_path(id: resource.id),
+              data: { confirm: 'Esta orden no será contabilizada como cobrada. ¿Deseas continuar?' }
     end
   end
 
   action_item(:restore_order, only: :show) do
-    link_to('Recuperar orden borrada', recover_admin_order_path(order), method: :post, data: { confirm: "¿Estas segura de querer recuperar esta order?" }) if order.deleted?
+    if order.deleted?
+      link_to('Recuperar orden borrada', recover_admin_order_path(order), method: :post,
+                                                                          data: { confirm: '¿Estas segura de querer recuperar esta order?' })
+    end
   end
 
-  member_action :recover, :method => :post do
+  member_action :recover, method: :post do
     order = PlebisCollaborations::Order.with_deleted.find(params[:id])
     order.restore
-    flash[:notice] = "Ya se ha recuperado la orden"
+    flash[:notice] = 'Ya se ha recuperado la orden'
     redirect_to action: :show
   end
 
   csv do
     column :id
-    column :colaboracion do |order|
-      order.parent_id
-    end
+    column :colaboracion, &:parent_id
     column :user_id
     column :full_name do |order|
-      order.parent.get_user.full_name if order.parent and order.parent.get_user
+      order.parent&.get_user&.full_name
     end
     column :dni do |order|
-      order.parent.get_user.document_vatid.upcase if order.parent and order.parent.get_user and order.parent.get_user.document_vatid
+      order.parent&.get_user&.document_vatid&.upcase
     end
     column :address do |order|
-      order.parent.get_user.address if order.parent and order.parent.get_user
+      order.parent&.get_user&.address
     end
 
     column :order_type do |order|
-      order.island_code ? "I" : order.town_code ? "M" : order.autonomy_code ? "A" : "E"
+      if order.island_code
+        'I'
+      elsif order.town_code
+        'M'
+      else
+        order.autonomy_code ? 'A' : 'E'
+      end
     end
     column :vote_circle do |order|
-      order.parent.get_user.vote_circle.original_name if order.parent && order.parent.get_user && order.parent.get_user.vote_circle_id
+      order.parent.get_user.vote_circle.original_name if order.parent&.get_user&.vote_circle_id
     end
     column :postal_code do |order|
-      order.parent.get_user.postal_code if order.parent && order.parent.get_user && order.parent.get_user.postal_code
+      order.parent.get_user.postal_code if order.parent&.get_user&.postal_code
     end
     column :town do |order|
-      order.parent.get_user.town_name if order.parent and order.parent.get_user
+      order.parent&.get_user&.town_name
     end
     column :province do |order|
-      order.parent.get_user.province_name if order.parent and order.parent.get_user
+      order.parent&.get_user&.province_name
     end
     column :island do |order|
-      order.parent.get_user.island_name if order.parent and order.parent.get_user
+      order.parent&.get_user&.island_name
     end
     column :autonomy do |order|
-      order.parent.get_user.autonomy_name if order.parent and order.parent.get_user
+      order.parent&.get_user&.autonomy_name
     end
     column :vote_circle_town do |order|
-      order.parent.get_user.vote_circle.town_name if order.parent && order.parent.get_user && order.parent.get_user.vote_circle_id
+      order.parent.get_user.vote_circle.town_name if order.parent&.get_user&.vote_circle_id
     end
     column :vote_circle_island do |order|
-      order.parent.get_user.vote_circle.island_name if order.parent && order.parent.get_user && order.parent.get_user.vote_circle_id
+      order.parent.get_user.vote_circle.island_name if order.parent&.get_user&.vote_circle_id
     end
     column :vote_circle_autonomy do |order|
-      order.parent.get_user.vote_circle.autonomy_name if order.parent && order.parent.get_user && order.parent.get_user.vote_circle_id
+      order.parent.get_user.vote_circle.autonomy_name if order.parent&.get_user&.vote_circle_id
     end
     column :vote_circle_country do |order|
-      order.parent.get_user.vote_circle.country_name if order.parent && order.parent.get_user && order.parent.get_user.vote_circle_id
+      order.parent.get_user.vote_circle.country_name if order.parent&.get_user&.vote_circle_id
     end
 
-    column :target_territory, label: "territorio_destino"
+    column :target_territory, label: 'territorio_destino'
     column :status_name
     column :payable_at
     column :payed_at
@@ -203,16 +210,16 @@ ActiveAdmin.register PlebisCollaborations::Order, namespace: :admin do
     column :amount
     column :first
     column :frequency do |order|
-      freq = order.parent.frequency if order.parent && order.parent.frequency
+      freq = order.parent.frequency if order.parent&.frequency
       case freq
       when 0
-        "Puntual"
+        'Puntual'
       when 1
-        "Mensual"
+        'Mensual'
       when 3
-        "Trimestral"
+        'Trimestral'
       when 12
-        "Anual"
+        'Anual'
       else
         freq
       end
@@ -223,10 +230,12 @@ ActiveAdmin.register PlebisCollaborations::Order, namespace: :admin do
       order.redsys_order_id if order.is_credit_card?
     end
     column :es_militante do |order|
-      order.parent.get_user.militant? if order.parent && order.parent.get_user &&  order.parent.get_user.respond_to?("militant?")
+      order.parent.get_user.militant? if order.parent&.get_user.respond_to?('militant?')
     end
     column :circulo do |order|
-      order.parent.get_user.vote_circle.original_name if order.parent && order.parent.get_user && order.parent.get_user.vote_circle_id.present?
+      if order.parent&.get_user && order.parent.get_user.vote_circle_id.present?
+        order.parent.get_user.vote_circle.original_name
+      end
     end
   end
 end

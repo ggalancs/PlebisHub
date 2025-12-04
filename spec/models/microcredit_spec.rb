@@ -10,7 +10,7 @@ RSpec.describe PlebisMicrocredit::Microcredit, type: :model do
   describe 'factory' do
     it 'creates valid microcredit' do
       microcredit = build(:microcredit)
-      expect(microcredit).to be_valid, "Factory should create a valid microcredit"
+      expect(microcredit).to be_valid, 'Factory should create a valid microcredit'
     end
   end
 
@@ -20,9 +20,9 @@ RSpec.describe PlebisMicrocredit::Microcredit, type: :model do
 
   describe 'validations' do
     it 'validates limits format' do
-      microcredit = build(:microcredit, limits: "invalid")
+      microcredit = build(:microcredit, limits: 'invalid')
       expect(microcredit).not_to be_valid
-      expect(microcredit.errors[:limits]).to include("Introduce pares (monto, cantidad)")
+      expect(microcredit.errors[:limits]).to include('Introduce pares (monto, cantidad)')
     end
 
     it 'accepts valid limits format' do
@@ -37,25 +37,25 @@ RSpec.describe PlebisMicrocredit::Microcredit, type: :model do
 
   describe 'CRUD operations' do
     it 'creates microcredit with valid attributes' do
-      expect {
+      expect do
         create(:microcredit)
-      }.to change(described_class, :count).by(1)
+      end.to change(described_class, :count).by(1)
     end
 
     it 'updates microcredit attributes' do
-      microcredit = create(:microcredit, title: "Original")
+      microcredit = create(:microcredit, title: 'Original')
 
-      microcredit.update(title: "Updated")
+      microcredit.update(title: 'Updated')
 
-      expect(microcredit.reload.title).to eq("Updated")
+      expect(microcredit.reload.title).to eq('Updated')
     end
 
     it 'soft deletes microcredit' do
       microcredit = create(:microcredit)
 
-      expect {
+      expect do
         microcredit.destroy
-      }.to change(described_class, :count).by(-1)
+      end.to change(described_class, :count).by(-1)
 
       expect(microcredit.reload.deleted_at).not_to be_nil
     end
@@ -150,11 +150,11 @@ RSpec.describe PlebisMicrocredit::Microcredit, type: :model do
 
     it 'destroys dependent microcredit_options' do
       microcredit = create(:microcredit)
-      option = create(:microcredit_option, microcredit: microcredit)
+      create(:microcredit_option, microcredit: microcredit)
 
-      expect {
+      expect do
         microcredit.destroy
-      }.to change(MicrocreditOption, :count).by(-1)
+      end.to change(MicrocreditOption, :count).by(-1)
     end
   end
 end

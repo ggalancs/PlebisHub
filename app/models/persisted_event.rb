@@ -15,9 +15,9 @@ class PersistedEvent < ApplicationRecord
   # Scopes
   scope :by_type, ->(type) { where(event_type: type) }
   scope :recent, -> { order(occurred_at: :desc) }
-  scope :today, -> { where('occurred_at >= ?', Time.current.beginning_of_day) }
-  scope :this_week, -> { where('occurred_at >= ?', Time.current.beginning_of_week) }
-  scope :this_month, -> { where('occurred_at >= ?', Time.current.beginning_of_month) }
+  scope :today, -> { where(occurred_at: Time.current.beginning_of_day..) }
+  scope :this_week, -> { where(occurred_at: Time.current.beginning_of_week..) }
+  scope :this_month, -> { where(occurred_at: Time.current.beginning_of_month..) }
 
   # Indexes on JSONB columns for fast queries
   # Examples:
@@ -32,7 +32,7 @@ class PersistedEvent < ApplicationRecord
   end
 
   # Event replay (event sourcing)
-  def self.replay(event_type, &block)
+  def self.replay(event_type)
     by_type(event_type).find_each do |event|
       yield event.payload.deep_symbolize_keys
     end

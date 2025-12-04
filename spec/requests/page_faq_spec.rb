@@ -45,7 +45,7 @@ RSpec.describe 'Page FAQ', type: :request do
       end
 
       it 'marca GENERAL como seleccionada por defecto' do
-        expect(response.body).to match(/<a\s+class="selected"\s+href="#general">GENERAL<\/a>/i)
+        expect(response.body).to match(%r{<a\s+class="selected"\s+href="#general">GENERAL</a>}i)
       end
     end
 
@@ -262,9 +262,9 @@ RSpec.describe 'Page FAQ', type: :request do
       end
 
       it 'tiene h2 para títulos principales' do
-        expect(response.body).to match(/<h2>.*General.*<\/h2>/i)
-        expect(response.body).to match(/<h2>.*Inscripción.*<\/h2>/i)
-        expect(response.body).to match(/<h2>.*Votaciones.*<\/h2>/i)
+        expect(response.body).to match(%r{<h2>.*General.*</h2>}i)
+        expect(response.body).to match(%r{<h2>.*Inscripción.*</h2>}i)
+        expect(response.body).to match(%r{<h2>.*Votaciones.*</h2>}i)
       end
 
       it 'usa listas ul para organizar preguntas' do
@@ -283,8 +283,8 @@ RSpec.describe 'Page FAQ', type: :request do
       end
 
       it 'tiene estructura de acordeón con triggers y content' do
-        triggers = response.body.scan(/cd-faq-trigger/).count
-        contents = response.body.scan(/cd-faq-content/).count
+        triggers = response.body.scan('cd-faq-trigger').count
+        contents = response.body.scan('cd-faq-content').count
         expect(triggers).to be > 20
         expect(contents).to be > 20
       end
@@ -294,7 +294,7 @@ RSpec.describe 'Page FAQ', type: :request do
       before { get '/preguntas-frecuentes' }
 
       it 'tiene más de 25 preguntas/items en total' do
-        faq_items = response.body.scan(/<li>/).count
+        faq_items = response.body.scan('<li>').count
         expect(faq_items).to be >= 25
       end
 

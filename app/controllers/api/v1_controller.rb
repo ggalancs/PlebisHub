@@ -14,7 +14,7 @@ class Api::V1Controller < ApplicationController
   # SECURITY: Skip CSRF for API but require API token authentication instead
   skip_before_action :verify_authenticity_token
   before_action :authenticate_api_token
-  before_action :validate_registration_id, only: [:gcm_register, :gcm_unregister]
+  before_action :validate_registration_id, only: %i[gcm_register gcm_unregister]
   before_action :set_api_version_header
 
   # Register a device for push notifications
@@ -39,7 +39,7 @@ class Api::V1Controller < ApplicationController
       success: false,
       error: 'Registration failed',
       details: e.message
-    }, status: :unprocessable_entity
+    }, status: :unprocessable_content
   rescue StandardError => e
     log_error('gcm_registration_error', e)
     render json: {
@@ -49,7 +49,7 @@ class Api::V1Controller < ApplicationController
   end
 
   # Alias for backward compatibility
-  alias_method :gcm_registrate, :gcm_register
+  alias gcm_registrate gcm_register
 
   # Unregister a device from push notifications
   # DELETE /api/v1/gcm_unregister

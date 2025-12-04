@@ -37,6 +37,7 @@ module EngineUser
       # This ensures tests have access to all engine functionality
       if Rails.env.test?
         include concern_module
+
         Rails.logger.info "[EngineUser] Test mode: loaded #{engine_name} concern"
         return
       end
@@ -66,8 +67,8 @@ module EngineUser
 
       # All checks passed, include the concern
       include concern_module
-      Rails.logger.info "[EngineUser] Successfully loaded #{engine_name} concern"
 
+      Rails.logger.info "[EngineUser] Successfully loaded #{engine_name} concern"
     rescue ActiveRecord::NoDatabaseError, ActiveRecord::StatementInvalid => e
       # Database doesn't exist yet or table not created
       # This is expected during initial setup
@@ -87,7 +88,7 @@ module EngineUser
   # @param engine_name [String] The engine name
   # @return [Boolean] Whether the user can access the engine
   #
-  def can_access_engine?(user, engine_name)
+  def can_access_engine?(_user, engine_name)
     return false unless defined?(EngineActivation)
 
     EngineActivation.enabled?(engine_name)

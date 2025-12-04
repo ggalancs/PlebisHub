@@ -1,78 +1,76 @@
+# frozen_string_literal: true
+
 namespace :plebisbrand do
-  desc "[plebisbrand] Generate SQL commands for lists creation in Sendy"
-  task :generate_sendy_lists => :environment do
-    sendy_lists = SendyListsUpdater.new Rails.application.secrets.sendy["appID"], Rails.application.secrets.sendy["userID"]
+  desc '[plebisbrand] Generate SQL commands for lists creation in Sendy'
+  task generate_sendy_lists: :environment do
+    sendy_lists = SendyListsUpdater.new Rails.application.secrets.sendy['appID'],
+                                        Rails.application.secrets.sendy['userID']
 
-    sendy_lists.add_list "A - España", "m_"
-    sendy_lists.add_list "A - Extranjero", "e_"
-    sendy_lists.add_list "A - Militantes España", "mc_"
-    sendy_lists.add_list "A - Militantes Extranjero", "mce_"
+    sendy_lists.add_list 'A - España', 'm_'
+    sendy_lists.add_list 'A - Extranjero', 'e_'
+    sendy_lists.add_list 'A - Militantes España', 'mc_'
+    sendy_lists.add_list 'A - Militantes Extranjero', 'mce_'
 
-    # 50 provinces + 2 autonomous cities
-    (01..52).each {|n| sendy_province "%02d" % n, sendy_lists}
+    #  50 provinces + 2 autonomous cities
+    (0o1..52).each { |n| sendy_province '%02d' % n, sendy_lists }
 
     lists_created = []
     User.militant.each do |militant|
       code = militant.vote_circle.code
-      unless lists_created.include?(code)
-        name = militant.vote_circle.original_name
-        name = name.gsub(/- (.+), (.*) -/,'- \2 \1 -')
-        name = name.gsub(/- (.*)\/.* -/, '- \1 -')
-        name = name.reverse.sub("- ".reverse, "- Militantes ".reverse).reverse
-        name = name.gsub(/'/) { |x| "\\#{x}" }
-        name.delete! '"'
-        lists_created << code
-        if (code[0, 2] == "TC")
-          sendy_lists.add_list "C - #{name}", "mcc_#{code[4, 2]}_#{code[9, 2]}"
-        elsif (code[0, 2] != "TB" && code[0, 2] != "TM")
-          sendy_lists.add_list "A - #{name}", "mce_#{code[0, 2]}_#{code[9, 2]}"
-        else
-          sendy_lists.add_list "D - #{name}", "mc_#{code[4, 2]}_#{code[6, 3]}_#{code[9, 2]}"
-        end
+      next if lists_created.include?(code)
+
+      name = militant.vote_circle.original_name
+      name = name.gsub(/- (.+), (.*) -/, '- \2 \1 -')
+      name = name.gsub(%r{- (.*)/.* -}, '- \1 -')
+      name = name.reverse.sub('- '.reverse, '- Militantes '.reverse).reverse
+      name = name.gsub('\'') { |x| "\\#{x}" }
+      name.delete! '"'
+      lists_created << code
+      if code[0, 2] == 'TC'
+        sendy_lists.add_list "C - #{name}", "mcc_#{code[4, 2]}_#{code[9, 2]}"
+      elsif code[0, 2] != 'TB' && code[0, 2] != 'TM'
+        sendy_lists.add_list "A - #{name}", "mce_#{code[0, 2]}_#{code[9, 2]}"
+      else
+        sendy_lists.add_list "D - #{name}", "mc_#{code[4, 2]}_#{code[6, 3]}_#{code[9, 2]}"
       end
     end
 
     sendy_lists.close
   end
 
-
-  desc "[plebisbrand] Update names to militant lists in Sendy"
-  task :update_name_militant_lists => :environment do
-
+  desc '[plebisbrand] Update names to militant lists in Sendy'
+  task update_name_militant_lists: :environment do
     lists_created = []
     User.militant.each do |militant|
       code = militant.vote_circle.code
-      unless lists_created.include?(code) or code[4, 2].to_i == 0
-        lists_created << code
+      next if lists_created.include?(code) || code[4, 2].to_i.zero?
 
-        if (code[0, 2] == "TC")
-          codestring = "mcc_#{code[4, 2]}_#{code[9, 2]}"
-        else
-          codestring = "mc_#{code[4, 2]}_#{code[6, 3]}_#{code[9, 2]}"
-        end
-        name = militant.vote_circle.original_name
-        name = name.gsub(/- (.+), (.*) -/,'- \2 \1 -')
-        name = name.gsub(/- (.*)\/.* -/, '- \1 -')
-        name = name.reverse.sub("- ".reverse, "- Militantes ".reverse).reverse
-        name = "#{name} - #{codestring}".gsub(/'/) { |x| "\\#{x}" }
-        if (code[0, 2] == "TC")
-          name = "C - #{name}"
-        else
-          name = "D - #{name}"
-        end
+      lists_created << code
 
-        sql = "UPDATE lists SET name='#{name}' WHERE name LIKE '% - #{codestring}';"
+      codestring = if code[0, 2] == 'TC'
+                     "mcc_#{code[4, 2]}_#{code[9, 2]}"
+                   else
+                     "mc_#{code[4, 2]}_#{code[6, 3]}_#{code[9, 2]}"
+                   end
+      name = militant.vote_circle.original_name
+      name = name.gsub(/- (.+), (.*) -/, '- \2 \1 -')
+      name = name.gsub(%r{- (.*)/.* -}, '- \1 -')
+      name = name.reverse.sub('- '.reverse, '- Militantes '.reverse).reverse
+      name = "#{name} - #{codestring}".gsub('\'') { |x| "\\#{x}" }
+      name = if code[0, 2] == 'TC'
+               "C - #{name}"
+             else
+               "D - #{name}"
+             end
 
-        puts "#{sql}"
+      sql = "UPDATE lists SET name='#{name}' WHERE name LIKE '% - #{codestring}';"
 
-      end
+      puts sql
     end
-
   end
 
-
-  desc "[plebisbrand] Extract municipies information from INE"
-  # http://www.ine.es/jaxi/menu.do?type=pcaxis&path=/t20/e245/codmun&file=inebase 
+  desc '[plebisbrand] Extract municipies information from INE'
+  # http://www.ine.es/jaxi/menu.do?type=pcaxis&path=/t20/e245/codmun&file=inebase
   #    Relación de municipios y códigos por provincias a 01-01-2014
   #    http://www.ine.es/daco/daco42/codmun/codmunmapa.htm
   #
@@ -81,120 +79,116 @@ namespace :plebisbrand do
   # * config/locales/carmen/es/#{prefix}.yml
   # where prefix is Carmen internal code, eg: "vi" for Alava
   #
-  task :municipies_extract => :environment do
-    # 50 provinces + 2 autonomous cities
-    (01..52).each {|n| carmen_province "%02d" % n}
+  task municipies_extract: :environment do
+    #  50 provinces + 2 autonomous cities
+    (0o1..52).each { |n| carmen_province '%02d' % n }
   end
 
-  def get_prefix_province prefix
-  # http://www.ine.es/jaxi/menu.do?type=pcaxis&path=/t20/e245/codmun&file=inebase 
-  #    Relación de provincias con sus códigos
-  #    http://www.ine.es/daco/daco42/codmun/cod_provincia.htm 
-  #
+  def get_prefix_province(prefix)
+    # http://www.ine.es/jaxi/menu.do?type=pcaxis&path=/t20/e245/codmun&file=inebase
+    #    Relación de provincias con sus códigos
+    #    http://www.ine.es/daco/daco42/codmun/cod_provincia.htm
+    #
     case prefix
-      when "01" then "VI"
-      when "02" then "AB"
-      when "03" then "A"
-      when "04" then "AL"
-      when "05" then "AV"
-      when "06" then "BA"
-      when "07" then "IB"
-      when "08" then "B"
-      when "09" then "BU"
-      when "10" then "CC"
-      when "11" then "CA"
-      when "12" then "CS"
-      when "13" then "CR"
-      when "14" then "CO"
-      when "15" then "C"
-      when "16" then "CU"
-      when "17" then "GI"
-      when "18" then "GR"
-      when "19" then "GU"
-      when "20" then "SS"
-      when "21" then "H"
-      when "22" then "HU"
-      when "23" then "J"
-      when "24" then "LE"
-      when "25" then "L"
-      when "26" then "LO"
-      when "27" then "LU"
-      when "28" then "M"
-      when "29" then "MA"
-      when "30" then "MU"
-      when "31" then "NA"
-      when "32" then "OR"
-      when "33" then "O"
-      when "34" then "P"
-      when "35" then "GC"
-      when "36" then "PO"
-      when "37" then "SA"
-      when "38" then "TF"
-      when "39" then "S"
-      when "40" then "SG"
-      when "41" then "SE"
-      when "42" then "SO"
-      when "43" then "T"
-      when "44" then "TE"
-      when "45" then "TO"
-      when "46" then "V"
-      when "47" then "VA"
-      when "48" then "BI"
-      when "49" then "Z"
-      when "50" then "ZA"
-      when "51" then "CE"
-      when "52" then "ML"
+    when '01' then 'VI'
+    when '02' then 'AB'
+    when '03' then 'A'
+    when '04' then 'AL'
+    when '05' then 'AV'
+    when '06' then 'BA'
+    when '07' then 'IB'
+    when '08' then 'B'
+    when '09' then 'BU'
+    when '10' then 'CC'
+    when '11' then 'CA'
+    when '12' then 'CS'
+    when '13' then 'CR'
+    when '14' then 'CO'
+    when '15' then 'C'
+    when '16' then 'CU'
+    when '17' then 'GI'
+    when '18' then 'GR'
+    when '19' then 'GU'
+    when '20' then 'SS'
+    when '21' then 'H'
+    when '22' then 'HU'
+    when '23' then 'J'
+    when '24' then 'LE'
+    when '25' then 'L'
+    when '26' then 'LO'
+    when '27' then 'LU'
+    when '28' then 'M'
+    when '29' then 'MA'
+    when '30' then 'MU'
+    when '31' then 'NA'
+    when '32' then 'OR'
+    when '33' then 'O'
+    when '34' then 'P'
+    when '35' then 'GC'
+    when '36' then 'PO'
+    when '37' then 'SA'
+    when '38' then 'TF'
+    when '39' then 'S'
+    when '40' then 'SG'
+    when '41' then 'SE'
+    when '42' then 'SO'
+    when '43' then 'T'
+    when '44' then 'TE'
+    when '45' then 'TO'
+    when '46' then 'V'
+    when '47' then 'VA'
+    when '48' then 'BI'
+    when '49' then 'Z'
+    when '50' then 'ZA'
+    when '51' then 'CE'
+    when '52' then 'ML'
     end
   end
 
-  def sendy_province number_province, sendy_lists
-    # Given a number (first column) like 01 or 52 parse the CSV file and 
-    # extract all the municipalities for that province. 
-    
-    # Extract all municipies on a list like 
+  def sendy_province(number_province, sendy_lists)
+    #  Given a number (first column) like 01 or 52 parse the CSV file and
+    # extract all the municipalities for that province.
+
+    # Extract all municipies on a list like
     # [ ["m_01_001_4", "Alegría-Dulantzi"], ["m_01_002_9", "Amurrio"] ... ]
     municipies = []
-    raw = CSV.read("db/ine/14codmun.csv")
+    raw = CSV.read('db/ine/14codmun.csv')
     raw.each do |a|
-      if a[0] == number_province
-        municipies << [ "m_#{a[0]}_#{a[1]}_#{a[2]}" , a[3] ]
-      end
+      municipies << ["m_#{a[0]}_#{a[1]}_#{a[2]}", a[3]] if a[0] == number_province
     end
     prefix = get_prefix_province number_province.to_s
 
-    province_name = Carmen::Country.coded("ES").subregions.coded(prefix).name
+    province_name = Carmen::Country.coded('ES').subregions.coded(prefix).name
     sendy_lists.add_list "B - #{province_name}", "m_#{number_province}"
     sendy_lists.add_list "B - Militantes #{province_name}", "mc_#{number_province}"
 
     municipies.each do |mun|
       c = mun[0]
-      sendy_lists.add_list "C - #{province_name} - #{mun[1]}", "#{c.downcase}"
+      sendy_lists.add_list "C - #{province_name} - #{mun[1]}", c.downcase.to_s
     end
   end
 
-  def carmen_province number_province
-    # Given a number (first column) like 01 or 52 parse the CSV file and 
-    # extract all the municipalities for that province. 
-    
-    # Extract all municipies on a list like 
+  def carmen_province(number_province)
+    #  Given a number (first column) like 01 or 52 parse the CSV file and
+    # extract all the municipalities for that province.
+
+    # Extract all municipies on a list like
     # [ ["m_01_001_4", "Alegría-Dulantzi"], ["m_01_002_9", "Amurrio"] ... ]
     municipies = []
-    raw = CSV.read("db/ine/14codmun.csv")
+    raw = CSV.read('db/ine/14codmun.csv')
     raw.each do |a|
-      if a[0] == number_province
-        municipies << [ "m_#{a[0]}_#{a[1]}_#{a[2]}" , a[3] ]
-      end
+      municipies << ["m_#{a[0]}_#{a[1]}_#{a[2]}", a[3]] if a[0] == number_province
     end
     prefix = get_prefix_province number_province.to_s
 
     # Dump them on Carmen format
     carmen_db_iso_file = "db/iso_data/base/world/es/#{prefix.downcase}.yml"
-    File.delete(carmen_db_iso_file) if File.exist?(carmen_db_iso_file)
+    FileUtils.rm_f(carmen_db_iso_file)
     data_file = File.open(carmen_db_iso_file, 'a')
-    data_file.puts "---"
+    data_file.puts '---'
 
     carmen_i18n_file = "config/locales/carmen/es/#{prefix.downcase}.yml"
-    File.delete(carmen_i18n_file) if File.exist?(carmen_i18n_file)
+    FileUtils.rm_f(carmen_i18n_file)
     i18n_file = File.open(carmen_i18n_file, 'a')
     i18n_file.puts "---
 es:
@@ -218,21 +212,21 @@ es:
       @appID = appID
       @userID = userID
 
-      FileUtils.mkdir_p("tmp/sendy") unless File.directory?("tmp/sendy")
-      @sendy_lists_file = File.open("tmp/sendy/update_lists.sql", 'w')
+      FileUtils.mkdir_p('tmp/sendy') unless File.directory?('tmp/sendy')
+      @sendy_lists_file = File.open('tmp/sendy/update_lists.sql', 'w')
 
-      @INSERT_TEMPLATE = ERB.new <<-END
-INSERT INTO lists (app, userID, name, thankyou_message, goodbye_message, confirmation_email, custom_fields)
-SELECT <%= @appID %>, <%= @userID %>, "<%= name %> - <%= code %>", <%= @EMPTY_PAGE %>, <%= @EMPTY_PAGE %>, <%= @EMPTY_PAGE %>, NULL
-FROM lists WHERE NOT EXISTS(
-  SELECT * FROM lists l WHERE l.name LIKE '% - <%= code %>'
-) LIMIT 1;
+      @INSERT_TEMPLATE = ERB.new <<~END
+        INSERT INTO lists (app, userID, name, thankyou_message, goodbye_message, confirmation_email, custom_fields)
+        SELECT <%= @appID %>, <%= @userID %>, "<%= name %> - <%= code %>", <%= @EMPTY_PAGE %>, <%= @EMPTY_PAGE %>, <%= @EMPTY_PAGE %>, NULL
+        FROM lists WHERE NOT EXISTS(
+          SELECT * FROM lists l WHERE l.name LIKE '% - <%= code %>'
+        ) LIMIT 1;
 
       END
       @EMPTY_PAGE = "'<html><head></head><body></body></html>'"
     end
 
-    def add_list name, code
+    def add_list(name, code)
       @sendy_lists_file.puts @INSERT_TEMPLATE.result(binding)
     end
 

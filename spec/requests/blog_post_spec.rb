@@ -13,32 +13,24 @@ RSpec.describe 'Blog Post', type: :request do
 
       it 'si renderiza, muestra título del post' do
         get '/brujula/1'
-        if response.status == 200
-          expect(response.body).to include('<h1>')
-        end
+        expect(response.body).to include('<h1>') if response.status == 200
       end
     end
 
     describe 'B. CONTENIDO DEL POST' do
       it 'si renderiza, muestra categorías del post' do
         get '/brujula/1'
-        if response.status == 200
-          expect(response.body).to include('categories')
-        end
+        expect(response.body).to include('categories') if response.status == 200
       end
 
       it 'si renderiza, muestra fecha del post' do
         get '/brujula/1'
-        if response.status == 200
-          expect(response.body).to match(/date|fecha/)
-        end
+        expect(response.body).to match(/date|fecha/) if response.status == 200
       end
 
       it 'si renderiza, tiene sección de media' do
         get '/brujula/1'
-        if response.status == 200
-          expect(response.body).to include('media')
-        end
+        expect(response.body).to include('media') if response.status == 200
       end
 
       it 'si renderiza, muestra contenido formateado' do
@@ -53,16 +45,12 @@ RSpec.describe 'Blog Post', type: :request do
     describe 'C. NAVEGACIÓN' do
       it 'si renderiza, tiene enlace para volver' do
         get '/brujula/1'
-        if response.status == 200
-          expect(response.body).to match(/Volver|back/)
-        end
+        expect(response.body).to match(/Volver|back/) if response.status == 200
       end
 
       it 'si renderiza, usa icono Font Awesome' do
         get '/brujula/1'
-        if response.status == 200
-          expect(response.body).to match(/fa-|chevron/)
-        end
+        expect(response.body).to match(/fa-|chevron/) if response.status == 200
       end
     end
 
@@ -77,16 +65,12 @@ RSpec.describe 'Blog Post', type: :request do
 
       it 'si renderiza, tiene article para el post' do
         get '/brujula/1'
-        if response.status == 200
-          expect(response.body).to include('<article')
-        end
+        expect(response.body).to include('<article') if response.status == 200
       end
 
       it 'si renderiza, tiene h1 para título' do
         get '/brujula/1'
-        if response.status == 200
-          expect(response.body).to include('<h1>')
-        end
+        expect(response.body).to include('<h1>') if response.status == 200
       end
     end
   end

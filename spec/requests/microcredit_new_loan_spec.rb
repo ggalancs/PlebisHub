@@ -12,9 +12,7 @@ RSpec.describe 'Microcredit New Loan', type: :request do
 
       it 'si renderiza, muestra título de Microcréditos' do
         get '/es/microcreditos/1/prestamo'
-        if response.status == 200
-          expect(response.body).to include('Microcrédito')
-        end
+        expect(response.body).to include('Microcrédito') if response.status == 200
       end
     end
 
@@ -39,9 +37,7 @@ RSpec.describe 'Microcredit New Loan', type: :request do
     describe 'C. SELECCIÓN DE CANTIDAD' do
       it 'si renderiza formulario, muestra opciones de cantidad' do
         get '/es/microcreditos/1/prestamo'
-        if response.status == 200 && response.body.include?('form')
-          expect(response.body).to match(/amount|cantidad/i)
-        end
+        expect(response.body).to match(/amount|cantidad/i) if response.status == 200 && response.body.include?('form')
       end
 
       it 'si renderiza, puede tener opciones radio para cantidades' do
@@ -63,25 +59,19 @@ RSpec.describe 'Microcredit New Loan', type: :request do
 
       it 'si renderiza, menciona BIC para cuentas no españolas' do
         get '/es/microcreditos/1/prestamo'
-        if response.status == 200 && response.body.include?('form')
-          expect(response.body).to match(/bic|no.*española/i)
-        end
+        expect(response.body).to match(/bic|no.*española/i) if response.status == 200 && response.body.include?('form')
       end
     end
 
     describe 'E. TÉRMINOS Y CONDICIONES' do
       it 'si renderiza formulario, tiene checkbox de mayoría de edad' do
         get '/es/microcreditos/1/prestamo'
-        if response.status == 200 && response.body.include?('form')
-          expect(response.body).to include('minimal_year_old')
-        end
+        expect(response.body).to include('minimal_year_old') if response.status == 200 && response.body.include?('form')
       end
 
       it 'si renderiza formulario, tiene checkbox de términos de servicio' do
         get '/es/microcreditos/1/prestamo'
-        if response.status == 200 && response.body.include?('form')
-          expect(response.body).to include('terms_of_service')
-        end
+        expect(response.body).to include('terms_of_service') if response.status == 200 && response.body.include?('form')
       end
     end
 
@@ -105,16 +95,12 @@ RSpec.describe 'Microcredit New Loan', type: :request do
     describe 'G. ESTRUCTURA HTML' do
       it 'si renderiza, usa clase microcredits-wrapper' do
         get '/es/microcreditos/1/prestamo'
-        if response.status == 200
-          expect(response.body).to include('microcredits-wrapper')
-        end
+        expect(response.body).to include('microcredits-wrapper') if response.status == 200
       end
 
       it 'si renderiza, tiene h2 para título' do
         get '/es/microcreditos/1/prestamo'
-        if response.status == 200
-          expect(response.body).to match(/<h2>/)
-        end
+        expect(response.body).to match(/<h2>/) if response.status == 200
       end
 
       it 'si renderiza formulario, usa autocomplete off' do

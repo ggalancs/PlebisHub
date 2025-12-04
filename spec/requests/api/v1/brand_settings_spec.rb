@@ -11,7 +11,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
   describe 'GET /api/v1/brand_settings/current' do
     context 'when no organization_id is provided' do
       it 'returns the active global brand setting' do
-        global_setting = BrandSetting.create!(
+        BrandSetting.create!(
           name: 'Global Theme',
           scope: 'global',
           theme_id: 'ocean',
@@ -21,7 +21,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
         get '/api/v1/brand_settings/current'
 
         expect(response).to have_http_status(:success)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['theme']['id']).to eq('ocean')
         expect(json['theme']['name']).to eq('Ocean Blue')
@@ -33,7 +33,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
         get '/api/v1/brand_settings/current'
 
         expect(response).to have_http_status(:success)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['theme']['id']).to eq('default')
         expect(json['theme']['colors']['primary']).to eq('#612d62')
@@ -44,14 +44,14 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
       it 'returns organization-specific setting if exists' do
         organization = Organization.create!(name: 'Test Org')
 
-        global_setting = BrandSetting.create!(
+        BrandSetting.create!(
           name: 'Global',
           scope: 'global',
           theme_id: 'default',
           active: true
         )
 
-        org_setting = BrandSetting.create!(
+        BrandSetting.create!(
           name: 'Org Theme',
           scope: 'organization',
           organization_id: organization.id,
@@ -62,7 +62,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
         get "/api/v1/brand_settings/current?organization_id=#{organization.id}"
 
         expect(response).to have_http_status(:success)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['theme']['id']).to eq('sunset')
         expect(json['scope']).to eq('organization')
@@ -71,7 +71,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
       it 'falls back to global setting when no org setting exists' do
         organization = Organization.create!(name: 'Test Org')
 
-        global_setting = BrandSetting.create!(
+        BrandSetting.create!(
           name: 'Global',
           scope: 'global',
           theme_id: 'forest',
@@ -81,7 +81,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
         get "/api/v1/brand_settings/current?organization_id=#{organization.id}"
 
         expect(response).to have_http_status(:success)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['theme']['id']).to eq('forest')
         expect(json['scope']).to eq('global')
@@ -104,7 +104,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
         get '/api/v1/brand_settings/current'
 
         expect(response).to have_http_status(:success)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['customColors']).not_to be_nil
         expect(json['customColors']['primary']).to eq('#ff0000')
@@ -119,7 +119,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
         get '/api/v1/brand_settings/current'
 
         expect(response).to have_http_status(:internal_server_error)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['success']).to be false
         expect(json['error']).to be_present
@@ -135,7 +135,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
       before do
         sign_in user
         # Use double instead of instance_double since User doesn't have organization_id
-        user_with_org = double("User", organization_id: organization.id, id: user.id, email: user.email)
+        user_with_org = double('User', organization_id: organization.id, id: user.id, email: user.email)
         allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user_with_org)
       end
 
@@ -152,7 +152,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
         get '/api/v1/brand_settings/current'
 
         expect(response).to have_http_status(:success)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['theme']['id']).to eq('monochrome')
         expect(json['organizationId']).to eq(organization.id)
@@ -173,7 +173,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
       get "/api/v1/brand_settings/#{setting.id}"
 
       expect(response).to have_http_status(:success)
-      json = JSON.parse(response.body)
+      json = response.parsed_body
 
       expect(json['theme']['id']).to eq('ocean')
       expect(json['theme']['name']).to eq('Ocean Blue')
@@ -184,7 +184,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
       get '/api/v1/brand_settings/99999'
 
       expect(response).to have_http_status(:not_found)
-      json = JSON.parse(response.body)
+      json = response.parsed_body
 
       expect(json['success']).to be false
       expect(json['error']).to include('no encontrada')
@@ -203,7 +203,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
         get "/api/v1/brand_settings/#{setting.id}"
 
         expect(response).to have_http_status(:success)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         # Verify theme structure
         expect(json['theme']).to have_key('id')
@@ -244,7 +244,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
         get "/api/v1/brand_settings/#{setting.id}"
 
         expect(response).to have_http_status(:success)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
 
         expect(json['version']).to eq(2)
       end
@@ -253,7 +253,7 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
 
   describe 'CORS and public access' do
     it 'allows access without authentication' do
-      setting = BrandSetting.create!(
+      BrandSetting.create!(
         name: 'Public Theme',
         scope: 'global',
         theme_id: 'default',
@@ -283,13 +283,13 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
       )
 
       get '/api/v1/brand_settings/current'
-      json1 = JSON.parse(response.body)
+      json1 = response.parsed_body
 
       # Update setting
       setting.update!(theme_id: 'ocean')
 
       get '/api/v1/brand_settings/current'
-      json2 = JSON.parse(response.body)
+      json2 = response.parsed_body
 
       expect(json2['theme']['id']).to eq('ocean')
       expect(json2['theme']['id']).not_to eq(json1['theme']['id'])
@@ -318,9 +318,9 @@ RSpec.describe 'Api::V1::BrandSettings', type: :request do
       )
       active_setting.save(validate: false)
 
-      start_time = Time.now
+      start_time = Time.zone.now
       get '/api/v1/brand_settings/current'
-      duration = Time.now - start_time
+      duration = Time.zone.now - start_time
 
       expect(response).to have_http_status(:success)
       expect(duration).to be < 1.0 # Should respond in less than 1 second

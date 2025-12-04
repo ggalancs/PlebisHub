@@ -21,7 +21,7 @@ module EngineUser
     # @return [Boolean] Whether user is in the team
     #
     def in_participation_team?(team_id)
-      self.participation_team_ids.member?(team_id)
+      participation_team_ids.member?(team_id)
     end
   end
 end

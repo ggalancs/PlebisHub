@@ -52,9 +52,10 @@ ActiveAdmin.register ThemeSetting do
     end
     column :created_at
     actions defaults: true do |theme|
-      link_to 'Vista Previa', preview_admin_theme_setting_path(theme), class: 'member_link', target: '_blank'
+      link_to 'Vista Previa', preview_admin_theme_setting_path(theme), class: 'member_link', target: '_blank',
+                                                                       rel: 'noopener'
       link_to 'Exportar JSON', export_admin_theme_setting_path(theme, format: :json), class: 'member_link'
-      if !theme.is_active?
+      unless theme.is_active?
         link_to 'Activar', activate_admin_theme_setting_path(theme),
                 class: 'member_link',
                 data: { turbo_method: :post, turbo_confirm: '¿Activar este tema?' }
@@ -141,27 +142,31 @@ ActiveAdmin.register ThemeSetting do
 
     f.inputs 'Colores de Marca' do
       f.input :primary_color, as: :string, input_html: { type: 'color' },
-              hint: 'Color primario (púrpura)', label: 'Color Primario'
+                              hint: 'Color primario (púrpura)', label: 'Color Primario'
       f.input :secondary_color, as: :string, input_html: { type: 'color' },
-              hint: 'Color secundario (verde)', label: 'Color Secundario'
+                                hint: 'Color secundario (verde)', label: 'Color Secundario'
       f.input :accent_color, as: :string, input_html: { type: 'color' },
-              hint: 'Color de acento', label: 'Color de Acento'
+                             hint: 'Color de acento', label: 'Color de Acento'
 
       # Preview de colores
       li class: 'color-preview' do
-        div id: 'color-preview-container', style: 'margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px;' do
+        div id: 'color-preview-container',
+            style: 'margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px;' do
           content_tag(:h4, 'Vista Previa de Colores:', style: 'margin-bottom: 10px;')
           div style: 'display: flex; gap: 20px;' do
             div style: 'text-align: center;' do
-              div id: 'primary-preview', style: 'width: 100px; height: 100px; border-radius: 8px; border: 2px solid #ccc; margin-bottom: 5px;'
+              div id: 'primary-preview',
+                  style: 'width: 100px; height: 100px; border-radius: 8px; border: 2px solid #ccc; margin-bottom: 5px;'
               p 'Primario', style: 'margin: 0; font-weight: bold;'
             end
             div style: 'text-align: center;' do
-              div id: 'secondary-preview', style: 'width: 100px; height: 100px; border-radius: 8px; border: 2px solid #ccc; margin-bottom: 5px;'
+              div id: 'secondary-preview',
+                  style: 'width: 100px; height: 100px; border-radius: 8px; border: 2px solid #ccc; margin-bottom: 5px;'
               p 'Secundario', style: 'margin: 0; font-weight: bold;'
             end
             div style: 'text-align: center;' do
-              div id: 'accent-preview', style: 'width: 100px; height: 100px; border-radius: 8px; border: 2px solid #ccc; margin-bottom: 5px;'
+              div id: 'accent-preview',
+                  style: 'width: 100px; height: 100px; border-radius: 8px; border: 2px solid #ccc; margin-bottom: 5px;'
               p 'Acento', style: 'margin: 0; font-weight: bold;'
             end
           end
@@ -171,13 +176,13 @@ ActiveAdmin.register ThemeSetting do
 
     f.inputs 'Tipografía' do
       f.input :font_primary, as: :select,
-              collection: ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Montserrat', 'Raleway'],
-              hint: 'Fuente para texto general', label: 'Fuente Principal',
-              include_blank: 'Seleccionar fuente...'
+                             collection: ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Montserrat', 'Raleway'],
+                             hint: 'Fuente para texto general', label: 'Fuente Principal',
+                             include_blank: 'Seleccionar fuente...'
       f.input :font_display, as: :select,
-              collection: ['Montserrat', 'Playfair Display', 'Raleway', 'Oswald', 'Bebas Neue', 'Poppins'],
-              hint: 'Fuente para títulos y encabezados', label: 'Fuente de Display',
-              include_blank: 'Seleccionar fuente...'
+                             collection: ['Montserrat', 'Playfair Display', 'Raleway', 'Oswald', 'Bebas Neue', 'Poppins'],
+                             hint: 'Fuente para títulos y encabezados', label: 'Fuente de Display',
+                             include_blank: 'Seleccionar fuente...'
     end
 
     f.inputs 'Assets' do
@@ -187,7 +192,7 @@ ActiveAdmin.register ThemeSetting do
 
     f.inputs 'CSS Personalizado' do
       f.input :custom_css, as: :text, input_html: { rows: 15, style: 'font-family: monospace;' },
-              hint: 'CSS adicional para personalizaciones avanzadas'
+                           hint: 'CSS adicional para personalizaciones avanzadas'
     end
 
     f.actions do
@@ -196,7 +201,7 @@ ActiveAdmin.register ThemeSetting do
       li do
         if f.object.persisted?
           link_to 'Vista Previa', preview_admin_theme_setting_path(f.object),
-                  class: 'button', target: '_blank'
+                  class: 'button', target: '_blank', rel: 'noopener'
         end
       end
     end
@@ -246,7 +251,7 @@ ActiveAdmin.register ThemeSetting do
     end
   end
 
-  collection_action :import, method: [:get, :post] do
+  collection_action :import, method: %i[get post] do
     if request.post?
       file = params[:theme_file]
       max_file_size = 1.megabyte
@@ -270,7 +275,7 @@ ActiveAdmin.register ThemeSetting do
         if @theme.persisted?
           redirect_to admin_theme_settings_path, notice: 'Tema importado exitosamente'
         else
-          flash.now[:error] = 'Error al importar tema: ' + @theme.errors.full_messages.join(', ')
+          flash.now[:error] = "Error al importar tema: #{@theme.errors.full_messages.join(', ')}"
           render :import
         end
       rescue JSON::ParserError => e

@@ -42,9 +42,8 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
       edition_topic = create(:impulsa_edition_topic)
 
       topic = build(:impulsa_project_topic,
-        impulsa_project: project,
-        impulsa_edition_topic: edition_topic
-      )
+                    impulsa_project: project,
+                    impulsa_edition_topic: edition_topic)
 
       expect(topic).to be_valid
     end
@@ -56,18 +55,17 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
 
   describe 'CRUD operations' do
     it 'creates impulsa_project_topic with valid attributes' do
-      expect {
+      expect do
         create(:impulsa_project_topic)
-      }.to change(ImpulsaProjectTopic, :count).by(1)
+      end.to change(ImpulsaProjectTopic, :count).by(1)
     end
 
     it 'reads impulsa_project_topic attributes correctly' do
       project = create(:impulsa_project)
       edition_topic = create(:impulsa_edition_topic)
       topic = create(:impulsa_project_topic,
-        impulsa_project: project,
-        impulsa_edition_topic: edition_topic
-      )
+                     impulsa_project: project,
+                     impulsa_edition_topic: edition_topic)
 
       found_topic = ImpulsaProjectTopic.find(topic.id)
       expect(found_topic.impulsa_project_id).to eq(project.id)
@@ -86,9 +84,9 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
     it 'deletes impulsa_project_topic' do
       topic = create(:impulsa_project_topic)
 
-      expect {
+      expect do
         topic.destroy
-      }.to change(ImpulsaProjectTopic, :count).by(-1)
+      end.to change(ImpulsaProjectTopic, :count).by(-1)
     end
   end
 
@@ -139,11 +137,11 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
         # Testing if method exists and doesn't crash
         expect(topic).to respond_to(:slug)
 
-        # Note: This method references self.name which doesn't exist as a column
+        # NOTE: This method references self.name which doesn't exist as a column
         # This may be a bug or dead code in the model
         if edition_topic.respond_to?(:name) && edition_topic.name.present?
           # If the intention was to use edition_topic's name:
-          expected_slug = edition_topic.name.parameterize
+          edition_topic.name.parameterize
           # But the actual method will fail because self.name doesn't exist
         end
       end
@@ -160,15 +158,13 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
       edition_topic1 = create(:impulsa_edition_topic)
       edition_topic2 = create(:impulsa_edition_topic)
 
-      topic1 = create(:impulsa_project_topic,
-        impulsa_project: project,
-        impulsa_edition_topic: edition_topic1
-      )
+      create(:impulsa_project_topic,
+             impulsa_project: project,
+             impulsa_edition_topic: edition_topic1)
 
       topic2 = build(:impulsa_project_topic,
-        impulsa_project: project,
-        impulsa_edition_topic: edition_topic2
-      )
+                     impulsa_project: project,
+                     impulsa_edition_topic: edition_topic2)
 
       expect(topic2).to be_valid
     end
@@ -178,15 +174,13 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
       project2 = create(:impulsa_project)
       edition_topic = create(:impulsa_edition_topic)
 
-      topic1 = create(:impulsa_project_topic,
-        impulsa_project: project1,
-        impulsa_edition_topic: edition_topic
-      )
+      create(:impulsa_project_topic,
+             impulsa_project: project1,
+             impulsa_edition_topic: edition_topic)
 
       topic2 = build(:impulsa_project_topic,
-        impulsa_project: project2,
-        impulsa_edition_topic: edition_topic
-      )
+                     impulsa_project: project2,
+                     impulsa_edition_topic: edition_topic)
 
       expect(topic2).to be_valid
     end
@@ -195,16 +189,14 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
       project = create(:impulsa_project)
       edition_topic = create(:impulsa_edition_topic)
 
-      topic1 = create(:impulsa_project_topic,
-        impulsa_project: project,
-        impulsa_edition_topic: edition_topic
-      )
+      create(:impulsa_project_topic,
+             impulsa_project: project,
+             impulsa_edition_topic: edition_topic)
 
       # No uniqueness constraint in the model, so duplicates are allowed
       topic2 = build(:impulsa_project_topic,
-        impulsa_project: project,
-        impulsa_edition_topic: edition_topic
-      )
+                     impulsa_project: project,
+                     impulsa_edition_topic: edition_topic)
 
       expect(topic2).to be_valid
     end
@@ -223,9 +215,9 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
       project.destroy
 
       # Check if topic still exists or was deleted
-      expect {
+      expect do
         topic.reload
-      }.to raise_error(ActiveRecord::RecordNotFound)
+      end.to raise_error(ActiveRecord::RecordNotFound)
     end
 
     it 'handles deletion of associated impulsa_edition_topic' do
@@ -244,14 +236,13 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
       project = create(:impulsa_project)
       edition_topics = 5.times.map { create(:impulsa_edition_topic) }
 
-      expect {
+      expect do
         edition_topics.each do |edition_topic|
           create(:impulsa_project_topic,
-            impulsa_project: project,
-            impulsa_edition_topic: edition_topic
-          )
+                 impulsa_project: project,
+                 impulsa_edition_topic: edition_topic)
         end
-      }.to change(ImpulsaProjectTopic, :count).by(5)
+      end.to change(ImpulsaProjectTopic, :count).by(5)
 
       expect(project.reload.impulsa_project_topics.count).to eq(5)
     end
@@ -270,9 +261,8 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
 
       # Create topic
       topic = create(:impulsa_project_topic,
-        impulsa_project: project,
-        impulsa_edition_topic: edition_topic
-      )
+                     impulsa_project: project,
+                     impulsa_edition_topic: edition_topic)
 
       # Verify creation
       expect(ImpulsaProjectTopic.count).to eq(initial_count + 1)
@@ -297,9 +287,8 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
       projects.each do |project|
         edition_topics.each do |edition_topic|
           topics << create(:impulsa_project_topic,
-            impulsa_project: project,
-            impulsa_edition_topic: edition_topic
-          )
+                           impulsa_project: project,
+                           impulsa_edition_topic: edition_topic)
         end
       end
 
@@ -319,9 +308,8 @@ RSpec.describe ImpulsaProjectTopic, type: :model do
       project = create(:impulsa_project)
       edition_topic = create(:impulsa_edition_topic)
       topic = create(:impulsa_project_topic,
-        impulsa_project: project,
-        impulsa_edition_topic: edition_topic
-      )
+                     impulsa_project: project,
+                     impulsa_edition_topic: edition_topic)
 
       # Verify foreign keys are set correctly
       expect(topic.impulsa_project_id).to eq(project.id)

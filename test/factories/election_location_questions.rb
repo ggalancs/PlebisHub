@@ -5,9 +5,9 @@ FactoryBot.define do
     association :election_location
 
     sequence(:title) { |n| "Question #{n}" }
-    description { "Select your preferred options" }
-    voting_system { "plurality-at-large" }
-    totals { "over-total-valid-votes" }
+    description { 'Select your preferred options' }
+    voting_system { 'plurality-at-large' }
+    totals { 'over-total-valid-votes' }
     random_order { true }
     winners { 1 }
     minimum { 0 }
@@ -21,7 +21,7 @@ FactoryBot.define do
     end
 
     trait :pairwise do
-      voting_system { "pairwise-beta" }
+      voting_system { 'pairwise-beta' }
       minimum { 1 }
       maximum { 3 }
       winners { 3 }
@@ -34,7 +34,7 @@ FactoryBot.define do
 
     trait :simple_options do
       after(:build) do |question|
-        question[:options_headers] = "Text"
+        question[:options_headers] = 'Text'
         question[:options] = "Yes\nNo\nAbstain"
       end
     end

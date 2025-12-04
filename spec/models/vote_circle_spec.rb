@@ -10,7 +10,7 @@ RSpec.describe VoteCircle, type: :model do
   describe 'factory' do
     it 'creates valid vote_circle' do
       circle = build(:vote_circle)
-      expect(circle).to be_valid, "Factory should create a valid vote_circle"
+      expect(circle).to be_valid, 'Factory should create a valid vote_circle'
     end
   end
 
@@ -24,19 +24,19 @@ RSpec.describe VoteCircle, type: :model do
     end
 
     it 'reads vote_circle attributes correctly' do
-      circle = create(:vote_circle, name: "Test Circle", code: "TEST001")
+      circle = create(:vote_circle, name: 'Test Circle', code: 'TEST001')
 
       found_circle = VoteCircle.find(circle.id)
-      expect(found_circle.name).to eq("Test Circle")
-      expect(found_circle.code).to eq("TEST001")
+      expect(found_circle.name).to eq('Test Circle')
+      expect(found_circle.code).to eq('TEST001')
     end
 
     it 'updates vote_circle attributes' do
-      circle = create(:vote_circle, name: "Original")
+      circle = create(:vote_circle, name: 'Original')
 
-      circle.update(name: "Updated")
+      circle.update(name: 'Updated')
 
-      expect(circle.reload.name).to eq("Updated")
+      expect(circle.reload.name).to eq('Updated')
     end
 
     it 'deletes vote_circle' do
@@ -53,7 +53,7 @@ RSpec.describe VoteCircle, type: :model do
   describe 'enum' do
     it 'has kind enum' do
       circle = create(:vote_circle, kind: :municipal)
-      expect(circle.kind).to eq("municipal")
+      expect(circle.kind).to eq('municipal')
       expect(circle).to be_municipal
     end
 
@@ -137,9 +137,9 @@ RSpec.describe VoteCircle, type: :model do
     describe '#in_spain?' do
       it 'returns true for barrial' do
         circle = create(:vote_circle, kind: :barrial)
-        # Note: The model has a bug - uses nested array [[...]]
+        # NOTE: The model has a bug - uses nested array [[...]]
         # This test documents current behavior
-        expect(circle).not_to be_in_spain  # Bug: should be true but returns false
+        expect(circle).not_to be_in_spain # Bug: should be true but returns false
       end
 
       it 'returns false for interno' do
@@ -155,60 +155,60 @@ RSpec.describe VoteCircle, type: :model do
 
     describe '#code_in_spain?' do
       it 'returns true for TM codes' do
-        circle = create(:vote_circle, code: "TM0101001")
+        circle = create(:vote_circle, code: 'TM0101001')
         expect(circle).to be_code_in_spain
       end
 
       it 'returns true for TB codes' do
-        circle = create(:vote_circle, code: "TB0101001")
+        circle = create(:vote_circle, code: 'TB0101001')
         expect(circle).to be_code_in_spain
       end
 
       it 'returns true for TC codes' do
-        circle = create(:vote_circle, code: "TC0101001")
+        circle = create(:vote_circle, code: 'TC0101001')
         expect(circle).to be_code_in_spain
       end
 
       it 'returns false for exterior codes' do
-        circle = create(:vote_circle, code: "00exterior")
+        circle = create(:vote_circle, code: '00exterior')
         expect(circle).not_to be_code_in_spain
       end
 
       it 'returns false for other codes' do
-        circle = create(:vote_circle, code: "XX0101001")
+        circle = create(:vote_circle, code: 'XX0101001')
         expect(circle).not_to be_code_in_spain
       end
     end
 
     describe '#get_type_circle_from_original_code' do
       it 'returns prefix from original_code' do
-        circle = create(:vote_circle, kind: :barrial, original_code: "TB0101001")
+        circle = create(:vote_circle, kind: :barrial, original_code: 'TB0101001')
         # Due to in_spain? bug, this will return "00"
         result = circle.get_type_circle_from_original_code
-        expect(result).to eq("00")  # Documents current buggy behavior
+        expect(result).to eq('00') # Documents current buggy behavior
       end
 
       it 'returns 00 for exterior' do
-        circle = create(:vote_circle, kind: :exterior, original_code: "00")
+        circle = create(:vote_circle, kind: :exterior, original_code: '00')
         result = circle.get_type_circle_from_original_code
-        expect(result).to eq("00")
+        expect(result).to eq('00')
       end
     end
 
     describe '#country_name' do
       it 'returns country name for valid code' do
-        circle = create(:vote_circle, country_code: "ES")
-        expect(circle.country_name).to eq("España")
+        circle = create(:vote_circle, country_code: 'ES')
+        expect(circle.country_name).to eq('España')
       end
 
       it 'returns empty for invalid code' do
-        circle = create(:vote_circle, country_code: "INVALID")
-        expect(circle.country_name).to eq("")
+        circle = create(:vote_circle, country_code: 'INVALID')
+        expect(circle.country_name).to eq('')
       end
 
       it 'returns empty for nil code' do
         circle = create(:vote_circle, country_code: nil)
-        expect(circle.country_name).to eq("")
+        expect(circle.country_name).to eq('')
       end
     end
   end
@@ -224,19 +224,19 @@ RSpec.describe VoteCircle, type: :model do
     end
 
     it 'handles empty code gracefully' do
-      circle = create(:vote_circle, code: "")
+      circle = create(:vote_circle, code: '')
       expect(circle).not_to be_nil
     end
 
     it 'handles very long code' do
-      long_code = "A" * 255
+      long_code = 'A' * 255
       circle = build(:vote_circle, code: long_code)
       # Should either truncate or reject, but not crash
       expect { circle.valid? }.not_to raise_error
     end
 
     it 'handles all enum kinds' do
-      VoteCircle.kinds.each do |kind_name, kind_value|
+      VoteCircle.kinds.each_key do |kind_name|
         circle = build(:vote_circle, kind: kind_name)
         expect(circle).to be_valid
         expect(circle.kind).to eq(kind_name)
@@ -251,13 +251,13 @@ RSpec.describe VoteCircle, type: :model do
   describe 'attr_accessor' do
     it 'has circle_type accessor' do
       circle = build(:vote_circle)
-      circle.circle_type = "TM"
-      expect(circle.circle_type).to eq("TM")
+      circle.circle_type = 'TM'
+      expect(circle.circle_type).to eq('TM')
     end
 
     it 'circle_type does not persist to database' do
       circle = create(:vote_circle)
-      circle.circle_type = "TM"
+      circle.circle_type = 'TM'
       circle.save
 
       reloaded = VoteCircle.find(circle.id)
@@ -272,18 +272,18 @@ RSpec.describe VoteCircle, type: :model do
   describe 'ransacker' do
     it 'has vote_circle_province_id ransacker' do
       # Ransacker allows searching by province code
-      circle = create(:vote_circle, code: "TM2801001")
+      create(:vote_circle, code: 'TM2801001')
 
       # Test that ransacker is defined
-      expect(VoteCircle.ransackable_attributes).to include("vote_circle_province_id")
+      expect(VoteCircle.ransackable_attributes).to include('vote_circle_province_id')
     end
 
     it 'has vote_circle_autonomy_id ransacker' do
       # Ransacker allows searching by autonomy code
-      circle = create(:vote_circle, code: "TM2801001")
+      create(:vote_circle, code: 'TM2801001')
 
       # Test that ransacker is defined
-      expect(VoteCircle.ransackable_attributes).to include("vote_circle_autonomy_id")
+      expect(VoteCircle.ransackable_attributes).to include('vote_circle_autonomy_id')
     end
   end
 end

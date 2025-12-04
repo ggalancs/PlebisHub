@@ -7,25 +7,29 @@ module PlebisMicrocredit
 
     self.table_name = 'microcredit_loans'
 
-    belongs_to :microcredit, class_name: "PlebisMicrocredit::Microcredit"
+    belongs_to :microcredit, class_name: 'PlebisMicrocredit::Microcredit'
     belongs_to :user, -> { with_deleted }, optional: true
-    belongs_to :microcredit_option, class_name: "PlebisMicrocredit::MicrocreditOption"
+    belongs_to :microcredit_option, class_name: 'PlebisMicrocredit::MicrocreditOption'
 
-    belongs_to :transferred_to, inverse_of: :original_loans, class_name: "PlebisMicrocredit::MicrocreditLoan", optional: true
-    has_many :original_loans, inverse_of: :transferred_to, class_name: "PlebisMicrocredit::MicrocreditLoan", foreign_key: :transferred_to_id
+    belongs_to :transferred_to, inverse_of: :original_loans, class_name: 'PlebisMicrocredit::MicrocreditLoan',
+                                optional: true
+    has_many :original_loans, inverse_of: :transferred_to, class_name: 'PlebisMicrocredit::MicrocreditLoan',
+                              foreign_key: :transferred_to_id
 
     # RAILS 7.2 FIX: Add acceptance validation virtual attributes
-  attr_accessor :first_name, :last_name, :email, :address, :postal_code, :town, :province, :country, :terms_of_service, :minimal_year_old
+    attr_accessor :first_name, :last_name, :email, :address, :postal_code, :town, :province, :country, :terms_of_service,
+                  :minimal_year_old
 
     validates :document_vatid, valid_spanish_id: true, if: :has_not_user?
-    validates :first_name, :last_name, :email, :address, :postal_code, :town, :province, :country, presence: true, if: :has_not_user?
+    validates :first_name, :last_name, :email, :address, :postal_code, :town, :province, :country, presence: true,
+                                                                                                   if: :has_not_user?
 
     validates :email, email: true, if: :has_not_user?
 
     validates :amount, presence: true
     # RAILS 7.2 FIX: Acceptance validation now expects "1" by default, but tests use true
-    validates :terms_of_service, acceptance: { accept: [true, "1"] }
-    validates :minimal_year_old, acceptance: { accept: [true, "1"] }
+    validates :terms_of_service, acceptance: { accept: [true, '1'] }
+    validates :minimal_year_old, acceptance: { accept: [true, '1'] }
 
     validate :check_amount, on: :create
     validate :check_user_limits, on: :create
@@ -37,44 +41,46 @@ module PlebisMicrocredit
 
     validates :iban_account, presence: true, on: :create
     validates :iban_bic, presence: true, on: :create, if: :is_bank_international?
-    validate :validates_iban, :validates_non_brand_account , if: :iban_account
+    validate :validates_iban, :validates_non_brand_account, if: :iban_account
     validate :validates_bic, if: :iban_bic
 
-    scope :not_counted, -> { where(counted_at:nil) }
-    scope :counted, -> { where.not(counted_at:nil) }
-    scope :not_confirmed, -> { where(confirmed_at:nil) }
-    scope :confirmed, -> { where.not(confirmed_at:nil) }
-    scope :not_discarded, -> { where(discarded_at:nil) }
-    scope :discarded, -> { where.not(discarded_at:nil) }
-    scope :not_returned, -> { confirmed.where(returned_at:nil) }
-    scope :returned, -> { where.not(returned_at:nil) }
-    scope :transferred, -> { where.not(transferred_to_id:nil)}
-    scope :renewal, -> { joins(:original_loans).distinct(:microcredit_id)}
+    scope :not_counted, -> { where(counted_at: nil) }
+    scope :counted, -> { where.not(counted_at: nil) }
+    scope :not_confirmed, -> { where(confirmed_at: nil) }
+    scope :confirmed, -> { where.not(confirmed_at: nil) }
+    scope :not_discarded, -> { where(discarded_at: nil) }
+    scope :discarded, -> { where.not(discarded_at: nil) }
+    scope :not_returned, -> { confirmed.where(returned_at: nil) }
+    scope :returned, -> { where.not(returned_at: nil) }
+    scope :transferred, -> { where.not(transferred_to_id: nil) }
+    scope :renewal, -> { joins(:original_loans).distinct(:microcredit_id) }
 
     scope :renewables, -> { confirmed.not_discarded.not_returned.joins(:microcredit).merge(PlebisMicrocredit::Microcredit.renewables).distinct }
 
-    scope :recently_renewed, -> { confirmed.where.not(transferred_to:nil).where("returned_at>?",30.days.ago) }
-    scope :ignore_discarded, -> { where("discarded_at is null or counted_at is not null") }
+    scope :recently_renewed, -> { confirmed.where.not(transferred_to: nil).where('returned_at>?', 30.days.ago) }
+    scope :ignore_discarded, -> { where('discarded_at is null or counted_at is not null') }
 
-    scope :phase, -> { joins(:microcredit).where("microcredits.reset_at is null or (microcredit_loans.counted_at IS NULL and microcredit_loans.created_at>microcredits.reset_at) or microcredit_loans.counted_at>microcredits.reset_at") }
+    scope :phase, lambda {
+      joins(:microcredit).where('microcredits.reset_at is null or (microcredit_loans.counted_at IS NULL and microcredit_loans.created_at>microcredits.reset_at) or microcredit_loans.counted_at>microcredits.reset_at')
+    }
     scope :upcoming_finished, -> { joins(:microcredit).merge(PlebisMicrocredit::Microcredit.upcoming_finished) }
 
-    after_initialize do |microcredit|
+    after_initialize do |_microcredit|
       if user
         set_user_data user
         self.document_vatid = user.document_vatid
       elsif user_data
         # SECURITY: Use safe_load with permitted Symbol class for hash keys
-        set_user_data YAML.safe_load(self.user_data, permitted_classes: [Symbol])
+        set_user_data YAML.safe_load(user_data, permitted_classes: [Symbol])
       else
-        self.country = "ES"
+        self.country = 'ES'
       end
     end
 
     before_validation :set_bic_for_spanish_iban
 
     before_save do
-      self.iban_account.upcase! if self.iban_account.present?
+      iban_account.presence&.upcase!
     end
 
     def set_user_data(_user)
@@ -89,32 +95,32 @@ module PlebisMicrocredit
     end
 
     def country_name
-      _country = Carmen::Country.coded(self.country)
+      _country = Carmen::Country.coded(country)
       if _country
         _country.name
       else
-        self.country
+        country
       end
     end
 
     def province_name
-      _country = Carmen::Country.coded(self.country)
-      _prov = _country.subregions.coded(self.province) if _country and self.province and not _country.subregions.empty?
+      _country = Carmen::Country.coded(country)
+      _prov = _country.subregions.coded(province) if _country && province && !_country.subregions.empty?
       if _prov
         _prov.name
       else
-        self.province
+        province
       end
     end
 
     def town_name
-      _country = Carmen::Country.coded(self.country)
-      _prov = _country.subregions.coded(self.province) if _country and self.province and not _country.subregions.empty?
-      _town = _prov.subregions.coded(self.town) if _prov and not _prov.subregions.empty?
+      _country = Carmen::Country.coded(country)
+      _prov = _country.subregions.coded(province) if _country && province && !_country.subregions.empty?
+      _town = _prov.subregions.coded(town) if _prov && !_prov.subregions.empty?
       if _town
         _town.name
       else
-        self.town
+        town
       end
     end
 
@@ -122,42 +128,43 @@ module PlebisMicrocredit
       if user
         self.user_data = nil
       else
-        self.user_data = {first_name: first_name, last_name: last_name, email: email, address: address, postal_code: postal_code, town: town, province: province, country: country}.to_yaml
+        self.user_data = { first_name: first_name, last_name: last_name, email: email, address: address,
+                           postal_code: postal_code, town: town, province: province, country: country }.to_yaml
       end
-      if self.document_vatid
-        self.document_vatid.upcase!
-        self.document_vatid.strip!
+      if document_vatid
+        document_vatid.upcase!
+        document_vatid.strip!
       end
     end
 
     def update_counted_at
       must_count = false
       replacement = nil
-      if self.counted_at.nil? and self.discarded_at.nil?
-        replacement = self.microcredit.loans.where(amount: self.amount).counted.discarded.order(created_at: :asc).first
-        if not replacement and not self.confirmed_at.nil?
-          replacement = self.microcredit.loans.where(amount: self.amount).counted.not_confirmed.order(created_at: :asc).first
+      if counted_at.nil? && discarded_at.nil?
+        replacement = microcredit.loans.where(amount: amount).counted.discarded.order(created_at: :asc).first
+        if (!replacement) && !confirmed_at.nil?
+          replacement = microcredit.loans.where(amount: amount).counted.not_confirmed.order(created_at: :asc).first
         end
-        if replacement
-          must_count = true
-        else
-          must_count = self.microcredit.should_count?(amount, !self.confirmed_at.nil?)
-        end
+        must_count = if replacement
+                       true
+                     else
+                       microcredit.should_count?(amount, !confirmed_at.nil?)
+                     end
       end
 
-      if must_count
-        if replacement
-          self.counted_at = replacement.counted_at
-          replacement.counted_at = nil
-          PlebisMicrocredit::MicrocreditLoan.transaction do
-            self.save if replacement.save
-          end
-        else
-          self.counted_at = DateTime.now
-          self.save
+      return unless must_count
+
+      if replacement
+        self.counted_at = replacement.counted_at
+        replacement.counted_at = nil
+        PlebisMicrocredit::MicrocreditLoan.transaction do
+          save if replacement.save
         end
-        self.microcredit.clear_cache
+      else
+        self.counted_at = DateTime.now
+        save
       end
+      microcredit.clear_cache
     end
 
     def has_not_user?
@@ -165,67 +172,73 @@ module PlebisMicrocredit
     end
 
     def validates_not_passport
-      if self.user&.is_passport?
-        self.errors.add(:user, "No puedes suscribir un microcrédito si no dispones de DNI o NIE.")
-      end
+      return unless user&.is_passport?
+
+      errors.add(:user, 'No puedes suscribir un microcrédito si no dispones de DNI o NIE.')
     end
 
     def validates_age_over
-      if self.user and self.user.born_at > Date.today-18.years
-        self.errors.add(:user, "No puedes suscribir un microcrédito si eres menor de edad.")
-      end
+      return unless user && (user.born_at > Time.zone.today - 18.years)
+
+      errors.add(:user, 'No puedes suscribir un microcrédito si eres menor de edad.')
     end
 
     def microcredit_option_without_children
-      if self.microcredit.microcredit_options.any?
-        errors.add(:microcredit_option_id, "Debes elegir algún elemento") if microcredit_option.blank? || microcredit_option.children.any?
-      end
+      return unless microcredit.microcredit_options.any?
+
+      return unless microcredit_option.blank? || microcredit_option.children.any?
+
+      errors.add(:microcredit_option_id,
+                 'Debes elegir algún elemento')
     end
 
     def is_bank_international?
-      self.iban_account && self.iban_valid? && !self.iban_account.start_with?("ES")
+      iban_account && iban_valid? && !iban_account.start_with?('ES')
     end
 
     def iban_valid?
-      self.iban_account.strip!
-      iban_validation = IBANTools::IBAN.valid?(self.iban_account)
-      ccc_validation = self.iban_account&.start_with?("ES") ? BankCccValidator.validate(self.iban_account[4..-1]) : true
+      iban_account.strip!
+      iban_validation = IBANTools::IBAN.valid?(iban_account)
+      ccc_validation = iban_account&.start_with?('ES') ? BankCccValidator.validate(iban_account[4..]) : true
       iban_validation && ccc_validation
     end
+
     def validates_iban
-      unless iban_valid?
-        self.errors.add(:iban_account, "Cuenta corriente inválida. Dígito de control erroneo. Por favor revísala.")
-        self.iban_bic = nil
-      end
+      return if iban_valid?
+
+      errors.add(:iban_account, 'Cuenta corriente inválida. Dígito de control erroneo. Por favor revísala.')
+      self.iban_bic = nil
     end
 
     def calculate_bic
-      bic = Podemos::SpanishBIC[iban_account[4..7].to_i] if iban_account && !iban_account.empty? && iban_account[0..1]=="ES"
-      bic = iban_bic.gsub(" ","") if !bic && iban_bic && !iban_bic.empty?
+      bic = Podemos::SpanishBIC[iban_account[4..7].to_i] if iban_account.present? && iban_account[0..1] == 'ES'
+      bic = iban_bic.gsub(' ', '') if !bic && iban_bic && !iban_bic.empty?
       bic
     end
 
     def validates_bic
-      self.iban_bic =  calculate_bic if self.iban_account && self.iban_account.start_with?("ES")
+      self.iban_bic = calculate_bic if iban_account&.start_with?('ES')
       true
     end
 
     def validates_non_brand_account
-       unless self.iban_account.upcase.strip.gsub(' ','') != self.microcredit.account_number.upcase.strip.gsub(' ','')
-         brand_name = begin
-           Rails.application.secrets.microcredits&.dig("brands", Rails.application.secrets.microcredits["default_brand"], "name") || "la organización"
-         rescue
-           "la organización"
-         end
-         self.errors.add(:iban_account, "Cuenta corriente inválida. Debes de consignar tu cuenta corriente, no la de #{brand_name}.")
-         self.iban_bic = nil
-       end
+      return if iban_account.upcase.strip.gsub(' ', '') != microcredit.account_number.upcase.strip.gsub(' ', '')
+
+      brand_name = begin
+        Rails.application.secrets.microcredits&.dig('brands',
+                                                    Rails.application.secrets.microcredits['default_brand'], 'name') || 'la organización'
+      rescue StandardError
+        'la organización'
+      end
+      errors.add(:iban_account,
+                 "Cuenta corriente inválida. Debes de consignar tu cuenta corriente, no la de #{brand_name}.")
+      self.iban_bic = nil
     end
 
     def check_amount
-      if self.confirmed_at.nil? && self.amount && !self.microcredit.has_amount_available?(amount)
-        self.errors.add(:amount, "Lamentablemente, ya no quedan préstamos por esa cantidad.")
-      end
+      return unless confirmed_at.nil? && amount && !microcredit.has_amount_available?(amount)
+
+      errors.add(:amount, 'Lamentablemente, ya no quedan préstamos por esa cantidad.')
     end
 
     def check_user_limits
@@ -233,17 +246,22 @@ module PlebisMicrocredit
       # Ruby 3.4+ raises ArgumentError when comparing Integer with nil
       # .to_i converts nil to 0, maintaining the original logic
       # RAILS 7.2 FIX: Use >= instead of > for max_loans_per_ip to correctly enforce limit
-      limit = self.microcredit.loans.not_discarded.not_returned.where(ip:self.ip).count >= microcredit_loan_config("max_loans_per_ip").to_i
+      limit = microcredit.loans.not_discarded.not_returned.where(ip: ip).count >= microcredit_loan_config('max_loans_per_ip').to_i
       unless limit
-        loans = self.microcredit.loans.not_discarded.not_returned.where(document_vatid: self.document_vatid).pluck(:amount)
-        limit = ((loans.length >= microcredit_loan_config("max_loans_per_user").to_i) or (loans.sum + self.amount > microcredit_loan_config("max_loans_sum_amount").to_i)) if not limit and self.amount
+        loans = microcredit.loans.not_discarded.not_returned.where(document_vatid: document_vatid).pluck(:amount)
+        if (!limit) && amount
+          limit = ((loans.length >= microcredit_loan_config('max_loans_per_user').to_i) or (loans.sum + amount > microcredit_loan_config('max_loans_sum_amount').to_i))
+        end
       end
 
-      self.errors.add(:user, "Lamentablemente, no es posible suscribir este microcrédito.") if limit
+      errors.add(:user, 'Lamentablemente, no es posible suscribir este microcrédito.') if limit
     end
 
     def check_microcredit_active
-      self.errors.add(:microcredit, "La campaña de microcréditos no está activa en este momento.") if self.confirmed_at.nil? && !self.microcredit.is_active?
+      return unless confirmed_at.nil? && !microcredit.is_active?
+
+      errors.add(:microcredit,
+                 'La campaña de microcréditos no está activa en este momento.')
     end
 
     def self.get_loans_stats(ids)
@@ -267,18 +285,18 @@ module PlebisMicrocredit
     end
 
     def possible_user
-      @possible_user ||= self.user.nil? && User.find_by_document_vatid(self.document_vatid)
+      @possible_user ||= user.nil? && User.find_by(document_vatid: document_vatid)
     end
 
     def unique_hash
-       # RAILS 7.2 FIX: Use safe navigation for document_vatid which may be nil
-       # SECURITY FIX: Use SHA256 instead of SHA1
-       Digest::SHA256.hexdigest "#{id}-#{created_at}-#{document_vatid&.upcase}"
+      # RAILS 7.2 FIX: Use safe navigation for document_vatid which may be nil
+      # SECURITY FIX: Use SHA256 instead of SHA1
+      Digest::SHA256.hexdigest "#{id}-#{created_at}-#{document_vatid&.upcase}"
     end
 
     def renew!(new_campaign)
       ActiveRecord::Base.transaction do
-        new_loan = self.dup
+        new_loan = dup
         new_loan.microcredit = new_campaign
         new_loan.counted_at = DateTime.now
         self.transferred_to = new_loan
@@ -289,46 +307,50 @@ module PlebisMicrocredit
     end
 
     def renewable?
-      !self.confirmed_at.nil? && self.returned_at.nil? && self.microcredit.renewable?
+      !confirmed_at.nil? && returned_at.nil? && microcredit.renewable?
     end
 
     def return!
-      return false if self.confirmed_at.nil? || !self.returned_at.nil?
+      return false if confirmed_at.nil? || !returned_at.nil?
+
       self.returned_at = DateTime.now
       save!
       true
     end
 
     def confirm!
-      return false unless self.confirmed_at.nil?
+      return false unless confirmed_at.nil?
+
       self.discarded_at = nil
       self.confirmed_at = DateTime.now
-      self.save!
-      self.update_counted_at
+      save!
+      update_counted_at
       true
     end
 
     def unconfirm!
-      return false if self.confirmed_at.nil?
+      return false if confirmed_at.nil?
+
       self.confirmed_at = nil
       save!
       true
     end
 
     def discard!
-      return false unless self.discarded_at.nil?
+      return false unless discarded_at.nil?
+
       self.discarded_at = DateTime.now
       self.confirmed_at = nil
-      self.save!
+      save!
       true
     end
 
     private
 
     def set_bic_for_spanish_iban
-      if self.iban_account && self.iban_account.upcase.start_with?("ES") && self.iban_bic.blank?
-        self.iban_bic = calculate_bic
-      end
+      return unless iban_account&.upcase&.start_with?('ES') && iban_bic.blank?
+
+      self.iban_bic = calculate_bic
     end
 
     # Helper method to safely get microcredit_loan configuration with default values
@@ -338,12 +360,12 @@ module PlebisMicrocredit
       # RAILS 7.2 FIX: Return defaults even when config is nil
       # Previously returned nil which caused .to_i to return 0, blocking all loans
       case key
-      when "max_loans_per_ip"
-        config&.dig("max_loans_per_ip") || 50
-      when "max_loans_per_user"
-        config&.dig("max_loans_per_user") || 30
-      when "max_loans_sum_amount"
-        config&.dig("max_loans_sum_amount") || 10000
+      when 'max_loans_per_ip'
+        config&.dig('max_loans_per_ip') || 50
+      when 'max_loans_per_user'
+        config&.dig('max_loans_per_user') || 30
+      when 'max_loans_sum_amount'
+        config&.dig('max_loans_sum_amount') || 10_000
       else
         config&.dig(key)
       end

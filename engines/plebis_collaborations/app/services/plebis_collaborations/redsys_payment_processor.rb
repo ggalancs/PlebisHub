@@ -25,7 +25,7 @@ module PlebisCollaborations
     private
 
     def is_soap_callback?
-      @request_params.blank? || @request_params["Ds_Order"].blank?
+      @request_params.blank? || @request_params['Ds_Order'].blank?
     end
 
     def parse_callback
@@ -38,25 +38,23 @@ module PlebisCollaborations
 
     def parse_soap_callback
       body = Hash.from_xml(@request_body)
-      @raw_xml = body["Envelope"]["Body"]["procesaNotificacionSIS"]["XML"]
+      @raw_xml = body['Envelope']['Body']['procesaNotificacionSIS']['XML']
       xml = Hash.from_xml(@raw_xml)
 
-      request_params = xml["Message"]["Request"]
-      request_params["Ds_Signature"] = xml["Message"]["Signature"]
+      request_params = xml['Message']['Request']
+      request_params['Ds_Signature'] = xml['Message']['Signature']
       request_params.merge!(@request_params || {})
 
       request_params
     end
 
     def find_and_create_order(parsed_params)
-      redsys_order_id = parsed_params["Ds_Order"]
+      redsys_order_id = parsed_params['Ds_Order']
       parent = PlebisCollaborations::Order.parent_from_order_id(redsys_order_id)
 
-      order = parent.create_order(Time.now, true)
+      order = parent.create_order(Time.zone.now, true)
 
-      if order.first && order.is_payable?
-        order.redsys_parse_response!(parsed_params, @raw_xml)
-      end
+      order.redsys_parse_response!(parsed_params, @raw_xml) if order.first && order.is_payable?
 
       order
     end

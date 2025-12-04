@@ -27,34 +27,33 @@ RSpec.describe ImpulsaEditionCategory, type: :model do
     it 'requires name' do
       category = build(:impulsa_edition_category, name: nil)
       expect(category).not_to be_valid
-      expect(category.errors[:name]).to include("no puede estar en blanco")
+      expect(category.errors[:name]).to include('no puede estar en blanco')
     end
 
     it 'requires category_type' do
       category = build(:impulsa_edition_category, category_type: nil)
       expect(category).not_to be_valid
-      expect(category.errors[:category_type]).to include("no puede estar en blanco")
+      expect(category.errors[:category_type]).to include('no puede estar en blanco')
     end
 
     it 'requires winners' do
       category = build(:impulsa_edition_category, winners: nil)
       expect(category).not_to be_valid
-      expect(category.errors[:winners]).to include("no puede estar en blanco")
+      expect(category.errors[:winners]).to include('no puede estar en blanco')
     end
 
     it 'requires prize' do
       category = build(:impulsa_edition_category, prize: nil)
       expect(category).not_to be_valid
-      expect(category.errors[:prize]).to include("no puede estar en blanco")
+      expect(category.errors[:prize]).to include('no puede estar en blanco')
     end
 
     it 'accepts valid attributes' do
       category = build(:impulsa_edition_category,
-        name: 'Valid Category',
-        category_type: 1,
-        winners: 5,
-        prize: 10000
-      )
+                       name: 'Valid Category',
+                       category_type: 1,
+                       winners: 5,
+                       prize: 10_000)
       expect(category).to be_valid
     end
   end
@@ -183,7 +182,7 @@ RSpec.describe ImpulsaEditionCategory, type: :model do
         # Set the internal field directly to avoid calling the setter which expects an array
         category.update_column(:territories, 'a_01|a_02|a_03')
 
-        expect(category.territories).to eq(['a_01', 'a_02', 'a_03'])
+        expect(category.territories).to eq(%w[a_01 a_02 a_03])
       end
 
       it 'returns empty array when nil' do
@@ -197,7 +196,7 @@ RSpec.describe ImpulsaEditionCategory, type: :model do
     describe '#territories=' do
       it 'joins array with pipes' do
         category = create(:impulsa_edition_category)
-        category.territories = ['a_01', 'a_02', 'a_03']
+        category.territories = %w[a_01 a_02 a_03]
 
         expect(category[:territories]).to eq('a_01|a_02|a_03')
       end
@@ -356,9 +355,9 @@ RSpec.describe ImpulsaEditionCategory, type: :model do
     it 'creates multiple categories for same edition' do
       edition = create(:impulsa_edition)
 
-      cat1 = create(:impulsa_edition_category, :internal, impulsa_edition: edition)
-      cat2 = create(:impulsa_edition_category, :state, impulsa_edition: edition)
-      cat3 = create(:impulsa_edition_category, :territorial, impulsa_edition: edition)
+      create(:impulsa_edition_category, :internal, impulsa_edition: edition)
+      create(:impulsa_edition_category, :state, impulsa_edition: edition)
+      create(:impulsa_edition_category, :territorial, impulsa_edition: edition)
 
       expect(edition.impulsa_edition_categories.count).to eq(3)
     end
@@ -379,7 +378,7 @@ RSpec.describe ImpulsaEditionCategory, type: :model do
 
     it 'maintains territorial data correctly' do
       category = create(:impulsa_edition_category, :territorial)
-      category.territories = ['a_13', 'a_09', 'a_01']
+      category.territories = %w[a_13 a_09 a_01]
       category.save
 
       expect(category.has_territory?).to be true

@@ -1,0 +1,262 @@
+/* line 1, app/assets/stylesheets/impulsa.css.scss */
+.impulsa {
+  /* Content */
+}
+
+/* line 2, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .form-label label.control-label {
+  font-size: 18px;
+}
+
+/* line 4, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .form-label label.control-label a {
+  display: block;
+  font-size: 14px;
+}
+
+/* line 9, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .file-data {
+  clear: left;
+}
+
+/* line 11, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .file-data .form-label label.template {
+  font-size: 14px;
+  padding-top: 0;
+}
+
+/* line 15, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .file-data .form-wrapper {
+  position: relative;
+}
+
+/* line 19, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .file-data .current-file a {
+  text-align: right;
+  color: #269283;
+  font-size: 14px;
+}
+
+/* line 23, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .file-data .current-file a.delete {
+  color: #f5bfc9;
+}
+
+/* line 28, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .file-data .progress {
+  position: absolute;
+  margin: 5px;
+  width: 100%;
+}
+
+/* line 34, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .choice {
+  font-size: 13px;
+  color: #666;
+  line-height: 20px;
+}
+
+/* line 38, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .choice input {
+  margin: 1px 10px !important;
+}
+
+/* line 42, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .form-wrapper > .help-block {
+  float: right;
+}
+
+/* line 45, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .form-wrapper > .help-block + .help-block {
+  float: none;
+  color: red;
+}
+
+/* line 50, app/assets/stylesheets/impulsa.css.scss */
+.impulsa input[type=submit] {
+  font-size: 14px;
+  line-height: 16px;
+}
+
+/* line 54, app/assets/stylesheets/impulsa.css.scss */
+.impulsa fieldset.form-actions input {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-sefif;
+}
+
+/* line 57, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .select2-container {
+  float: none !important;
+}
+
+/* line 62, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .data-form-container {
+  width: 75%;
+  float: right;
+}
+
+/* line 68, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps {
+  margin-top: 10px;
+  width: 20%;
+  min-width: 50px;
+  margin-right: 5%;
+  float: left;
+}
+
+/* line 74, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps ul {
+  margin: 0px;
+  padding: 0px;
+}
+
+/* line 78, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps ul li.main a {
+  padding-top: 5px;
+  color: #333;
+}
+
+/* line 81, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps ul li.main a:before {
+  border-width: 4px;
+  left: -15px;
+  top: 0px;
+}
+
+/* line 88, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps ul li {
+  margin: 0px;
+  padding: 0px;
+  border: 0px solid;
+  width: 100%;
+  display: block;
+  background: #fff !important;
+  border-radius: 0px;
+  position: relative;
+  cursor: pointer;
+}
+
+/* line 100, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps ul li a {
+  margin: 0px;
+  padding: 0px;
+  text-transform: uppercase;
+  color: #666;
+  display: block;
+  border-left: 2px solid #269283;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 10px 5px 12px 20px;
+  margin-left: 20px;
+  text-align: left;
+  position: relative;
+}
+
+/* line 113, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps ul li a:before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: solid 2px #269283;
+  background: #fff;
+  position: absolute;
+  left: -13px;
+  top: 7px;
+  -webkit-border-radius: 500px;
+  -moz-border-radius: 500px;
+  border-radius: 500px;
+}
+
+/* line 131, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps ul li span.errors {
+  display: block;
+  width: 27px;
+  height: 20px;
+  font-size: 12px;
+  text-align: center;
+  position: absolute;
+  left: -14px;
+  top: 10px;
+  z-index: 3;
+  color: #fff;
+}
+
+/* line 145, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps ul li.is-ok a:before {
+  background: #269283;
+  border-color: #269283;
+}
+
+/* line 149, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps ul li.is-not-ok a:before {
+  background: #ff9696;
+  border-color: #ff9696;
+}
+
+/* line 153, app/assets/stylesheets/impulsa.css.scss */
+.impulsa nav.steps.vertical-steps ul li:hover a:before, .impulsa nav.steps.vertical-steps ul li.active a:before {
+  background: #612d62;
+  border-color: #612d62;
+}
+
+/* line 161, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .impulsa_evaluation_result {
+  font-size: 20px;
+  font-weight: bold;
+  border: 2px solid black;
+  margin: 20px auto;
+  padding: 20px;
+  text-align: center;
+}
+
+/* line 170, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .valid {
+  color: #3c763d;
+  border-color: #3c763d;
+}
+
+/* line 174, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .invalid {
+  color: #a94442;
+  border-color: #a94442;
+}
+
+/* line 180, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .impulsa_evaluation h3 {
+  margin-top: 30px;
+}
+
+/* line 183, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .impulsa_evaluation h4 {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+/* line 187, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .impulsa_evaluation p {
+  margin: 10px 0 5px;
+}
+
+/* line 190, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .impulsa_evaluation span {
+  display: inline-block;
+  width: calc( 50% - 22px);
+  text-align: center;
+  padding: 10px;
+  margin: 0;
+  font-size: 12px;
+  background: #eee;
+}
+
+/* line 198, app/assets/stylesheets/impulsa.css.scss */
+.impulsa .impulsa_evaluation span + span {
+  background: #e0e0e0;
+}
+
+@media only screen and (max-width: 500px) {
+  /* line 205, app/assets/stylesheets/impulsa.css.scss */
+  .impulsa nav.steps.vertical-steps, .impulsa .data-form-container {
+    width: 100%;
+    margin-right: 0%;
+    float: none;
+  }
+}

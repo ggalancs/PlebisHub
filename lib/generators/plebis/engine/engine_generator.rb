@@ -23,19 +23,20 @@ module Plebis
       def validate_engine_name
         # Validate name format
         unless name =~ /\A[a-z][a-z0-9_]*\z/
-          say "Error: Engine name must start with a lowercase letter and contain only lowercase letters, numbers, and underscores", :red
-          say "Example: rails generate plebis:engine cms", :yellow
+          say 'Error: Engine name must start with a lowercase letter and contain only lowercase letters, numbers, and underscores',
+              :red
+          say 'Example: rails generate plebis:engine cms', :yellow
           raise Thor::Error, "Invalid engine name: #{name}"
         end
 
         # Validate name length
         if name.length < 2
-          say "Error: Engine name must be at least 2 characters long", :red
+          say 'Error: Engine name must be at least 2 characters long', :red
           raise Thor::Error, "Engine name too short: #{name}"
         end
 
         if name.length > 30
-          say "Error: Engine name must be 30 characters or less", :red
+          say 'Error: Engine name must be 30 characters or less', :red
           raise Thor::Error, "Engine name too long: #{name}"
         end
 
@@ -51,10 +52,10 @@ module Plebis
 
         # Check for reserved names
         reserved_names = %w[test spec app lib config db public tmp log]
-        if reserved_names.include?(name)
-          say "Error: '#{name}' is a reserved name and cannot be used for an engine", :red
-          raise Thor::Error, "Reserved name: #{name}"
-        end
+        return unless reserved_names.include?(name)
+
+        say "Error: '#{name}' is a reserved name and cannot be used for an engine", :red
+        raise Thor::Error, "Reserved name: #{name}"
       end
 
       def create_engine_structure
@@ -78,42 +79,42 @@ module Plebis
         empty_directory "#{@engine_path}/spec/support"
 
         # Create files from templates
-        template "engine.rb.tt", "#{@engine_path}/lib/#{@engine_name}/engine.rb"
-        template "lib.rb.tt", "#{@engine_path}/lib/#{@engine_name}.rb"
-        template "gemspec.tt", "#{@engine_path}/#{@engine_name}.gemspec"
-        template "routes.rb.tt", "#{@engine_path}/config/routes.rb"
-        template "README.md.tt", "#{@engine_path}/README.md"
-        template "spec_helper.rb.tt", "#{@engine_path}/spec/spec_helper.rb"
-        template "rails_helper.rb.tt", "#{@engine_path}/spec/rails_helper.rb"
-        template "version.rb.tt", "#{@engine_path}/lib/#{@engine_name}/version.rb"
-        template "ability.rb.tt", "#{@engine_path}/app/abilities/#{@engine_name}/ability.rb"
+        template 'engine.rb.tt', "#{@engine_path}/lib/#{@engine_name}/engine.rb"
+        template 'lib.rb.tt', "#{@engine_path}/lib/#{@engine_name}.rb"
+        template 'gemspec.tt', "#{@engine_path}/#{@engine_name}.gemspec"
+        template 'routes.rb.tt', "#{@engine_path}/config/routes.rb"
+        template 'README.md.tt', "#{@engine_path}/README.md"
+        template 'spec_helper.rb.tt', "#{@engine_path}/spec/spec_helper.rb"
+        template 'rails_helper.rb.tt', "#{@engine_path}/spec/rails_helper.rb"
+        template 'version.rb.tt', "#{@engine_path}/lib/#{@engine_name}/version.rb"
+        template 'ability.rb.tt', "#{@engine_path}/app/abilities/#{@engine_name}/ability.rb"
       end
 
       def add_to_gemfile
-        append_to_file "Gemfile", "\n# Engine: #{@module_name}\n"
-        append_to_file "Gemfile", "gem '#{@engine_name}', path: 'engines/#{@engine_name}'\n"
+        append_to_file 'Gemfile', "\n# Engine: #{@module_name}\n"
+        append_to_file 'Gemfile', "gem '#{@engine_name}', path: 'engines/#{@engine_name}'\n"
         say "Added #{@engine_name} to Gemfile", :green
       end
 
       def show_next_steps
-        say "\n" + "="*80, :green
+        say "\n#{'=' * 80}", :green
         say "Engine '#{@engine_name}' created successfully!", :green
-        say "="*80, :green
+        say '=' * 80, :green
         say "\nNext steps:", :yellow
-        say "  1. Run: bundle install", :yellow
-        say "  2. Create engine activation record:", :yellow
-        say "     EngineActivation.create!(", :yellow
+        say '  1. Run: bundle install', :yellow
+        say '  2. Create engine activation record:', :yellow
+        say '     EngineActivation.create!(', :yellow
         say "       engine_name: '#{@engine_name}',", :yellow
-        say "       enabled: false,", :yellow
+        say '       enabled: false,', :yellow
         say "       description: 'Description of your engine'", :yellow
-        say "     )", :yellow
-        say "  3. Implement your models, controllers, and views in:", :yellow
+        say '     )', :yellow
+        say '  3. Implement your models, controllers, and views in:', :yellow
         say "     #{@engine_path}/", :yellow
-        say "  4. Write tests in:", :yellow
+        say '  4. Write tests in:', :yellow
         say "     #{@engine_path}/spec/", :yellow
-        say "  5. Enable the engine:", :yellow
+        say '  5. Enable the engine:', :yellow
         say "     rake engines:enable[#{@engine_name}]", :yellow
-        say "="*80, :green
+        say '=' * 80, :green
       end
     end
   end

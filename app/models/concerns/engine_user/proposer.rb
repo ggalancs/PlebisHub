@@ -12,7 +12,7 @@ module EngineUser
     included do
       # Associations for proposals
       has_many :supports, dependent: :destroy
-      # Note: Proposal model has user_id for author
+      # NOTE: Proposal model has user_id for author
       # has_many :proposals # This could be added if needed
     end
 
@@ -22,7 +22,7 @@ module EngineUser
     # @return [ActiveRecord::Relation] User's proposals
     #
     def proposals
-      Proposal.where(user_id: self.id)
+      Proposal.where(user_id: id)
     end
 
     # Check if user has supported a proposal
@@ -31,7 +31,7 @@ module EngineUser
     # @return [Boolean] Whether user has supported the proposal
     #
     def has_supported?(proposal)
-      self.supports.where(proposal_id: proposal.id).exists?
+      supports.exists?(proposal_id: proposal.id)
     end
   end
 end

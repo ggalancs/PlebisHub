@@ -30,15 +30,11 @@ RSpec.describe 'Legacy Password New', type: :request do
       end
 
       it 'si renderiza, muestra título de legacy password' do
-        if response.status == 200
-          expect(response.body).to match(/contraseña|password|legacy/i)
-        end
+        expect(response.body).to match(/contraseña|password|legacy/i) if response.status == 200
       end
 
       it 'si renderiza, tiene el title tag correcto' do
-        if response.status == 200
-          expect(response.body).to match(/<title>/)
-        end
+        expect(response.body).to match(/<title>/) if response.status == 200
       end
     end
 
@@ -49,15 +45,11 @@ RSpec.describe 'Legacy Password New', type: :request do
       end
 
       it 'si renderiza, tiene info_box con explicación' do
-        if response.status == 200
-          expect(response.body).to match(/box-info|info.*box/i)
-        end
+        expect(response.body).to match(/box-info|info.*box/i) if response.status == 200
       end
 
       it 'si renderiza, tiene párrafo explicativo' do
-        if response.status == 200
-          expect(response.body).to include('<p>')
-        end
+        expect(response.body).to include('<p>') if response.status == 200
       end
     end
 
@@ -68,39 +60,27 @@ RSpec.describe 'Legacy Password New', type: :request do
       end
 
       it 'si renderiza, tiene formulario' do
-        if response.status == 200
-          expect(response.body).to include('<form')
-        end
+        expect(response.body).to include('<form') if response.status == 200
       end
 
       it 'si renderiza, tiene campo para nueva contraseña' do
-        if response.status == 200
-          expect(response.body).to match(/password|contraseña/i)
-        end
+        expect(response.body).to match(/password|contraseña/i) if response.status == 200
       end
 
       it 'si renderiza, tiene campo para confirmación de contraseña' do
-        if response.status == 200
-          expect(response.body).to match(/password_confirmation|confirmación/i)
-        end
+        expect(response.body).to match(/password_confirmation|confirmación/i) if response.status == 200
       end
 
       it 'si renderiza, campo password tiene autofocus' do
-        if response.status == 200
-          expect(response.body).to include('autofocus')
-        end
+        expect(response.body).to include('autofocus') if response.status == 200
       end
 
       it 'si renderiza, tiene botón de submit' do
-        if response.status == 200
-          expect(response.body).to match(/submit|button/)
-        end
+        expect(response.body).to match(/submit|button/) if response.status == 200
       end
 
       it 'si renderiza, botón menciona cambiar contraseña' do
-        if response.status == 200
-          expect(response.body).to match(/change.*password|cambiar.*contraseña/i)
-        end
+        expect(response.body).to match(/change.*password|cambiar.*contraseña/i) if response.status == 200
       end
     end
 
@@ -125,27 +105,19 @@ RSpec.describe 'Legacy Password New', type: :request do
       end
 
       it 'si renderiza, tiene fieldset' do
-        if response.status == 200
-          expect(response.body).to include('<fieldset')
-        end
+        expect(response.body).to include('<fieldset') if response.status == 200
       end
 
       it 'si renderiza, tiene legend invisible' do
-        if response.status == 200
-          expect(response.body).to match(/legend.*invisible/i)
-        end
+        expect(response.body).to match(/legend.*invisible/i) if response.status == 200
       end
 
       it 'si renderiza, usa inputlabel-box' do
-        if response.status == 200
-          expect(response.body).to include('inputlabel-box')
-        end
+        expect(response.body).to include('inputlabel-box') if response.status == 200
       end
 
       it 'si renderiza, tiene botón con clase button' do
-        if response.status == 200
-          expect(response.body).to match(/class=.*button/)
-        end
+        expect(response.body).to match(/class=.*button/) if response.status == 200
       end
     end
 
@@ -163,9 +135,7 @@ RSpec.describe 'Legacy Password New', type: :request do
       end
 
       it 'si renderiza, tiene h2 para título' do
-        if response.status == 200
-          expect(response.body).to match(/<h2>/)
-        end
+        expect(response.body).to match(/<h2>/) if response.status == 200
       end
 
       it 'si renderiza, usa row y col para layout' do

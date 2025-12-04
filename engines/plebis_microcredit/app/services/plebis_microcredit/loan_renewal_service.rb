@@ -58,10 +58,10 @@ module PlebisMicrocredit
       renewal.loan_renewals = renewal.loans.select { |l| renewal.loan_renewals.member?(l.id.to_s) }
 
       renewal.other_loans = PlebisMicrocredit::MicrocreditLoan.renewables
-                                           .where.not(microcredit_id: loan.microcredit_id)
-                                           .where(document_vatid: loan.document_vatid)
-                                           .to_a
-                                           .uniq(&:microcredit_id)
+                                                              .where.not(microcredit_id: loan.microcredit_id)
+                                                              .where(document_vatid: loan.document_vatid)
+                                                              .to_a
+                                                              .uniq(&:microcredit_id)
 
       renewal.recently_renewed_loans = PlebisMicrocredit::MicrocreditLoan.recently_renewed.where(
         microcredit_id: loan.microcredit_id,
@@ -73,9 +73,9 @@ module PlebisMicrocredit
     end
 
     def validate_renewal(renewal)
-      renewal.errors[:renewal_terms] = I18n.t("errors.messages.accepted") if renewal.renewal_terms == "0"
-      renewal.errors[:terms_of_service] = I18n.t("errors.messages.accepted") if renewal.terms_of_service == "0"
-      renewal.errors[:loan_renewals] = I18n.t("microcredit.loans_renewal.none_selected") if renewal.loan_renewals.empty?
+      renewal.errors[:renewal_terms] = I18n.t('errors.messages.accepted') if renewal.renewal_terms == '0'
+      renewal.errors[:terms_of_service] = I18n.t('errors.messages.accepted') if renewal.terms_of_service == '0'
+      renewal.errors[:loan_renewals] = I18n.t('microcredit.loans_renewal.none_selected') if renewal.loan_renewals.empty?
       renewal.valid = renewal.errors.empty?
     end
   end

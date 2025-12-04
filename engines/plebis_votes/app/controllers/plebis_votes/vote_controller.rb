@@ -14,12 +14,14 @@ module PlebisVotes
   # - Authorization logging
   #
   class VoteController < ApplicationController
-    layout "full", only: [:create]
-    before_action :authenticate_user!, except: [:election_votes_count, :election_location_votes_count]
-    before_action :validate_election_id, only: [:send_sms_check, :sms_check, :create, :create_token, :check, :election_votes_count, :paper_vote]
-    before_action :validate_election_location_id, only: [:election_location_votes_count, :paper_vote]
+    layout 'full', only: [:create]
+    before_action :authenticate_user!, except: %i[election_votes_count election_location_votes_count]
+    before_action :validate_election_id,
+                  only: %i[send_sms_check sms_check create create_token check election_votes_count paper_vote]
+    before_action :validate_election_location_id, only: %i[election_location_votes_count paper_vote]
 
-    helper_method :election, :election_location, :paper_vote_user, :validation_token_for_paper_vote_user, :paper_authority_votes_count
+    helper_method :election, :election_location, :paper_vote_user, :validation_token_for_paper_vote_user,
+                  :paper_authority_votes_count
 
     def send_sms_check
       if current_user.send_sms_check!
@@ -34,8 +36,7 @@ module PlebisVotes
       redirect_to root_path, flash: { error: I18n.t('vote.errors.sms_check_failed') }
     end
 
-    def sms_check
-    end
+    def sms_check; end
 
     def create
       return back_to_home unless election.nvotes? && check_open_election && check_valid_user && check_valid_location
@@ -46,7 +47,8 @@ module PlebisVotes
           redirect_to sms_check_vote_path(params[:election_id])
         elsif !current_user.valid_sms_check?(params[:sms_check_token])
           log_vote_security_event(:invalid_sms_token, election_id: params[:election_id])
-          redirect_to sms_check_vote_path(params[:election_id]), flash: { error: I18n.t('vote.sms_check.invalid_token') }
+          redirect_to sms_check_vote_path(params[:election_id]),
+                      flash: { error: I18n.t('vote.sms_check.invalid_token') }
         end
       end
       @scoped_agora_election_id = election.scoped_agora_election_id(current_user)
@@ -56,7 +58,9 @@ module PlebisVotes
     end
 
     def create_token
-      return send_to_home unless election.nvotes? && check_open_election && check_valid_user && check_valid_location && check_verification
+      unless election.nvotes? && check_open_election && check_valid_user && check_valid_location && check_verification
+        return send_to_home
+      end
 
       vote = current_user.get_or_create_vote(election.id)
       message = vote.generate_message
@@ -83,7 +87,8 @@ module PlebisVotes
         election.counter_token.to_s,
         params[:token].to_s
       )
-        log_vote_security_event(:invalid_counter_token, election_id: params[:election_id], token_prefix: params[:token]&.first(8))
+        log_vote_security_event(:invalid_counter_token, election_id: params[:election_id],
+                                                        token_prefix: params[:token]&.first(8))
         return back_to_home
       end
 
@@ -100,9 +105,9 @@ module PlebisVotes
         params[:token].to_s
       )
         log_vote_security_event(:invalid_location_counter_token,
-                                 election_id: params[:election_id],
-                                 election_location_id: params[:election_location_id],
-                                 token_prefix: params[:token]&.first(8))
+                                election_id: params[:election_id],
+                                election_location_id: params[:election_location_id],
+                                token_prefix: params[:token]&.first(8))
         return back_to_home
       end
 
@@ -123,8 +128,8 @@ module PlebisVotes
                params[:token].to_s
              )
         log_vote_security_event(:paper_vote_unauthorized,
-                                 election_id: params[:election_id],
-                                 election_location_id: params[:election_location_id])
+                                election_id: params[:election_id],
+                                election_location_id: params[:election_location_id])
         return back_to_home
       end
 
@@ -135,7 +140,7 @@ module PlebisVotes
         # Validate and register paper vote
         # SECURITY FIX: Replace deprecated redirect_to(:back)
         unless paper_vote_user? && check_validation_token(params[:validation_token])
-          return redirect_back(fallback_location: root_path)
+          return redirect_back_or_to(root_path)
         end
 
         paper_vote_service.log_vote_registered(paper_vote_user)
@@ -144,21 +149,19 @@ module PlebisVotes
                        election_id: election.id,
                        user_id: paper_vote_user.id,
                        authority_id: current_user.id)
-        return redirect_back(fallback_location: root_path)
+        return redirect_back_or_to(root_path)
 
       elsif params[:document_vatid].present? && params[:document_type].present?
         # Query for user in census
         # SECURITY: Input validation for document parameters
-        unless validate_document_params
-          return redirect_back(fallback_location: root_path)
-        end
+        return redirect_back_or_to(root_path) unless validate_document_params
 
         paper_vote_service.log_vote_query(params[:document_type], params[:document_vatid])
 
         unless paper_vote_user? && check_valid_user(paper_vote_user) &&
                check_valid_location(paper_vote_user, [election_location]) &&
                check_verification(paper_vote_user) && check_not_voted(paper_vote_user)
-          return redirect_back(fallback_location: root_path)
+          return redirect_back_or_to(root_path)
         end
       end
 
@@ -166,31 +169,31 @@ module PlebisVotes
     rescue CSV::MalformedCSVError => e
       log_vote_error(:census_file_malformed, e, election_id: election.id)
       flash[:error] = I18n.t('vote.errors.census_file_error')
-      redirect_back(fallback_location: root_path)
+      redirect_back_or_to(root_path)
     rescue StandardError => e
       log_vote_error(:paper_vote_failed, e, election_id: params[:election_id])
       flash[:error] = I18n.t('vote.errors.paper_vote_failed')
-      redirect_back(fallback_location: root_path)
+      redirect_back_or_to(root_path)
     end
 
     private
 
     # SECURITY: Input validation before database queries
     def validate_election_id
-      unless params[:election_id].to_s.match?(/\A\d+\z/)
-        log_vote_security_event(:invalid_election_id, election_id: params[:election_id])
-        flash[:error] = I18n.t('vote.errors.invalid_election')
-        redirect_to root_path
-      end
+      return if params[:election_id].to_s.match?(/\A\d+\z/)
+
+      log_vote_security_event(:invalid_election_id, election_id: params[:election_id])
+      flash[:error] = I18n.t('vote.errors.invalid_election')
+      redirect_to root_path
     end
 
     def validate_election_location_id
-      unless params[:election_location_id].to_s.match?(/\A\d+\z/)
-        log_vote_security_event(:invalid_election_location_id,
-                                 election_location_id: params[:election_location_id])
-        flash[:error] = I18n.t('vote.errors.invalid_location')
-        redirect_to root_path
-      end
+      return if params[:election_location_id].to_s.match?(/\A\d+\z/)
+
+      log_vote_security_event(:invalid_election_location_id,
+                              election_location_id: params[:election_location_id])
+      flash[:error] = I18n.t('vote.errors.invalid_location')
+      redirect_to root_path
     end
 
     def validate_document_params
@@ -226,7 +229,8 @@ module PlebisVotes
     end
 
     def paper_authority_votes_count
-      @paper_authority_votes_count ||= PlebisVotes::Vote.where(election: election, paper_authority_id: current_user.id).count
+      @paper_authority_votes_count ||= PlebisVotes::Vote.where(election: election,
+                                                               paper_authority_id: current_user.id).count
     rescue StandardError => e
       log_vote_error(:authority_votes_count_failed, e, election_id: election&.id)
       0
@@ -255,7 +259,7 @@ module PlebisVotes
                              elsif params[:document_vatid].present? && params[:document_type].present?
                                # SECURITY: SQL injection safe - uses parameterized query with placeholder
                                # The .downcase method is safe, and ? placeholder prevents injection
-                               paper_voters.where("lower(document_vatid) = ?", params[:document_vatid].downcase)
+                               paper_voters.where('lower(document_vatid) = ?', params[:document_vatid].downcase)
                                            .find_by(document_type: params[:document_type])
                              end
       end
@@ -265,7 +269,7 @@ module PlebisVotes
     end
 
     def validation_token_for_paper_vote_user
-      @validation_token_for_paper_vote_user ||= election.generate_access_token("#{paper_vote_user.id} #{election_location.id} #{Date.today.iso8601}")
+      @validation_token_for_paper_vote_user ||= election.generate_access_token("#{paper_vote_user.id} #{election_location.id} #{Time.zone.today.iso8601}")
     rescue StandardError => e
       log_vote_error(:validation_token_generation_failed, e, election_id: election&.id)
       nil
@@ -327,8 +331,8 @@ module PlebisVotes
 
       unless is_authority
         log_vote_security_event(:unauthorized_paper_authority_attempt,
-                                 election_id: election&.id,
-                                 user_id: current_user&.id)
+                                election_id: election&.id,
+                                user_id: current_user&.id)
       end
 
       is_authority
@@ -337,11 +341,11 @@ module PlebisVotes
     def check_not_voted(user = current_user)
       return true unless user.has_already_voted_in(election.id)
 
-      if election.scope == 6
-        flash[:error] = t("plebisbrand.election.already_identified")
-      else
-        flash[:error] = t("plebisbrand.election.already_voted")
-      end
+      flash[:error] = if election.scope == 6
+                        t('plebisbrand.election.already_identified')
+                      else
+                        t('plebisbrand.election.already_voted')
+                      end
       log_vote_event(:already_voted_attempt, election_id: election.id, user_id: user&.id)
       false
     end
@@ -358,9 +362,9 @@ module PlebisVotes
 
       unless valid
         log_vote_security_event(:invalid_validation_token,
-                                 election_id: election&.id,
-                                 user_id: paper_vote_user&.id)
-        flash[:error] = t("plebisbrand.election.token_error")
+                                election_id: election&.id,
+                                user_id: paper_vote_user&.id)
+        flash[:error] = t('plebisbrand.election.token_error')
       end
 
       valid

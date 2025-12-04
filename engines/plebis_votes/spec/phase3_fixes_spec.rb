@@ -27,7 +27,7 @@ RSpec.describe 'Phase 3 PLEBIS_VOTES Fixes', type: :model do
 
   describe 'CRITICAL-2: CensusFileParser namespace' do
     it 'CensusFileParser is defined in global namespace' do
-      expect(defined?(::CensusFileParser)).to be_truthy
+      expect(defined?(CensusFileParser)).to be_truthy
     end
 
     it 'VoteController can reference ::CensusFileParser' do
@@ -40,14 +40,14 @@ RSpec.describe 'Phase 3 PLEBIS_VOTES Fixes', type: :model do
 
   describe 'HIGH-1: ElectionLocation namespace in Election model' do
     it 'Election model references PlebisVotes::ElectionLocation' do
-      source = File.read(Rails.root.join('engines/plebis_votes/app/models/plebis_votes/election.rb'))
+      source = Rails.root.join('engines/plebis_votes/app/models/plebis_votes/election.rb').read
       expect(source).to include('PlebisVotes::ElectionLocation.transaction')
     end
   end
 
   describe 'HIGH-2-4: User namespace in Election model' do
     it 'Election model references ::User' do
-      source = File.read(Rails.root.join('engines/plebis_votes/app/models/plebis_votes/election.rb'))
+      source = Rails.root.join('engines/plebis_votes/app/models/plebis_votes/election.rb').read
       expect(source).to include('::User.confirmed.not_banned')
       expect(source).to include('::User.with_deleted.not_banned')
     end
@@ -55,21 +55,21 @@ RSpec.describe 'Phase 3 PLEBIS_VOTES Fixes', type: :model do
 
   describe 'HIGH-5: VoteCircle namespace in ElectionLocation model' do
     it 'ElectionLocation model references PlebisVotes::VoteCircle' do
-      source = File.read(Rails.root.join('engines/plebis_votes/app/models/plebis_votes/election_location.rb'))
+      source = Rails.root.join('engines/plebis_votes/app/models/plebis_votes/election_location.rb').read
       expect(source).to include('PlebisVotes::VoteCircle.where')
     end
   end
 
   describe 'HIGH-6: ElectionLocation namespace in ElectionLocationQuestion model' do
     it 'ElectionLocationQuestion model references PlebisVotes::ElectionLocation::ELECTION_LAYOUTS' do
-      source = File.read(Rails.root.join('engines/plebis_votes/app/models/plebis_votes/election_location_question.rb'))
+      source = Rails.root.join('engines/plebis_votes/app/models/plebis_votes/election_location_question.rb').read
       expect(source).to include('PlebisVotes::ElectionLocation::ELECTION_LAYOUTS')
     end
   end
 
   describe 'MEDIUM-1: Vote model callback uses assignment' do
     it 'Vote model uses assignment instead of update_attribute' do
-      source = File.read(Rails.root.join('engines/plebis_votes/app/models/plebis_votes/vote.rb'))
+      source = Rails.root.join('engines/plebis_votes/app/models/plebis_votes/vote.rb').read
       expect(source).not_to include('update_attribute(:agora_id')
       expect(source).not_to include('update_attribute(:voter_id')
       expect(source).to include('self.agora_id =')
@@ -79,7 +79,7 @@ RSpec.describe 'Phase 3 PLEBIS_VOTES Fixes', type: :model do
 
   describe 'LOW-1: ActiveAdmin menu label' do
     it 'Election admin has correct menu parent' do
-      source = File.read(Rails.root.join('engines/plebis_votes/app/admin/election.rb'))
+      source = Rails.root.join('engines/plebis_votes/app/admin/election.rb').read
       expect(source).to include('menu :parent => "Votación"')
       expect(source).not_to include('PlebisHubción')
     end

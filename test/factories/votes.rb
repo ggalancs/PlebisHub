@@ -12,9 +12,7 @@ FactoryBot.define do
 
     # Ensure election has at least one election_location
     after(:build) do |vote|
-      if vote.election && vote.election.election_locations.empty?
-        create(:election_location, election: vote.election)
-      end
+      create(:election_location, election: vote.election) if vote.election && vote.election.election_locations.empty?
     end
 
     trait :deleted do

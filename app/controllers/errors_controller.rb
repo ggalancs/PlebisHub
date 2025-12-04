@@ -43,16 +43,14 @@ class ErrorsController < ApplicationController
     @code = sanitize_error_code(raw_code)
 
     log_security_event('error_page_displayed',
-      code: @code,
-      raw_code: raw_code,
-      user_id: current_user&.id
-    )
+                       code: @code,
+                       raw_code: raw_code,
+                       user_id: current_user&.id)
 
     render status: http_status_code
   rescue StandardError => e
     log_error('error_page_render_error', e,
-      code: params[:code]
-    )
+              code: params[:code])
     render plain: 'Internal Server Error', status: :internal_server_error
   end
 
@@ -67,8 +65,7 @@ class ErrorsController < ApplicationController
       code_str
     else
       log_security_event('invalid_error_code_attempt',
-        attempted_code: code_str
-      )
+                         attempted_code: code_str)
       '500'
     end
   end

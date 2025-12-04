@@ -9,7 +9,7 @@ require 'minitest/reporters'
 require 'mocha/minitest'
 
 # Explicitly require validators to ensure they're loaded before models
-require Rails.root.join('app', 'validators', 'email_validator')
+require Rails.root.join('app/validators/email_validator')
 
 # Configure SimpleCov for 95% coverage target
 SimpleCov.start 'rails' do
@@ -25,6 +25,7 @@ end
 WebMock.disable_net_connect!(allow_localhost: true)
 Minitest::Reporters.use!
 include Warden::Test::Helpers
+
 Warden.test_mode!
 
 module ActiveSupport

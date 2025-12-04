@@ -1,4 +1,6 @@
-class ImpulsaMailer < ActionMailer::Base
+# frozen_string_literal: true
+
+class ImpulsaMailer < ApplicationMailer
   def on_spam(project)
     @edition_email = project.impulsa_edition.email
     mail(
@@ -9,7 +11,7 @@ class ImpulsaMailer < ActionMailer::Base
   end
 
   def on_fixes(project)
-    @fixes_limit = I18n.l(project.impulsa_edition.review_projects_until.to_date-1.second, format: :long)
+    @fixes_limit = I18n.l(project.impulsa_edition.review_projects_until.to_date - 1.second, format: :long)
     @edition_email = project.impulsa_edition.email
     @project_url = project_impulsa_url
 
@@ -49,4 +51,3 @@ class ImpulsaMailer < ActionMailer::Base
     )
   end
 end
-  

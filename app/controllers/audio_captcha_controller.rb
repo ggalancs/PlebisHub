@@ -25,7 +25,7 @@ class AudioCaptchaController < ApplicationController
   # Generate and serve audio CAPTCHA
   def index
     # Validate captcha exists
-    unless captcha_value.present?
+    if captcha_value.blank?
       log_security_event('audio_captcha_invalid_key', captcha_key: params[:captcha_key])
       head :not_found
       return
@@ -41,14 +41,12 @@ class AudioCaptchaController < ApplicationController
     speech.save(file_path)
 
     log_security_event('audio_captcha_generated',
-      captcha_key: sanitized_captcha_key
-    )
+                       captcha_key: sanitized_captcha_key)
 
     send_file file_path, type: 'audio/mp3', disposition: :inline
   rescue StandardError => e
     log_error('audio_captcha_generation_error', e,
-      captcha_key: params[:captcha_key]
-    )
+              captcha_key: params[:captcha_key])
     head :internal_server_error
   end
 
@@ -58,10 +56,10 @@ class AudioCaptchaController < ApplicationController
   def speech
     @speech ||= ESpeak::Speech.new(
       captcha_value_spelling,
-      voice: "es+#{Random.rand(2) > 0 ? 'f' : 'm'}#{Random.rand(4) + 1}",
-      speed: 90 + Random.rand(40),
+      voice: "es+#{Random.rand(2).positive? ? 'f' : 'm'}#{Random.rand(1..4)}",
+      speed: Random.rand(90..129),
       pitch: Random.rand(30),
-      capital: Random.rand(30) + 3
+      capital: Random.rand(3..32)
     )
   end
 
@@ -76,7 +74,7 @@ class AudioCaptchaController < ApplicationController
 
   # Get CAPTCHA value from session
   def captcha_value
-    @captcha_value ||= SimpleCaptcha::Utils::simple_captcha_value(captcha_key)
+    @captcha_value ||= SimpleCaptcha::Utils.simple_captcha_value(captcha_key)
   end
 
   # Get CAPTCHA key from params
@@ -86,7 +84,7 @@ class AudioCaptchaController < ApplicationController
 
   # SECURITY: Sanitize captcha_key to prevent path traversal attacks
   def sanitized_captcha_key
-    return nil unless captcha_key.present?
+    return nil if captcha_key.blank?
 
     # Use File.basename to strip directory components
     File.basename(captcha_key.to_s)
@@ -99,14 +97,14 @@ class AudioCaptchaController < ApplicationController
 
   # Get directory for audio files
   def file_dir
-    @file_dir ||= "#{Rails.root}/tmp/audios"
+    @file_dir ||= Rails.root.join('tmp/audios').to_s
   end
 
   # Clean up old audio files to prevent disk space issues
   def cleanup_old_audio_files
     return unless File.directory?(file_dir)
 
-    cutoff_time = Time.current - 1.hour
+    cutoff_time = 1.hour.ago
     Dir.glob("#{file_dir}/*.mp3").each do |file|
       File.delete(file) if File.mtime(file) < cutoff_time
     rescue StandardError => e

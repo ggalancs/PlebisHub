@@ -24,7 +24,7 @@ RSpec.describe 'Militant Get Militant Info', type: :request do
         get '/es/militant/info'
         if response.status == 200
           # La vista es muy simple, solo <%= @result %>
-          has_content = response.body.length > 0
+          has_content = !response.body.empty?
           expect(has_content).to be true
         end
       end

@@ -60,7 +60,7 @@ RSpec.describe 'Page Guarantees', type: :request do
       end
 
       it 'tiene múltiples párrafos explicativos' do
-        paragraphs = response.body.scan(/<p>/).count
+        paragraphs = response.body.scan('<p>').count
         expect(paragraphs).to be >= 4
       end
     end

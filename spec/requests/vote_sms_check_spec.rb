@@ -31,9 +31,7 @@ RSpec.describe 'Vote SMS Check', type: :request do
       end
 
       it 'si renderiza, muestra título de comprobación de teléfono' do
-        if response.status == 200
-          expect(response.body).to match(/comprobación.*teléfono.*móvil/i)
-        end
+        expect(response.body).to match(/comprobación.*teléfono.*móvil/i) if response.status == 200
       end
     end
 
@@ -70,21 +68,19 @@ RSpec.describe 'Vote SMS Check', type: :request do
       end
 
       it 'si renderiza, tiene sección solicitar código' do
-        if response.status == 200
-          expect(response.body).to include('Solicitar código')
-        end
+        expect(response.body).to include('Solicitar código') if response.status == 200
       end
 
       it 'si puede solicitar, muestra número de teléfono' do
         if response.status == 200
-          has_phone = response.body.match?(/phone_prefix|phone_national_part|\+\d+/) || !response.body.include?('Solicitar código')
+          has_phone = response.body.match?(/phone_prefix|phone_national_part|\+\d+/) || response.body.exclude?('Solicitar código')
           expect(has_phone).to be true
         end
       end
 
       it 'si puede solicitar, tiene enlace a perfil para cambiar teléfono' do
         if response.status == 200
-          has_profile_link = response.body.match?(/perfil|edit_user_registration/) || !response.body.include?('Solicitar código')
+          has_profile_link = response.body.match?(/perfil|edit_user_registration/) || response.body.exclude?('Solicitar código')
           expect(has_profile_link).to be true
         end
       end
@@ -125,15 +121,11 @@ RSpec.describe 'Vote SMS Check', type: :request do
       end
 
       it 'si renderiza, tiene h2 para título' do
-        if response.status == 200
-          expect(response.body).to include('<h2>')
-        end
+        expect(response.body).to include('<h2>') if response.status == 200
       end
 
       it 'si renderiza, tiene h3 para secciones' do
-        if response.status == 200
-          expect(response.body).to include('<h3>')
-        end
+        expect(response.body).to include('<h3>') if response.status == 200
       end
 
       it 'si renderiza, usa autocomplete off' do

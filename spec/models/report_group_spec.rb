@@ -29,12 +29,12 @@ RSpec.describe ReportGroup, type: :model do
         width: 20
       )
 
-      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.now)
+      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
       result = group.process(row)
 
       expect(result.size).to eq(2)
-      expect(result[0]).to eq(['NAME', 'JOHN'])
+      expect(result[0]).to eq(%w[NAME JOHN])
       expect(result[1]).to eq(['EMAIL', 'john@test.com'])
     end
 
@@ -42,17 +42,17 @@ RSpec.describe ReportGroup, type: :model do
       group = ReportGroup.new(
         transformation_rules: {
           columns: [
-            { source: 'name', transformations: ['upcase', 'strip'], output: 'NAME' }
+            { source: 'name', transformations: %w[upcase strip], output: 'NAME' }
           ]
         }.to_json,
         width: 20
       )
 
-      row = MockRow.new(name: '  john  ', email: 'john@test.com', amount: 100, created_at: Time.now)
+      row = MockRow.new(name: '  john  ', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
       result = group.process(row)
 
-      expect(result[0]).to eq(['NAME', 'JOHN'])
+      expect(result[0]).to eq(%w[NAME JOHN])
     end
 
     it 'processes with format' do
@@ -65,7 +65,7 @@ RSpec.describe ReportGroup, type: :model do
         width: 20
       )
 
-      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100.50, created_at: Time.now)
+      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100.50, created_at: Time.zone.now)
 
       result = group.process(row)
 
@@ -82,12 +82,12 @@ RSpec.describe ReportGroup, type: :model do
         width: 20
       )
 
-      date = Time.parse('2025-01-15')
+      date = Time.zone.parse('2025-01-15')
       row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: date)
 
       result = group.process(row)
 
-      expect(result[0]).to eq(['DATE', '2025-01-15'])
+      expect(result[0]).to eq(%w[DATE 2025-01-15])
     end
 
     it 'processes with truncate' do
@@ -101,7 +101,7 @@ RSpec.describe ReportGroup, type: :model do
       )
 
       long_name = 'a' * 100
-      row = MockRow.new(name: long_name, email: 'john@test.com', amount: 100, created_at: Time.now)
+      row = MockRow.new(name: long_name, email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
       result = group.process(row)
 
@@ -120,11 +120,11 @@ RSpec.describe ReportGroup, type: :model do
         width: 20
       )
 
-      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100.99, created_at: Time.now)
+      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100.99, created_at: Time.zone.now)
 
       result = group.process(row)
 
-      expect(result[0]).to eq(['AMOUNT', '100'])
+      expect(result[0]).to eq(%w[AMOUNT 100])
     end
   end
 
@@ -141,14 +141,14 @@ RSpec.describe ReportGroup, type: :model do
         width: 20
       )
 
-      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.now)
+      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
       # Should not raise exception, transformation should be ignored
       result = group.process(row)
 
       # Should still return data, just without the invalid transformation
       expect(result.size).to eq(1)
-      expect(result[0]).to eq(['NAME', 'john'])
+      expect(result[0]).to eq(%w[NAME john])
     end
 
     it 'does not allow non-whitelisted transformations' do
@@ -161,28 +161,28 @@ RSpec.describe ReportGroup, type: :model do
         width: 20
       )
 
-      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.now)
+      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
       # Transformation should be ignored since 'eval' is not whitelisted
       result = group.process(row)
 
-      expect(result[0]).to eq(['NAME', 'john'])
+      expect(result[0]).to eq(%w[NAME john])
     end
 
     it 'handles invalid JSON gracefully' do
       group = ReportGroup.new(
-        transformation_rules: "invalid json{{{",
+        transformation_rules: 'invalid json{{{',
         width: 20
       )
       group.id = 1 # Simulate persisted
 
-      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.now)
+      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
       expect(Rails.logger).to receive(:error).with(/Invalid JSON in ReportGroup/)
 
       result = group.process(row)
 
-      expect(result).to eq([["ERROR", "ERROR"]])
+      expect(result).to eq([%w[ERROR ERROR]])
     end
 
     it 'handles missing source field gracefully' do
@@ -195,7 +195,7 @@ RSpec.describe ReportGroup, type: :model do
         width: 20
       )
 
-      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.now)
+      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
       expect(Rails.logger).to receive(:error).with(/Failed to extract/)
 
@@ -272,11 +272,11 @@ RSpec.describe ReportGroup, type: :model do
 
     it 'validates transformation_rules must be valid JSON' do
       group = ReportGroup.new(
-        transformation_rules: "not json"
+        transformation_rules: 'not json'
       )
 
       expect(group).not_to be_valid
-      expect(group.errors[:transformation_rules]).to include("must be valid JSON")
+      expect(group.errors[:transformation_rules]).to include('must be valid JSON')
     end
   end
 
@@ -285,7 +285,7 @@ RSpec.describe ReportGroup, type: :model do
   describe 'legacy mode' do
     it 'still works with legacy eval() mode (deprecated)' do
       group = ReportGroup.new(
-        proc: "[[row.name.upcase, row.email]]",
+        proc: '[[row.name.upcase, row.email]]',
         width: 20
       )
       group.id = 1 # Simulate persisted
@@ -293,7 +293,7 @@ RSpec.describe ReportGroup, type: :model do
       # Expect deprecation warning
       expect(Rails.logger).to receive(:warn).with(/deprecated eval/).at_least(:once)
 
-      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.now)
+      row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
       # Should still work but log warnings
       result = group.process(row)
@@ -319,7 +319,7 @@ RSpec.describe ReportGroup, type: :model do
       it 'splits lines correctly' do
         group = ReportGroup.new(whitelist: "item1\r\nitem2\r\nitem3")
 
-        expect(group.get_whitelist).to eq(['item1', 'item2', 'item3'])
+        expect(group.get_whitelist).to eq(%w[item1 item2 item3])
       end
     end
 
@@ -327,7 +327,7 @@ RSpec.describe ReportGroup, type: :model do
       it 'splits lines correctly' do
         group = ReportGroup.new(blacklist: "bad1\r\nbad2")
 
-        expect(group.get_blacklist).to eq(['bad1', 'bad2'])
+        expect(group.get_blacklist).to eq(%w[bad1 bad2])
       end
     end
 
@@ -416,7 +416,7 @@ RSpec.describe ReportGroup, type: :model do
       result = group.process(nil)
 
       # Returns empty string when field extraction fails on nil row
-      expect(result).to eq([["NAME", ""]])
+      expect(result).to eq([['NAME', '']])
     end
   end
 end

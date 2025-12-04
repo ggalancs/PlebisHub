@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe 'Phase 3 PLEBIS_COLLABORATIONS Fixes', type: :model do
   describe 'MEDIUM-3: require statement uses require_relative' do
     it 'ActiveAdmin collaboration uses require_relative' do
-      source = File.read(Rails.root.join('engines/plebis_collaborations/app/admin/collaboration.rb'))
+      source = Rails.root.join('engines/plebis_collaborations/app/admin/collaboration.rb').read
       expect(source).to include("require_relative '../../../lib/collaborations_on_paper'")
       expect(source).not_to include("require 'collaborations_on_paper'")
     end
@@ -13,7 +13,7 @@ RSpec.describe 'Phase 3 PLEBIS_COLLABORATIONS Fixes', type: :model do
 
   describe 'MEDIUM-2: Collaboration association naming' do
     it 'Collaboration model uses plural :orders association' do
-      source = File.read(Rails.root.join('engines/plebis_collaborations/app/models/plebis_collaborations/collaboration.rb'))
+      source = Rails.root.join('engines/plebis_collaborations/app/models/plebis_collaborations/collaboration.rb').read
       expect(source).to include('has_many :orders')
       expect(source).not_to match(/has_many :order[^s]/)
     end
@@ -30,7 +30,7 @@ RSpec.describe 'Phase 3 PLEBIS_COLLABORATIONS Fixes', type: :model do
 
   describe 'Order model references' do
     it 'Order model has correct belongs_to association' do
-      source = File.read(Rails.root.join('engines/plebis_collaborations/app/models/plebis_collaborations/order.rb'))
+      source = Rails.root.join('engines/plebis_collaborations/app/models/plebis_collaborations/order.rb').read
       expect(source).to include('belongs_to :collaboration')
     end
   end

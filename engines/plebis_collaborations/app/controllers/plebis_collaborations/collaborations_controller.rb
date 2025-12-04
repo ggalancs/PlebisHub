@@ -10,15 +10,17 @@ module PlebisCollaborations
   # - Error handling for all database operations
   class CollaborationsController < ApplicationController
     include Redirectable
+
     helper_method :force_single?, :active_frequencies, :payment_types
     helper_method :only_recurrent?
     helper_method :pending_single_orders
 
     before_action :authenticate_user!
-    before_action :set_collaboration, only: [:confirm, :confirm_bank, :edit, :modify, :destroy, :OK, :KO]
+    before_action :set_collaboration, only: %i[confirm confirm_bank edit modify destroy OK KO]
 
     def new
       redirect_to edit_collaboration_path and return if current_user.recurrent_collaboration && !force_single?
+
       @collaboration = PlebisCollaborations::Collaboration.new
       @collaboration.for_town_cc = true
       @collaboration.frequency = 0 if force_single?
@@ -44,12 +46,17 @@ module PlebisCollaborations
       render 'edit'
     end
 
+    def edit
+      redirect_to new_collaboration_path and return unless @collaboration
+      redirect_to confirm_collaboration_path and return unless @collaboration.has_payment?
+    end
+
     def create
       @collaboration = PlebisCollaborations::Collaboration.new(create_params)
       @collaboration.user = current_user
 
-      if current_user.recurrent_collaboration && create_params[:frequency].to_i > 0
-        flash[:alert] = I18n.t('collaborations.create.already_has_recurrent')
+      if current_user.recurrent_collaboration && create_params[:frequency].to_i.positive?
+        flash.now[:alert] = I18n.t('collaborations.create.already_has_recurrent')
         render :new
         return
       end
@@ -57,11 +64,14 @@ module PlebisCollaborations
       respond_to do |format|
         if @collaboration.save
           log_collaboration_event(:created, @collaboration)
-          format.html { redirect_to confirm_collaboration_url(force_single: @collaboration.frequency == 0), notice: I18n.t('collaborations.create.success') }
+          format.html do
+            redirect_to confirm_collaboration_url(force_single: @collaboration.frequency.zero?),
+                        notice: I18n.t('collaborations.create.success')
+          end
           format.json { render :confirm, status: :created, location: confirm_collaboration_path }
         else
           format.html { render :new }
-          format.json { render json: @collaboration.errors, status: :unprocessable_entity }
+          format.json { render json: @collaboration.errors, status: :unprocessable_content }
         end
       end
     rescue ActiveRecord::RecordInvalid => e
@@ -71,13 +81,8 @@ module PlebisCollaborations
           flash.now[:alert] = I18n.t('collaborations.create.error')
           render :new
         end
-        format.json { render json: { error: e.message }, status: :unprocessable_entity }
+        format.json { render json: { error: e.message }, status: :unprocessable_content }
       end
-    end
-
-    def edit
-      redirect_to new_collaboration_path and return unless @collaboration
-      redirect_to confirm_collaboration_path and return unless @collaboration.has_payment?
     end
 
     def destroy
@@ -99,7 +104,7 @@ module PlebisCollaborations
 
       redirect_to new_collaboration_path and return unless @collaboration
 
-      collaboration_id = @collaboration.id
+      @collaboration.id
       @collaboration.destroy
       log_collaboration_event(:destroyed, @collaboration)
 
@@ -115,18 +120,19 @@ module PlebisCollaborations
           flash[:alert] = I18n.t('collaborations.destroy.error')
           redirect_to new_collaboration_path
         end
-        format.json { render json: { error: e.message }, status: :unprocessable_entity }
+        format.json { render json: { error: e.message }, status: :unprocessable_content }
       end
     end
 
     def confirm
       redirect_to new_collaboration_path and return unless @collaboration
-      redirect_to edit_collaboration_path if @collaboration.frequency > 0 && @collaboration.has_payment?
+
+      redirect_to edit_collaboration_path if @collaboration.frequency.positive? && @collaboration.has_payment?
 
       # Non-persisted order for credit card payment flow
       # Lifecycle: Created here, displayed in view, persisted during payment callback
       # Allows regenerating order ID for each payment attempt to prevent duplicate charges
-      @order = @collaboration.create_order(Time.now, true) if @collaboration.is_credit_card?
+      @order = @collaboration.create_order(Time.zone.now, true) if @collaboration.is_credit_card?
     end
 
     def single
@@ -139,17 +145,17 @@ module PlebisCollaborations
       # New: explicit nil check
       redirect_to new_collaboration_path and return unless @collaboration
 
-      if !@collaboration.is_active?
-        if @collaboration.is_credit_card?
-          warning_message = I18n.t('collaborations.ok.credit_card_warning')
-          @collaboration.set_warning!(warning_message)
-          log_collaboration_event(:payment_warning, @collaboration)
-        else
-          @collaboration.set_active!
-          log_collaboration_event(:activated, @collaboration)
-          return_path = session.delete(:return_to) || root_path
-          redirect_to return_path
-        end
+      return if @collaboration.is_active?
+
+      if @collaboration.is_credit_card?
+        warning_message = I18n.t('collaborations.ok.credit_card_warning')
+        @collaboration.set_warning!(warning_message)
+        log_collaboration_event(:payment_warning, @collaboration)
+      else
+        @collaboration.set_active!
+        log_collaboration_event(:activated, @collaboration)
+        return_path = session.delete(:return_to) || root_path
+        redirect_to return_path
       end
     end
 
@@ -202,13 +208,14 @@ module PlebisCollaborations
 
     def pending_single_orders
       @pending_single_orders ||= current_user.pending_single_collaborations.map do |c|
-        c.get_orders(Date.today).first
+        c.get_orders(Time.zone.today).first
       end
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def create_params
-      params.require(:collaboration).permit(:amount, :frequency, :terms_of_service, :minimal_year_old, :payment_type, :ccc_entity, :ccc_office, :ccc_dc, :ccc_account, :iban_account, :iban_bic, :territorial_assignment)
+      params.require(:collaboration).permit(:amount, :frequency, :terms_of_service, :minimal_year_old, :payment_type,
+                                            :ccc_entity, :ccc_office, :ccc_dc, :ccc_account, :iban_account, :iban_bic, :territorial_assignment)
     end
 
     # Structured logging for collaboration events

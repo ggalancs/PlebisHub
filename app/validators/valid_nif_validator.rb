@@ -20,8 +20,8 @@ class ValidNifValidator < ActiveModel::EachValidator
     letter = value_clean[8]
     expected_letter = LETTERS[number % 23]
 
-    if letter != expected_letter
-      record.errors.add(attribute, 'is invalid')
-    end
+    return unless letter != expected_letter
+
+    record.errors.add(attribute, 'is invalid')
   end
 end

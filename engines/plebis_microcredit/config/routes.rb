@@ -14,6 +14,7 @@ PlebisMicrocredit::Engine.routes.draw do
   get '/microcreditos/:id/detalle', to: 'microcredit#show_options', as: :show_microcredit_options_detail
   get '/microcreditos/:id/login', to: 'microcredit#login', as: :microcredit_login
   post '/microcreditos/:id', to: 'microcredit#create_loan', as: :create_microcredit_loan
-  get '/microcreditos/:id/renovar(/:loan_id/:hash)', to: 'microcredit#loans_renewal', as: :loans_renewal_microcredit_loan
+  get '/microcreditos/:id/renovar(/:loan_id/:hash)', to: 'microcredit#loans_renewal',
+                                                     as: :loans_renewal_microcredit_loan
   post '/microcreditos/:id/renovar(/:loan_id/:hash)', to: 'microcredit#loans_renew', as: :loans_renew_microcredit_loan
 end

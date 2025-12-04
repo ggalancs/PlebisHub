@@ -10,7 +10,7 @@ RSpec.describe Page, type: :model do
   describe 'factory' do
     it 'creates valid page' do
       page = build(:page)
-      expect(page).to be_valid, "Factory should create a valid page"
+      expect(page).to be_valid, 'Factory should create a valid page'
     end
 
     it 'creates valid promoted page' do
@@ -36,18 +36,18 @@ RSpec.describe Page, type: :model do
       it 'requires title' do
         page = build(:page, title: nil)
         expect(page).not_to be_valid
-        expect(page.errors[:title]).to include("no puede estar en blanco")
+        expect(page.errors[:title]).to include('no puede estar en blanco')
       end
 
       it 'accepts valid title' do
-        page = build(:page, title: "Valid Page Title")
+        page = build(:page, title: 'Valid Page Title')
         expect(page).to be_valid
       end
 
       it 'rejects empty string title' do
-        page = build(:page, title: "")
+        page = build(:page, title: '')
         expect(page).not_to be_valid
-        expect(page.errors[:title]).to include("no puede estar en blanco")
+        expect(page.errors[:title]).to include('no puede estar en blanco')
       end
     end
 
@@ -55,37 +55,37 @@ RSpec.describe Page, type: :model do
       it 'requires slug' do
         page = build(:page, slug: nil)
         expect(page).not_to be_valid
-        expect(page.errors[:slug]).to include("no puede estar en blanco")
+        expect(page.errors[:slug]).to include('no puede estar en blanco')
       end
 
       it 'requires unique slug' do
-        create(:page, slug: "unique-slug")
-        duplicate_page = build(:page, slug: "unique-slug")
+        create(:page, slug: 'unique-slug')
+        duplicate_page = build(:page, slug: 'unique-slug')
         expect(duplicate_page).not_to be_valid
-        expect(duplicate_page.errors[:slug]).to include("ya está en uso")
+        expect(duplicate_page.errors[:slug]).to include('ya está en uso')
       end
 
       it 'enforces case-insensitive slug uniqueness' do
-        create(:page, slug: "my-slug")
-        duplicate_page = build(:page, slug: "MY-SLUG")
+        create(:page, slug: 'my-slug')
+        duplicate_page = build(:page, slug: 'MY-SLUG')
         expect(duplicate_page).not_to be_valid
-        expect(duplicate_page.errors[:slug]).to include("ya está en uso")
+        expect(duplicate_page.errors[:slug]).to include('ya está en uso')
       end
 
       it 'allows same slug if one is deleted (paranoid scope)' do
-        deleted_page = create(:page, slug: "reusable-slug")
+        deleted_page = create(:page, slug: 'reusable-slug')
         deleted_page.destroy # Soft delete
 
-        new_page = build(:page, slug: "reusable-slug")
-        expect(new_page).to be_valid, "Should allow same slug when previous is soft-deleted"
+        new_page = build(:page, slug: 'reusable-slug')
+        expect(new_page).to be_valid, 'Should allow same slug when previous is soft-deleted'
       end
 
       it 'does not allow duplicate slug among non-deleted pages' do
-        create(:page, slug: "active-slug")
-        deleted_page = create(:page, slug: "deleted-slug")
+        create(:page, slug: 'active-slug')
+        deleted_page = create(:page, slug: 'deleted-slug')
         deleted_page.destroy
 
-        duplicate = build(:page, slug: "active-slug")
+        duplicate = build(:page, slug: 'active-slug')
         expect(duplicate).not_to be_valid
       end
     end
@@ -94,13 +94,13 @@ RSpec.describe Page, type: :model do
       it 'requires id_form' do
         page = build(:page, id_form: nil)
         expect(page).not_to be_valid
-        expect(page.errors[:id_form]).to include("no puede estar en blanco")
+        expect(page.errors[:id_form]).to include('no puede estar en blanco')
       end
 
       it 'requires id_form to be greater than or equal to 0' do
         page = build(:page, id_form: -1)
         expect(page).not_to be_valid
-        expect(page.errors[:id_form]).to include("debe ser mayor que o igual a 0")
+        expect(page.errors[:id_form]).to include('debe ser mayor que o igual a 0')
       end
 
       it 'accepts id_form equal to 0' do
@@ -115,9 +115,9 @@ RSpec.describe Page, type: :model do
 
       it 'rejects non-numeric id_form' do
         page = build(:page)
-        page.id_form = "not a number"
+        page.id_form = 'not a number'
         expect(page).not_to be_valid
-        expect(page.errors[:id_form]).to include("no es un número")
+        expect(page.errors[:id_form]).to include('no es un número')
       end
     end
   end
@@ -133,17 +133,16 @@ RSpec.describe Page, type: :model do
 
     it 'reads page attributes correctly' do
       page = create(:page,
-        title: "Test Title",
-        slug: "test-slug",
-        id_form: 42,
-        require_login: true,
-        promoted: true,
-        priority: 5
-      )
+                    title: 'Test Title',
+                    slug: 'test-slug',
+                    id_form: 42,
+                    require_login: true,
+                    promoted: true,
+                    priority: 5)
 
       found_page = Page.find(page.id)
-      expect(found_page.title).to eq("Test Title")
-      expect(found_page.slug).to eq("test-slug")
+      expect(found_page.title).to eq('Test Title')
+      expect(found_page.slug).to eq('test-slug')
       expect(found_page.id_form).to eq(42)
       expect(found_page.require_login).to be_truthy
       expect(found_page.promoted).to be_truthy
@@ -151,18 +150,18 @@ RSpec.describe Page, type: :model do
     end
 
     it 'updates page attributes' do
-      page = create(:page, title: "Original Title")
-      page.update(title: "Updated Title")
+      page = create(:page, title: 'Original Title')
+      page.update(title: 'Updated Title')
 
-      expect(page.reload.title).to eq("Updated Title")
+      expect(page.reload.title).to eq('Updated Title')
     end
 
     it 'does not update with invalid attributes' do
-      page = create(:page, title: "Valid Title")
+      page = create(:page, title: 'Valid Title')
       page.update(title: nil)
 
       expect(page).not_to be_valid
-      expect(page.reload.title).to eq("Valid Title")
+      expect(page.reload.title).to eq('Valid Title')
     end
 
     it 'deletes page' do
@@ -185,8 +184,8 @@ RSpec.describe Page, type: :model do
     end
 
     it 'excludes soft deleted page from default scope' do
-      active_page = create(:page, slug: "active")
-      deleted_page = create(:page, slug: "deleted")
+      active_page = create(:page, slug: 'active')
+      deleted_page = create(:page, slug: 'deleted')
       deleted_page.destroy
 
       expect(Page.all).to include(active_page)
@@ -201,8 +200,8 @@ RSpec.describe Page, type: :model do
     end
 
     it 'finds only deleted pages with only_deleted scope' do
-      active_page = create(:page, slug: "active")
-      deleted_page = create(:page, slug: "deleted")
+      active_page = create(:page, slug: 'active')
+      deleted_page = create(:page, slug: 'deleted')
       deleted_page.destroy
 
       expect(Page.only_deleted).not_to include(active_page)
@@ -220,10 +219,10 @@ RSpec.describe Page, type: :model do
     end
 
     it 'does not allow duplicate slug after restore if slug already exists' do
-      page1 = create(:page, slug: "duplicate-slug")
+      page1 = create(:page, slug: 'duplicate-slug')
       page1.destroy
 
-      page2 = create(:page, slug: "duplicate-slug")
+      create(:page, slug: 'duplicate-slug')
 
       page1.restore
       expect(page1).not_to be_valid
@@ -236,7 +235,7 @@ RSpec.describe Page, type: :model do
 
   describe 'default values' do
     it 'has default value for require_login' do
-      page = Page.new(title: "Test", slug: "test", id_form: 1)
+      page = Page.new(title: 'Test', slug: 'test', id_form: 1)
       # Check database default or model default
       page.save
       # require_login defaults to false or nil depending on DB schema
@@ -265,7 +264,7 @@ RSpec.describe Page, type: :model do
     end
 
     it 'accepts valid link' do
-      page = build(:page, link: "https://example.com/form")
+      page = build(:page, link: 'https://example.com/form')
       expect(page).to be_valid
     end
 
@@ -291,7 +290,7 @@ RSpec.describe Page, type: :model do
 
   describe 'edge cases' do
     it 'handles very long title' do
-      long_title = "A" * 1000
+      long_title = 'A' * 1000
       page = build(:page, title: long_title)
       # This might be valid or invalid depending on DB column size
       # Adjust based on actual schema constraints
@@ -301,22 +300,22 @@ RSpec.describe Page, type: :model do
     end
 
     it 'handles special characters in slug' do
-      page = build(:page, slug: "page-with-special-chars-123")
+      page = build(:page, slug: 'page-with-special-chars-123')
       expect(page).to be_valid
     end
 
     it 'handles special characters in title' do
-      page = build(:page, title: "Title with 特殊 characters & symbols!")
+      page = build(:page, title: 'Title with 特殊 characters & symbols!')
       expect(page).to be_valid
     end
 
     it 'handles maximum integer for id_form' do
-      page = build(:page, id_form: 2147483647) # Max 32-bit integer
+      page = build(:page, id_form: 2_147_483_647) # Max 32-bit integer
       expect(page).to be_valid
     end
 
     it 'handles maximum integer for priority' do
-      page = build(:page, priority: 2147483647)
+      page = build(:page, priority: 2_147_483_647)
       expect(page).to be_valid
     end
   end
@@ -327,19 +326,19 @@ RSpec.describe Page, type: :model do
 
   describe 'multiple records' do
     it 'creates multiple pages with different slugs' do
-      expect {
-        create(:page, slug: "page-1")
-        create(:page, slug: "page-2")
-        create(:page, slug: "page-3")
-      }.to change(Page, :count).by(3)
+      expect do
+        create(:page, slug: 'page-1')
+        create(:page, slug: 'page-2')
+        create(:page, slug: 'page-3')
+      end.to change(Page, :count).by(3)
     end
 
     it 'maintains uniqueness across multiple creates' do
-      create(:page, slug: "unique")
+      create(:page, slug: 'unique')
 
-      expect {
-        create(:page, slug: "unique")
-      }.to raise_error(ActiveRecord::RecordInvalid)
+      expect do
+        create(:page, slug: 'unique')
+      end.to raise_error(ActiveRecord::RecordInvalid)
     end
   end
 
@@ -410,17 +409,17 @@ RSpec.describe Page, type: :model do
   describe 'instance methods' do
     describe '#external_plebisbrand_link?' do
       it 'returns true for plebisbrand.info links' do
-        page = create(:page, link: "https://forms.plebisbrand.info/some-form/")
+        page = create(:page, link: 'https://forms.plebisbrand.info/some-form/')
         expect(page).to be_external_plebisbrand_link
       end
 
       it 'returns true for subdomain plebisbrand.info links' do
-        page = create(:page, link: "https://any.plebisbrand.info/path/")
+        page = create(:page, link: 'https://any.plebisbrand.info/path/')
         expect(page).to be_external_plebisbrand_link
       end
 
       it 'returns false for non-plebisbrand links' do
-        page = create(:page, link: "https://example.com/form/")
+        page = create(:page, link: 'https://example.com/form/')
         expect(page).not_to be_external_plebisbrand_link
       end
 
@@ -430,17 +429,17 @@ RSpec.describe Page, type: :model do
       end
 
       it 'returns false for empty string link' do
-        page = create(:page, link: "")
+        page = create(:page, link: '')
         expect(page).not_to be_external_plebisbrand_link
       end
 
       it 'returns false for http (non-https) links' do
-        page = create(:page, link: "http://forms.plebisbrand.info/form/")
+        page = create(:page, link: 'http://forms.plebisbrand.info/form/')
         expect(page).not_to be_external_plebisbrand_link
       end
 
       it 'handles malformed URLs gracefully' do
-        page = create(:page, link: "not a url")
+        page = create(:page, link: 'not a url')
         expect(page).not_to be_external_plebisbrand_link
       end
     end

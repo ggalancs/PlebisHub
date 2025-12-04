@@ -1,0 +1,45 @@
+/* line 1, app/assets/stylesheets/cookie_policy.css.scss */
+.cookie {
+  overflow: hidden;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #f0f0f0;
+  font-size: 12px;
+  padding: 10px 0;
+  color: #444;
+  font-weight: 200;
+  text-align: center;
+}
+
+/* line 12, app/assets/stylesheets/cookie_policy.css.scss */
+.cookie a {
+  color: #269283;
+  text-decoration: underline;
+}
+
+/* line 15, app/assets/stylesheets/cookie_policy.css.scss */
+.cookie a:hover {
+  text-decoration: none;
+}
+
+/* line 19, app/assets/stylesheets/cookie_policy.css.scss */
+.cookie a.close {
+  color: #000;
+  text-decoration: none;
+  opacity: 0.5;
+  display: block;
+  width: 20px;
+  margin-right: 25px;
+  float: right;
+  height: 20px;
+  -webkit-transition: 0.2s ease-in;
+  -moz-transition: 0.2s ease-in;
+  -o-transition: 0.2s ease-in;
+  transition: 0.2s ease-in;
+}
+
+/* line 33, app/assets/stylesheets/cookie_policy.css.scss */
+.cookie a.close:hover {
+  opacity: 1;
+}

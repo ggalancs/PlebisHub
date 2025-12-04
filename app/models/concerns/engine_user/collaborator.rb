@@ -55,11 +55,10 @@ module EngineUser
     #
     def has_min_monthly_collaboration?
       min_amount = User::MIN_MILITANT_AMOUNT
-      self.collaborations
-          .where.not(frequency: 0)
-          .where("amount >= ?", min_amount)
-          .where(status: 3)
-          .exists?
+      collaborations
+        .where.not(frequency: 0)
+        .where(amount: min_amount..)
+        .exists?(status: 3)
     end
 
     # Check if user is a collaborator for militant purposes
@@ -69,12 +68,11 @@ module EngineUser
     #
     def collaborator_for_militant?
       min_amount = User::MIN_MILITANT_AMOUNT
-      (self.has_min_monthly_collaboration? ||
-       self.collaborations
-           .where.not(frequency: 0)
-           .where("amount >= ?", min_amount)
-           .where(status: 2)
-           .exists?)
+      has_min_monthly_collaboration? ||
+        collaborations
+          .where.not(frequency: 0)
+          .where(amount: min_amount..)
+          .exists?(status: 2)
     end
   end
 end

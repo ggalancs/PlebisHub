@@ -18,8 +18,8 @@ FactoryBot.define do
 
     payment_type { 1 } # Credit card by default
     amount { 1000 } # 10 EUR in cents
-    payable_at { Date.today }
-    reference { "Test Order Reference" }
+    payable_at { Time.zone.today }
+    reference { 'Test Order Reference' }
     first { false }
     status { 0 } # Nueva (new)
 
@@ -28,22 +28,22 @@ FactoryBot.define do
 
     trait :credit_card do
       payment_type { 1 }
-      payment_identifier { "999999999R" }
+      payment_identifier { '999999999R' }
     end
 
     trait :ccc do
       payment_type { 2 }
-      payment_identifier { "ES9121000418450200051332/CAIXESBBXXX" }
+      payment_identifier { 'ES9121000418450200051332/CAIXESBBXXX' }
     end
 
     trait :iban do
       payment_type { 3 }
-      payment_identifier { "ES9121000418450200051332/CAIXESBBXXX" }
+      payment_identifier { 'ES9121000418450200051332/CAIXESBBXXX' }
     end
 
     trait :international_iban do
       payment_type { 3 }
-      payment_identifier { "DE89370400440532013000/COBADEFFXXX" }
+      payment_identifier { 'DE89370400440532013000/COBADEFFXXX' }
     end
 
     trait :first_order do
@@ -62,12 +62,12 @@ FactoryBot.define do
 
     trait :ok do
       status { 2 }
-      payed_at { Time.now }
+      payed_at { Time.zone.now }
     end
 
     trait :alerta do
       status { 3 }
-      payed_at { Time.now }
+      payed_at { Time.zone.now }
     end
 
     trait :error do
@@ -78,7 +78,7 @@ FactoryBot.define do
     trait :devuelta do
       status { 5 }
       payed_at { nil }
-      payment_response { "MS03" }
+      payment_response { 'MS03' }
     end
 
     trait :paid do
@@ -91,8 +91,8 @@ FactoryBot.define do
     end
 
     trait :with_territory do
-      autonomy_code { "c_01" }
-      town_code { "m_28_079_6" }
+      autonomy_code { 'c_01' }
+      town_code { 'm_28_079_6' }
       island_code { nil }
     end
   end

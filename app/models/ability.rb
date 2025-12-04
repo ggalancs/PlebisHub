@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Ability
   include CanCan::Ability
 
@@ -27,9 +29,7 @@ class Ability
     end
 
     # All authenticated users
-    if user.persisted?
-      define_user_abilities(user)
-    end
+    define_user_abilities(user) if user.persisted?
 
     # Guest users
     define_guest_abilities
@@ -38,7 +38,7 @@ class Ability
   private
 
   # SECURITY FIX SEC-007: Granular permissions for regular admins
-  def define_regular_admin_abilities(user)
+  def define_regular_admin_abilities(_user)
     # Content management
     can :manage, Notice
     can :manage, Post
@@ -48,11 +48,11 @@ class Ability
     can :manage, Report
     can :manage, ActiveAdmin
     can :read, ActiveAdmin::Page, name: 'Dashboard'
-    can [:read, :create], ActiveAdmin::Comment
+    can %i[read create], ActiveAdmin::Comment
 
     # User management (limited - no destroy to prevent accidental deletions)
     can :admin, User
-    can [:read, :create, :update], User
+    can %i[read create update], User
     cannot :destroy, User
 
     # Financial management (limited - read-only for non-finance admins)
@@ -66,25 +66,25 @@ class Ability
     # Impulsa project management
     can :admin, ImpulsaProject if defined?(ImpulsaProject)
     can :admin, ImpulsaEdition if defined?(ImpulsaEdition)
-    can [:read, :update], ImpulsaProject if defined?(ImpulsaProject)
-    can [:read, :update], ImpulsaEdition if defined?(ImpulsaEdition)
-    can [:read, :update], ImpulsaEditionTopic if defined?(ImpulsaEditionTopic)
+    can %i[read update], ImpulsaProject if defined?(ImpulsaProject)
+    can %i[read update], ImpulsaEdition if defined?(ImpulsaEdition)
+    can %i[read update], ImpulsaEditionTopic if defined?(ImpulsaEditionTopic)
 
     # Restrict sensitive operations (only for superadmins)
     cannot :manage, Election
     cannot :manage, ReportGroup
     cannot :manage, SpamFilter
-    can :read, Election  # Allow read-only access to elections
-    cannot [:destroy, :update], Vote if defined?(Vote)
+    can :read, Election # Allow read-only access to elections
+    cannot %i[destroy update], Vote if defined?(Vote)
   end
 
   # SECURITY FIX SEC-007: Granular permissions for finances admins
-  def define_finances_admin_abilities(user)
+  def define_finances_admin_abilities(_user)
     can :manage, Microcredit if defined?(Microcredit)
     can :manage, MicrocreditLoan if defined?(MicrocreditLoan)
     can :manage, Order if defined?(Order)
     can :manage, Collaboration if defined?(Collaboration)
-    can [:read, :create], ActiveAdmin::Comment
+    can %i[read create], ActiveAdmin::Comment
 
     # Preserve financial records - no destructive operations
     cannot :destroy, Order if defined?(Order)
@@ -92,15 +92,15 @@ class Ability
 
     # Read-only access for verification
     can :read, User
-    can :read, ActiveAdmin::Page, name: "Envios de Credenciales"
+    can :read, ActiveAdmin::Page, name: 'Envios de Credenciales'
   end
 
   # SECURITY FIX SEC-007: Granular permissions for impulsa admins
-  def define_impulsa_admin_abilities(user)
+  def define_impulsa_admin_abilities(_user)
     can :manage, ImpulsaProject if defined?(ImpulsaProject)
     can :manage, ImpulsaEdition if defined?(ImpulsaEdition)
     can :manage, ImpulsaEditionTopic if defined?(ImpulsaEditionTopic)
-    can [:read, :create], ActiveAdmin::Comment
+    can %i[read create], ActiveAdmin::Comment
 
     # Read-only access to user data
     can :read, User
@@ -108,20 +108,20 @@ class Ability
 
   # SECURITY FIX SEC-007: Granular permissions for verifiers
   def define_verifier_abilities(user)
-    can [:show, :read, :update], UserVerification if defined?(UserVerification)
-    can :read, ActiveAdmin::Page, name: "Envios de Credenciales"
-    can [:read, :create], ActiveAdmin::Comment
+    can %i[show read update], UserVerification if defined?(UserVerification)
+    can :read, ActiveAdmin::Page, name: 'Envios de Credenciales'
+    can %i[read create], ActiveAdmin::Comment
 
     # Can create/update their own verifications
-    can [:create, :update], UserVerification, user_id: user.id if defined?(UserVerification)
+    can %i[create update], UserVerification, user_id: user.id if defined?(UserVerification)
 
     # Read-only access to users
     can :read, User
   end
 
   # SECURITY FIX SEC-007: Granular permissions for paper authorities
-  def define_paper_authority_abilities(user)
-    can :manage, ActiveAdmin::Page, name: "CensusTool"
+  def define_paper_authority_abilities(_user)
+    can :manage, ActiveAdmin::Page, name: 'CensusTool'
 
     # Read-only access to users
     can :read, User
@@ -129,9 +129,9 @@ class Ability
 
   # SECURITY FIX SEC-007: Permissions for all authenticated users
   def define_user_abilities(user)
-    can [:show, :read, :update], User, id: user.id
+    can %i[show read update], User, id: user.id
     can :show, Notice
-    can [:create, :update], UserVerification, user_id: user.id if defined?(UserVerification)
+    can %i[create update], UserVerification, user_id: user.id if defined?(UserVerification)
     can :manage, Collaboration, user_id: user.id if defined?(Collaboration)
   end
 

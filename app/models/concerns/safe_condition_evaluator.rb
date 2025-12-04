@@ -59,7 +59,7 @@ module SafeConditionEvaluator
 
       # Build and execute safe condition
       execute_condition(context, tokens)
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error("SafeConditionEvaluator error: #{e.message} for condition: #{condition_string}")
       false # Fail safely
     end
@@ -68,7 +68,7 @@ module SafeConditionEvaluator
 
     # Tokenize the condition string into method names and operators
     def tokenize(condition_string)
-      condition_string.scan(/\w+\?|\&\&|\|\||!|\(|\)/)
+      condition_string.scan(/\w+\?|&&|\|\||!|\(|\)/)
     end
 
     # Validate that all tokens are in the whitelist
@@ -94,7 +94,7 @@ module SafeConditionEvaluator
         when *SAFE_METHODS
           # Call the whitelisted method and get boolean result
           result = context.public_send(token)
-          result = !!result # Convert to boolean
+          result = !result.nil? # Convert to boolean
 
           # Apply NOT if flag is set
           if negate_next
@@ -103,12 +103,12 @@ module SafeConditionEvaluator
           end
 
           values << result
-        when "&&", "||"
+        when '&&', '||'
           operators << token
-        when "!"
+        when '!'
           # NOT operator - set flag to negate next value
           negate_next = true
-        when "(", ")"
+        when '(', ')'
           # Parentheses handling (simplified - assumes balanced parens)
           operators << token
         else
@@ -136,11 +136,11 @@ module SafeConditionEvaluator
         next_value = values[idx]
 
         case op
-        when "&&"
-          result = result && next_value
-        when "||"
-          result = result || next_value
-        when "(", ")"
+        when '&&'
+          result &&= next_value
+        when '||'
+          result ||= next_value
+        when '(', ')'
           # Skip parentheses (simplified handling)
           next
         end

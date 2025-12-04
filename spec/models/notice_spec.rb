@@ -4,6 +4,7 @@ require 'rails_helper'
 
 RSpec.describe PlebisCms::Notice, type: :model do
   include ActiveSupport::Testing::TimeHelpers
+
   # ====================
   # FACTORY TESTS
   # ====================
@@ -11,7 +12,7 @@ RSpec.describe PlebisCms::Notice, type: :model do
   describe 'factory' do
     it 'creates valid notice' do
       notice = build(:notice)
-      expect(notice).to be_valid, "Factory should create a valid notice"
+      expect(notice).to be_valid, 'Factory should create a valid notice'
     end
 
     it 'creates valid sent notice' do
@@ -36,18 +37,18 @@ RSpec.describe PlebisCms::Notice, type: :model do
       it 'requires title' do
         notice = build(:notice, title: nil)
         expect(notice).not_to be_valid
-        expect(notice.errors[:title]).to include("no puede estar en blanco")
+        expect(notice.errors[:title]).to include('no puede estar en blanco')
       end
 
       it 'accepts valid title' do
-        notice = build(:notice, title: "Important Announcement")
+        notice = build(:notice, title: 'Important Announcement')
         expect(notice).to be_valid
       end
 
       it 'rejects empty string title' do
-        notice = build(:notice, title: "")
+        notice = build(:notice, title: '')
         expect(notice).not_to be_valid
-        expect(notice.errors[:title]).to include("no puede estar en blanco")
+        expect(notice.errors[:title]).to include('no puede estar en blanco')
       end
     end
 
@@ -55,18 +56,18 @@ RSpec.describe PlebisCms::Notice, type: :model do
       it 'requires body' do
         notice = build(:notice, body: nil)
         expect(notice).not_to be_valid
-        expect(notice.errors[:body]).to include("no puede estar en blanco")
+        expect(notice.errors[:body]).to include('no puede estar en blanco')
       end
 
       it 'accepts valid body' do
-        notice = build(:notice, body: "This is a detailed message for all users.")
+        notice = build(:notice, body: 'This is a detailed message for all users.')
         expect(notice).to be_valid
       end
 
       it 'rejects empty string body' do
-        notice = build(:notice, body: "")
+        notice = build(:notice, body: '')
         expect(notice).not_to be_valid
-        expect(notice.errors[:body]).to include("no puede estar en blanco")
+        expect(notice.errors[:body]).to include('no puede estar en blanco')
       end
     end
 
@@ -77,36 +78,36 @@ RSpec.describe PlebisCms::Notice, type: :model do
       end
 
       it 'accepts blank link' do
-        notice = build(:notice, link: "")
+        notice = build(:notice, link: '')
         expect(notice).to be_valid
       end
 
       it 'accepts valid http URL' do
-        notice = build(:notice, link: "http://example.com/page")
+        notice = build(:notice, link: 'http://example.com/page')
         expect(notice).to be_valid
       end
 
       it 'accepts valid https URL' do
-        notice = build(:notice, link: "https://example.com/page")
+        notice = build(:notice, link: 'https://example.com/page')
         expect(notice).to be_valid
       end
 
       it 'rejects invalid URL format' do
-        notice = build(:notice, link: "not-a-url")
+        notice = build(:notice, link: 'not-a-url')
         expect(notice).not_to be_valid
-        expect(notice.errors[:link]).to include("must be a valid URL")
+        expect(notice.errors[:link]).to include('must be a valid URL')
       end
 
       it 'rejects URL without protocol' do
-        notice = build(:notice, link: "example.com")
+        notice = build(:notice, link: 'example.com')
         expect(notice).not_to be_valid
-        expect(notice.errors[:link]).to include("must be a valid URL")
+        expect(notice.errors[:link]).to include('must be a valid URL')
       end
 
       it 'rejects invalid protocol' do
-        notice = build(:notice, link: "ftp://example.com")
+        notice = build(:notice, link: 'ftp://example.com')
         expect(notice).not_to be_valid
-        expect(notice.errors[:link]).to include("must be a valid URL")
+        expect(notice.errors[:link]).to include('must be a valid URL')
       end
     end
   end
@@ -122,30 +123,29 @@ RSpec.describe PlebisCms::Notice, type: :model do
 
     it 'reads notice attributes correctly' do
       notice = create(:notice,
-        title: "Test Title",
-        body: "Test Body",
-        link: "https://example.com"
-      )
+                      title: 'Test Title',
+                      body: 'Test Body',
+                      link: 'https://example.com')
 
       found_notice = Notice.find(notice.id)
-      expect(found_notice.title).to eq("Test Title")
-      expect(found_notice.body).to eq("Test Body")
-      expect(found_notice.link).to eq("https://example.com")
+      expect(found_notice.title).to eq('Test Title')
+      expect(found_notice.body).to eq('Test Body')
+      expect(found_notice.link).to eq('https://example.com')
     end
 
     it 'updates notice attributes' do
-      notice = create(:notice, title: "Original Title")
-      notice.update(title: "Updated Title")
+      notice = create(:notice, title: 'Original Title')
+      notice.update(title: 'Updated Title')
 
-      expect(notice.reload.title).to eq("Updated Title")
+      expect(notice.reload.title).to eq('Updated Title')
     end
 
     it 'does not update with invalid attributes' do
-      notice = create(:notice, title: "Valid Title")
+      notice = create(:notice, title: 'Valid Title')
       notice.update(title: nil)
 
       expect(notice).not_to be_valid
-      expect(notice.reload.title).to eq("Valid Title")
+      expect(notice.reload.title).to eq('Valid Title')
     end
 
     it 'deletes notice' do
@@ -175,7 +175,7 @@ RSpec.describe PlebisCms::Notice, type: :model do
       first = create(:notice, created_at: 3.days.ago)
       second = create(:notice, created_at: 2.days.ago)
 
-      first.update(title: "Updated")
+      first.update(title: 'Updated')
 
       notices = PlebisCms::Notice.all.to_a
       expect(notices[0]).to eq(second)
@@ -333,7 +333,7 @@ RSpec.describe PlebisCms::Notice, type: :model do
       end
 
       it 'handles current time edge case' do
-        notice = create(:notice, final_valid_at: Time.current + 1.second)
+        notice = create(:notice, final_valid_at: 1.second.from_now)
         expect(notice).to be_active
       end
     end
@@ -355,13 +355,13 @@ RSpec.describe PlebisCms::Notice, type: :model do
       end
     end
 
-    # Note: broadcast! and broadcast_gcm methods require external GCM service
+    # NOTE: broadcast! and broadcast_gcm methods require external GCM service
     # These methods should be tested with integration tests or with proper mocking library
     # For unit tests, we focus on the state changes we can verify
 
     describe '#broadcast!' do
       it 'should update sent_at timestamp' do
-        skip "broadcast! requires GCM service - should be tested in integration tests"
+        skip 'broadcast! requires GCM service - should be tested in integration tests'
       end
     end
 
@@ -381,7 +381,7 @@ RSpec.describe PlebisCms::Notice, type: :model do
 
   describe 'edge cases' do
     it 'handles very long title' do
-      long_title = "A" * 1000
+      long_title = 'A' * 1000
       notice = build(:notice, title: long_title)
       # Should not crash
       notice.valid?
@@ -389,7 +389,7 @@ RSpec.describe PlebisCms::Notice, type: :model do
     end
 
     it 'handles very long body' do
-      long_body = "B" * 10000
+      long_body = 'B' * 10_000
       notice = build(:notice, body: long_body)
       # Should not crash
       notice.valid?
@@ -397,17 +397,17 @@ RSpec.describe PlebisCms::Notice, type: :model do
     end
 
     it 'handles special characters in title' do
-      notice = build(:notice, title: "Special chars: @#$% & <> 特殊")
+      notice = build(:notice, title: "Special chars: @\#$% & <> 特殊")
       expect(notice).to be_valid
     end
 
     it 'handles special characters in body' do
-      notice = build(:notice, body: "Body with émojis 🎉 and symbols © ® ™")
+      notice = build(:notice, body: 'Body with émojis 🎉 and symbols © ® ™')
       expect(notice).to be_valid
     end
 
     it 'handles very long URL' do
-      long_url = "https://example.com/" + ("a" * 1000)
+      long_url = "https://example.com/#{'a' * 1000}"
       notice = build(:notice, link: long_url)
       expect(notice).to be_valid
     end

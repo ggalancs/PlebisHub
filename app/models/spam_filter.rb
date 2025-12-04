@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 class SpamFilter < ApplicationRecord
-  scope :active, -> { where(active:true) }
+  scope :active, -> { where(active: true) }
 
   validates :rules_json, presence: true, if: :using_safe_mode?
   validate :validate_rules_structure, if: :using_safe_mode?
@@ -10,12 +12,18 @@ class SpamFilter < ApplicationRecord
     'equals' => ->(a, b) { a.to_s == b.to_s },
     'not_equals' => ->(a, b) { a.to_s != b.to_s },
     'contains' => ->(a, b) { a.to_s.include?(b.to_s) },
-    'not_contains' => ->(a, b) { !a.to_s.include?(b.to_s) },
-    'matches' => ->(a, b) { a.to_s.match?(Regexp.new(b.to_s)) rescue false },
+    'not_contains' => ->(a, b) { a.to_s.exclude?(b.to_s) },
+    'matches' => lambda { |a, b|
+      begin
+        a.to_s.match?(Regexp.new(b.to_s))
+      rescue StandardError
+        false
+      end
+    },
     'in_list' => ->(a, list) { list.include?(a.to_s) },
     'less_than' => ->(a, b) { a.to_i < b.to_i },
     'greater_than' => ->(a, b) { a.to_i > b.to_i },
-    'less_than_days_ago' => ->(a, days) {
+    'less_than_days_ago' => lambda { |a, days|
       a.is_a?(Time) && a > days.to_i.days.ago
     }
   }.freeze
@@ -42,7 +50,7 @@ class SpamFilter < ApplicationRecord
       Rails.logger.warn("SECURITY: SpamFilter #{id} using deprecated eval(). Migrate to JSON rules!")
       @proc.call(user, @data)
     end
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error("SpamFilter #{id} error: #{e.message}")
     Rails.logger.error(e.backtrace.join("\n"))
     false
@@ -80,10 +88,11 @@ class SpamFilter < ApplicationRecord
     # New filters should use the safe JSON-based rules_json instead
     # This is maintained for backwards compatibility with existing admin-created filters
     # brakeman:disable:Evaluation
-    if code.present? && rules_json.blank?
-      @proc = eval("Proc.new { |user, data| #{code} }")
-      @data = data.to_s.split(/\r?\n/)
-    end
+    return unless code.present? && rules_json.blank?
+
+    @proc = eval("Proc.new { |user, data| #{code} }")
+    @data = data.to_s.split(/\r?\n/)
+
     # brakeman:enable:Evaluation
   end
 
@@ -124,13 +133,13 @@ class SpamFilter < ApplicationRecord
     value = data_list if value == 'DATA_LIST'
 
     OPERATORS[operator].call(field_value, value)
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error("Condition evaluation error in SpamFilter #{id}: #{e.message}")
     false
   end
 
   def data_list
-    @data ||= data.to_s.split(/\r?\n/)
+    @data_list ||= data.to_s.split(/\r?\n/)
   end
 
   def validate_rules_structure
@@ -144,15 +153,11 @@ class SpamFilter < ApplicationRecord
     end
 
     rules['conditions'].each do |cond|
-      unless ALLOWED_FIELDS.include?(cond['field'])
-        errors.add(:rules_json, "field '#{cond['field']}' not allowed")
-      end
+      errors.add(:rules_json, "field '#{cond['field']}' not allowed") unless ALLOWED_FIELDS.include?(cond['field'])
 
-      unless OPERATORS.key?(cond['operator'])
-        errors.add(:rules_json, "operator '#{cond['operator']}' not allowed")
-      end
+      errors.add(:rules_json, "operator '#{cond['operator']}' not allowed") unless OPERATORS.key?(cond['operator'])
     end
   rescue JSON::ParserError
-    errors.add(:rules_json, "must be valid JSON")
+    errors.add(:rules_json, 'must be valid JSON')
   end
 end

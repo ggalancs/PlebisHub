@@ -12,18 +12,14 @@ RSpec.describe 'Page Closed Form', type: :request do
 
       it 'si renderiza, tiene título dinámico' do
         get '/es/formulario-cerrado'
-        if response.status == 200
-          expect(response.body).to match(/<h2>/)
-        end
+        expect(response.body).to match(/<h2>/) if response.status == 200
       end
     end
 
     describe 'B. CONTENIDO DE LA PÁGINA' do
       it 'si renderiza, tiene texto dinámico' do
         get '/es/formulario-cerrado'
-        if response.status == 200
-          expect(response.body).to include('<p>')
-        end
+        expect(response.body).to include('<p>') if response.status == 200
       end
 
       it 'si renderiza, puede tener enlace para volver' do

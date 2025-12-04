@@ -12,71 +12,53 @@ RSpec.describe 'Microcredit Info Mailing', type: :request do
 
       it 'si renderiza, muestra título de Microcréditos' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to include('Microcrédito')
-        end
+        expect(response.body).to include('Microcrédito') if response.status == 200
       end
     end
 
     describe 'B. IMAGEN DE CABECERA' do
       it 'si renderiza, tiene imagen front_landing' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to match(/front_landing\.jpg/)
-        end
+        expect(response.body).to match(/front_landing\.jpg/) if response.status == 200
       end
 
       it 'si renderiza, imagen tiene texto alternativo' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to match(/Papeletas.*futuro/i)
-        end
+        expect(response.body).to match(/Papeletas.*futuro/i) if response.status == 200
       end
     end
 
     describe 'C. CONTENIDO PRINCIPAL' do
       it 'si renderiza, menciona financiación sin créditos bancarios' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to match(/sin créditos bancarios/)
-        end
+        expect(response.body).to match(/sin créditos bancarios/) if response.status == 200
       end
 
       it 'si renderiza, menciona más de 20500 personas' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to include('20500')
-        end
+        expect(response.body).to include('20500') if response.status == 200
       end
 
       it 'si renderiza, menciona ahorro a arcas públicas' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to match(/arcas públicas/)
-        end
+        expect(response.body).to match(/arcas públicas/) if response.status == 200
       end
 
       it 'si renderiza, menciona 12 millones de euros' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to include('12 millones')
-        end
+        expect(response.body).to include('12 millones') if response.status == 200
       end
     end
 
     describe 'D. SECCIÓN DE ENVÍO ELECTORAL' do
       it 'si renderiza, tiene sección sobre envío electoral' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to match(/envío electoral|mailing|buzoneo/)
-        end
+        expect(response.body).to match(/envío electoral|mailing|buzoneo/) if response.status == 200
       end
 
       it 'si renderiza, menciona gasto en mailing' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to match(/gasto.*mailing|buzoneo/)
-        end
+        expect(response.body).to match(/gasto.*mailing|buzoneo/) if response.status == 200
       end
 
       it 'si renderiza, menciona número total de electores' do
@@ -91,62 +73,50 @@ RSpec.describe 'Microcredit Info Mailing', type: :request do
     describe 'E. SUBVENCIONES' do
       it 'si renderiza, explica cómo funciona la subvención' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to match(/subvención|subvencionará/)
-        end
+        expect(response.body).to match(/subvención|subvencionará/) if response.status == 200
       end
 
       it 'si renderiza, menciona Ley Orgánica 3/2015' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to match(/Ley Orgánica.*3\/2015/)
-        end
+        expect(response.body).to match(%r{Ley Orgánica.*3/2015}) if response.status == 200
       end
 
       it 'si renderiza, menciona 0,18 euros por elector' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to include('0,18')
-        end
+        expect(response.body).to include('0,18') if response.status == 200
       end
     end
 
     describe 'F. ENLACES DE ACCIÓN' do
       it 'si renderiza, tiene botones para colaborar' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to match(/Colabora.*button/)
-        end
+        expect(response.body).to match(/Colabora.*button/) if response.status == 200
       end
 
       it 'si renderiza, tiene múltiples botones de colaboración' do
         get '/es/microcreditos/info-mailing'
         if response.status == 200
-          button_count = response.body.scan(/Colabora/).count
+          button_count = response.body.scan('Colabora').count
           expect(button_count).to be >= 1
         end
       end
 
       it 'si renderiza, tiene enlace a Portal de Transparencia' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to match(/transparencia\.plebisbrand\.info/)
-        end
+        expect(response.body).to match(/transparencia\.plebisbrand\.info/) if response.status == 200
       end
     end
 
     describe 'G. ESTRUCTURA HTML' do
       it 'si renderiza, usa microcredits-wrapper' do
         get '/es/microcreditos/info-mailing'
-        if response.status == 200
-          expect(response.body).to include('microcredits-wrapper')
-        end
+        expect(response.body).to include('microcredits-wrapper') if response.status == 200
       end
 
       it 'si renderiza, tiene múltiples h3' do
         get '/es/microcreditos/info-mailing'
         if response.status == 200
-          h3_count = response.body.scan(/<h3/).count
+          h3_count = response.body.scan('<h3').count
           expect(h3_count).to be >= 3
         end
       end
@@ -154,7 +124,7 @@ RSpec.describe 'Microcredit Info Mailing', type: :request do
       it 'si renderiza, tiene muchos párrafos informativos' do
         get '/es/microcreditos/info-mailing'
         if response.status == 200
-          p_count = response.body.scan(/<p>/).count
+          p_count = response.body.scan('<p>').count
           expect(p_count).to be >= 8
         end
       end

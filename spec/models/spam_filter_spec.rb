@@ -8,9 +8,9 @@ RSpec.describe SpamFilter, type: :model do
   describe 'JSON rules evaluation' do
     it 'evaluates with equals operator' do
       filter = SpamFilter.new(
-        name: "Test Filter",
+        name: 'Test Filter',
         active: true,
-        query: "",
+        query: '',
         rules_json: {
           conditions: [
             { field: 'email', operator: 'equals', value: 'spam@test.com' }
@@ -190,8 +190,8 @@ RSpec.describe SpamFilter, type: :model do
 
     it 'handles invalid JSON gracefully' do
       filter = SpamFilter.new(
-        rules_json: "invalid json{{{",
-        name: "Test"
+        rules_json: 'invalid json{{{',
+        name: 'Test'
       )
 
       user = build(:user)
@@ -253,11 +253,11 @@ RSpec.describe SpamFilter, type: :model do
 
     it 'validates rules_json must be valid JSON' do
       filter = SpamFilter.new(
-        rules_json: "not json"
+        rules_json: 'not json'
       )
 
       expect(filter).not_to be_valid
-      expect(filter.errors[:rules_json]).to include("must be valid JSON")
+      expect(filter.errors[:rules_json]).to include('must be valid JSON')
     end
   end
 
@@ -267,7 +267,7 @@ RSpec.describe SpamFilter, type: :model do
     it 'still works with legacy eval() mode (deprecated)' do
       filter = SpamFilter.new(
         code: "user.email.include?('spam')",
-        data: ""
+        data: ''
       )
       filter.id = 1 # Simulate persisted record
 
@@ -289,9 +289,9 @@ RSpec.describe SpamFilter, type: :model do
     describe '.any?' do
       it 'returns filter name if match found' do
         filter1 = SpamFilter.new(
-          name: "Spam Filter",
+          name: 'Spam Filter',
           active: true,
-          query: "",
+          query: '',
           rules_json: {
             conditions: [
               { field: 'email', operator: 'contains', value: 'spam' }
@@ -304,14 +304,14 @@ RSpec.describe SpamFilter, type: :model do
 
         spam_user = build(:user, email: 'test@spam.com')
 
-        expect(SpamFilter.any?(spam_user)).to eq("Spam Filter")
+        expect(SpamFilter.any?(spam_user)).to eq('Spam Filter')
       end
 
       it 'returns false if no match found' do
         filter1 = SpamFilter.new(
-          name: "Spam Filter",
+          name: 'Spam Filter',
           active: true,
-          query: "",
+          query: '',
           rules_json: {
             conditions: [
               { field: 'email', operator: 'contains', value: 'spam' }

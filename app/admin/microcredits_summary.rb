@@ -1,13 +1,14 @@
-ActiveAdmin.register_page "microcredits_summary" do
+# frozen_string_literal: true
 
-  menu parent: "microcredits", label: "Resumen de microcréditos"
+ActiveAdmin.register_page 'microcredits_summary' do
+  menu parent: 'microcredits', label: 'Resumen de microcréditos'
 
-  content title: "Resumen de microcréditos" do
-    panel "Evolución €" do
-      render "admin/microcredits_amounts", width: "80%"
+  content title: 'Resumen de microcréditos' do
+    panel 'Evolución €' do
+      render 'admin/microcredits_amounts', width: '80%'
     end
-    panel "Evolución #" do 
-      render "admin/microcredits_count", width: "80%"
+    panel 'Evolución #' do
+      render 'admin/microcredits_count', width: '80%'
     end
   end
 
@@ -18,5 +19,4 @@ ActiveAdmin.register_page "microcredits_summary" do
       authorize! :read, Microcredit
     end
   end
-
 end

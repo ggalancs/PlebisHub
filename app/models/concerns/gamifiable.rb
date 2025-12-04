@@ -39,21 +39,13 @@ module Gamifiable
   end
 
   # Shortcut methods
-  def total_points
-    gamification_stats.total_points
-  end
+  delegate :total_points, to: :gamification_stats
 
-  def level
-    gamification_stats.level
-  end
+  delegate :level, to: :gamification_stats
 
-  def level_name
-    gamification_stats.level_name
-  end
+  delegate :level_name, to: :gamification_stats
 
-  def current_streak
-    gamification_stats.current_streak
-  end
+  delegate :current_streak, to: :gamification_stats
 
   def badges
     gamification_badges
@@ -63,9 +55,7 @@ module Gamifiable
     gamification_user_badges.count
   end
 
-  def leaderboard_position
-    gamification_stats.leaderboard_position
-  end
+  delegate :leaderboard_position, to: :gamification_stats
 
   # Earn points
   def earn_points!(amount, reason:, source: nil)

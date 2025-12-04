@@ -10,7 +10,7 @@ module PlebisImpulsa
     has_flags 1 => :has_votings, check_for_column: false
 
     belongs_to :impulsa_edition, class_name: 'PlebisImpulsa::ImpulsaEdition'
-    has_many :impulsa_projects, class_name: 'PlebisImpulsa::ImpulsaProject', foreign_key: 'impulsa_edition_category_id'
+    has_many :impulsa_projects, class_name: 'PlebisImpulsa::ImpulsaProject'
 
     validates :name, :category_type, :winners, :prize, presence: true
 
@@ -18,7 +18,7 @@ module PlebisImpulsa
     store :evaluation, coder: YAML
     attr_accessor :wizard_raw, :evaluation_raw
 
-    scope :non_authors, -> { where.not only_authors:true }
+    scope :non_authors, -> { where.not only_authors: true }
     scope :state, -> { where category_type: CATEGORY_TYPES[:state] }
     scope :territorial, -> { where category_type: CATEGORY_TYPES[:territorial] }
     scope :internal, -> { where category_type: CATEGORY_TYPES[:internal] }
@@ -27,59 +27,59 @@ module PlebisImpulsa
       internal: 0,
       state: 1,
       territorial: 2
-    }
+    }.freeze
 
     def wizard_raw
-      self.wizard.to_yaml.gsub(" !ruby/hash:ActiveSupport::HashWithIndifferentAccess", "")
+      wizard.to_yaml.gsub(' !ruby/hash:ActiveSupport::HashWithIndifferentAccess', '')
     end
 
     def wizard_raw=(value)
-      self.wizard=YAML.load(value)
+      self.wizard = YAML.load(value)
     end
 
     def evaluation_raw
-      self.evaluation.to_yaml.gsub(" !ruby/hash:ActiveSupport::HashWithIndifferentAccess", "")
+      evaluation.to_yaml.gsub(' !ruby/hash:ActiveSupport::HashWithIndifferentAccess', '')
     end
 
     def evaluation_raw=(value)
-      self.evaluation=YAML.load(value)
+      self.evaluation = YAML.load(value)
     end
 
     def category_type_name
-      CATEGORY_TYPES.invert[self.category_type]
+      CATEGORY_TYPES.invert[category_type]
     end
 
     def has_territory?
-      self.category_type == CATEGORY_TYPES[:territorial]
+      category_type == CATEGORY_TYPES[:territorial]
     end
 
     def translatable?
-      !self.coofficial_language.blank?
+      coofficial_language.present?
     end
 
     def coofficial_language_name
-       I18n.name_for_locale(self[:coofficial_language].to_sym) if self[:coofficial_language]
+      I18n.name_for_locale(self[:coofficial_language].to_sym) if self[:coofficial_language]
     end
 
     def territories
       if self[:territories]
-        self[:territories].split("|").compact
+        self[:territories].split('|').compact
       else
         []
       end
     end
 
-    def territories= values
-      self[:territories] = values.select {|x| !x.blank? } .join("|")
+    def territories=(values)
+      self[:territories] = values.reject(&:present?).join('|')
     end
 
     def territories_names
-      names = Hash[PlebisBrand::GeoExtra::AUTONOMIES.values]
-      self.territories.map {|t| names[t]}
+      names = PlebisBrand::GeoExtra::AUTONOMIES.values.to_h
+      territories.map { |t| names[t] }
     end
 
     def prewinners
-      self.winners*2
+      winners * 2
     end
   end
 end

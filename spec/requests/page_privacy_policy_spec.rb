@@ -33,17 +33,17 @@ RSpec.describe 'Page Privacy Policy', type: :request do
       end
 
       it 'tiene h2 para títulos de sección' do
-        h2_count = response.body.scan(/<h2>/).count
+        h2_count = response.body.scan('<h2>').count
         expect(h2_count).to be >= 2
       end
 
       it 'tiene h3 para secciones principales (al menos 4)' do
-        h3_count = response.body.scan(/<h3>/).count
+        h3_count = response.body.scan('<h3>').count
         expect(h3_count).to be >= 4
       end
 
       it 'tiene h4 para subsecciones' do
-        h4_count = response.body.scan(/<h4>/).count
+        h4_count = response.body.scan('<h4>').count
         expect(h4_count).to be >= 10
       end
     end
@@ -73,7 +73,7 @@ RSpec.describe 'Page Privacy Policy', type: :request do
       before { get '/privacy-policy' }
 
       it 'tiene múltiples párrafos con contenido legal' do
-        p_count = response.body.scan(/<p>/).count
+        p_count = response.body.scan('<p>').count
         expect(p_count).to be >= 15
       end
 

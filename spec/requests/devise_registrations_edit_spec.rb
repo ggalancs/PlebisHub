@@ -169,7 +169,7 @@ RSpec.describe 'Devise Registrations Edit', type: :request do
       end
 
       it 'tiene divs para cada sección de contenido' do
-        div_count = response.body.scan(/personal-data-content/).count
+        div_count = response.body.scan('personal-data-content').count
         expect(div_count).to be >= 1
       end
     end

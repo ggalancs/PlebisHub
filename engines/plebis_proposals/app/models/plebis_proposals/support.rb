@@ -9,9 +9,7 @@ module PlebisProposals
     belongs_to :proposal, class_name: 'PlebisProposals::Proposal', counter_cache: true
 
     # Validations
-    validates :user, presence: true
-    validates :proposal, presence: true
-    validates :user_id, uniqueness: { scope: :proposal_id, message: "has already supported this proposal" }
+    validates :user_id, uniqueness: { scope: :proposal_id, message: 'has already supported this proposal' }
 
     # Callbacks
     after_save :update_hotness

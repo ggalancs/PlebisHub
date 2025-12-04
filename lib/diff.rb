@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Diff
     module ClassMethod
@@ -12,14 +14,16 @@ module ActiveRecord
     end
 
     def diff?(record = nil)
-      not diff(record).empty?
+      !diff(record).empty?
     end
 
     def diff(other_record = nil)
       if other_record.nil?
-        old_record, new_record = self.class.find(id), self
+        old_record = self.class.find(id)
+        new_record = self
       else
-        old_record, new_record = self, other_record
+        old_record = self
+        new_record = other_record
       end
 
       if new_record.is_a?(Hash)
@@ -31,7 +35,7 @@ module ActiveRecord
 
         if attrs.nil?
           attrs = self.class.content_columns.map { |column| column.name.to_sym }
-        elsif attrs.length == 1 && Hash === attrs.first
+        elsif attrs.length == 1 && attrs.first.is_a?(Hash)
           columns = self.class.content_columns.map { |column| column.name.to_sym }
 
           attrs = columns + (attrs.first[:include] || []) - (attrs.first[:exclude] || [])
@@ -44,14 +48,10 @@ module ActiveRecord
     end
 
     def diff_each(enum)
-      enum.inject({}) do |diff_hash, attr_name|
+      enum.each_with_object({}) do |attr_name, diff_hash|
         attr_name, old_value, new_value = *yield(attr_name)
 
-        unless old_value === new_value
-          diff_hash[attr_name.to_sym] = [old_value, new_value]
-        end
-
-        diff_hash
+        diff_hash[attr_name.to_sym] = [old_value, new_value] unless old_value === new_value
       end
     end
   end

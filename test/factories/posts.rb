@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :post, class: 'Post' do
     sequence(:title) { |n| "Post Title #{n}" }

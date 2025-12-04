@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :category, class: 'Category' do
     sequence(:name) { |n| "Category #{n}" }
@@ -36,19 +38,19 @@ FactoryBot.define do
 
     # Common category names
     trait :politics do
-      name { "Politics" }
+      name { 'Politics' }
     end
 
     trait :economy do
-      name { "Economy" }
+      name { 'Economy' }
     end
 
     trait :culture do
-      name { "Culture" }
+      name { 'Culture' }
     end
 
     trait :technology do
-      name { "Technology" }
+      name { 'Technology' }
     end
   end
 end

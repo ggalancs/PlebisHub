@@ -4,7 +4,7 @@ module Api
   module V1
     class BrandSettingsController < ApplicationController
       # Allow public access to GET requests (brand settings are public)
-      skip_before_action :verify_authenticity_token, only: [:current, :show]
+      skip_before_action :verify_authenticity_token, only: %i[current show]
       before_action :set_brand_setting, only: [:show]
 
       # GET /api/v1/brand_settings/current

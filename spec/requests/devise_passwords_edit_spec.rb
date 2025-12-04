@@ -12,18 +12,14 @@ RSpec.describe 'Devise Passwords Edit', type: :request do
 
       it 'si renderiza, muestra título de cambiar contraseña' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to match(/cambiar.*contraseña|change.*password/i)
-        end
+        expect(response.body).to match(/cambiar.*contraseña|change.*password/i) if response.status == 200
       end
     end
 
     describe 'B. FORMULARIO DE CAMBIO DE CONTRASEÑA' do
       it 'si renderiza, tiene formulario' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to include('<form')
-        end
+        expect(response.body).to include('<form') if response.status == 200
       end
 
       it 'si renderiza, tiene campo hidden para reset_password_token' do
@@ -36,39 +32,29 @@ RSpec.describe 'Devise Passwords Edit', type: :request do
 
       it 'si renderiza, tiene campo para nueva contraseña' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to match(/password|contraseña/i)
-        end
+        expect(response.body).to match(/password|contraseña/i) if response.status == 200
       end
 
       it 'si renderiza, tiene campo para confirmación de contraseña' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to match(/password_confirmation|confirmación/i)
-        end
+        expect(response.body).to match(/password_confirmation|confirmación/i) if response.status == 200
       end
 
       it 'si renderiza, campo password tiene autofocus' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to include('autofocus')
-        end
+        expect(response.body).to include('autofocus') if response.status == 200
       end
 
       it 'si renderiza, tiene botón de submit' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to match(/submit|button/)
-        end
+        expect(response.body).to match(/submit|button/) if response.status == 200
       end
     end
 
     describe 'C. ESTRUCTURA DEL FORMULARIO' do
       it 'si renderiza, usa semantic_form_for' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to include('<form')
-        end
+        expect(response.body).to include('<form') if response.status == 200
       end
 
       it 'si renderiza, usa método PUT' do
@@ -81,23 +67,17 @@ RSpec.describe 'Devise Passwords Edit', type: :request do
 
       it 'si renderiza, tiene fieldset' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to include('<fieldset')
-        end
+        expect(response.body).to include('<fieldset') if response.status == 200
       end
 
       it 'si renderiza, tiene legend invisible' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to match(/legend.*invisible/i)
-        end
+        expect(response.body).to match(/legend.*invisible/i) if response.status == 200
       end
 
       it 'si renderiza, usa inputlabel-box' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to include('inputlabel-box')
-        end
+        expect(response.body).to include('inputlabel-box') if response.status == 200
       end
     end
 
@@ -112,16 +92,12 @@ RSpec.describe 'Devise Passwords Edit', type: :request do
 
       it 'si renderiza, tiene h2 para título' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to match(/<h2>/)
-        end
+        expect(response.body).to match(/<h2>/) if response.status == 200
       end
 
       it 'si renderiza, tiene section content-text' do
         get '/es/users/password/edit', params: { reset_password_token: 'test' }
-        if response.status == 200
-          expect(response.body).to include('content-text')
-        end
+        expect(response.body).to include('content-text') if response.status == 200
       end
     end
   end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register EngineActivation do
-  menu priority: 1, label: "Engines"
+  menu priority: 1, label: 'Engines'
 
   permit_params :engine_name, :enabled, :description, :configuration, :load_priority
 
@@ -13,7 +13,7 @@ ActiveAdmin.register EngineActivation do
       strong ea.engine_name
     end
     column :enabled do |ea|
-      status_tag(ea.enabled ? "Active" : "Inactive", ea.enabled ? :ok : :warning)
+      status_tag(ea.enabled ? 'Active' : 'Inactive', ea.enabled ? :ok : :warning)
     end
     column :description do |ea|
       truncate(ea.description, length: 100)
@@ -24,13 +24,11 @@ ActiveAdmin.register EngineActivation do
       if ea.enabled
         link_to 'Disable', disable_admin_engine_activation_path(ea),
                 method: :post, class: 'button', data: { confirm: 'Are you sure?' }
+      elsif ea.can_enable?
+        link_to 'Enable', enable_admin_engine_activation_path(ea),
+                method: :post, class: 'button', data: { confirm: 'Are you sure?' }
       else
-        if ea.can_enable?
-          link_to 'Enable', enable_admin_engine_activation_path(ea),
-                  method: :post, class: 'button', data: { confirm: 'Are you sure?' }
-        else
-          content_tag(:span, 'Missing dependencies', class: 'status_tag warning')
-        end
+        content_tag(:span, 'Missing dependencies', class: 'status_tag warning')
       end
     end
   end
@@ -49,7 +47,7 @@ ActiveAdmin.register EngineActivation do
         strong ea.engine_name
       end
       row :enabled do |ea|
-        status_tag(ea.enabled ? "Active" : "Inactive", ea.enabled ? :ok : :warning)
+        status_tag(ea.enabled ? 'Active' : 'Inactive', ea.enabled ? :ok : :warning)
       end
       row :description
       row :load_priority
@@ -60,7 +58,7 @@ ActiveAdmin.register EngineActivation do
       row :updated_at
     end
 
-    panel "Engine Details" do
+    panel 'Engine Details' do
       if defined?(PlebisCore::EngineRegistry)
         engine_info = PlebisCore::EngineRegistry.info(resource.engine_name)
 
@@ -68,14 +66,14 @@ ActiveAdmin.register EngineActivation do
         enabled_engines = EngineActivation.where(enabled: true).pluck(:engine_name).to_set
 
         attributes_table_for OpenStruct.new(engine_info) do
-          row("Name") { engine_info[:name] }
-          row("Version") { engine_info[:version] }
-          row("Models") { engine_info[:models].join(', ') }
-          row("Controllers") { engine_info[:controllers].join(', ') }
-          row("Dependencies") do
+          row('Name') { engine_info[:name] }
+          row('Version') { engine_info[:version] }
+          row('Models') { engine_info[:models].join(', ') }
+          row('Controllers') { engine_info[:controllers].join(', ') }
+          row('Dependencies') do
             deps = engine_info[:dependencies] || []
             if deps.empty?
-              "None"
+              'None'
             else
               deps.map do |dep|
                 if dep == 'User' || enabled_engines.include?(dep)
@@ -88,7 +86,7 @@ ActiveAdmin.register EngineActivation do
           end
         end
       else
-        para "Engine registry not available"
+        para 'Engine registry not available'
       end
     end
 
@@ -99,36 +97,36 @@ ActiveAdmin.register EngineActivation do
   form do |f|
     f.semantic_errors
 
-    f.inputs "Engine Details" do
+    f.inputs 'Engine Details' do
       if f.object.new_record?
         if defined?(PlebisCore::EngineRegistry)
           f.input :engine_name, as: :select,
-                  collection: PlebisCore::EngineRegistry.available_engines,
-                  include_blank: false,
-                  hint: "Select the engine to activate"
+                                collection: PlebisCore::EngineRegistry.available_engines,
+                                include_blank: false,
+                                hint: 'Select the engine to activate'
         else
-          f.input :engine_name, hint: "Enter the engine name"
+          f.input :engine_name, hint: 'Enter the engine name'
         end
       else
         f.input :engine_name, input_html: { disabled: true },
-                hint: "Engine name cannot be changed after creation"
+                              hint: 'Engine name cannot be changed after creation'
       end
 
       f.input :enabled, as: :boolean,
-              hint: "Enable this engine to load it on next application reload"
+                        hint: 'Enable this engine to load it on next application reload'
 
       f.input :description, as: :text,
-              hint: "Describe what this engine does",
-              input_html: { rows: 3 }
+                            hint: 'Describe what this engine does',
+                            input_html: { rows: 3 }
 
       f.input :load_priority, as: :number,
-              hint: "Lower numbers load first (default: 100)"
+                              hint: 'Lower numbers load first (default: 100)'
     end
 
-    f.inputs "Configuration (JSON)", class: 'json-config' do
+    f.inputs 'Configuration (JSON)', class: 'json-config' do
       f.input :configuration, as: :text,
-              hint: "Engine-specific configuration in JSON format. Leave empty for defaults.",
-              input_html: { rows: 10, placeholder: '{"key": "value"}' }
+                              hint: 'Engine-specific configuration in JSON format. Leave empty for defaults.',
+                              input_html: { rows: 10, placeholder: '{"key": "value"}' }
     end
 
     f.actions do

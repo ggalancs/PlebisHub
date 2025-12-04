@@ -299,7 +299,7 @@ ActiveAdmin.register BrandSetting do
     link_to 'Preview API Response',
             api_v1_brand_setting_path(brand_setting, format: :json),
             target: '_blank',
-            class: 'button'
+            class: 'button', rel: 'noopener'
   end
 
   # ========================================

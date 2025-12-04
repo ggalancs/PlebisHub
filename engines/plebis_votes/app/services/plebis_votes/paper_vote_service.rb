@@ -8,7 +8,7 @@ module PlebisVotes
       @election = election
       @election_location = election_location
       @current_user = current_user
-      @tracking = Logger.new(File.join(Rails.root, "log", "paper_authorities.log"))
+      @tracking = Logger.new(Rails.root.join('log/paper_authorities.log').to_s)
     end
 
     def log_vote_query(document_type, document_vatid)
@@ -31,14 +31,14 @@ module PlebisVotes
 
     def success_message
       if @election.scope == 6
-        { notice: "Identificación registrada." }
+        { notice: 'Identificación registrada.' }
       else
-        { notice: "El voto ha sido registrado." }
+        { notice: 'El voto ha sido registrado.' }
       end
     end
 
     def error_message
-      { error: "No se ha podido registrar el voto. Inténtalo nuevamente o consulta con la persona que administra el sistema." }
+      { error: 'No se ha podido registrar el voto. Inténtalo nuevamente o consulta con la persona que administra el sistema.' }
     end
   end
 end

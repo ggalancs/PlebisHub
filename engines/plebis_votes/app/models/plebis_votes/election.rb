@@ -4,7 +4,8 @@ module PlebisVotes
   class Election < ApplicationRecord
     include FlagShihTzu
 
-    SCOPE = [["Estatal", 0], ["Comunidad", 1], ["Provincial", 2], ["Municipal", 3], ["Insular", 4], ["Extranjeros", 5], ["Círculos", 6]]
+    SCOPE = [['Estatal', 0], ['Comunidad', 1], ['Provincial', 2], ['Municipal', 3], ['Insular', 4], ['Extranjeros', 5],
+             ['Círculos', 6]].freeze
 
     # FlagShihTzu: check_for_column: false prevents startup warnings before migrations run
     has_flags 1 => :requires_sms_check,
@@ -27,60 +28,61 @@ module PlebisVotes
     def census_file_content_type_validation
       return unless census_file.attached?
 
-      allowed_types = ["text/plain", "text/csv", "application/csv"]
-      unless allowed_types.include?(census_file.content_type)
-        errors.add(:census_file, "No reconocido como CSV")
-      end
+      allowed_types = ['text/plain', 'text/csv', 'application/csv']
+      return if allowed_types.include?(census_file.content_type)
+
+      errors.add(:census_file, 'No reconocido como CSV')
     end
 
     def census_file_size_validation
       return unless census_file.attached?
 
-      if census_file.byte_size > 10.megabytes
-        errors.add(:census_file, "debe ser menor de 10MB")
-      end
+      return unless census_file.byte_size > 10.megabytes
+
+      errors.add(:census_file, 'debe ser menor de 10MB')
     end
 
     public
-    has_many :votes, class_name: "PlebisVotes::Vote"
-    has_many :election_locations, class_name: "PlebisVotes::ElectionLocation", dependent: :destroy
 
-    enum :election_type, [:nvotes, :external, :paper]
+    has_many :votes, class_name: 'PlebisVotes::Vote'
+    has_many :election_locations, class_name: 'PlebisVotes::ElectionLocation', dependent: :destroy
 
-    scope :active, -> { where("? BETWEEN starts_at AND ends_at", Time.now).order(priority: :asc) }
-    scope :upcoming_finished, -> { where("ends_at > ? AND starts_at < ?", 2.days.ago, 12.hours.from_now).order(priority: :asc)}
-    scope :future, -> { where("ends_at > ?", DateTime.now).order(priority: :asc)}
+    enum :election_type, { nvotes: 0, external: 1, paper: 2 }
+
+    scope :active, -> { where('? BETWEEN starts_at AND ends_at', Time.zone.now).order(priority: :asc) }
+    scope :upcoming_finished, lambda {
+      where('ends_at > ? AND starts_at < ?', 2.days.ago, 12.hours.from_now).order(priority: :asc)
+    }
+    scope :future, -> { where('ends_at > ?', DateTime.now).order(priority: :asc) }
 
     before_create do
       self[:counter_key] ||= SecureRandom.base64(20)
     end
 
-    def to_s
-      "#{title}"
-    end
+    delegate :to_s, to: :title
 
     def is_active?
-      ( self.starts_at .. self.ends_at ).cover? DateTime.now
+      (starts_at..ends_at).cover? DateTime.now
     end
 
     def is_upcoming?
-      self.starts_at > DateTime.now and self.starts_at < 12.hours.from_now
+      starts_at > DateTime.now and starts_at < 12.hours.from_now
     end
 
     def recently_finished?
-      self.ends_at > 2.days.ago && self.ends_at < DateTime.now
+      ends_at > 2.days.ago && ends_at < DateTime.now
     end
 
     def scope_name
-      SCOPE.select{|v| v[1] == self.scope }[0][0]
+      SCOPE.select { |v| v[1] == scope }[0][0]
     end
 
-    def user_version _user
-      if self.user_created_at_max.nil?
+    def user_version(_user)
+      if user_created_at_max.nil?
         _user
       else
-        prev_user = _user.version_at(self.user_created_at_max)
-        if prev_user && prev_user.has_vote_town?
+        prev_user = _user.version_at(user_created_at_max)
+        if prev_user&.has_vote_town?
           prev_user
         else
           _user
@@ -88,35 +90,34 @@ module PlebisVotes
       end
     end
 
-    def full_title_for _user
-      user = self.user_version(_user)
+    def full_title_for(_user)
+      user = user_version(_user)
       if multiple_territories?
-        suffix =  case self.scope
-                    when 1 then " en #{user.vote_autonomy_name}"
-                    when 2 then " en #{user.vote_province_name}"
-                    when 3 then " en #{user.vote_town_name}"
-                    when 4 then " en #{user.vote_island_name}"
-                    when 6 then " en #{user.vote_circle.name}"
-                  end
-        if not has_valid_location_for? user, check_created_at: false
-          suffix = " (no hay votación#{suffix})"
-        end
+        suffix = case scope
+                 when 1 then " en #{user.vote_autonomy_name}"
+                 when 2 then " en #{user.vote_province_name}"
+                 when 3 then " en #{user.vote_town_name}"
+                 when 4 then " en #{user.vote_island_name}"
+                 when 6 then " en #{user.vote_circle.name}"
+                 end
+        suffix = " (no hay votación#{suffix})" unless has_valid_location_for? user, check_created_at: false
       end
-      "#{self.title}#{suffix}"
+      "#{title}#{suffix}"
     end
 
-    def has_location_for? _user
-      user = self.user_version(_user)
-      not ((self.scope==5 and user.country=="ES") or (self.scope==4 and not user.vote_in_spanish_island?))
+    def has_location_for?(_user)
+      user = user_version(_user)
+      !((scope == 5 and user.country == 'ES') or (scope == 4 and !user.vote_in_spanish_island?))
     end
 
     def check_valid_location_from_csv(user, valid_locations)
       return false unless census_file.attached?
+
       result = false
       data = CSV.parse(census_file.download, headers: true)
       data.each do |r|
-        if user && r["user_id"] == user.id.to_s
-          result = r["vote_circle_id"].present? && valid_locations.any? {|l| l.location == r["vote_circle_id"]}
+        if user && r['user_id'] == user.id.to_s
+          result = r['vote_circle_id'].present? && valid_locations.any? { |l| l.location == r['vote_circle_id'] }
           break
         end
       end
@@ -125,11 +126,12 @@ module PlebisVotes
 
     def get_user_location_from_csv(user)
       return false unless census_file.attached?
+
       result = false
       data = CSV.parse(census_file.download, headers: true)
       data.each do |r|
-        if user && r["user_id"] == user.id.to_s
-          result = r["vote_circle_id"] if r["vote_circle_id"]
+        if user && r['user_id'] == user.id.to_s
+          result = r['vote_circle_id'] if r['vote_circle_id']
           break
         end
       end
@@ -141,151 +143,176 @@ module PlebisVotes
       valid_locations ||= election_locations
       return false if check_created_at && !has_valid_user_created_at?(_user)
 
-      users << self.user_version(_user)
+      users << user_version(_user)
       users << _user unless check_created_at # allow to see election even when changed location
 
       users.any? do |user|
-        case self.scope
-          when 0 then valid_locations.any?
-          when 1 then user.has_vote_town? && valid_locations.any? {|l| l.location == user.vote_autonomy_numeric}
-          when 2 then user.has_vote_town? && valid_locations.any? {|l| l.location == user.vote_province_numeric}
-          when 3 then user.has_vote_town? && valid_locations.any? {|l| l.location == user.vote_town_numeric}
-          when 4 then user.has_vote_town? && valid_locations.any? {|l| l.location == user.vote_island_numeric}
-          when 5 then user.country!="ES" && valid_locations.any?
-        when 6 then
+        case scope
+        when 0 then valid_locations.any?
+        when 1 then user.has_vote_town? && valid_locations.any? { |l| l.location == user.vote_autonomy_numeric }
+        when 2 then user.has_vote_town? && valid_locations.any? { |l| l.location == user.vote_province_numeric }
+        when 3 then user.has_vote_town? && valid_locations.any? { |l| l.location == user.vote_town_numeric }
+        when 4 then user.has_vote_town? && valid_locations.any? { |l| l.location == user.vote_island_numeric }
+        when 5 then user.country != 'ES' && valid_locations.any?
+        when 6
           if census_file.attached?
             check_valid_location_from_csv user, valid_locations
           else
-            user.vote_circle.present? && valid_locations.any? {|l| l.location == user.vote_circle_id.to_s} && user.still_militant?  && (self.user_created_at_max ? user.militant_at?(self.user_created_at_max) : true)
+            user.vote_circle.present? && valid_locations.any? do |l|
+              l.location == user.vote_circle_id.to_s
+            end && user.still_militant? && (user_created_at_max ? user.militant_at?(user_created_at_max) : true)
           end
         end
       end
     end
 
-    def has_valid_user_created_at? user
-      self.user_created_at_max.nil? or self.user_created_at_max > user.created_at
+    def has_valid_user_created_at?(user)
+      user_created_at_max.nil? or user_created_at_max > user.created_at
     end
 
     def current_total_census
-      if self.user_created_at_max.nil?
+      if user_created_at_max.nil?
         base = ::User.confirmed.not_banned
       else
-        base = ::User.with_deleted.not_banned.where("deleted_at is null or deleted_at > ?", self.user_created_at_max).where.not(sms_confirmed_at:nil).where("created_at < ?", self.user_created_at_max)
+        base = ::User.with_deleted.not_banned.where('deleted_at is null or deleted_at > ?',
+                                                    user_created_at_max).where.not(sms_confirmed_at: nil).where(created_at: ...user_created_at_max)
       end
-      if self.ignore_multiple_territories
+      if ignore_multiple_territories
         base.count
       else
-        case self.scope
-          when 0 then base.count
-          when 1 then base.ransack( {vote_autonomy_in: self.election_locations.map {|l| "c_#{l.location}" } .join(",")}).result.count
-          when 2 then base.ransack( {vote_province_in: self.election_locations.map {|l| "p_#{l.location}" } .join(",")}).result.count
-          when 3 then base.where(vote_town: self.election_locations.map {|l| "m_#{l.location[0..1]}_#{l.location[2..4]}_#{l.location[5]}" }).count
-          when 4 then base.ransack( {vote_island_in: self.election_locations.map {|l| "i_#{l.location}" } .join(",")}).result.count
-          when 5 then base.where.not(country:"ES").count
-          when 6 then base.where( vote_circle_id: self.election_locations.map{|l| l.location.to_i}).count
+        case scope
+        when 0 then base.count
+        when 1 then base.ransack({ vote_autonomy_in: election_locations.map do |l|
+          "c_#{l.location}"
+        end.join(',') }).result.count
+        when 2 then base.ransack({ vote_province_in: election_locations.map do |l|
+          "p_#{l.location}"
+        end.join(',') }).result.count
+        when 3 then base.where(vote_town: election_locations.map do |l|
+          "m_#{l.location[0..1]}_#{l.location[2..4]}_#{l.location[5]}"
+        end).count
+        when 4 then base.ransack({ vote_island_in: election_locations.map do |l|
+          "i_#{l.location}"
+        end.join(',') }).result.count
+        when 5 then base.where.not(country: 'ES').count
+        when 6 then base.where(vote_circle_id: election_locations.map { |l| l.location.to_i }).count
         end
       end
     end
 
     def current_active_census
-      if self.user_created_at_max.nil?
+      if user_created_at_max.nil?
         base = ::User.confirmed.not_banned
         base_date = DateTime.now
       else
-        base = ::User.with_deleted.not_banned.where("deleted_at is null or deleted_at > ?", self.user_created_at_max).where.not(sms_confirmed_at:nil).where("created_at < ?", self.user_created_at_max)
-        base_date = self.user_created_at_max
+        base = ::User.with_deleted.not_banned.where('deleted_at is null or deleted_at > ?',
+                                                    user_created_at_max).where.not(sms_confirmed_at: nil).where(created_at: ...user_created_at_max)
+        base_date = user_created_at_max
       end
-      base = base.where("current_sign_in_at > ?", base_date - parse_duration_config("active_census_range") )
+      base = base.where('current_sign_in_at > ?', base_date - parse_duration_config('active_census_range'))
 
-      if self.ignore_multiple_territories
+      if ignore_multiple_territories
         base.count
       else
-        case self.scope
-          when 0 then base.count
-          when 1 then base.ransack( {vote_autonomy_in: self.election_locations.map {|l| "c_#{l.location}" } .join(",")}).result.count
-          when 2 then base.ransack( {vote_province_in: self.election_locations.map {|l| "p_#{l.location}" } .join(",")}).result.count
-          when 3 then base.where(vote_town: self.election_locations.map {|l| "m_#{l.location[0..1]}_#{l.location[2..4]}_#{l.location[5]}" }).count
-          when 4 then base.ransack( {vote_island_in: self.election_locations.map {|l| "i_#{l.location}" } .join(",")}).result.count
-          when 5 then base.where.not(country:"ES").count
-          when 6 then base.where( vote_circle_id: self.election_locations.map{|l| l.location.to_i}).count
+        case scope
+        when 0 then base.count
+        when 1 then base.ransack({ vote_autonomy_in: election_locations.map do |l|
+          "c_#{l.location}"
+        end.join(',') }).result.count
+        when 2 then base.ransack({ vote_province_in: election_locations.map do |l|
+          "p_#{l.location}"
+        end.join(',') }).result.count
+        when 3 then base.where(vote_town: election_locations.map do |l|
+          "m_#{l.location[0..1]}_#{l.location[2..4]}_#{l.location[5]}"
+        end).count
+        when 4 then base.ransack({ vote_island_in: election_locations.map do |l|
+          "i_#{l.location}"
+        end.join(',') }).result.count
+        when 5 then base.where.not(country: 'ES').count
+        when 6 then base.where(vote_circle_id: election_locations.map { |l| l.location.to_i }).count
         end
       end
     end
 
     def multiple_territories?
-      !self.ignore_multiple_territories && self.scope.in?([1,2,3,4])
+      !ignore_multiple_territories && scope.in?([1, 2, 3, 4])
     end
 
     def scoped_agora_election_id(_user)
-      user = self.user_version(_user)
-      user_location = case self.scope
-        when 1
-          user.vote_autonomy_numeric
-        when 2
-          user.vote_province_numeric
-        when 3
-          user.vote_town_numeric
-        when 4
-          user.vote_island_numeric
-        when 6
-          if census_file.attached?
-            get_user_location_from_csv user
-          else
-            user.vote_circle_id
-          end
-        else
-          "00"
-      end
-      election_location = self.election_locations.find_by_location user_location
+      user = user_version(_user)
+      user_location = case scope
+                      when 1
+                        user.vote_autonomy_numeric
+                      when 2
+                        user.vote_province_numeric
+                      when 3
+                        user.vote_town_numeric
+                      when 4
+                        user.vote_island_numeric
+                      when 6
+                        if census_file.attached?
+                          get_user_location_from_csv user
+                        else
+                          user.vote_circle_id
+                        end
+                      else
+                        '00'
+                      end
+      election_location = election_locations.find_by location: user_location
       election_location.vote_id
     end
 
     def locations
-      self.election_locations.map{|l| "#{l.location},#{l.agora_version}#{",#{l.override}" if l.override}"}.join "\n"
+      election_locations.map { |l| "#{l.location},#{l.agora_version}#{",#{l.override}" if l.override}" }.join "\n"
     end
 
-    def locations= value
+    def locations=(value)
       PlebisVotes::ElectionLocation.transaction do
         value.split("\n").each do |line|
-          if not line.strip.empty?
-            line_raw = line.strip.split(',')
-            location, agora_version, override = line_raw[0], line_raw[1], line_raw[2]
-            self.election_locations.build(location: location, agora_version: agora_version, override: override).save
-          end
+          next if line.strip.empty?
+
+          line_raw = line.strip.split(',')
+          location = line_raw[0]
+          agora_version = line_raw[1]
+          override = line_raw[2]
+          election_locations.build(location: location, agora_version: agora_version, override: override).save
         end
       end
     end
 
     def self.available_servers
-      Rails.application.secrets.agora["servers"].keys
+      Rails.application.secrets.agora['servers'].keys
     end
 
     def server_shared_key
-      server = Rails.application.secrets.agora["default"]
-      server = self.server if self.server and !self.server.empty?
-      Rails.application.secrets.agora["servers"][server]["shared_key"]
+      server = Rails.application.secrets.agora['default']
+      server = self.server if self.server.present?
+      Rails.application.secrets.agora['servers'][server]['shared_key']
     end
 
     def server_url
-      server = Rails.application.secrets.agora["default"]
-      server = self.server if self.server and !self.server.empty?
-      Rails.application.secrets.agora.dig("servers", server, "url") || ""
+      server = Rails.application.secrets.agora['default']
+      server = self.server if self.server.present?
+      Rails.application.secrets.agora.dig('servers', server, 'url') || ''
     end
 
     def duration
-      ((ends_at-starts_at)/60/60).to_i
+      ((ends_at - starts_at) / 60 / 60).to_i
     end
 
     def votes_histogram
-      xbin_size = 60*10 # 10 minutes
-      ybin_size = 60*60*24 # 1 hour
-      data = self.votes.joins(:user).pluck(:created_at, "users.created_at")
-      data = data.group_by do |v,u| [v.to_i/xbin_size, u.to_i/ybin_size] end .map {|k,v| [k[0]*xbin_size+xbin_size/2, k[1]*ybin_size+ybin_size/2, v.count] }
-      { data: data, limits: [ [ data.map(&:first).min, data.map(&:first).max], [ data.map(&:second).min, data.map(&:second).max ] ] }
+      xbin_size = 60 * 10 # 10 minutes
+      ybin_size = 60 * 60 * 24 # 1 hour
+      data = votes.joins(:user).pluck(:created_at, 'users.created_at')
+      data = data.group_by do |v, u|
+        [v.to_i / xbin_size, u.to_i / ybin_size]
+      end.map { |k, v| [(k[0] * xbin_size) + (xbin_size / 2), (k[1] * ybin_size) + (ybin_size / 2), v.count] }
+      { data: data,
+        limits: [data.map(&:first).minmax, data.map(&:second).minmax] }
     end
 
     def valid_votes_count
-      votes.with_deleted.where("deleted_at is null or deleted_at>?", ends_at).select(:user_id).distinct.count
+      votes.with_deleted.where('deleted_at is null or deleted_at>?', ends_at).select(:user_id).distinct.count
     end
 
     def counter_token
@@ -293,7 +320,7 @@ module PlebisVotes
     end
 
     def generate_access_token(info)
-      Base64.urlsafe_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::SHA256.new('sha256'), counter_key, info))[0..16]
+      Base64.urlsafe_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('SHA256', 'sha256'), counter_key, info))[0..16]
     end
 
     private
@@ -311,30 +338,30 @@ module PlebisVotes
       str_value = config_value.to_s.strip
       case str_value
       when /^(\d+)\.second(s)?$/
-        $1.to_i.seconds
+        ::Regexp.last_match(1).to_i.seconds
       when /^(\d+)\.minute(s)?$/
-        $1.to_i.minutes
+        ::Regexp.last_match(1).to_i.minutes
       when /^(\d+)\.hour(s)?$/
-        $1.to_i.hours
+        ::Regexp.last_match(1).to_i.hours
       when /^(\d+)\.day(s)?$/
-        $1.to_i.days
+        ::Regexp.last_match(1).to_i.days
       when /^(\d+)\.week(s)?$/
-        $1.to_i.weeks
+        ::Regexp.last_match(1).to_i.weeks
       when /^(\d+)\.month(s)?$/
-        $1.to_i.months
+        ::Regexp.last_match(1).to_i.months
       when /^(\d+)\.year(s)?$/
-        $1.to_i.years
+        ::Regexp.last_match(1).to_i.years
       else
         # Fallback: try to parse as integer seconds, but if invalid, log and return default
         parsed = str_value.to_i
-        if parsed > 0
+        if parsed.positive?
           parsed.seconds
         else
           Rails.logger.error("Failed to parse duration config '#{key}': invalid format '#{config_value}'")
           1.year
         end
       end
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error("Failed to parse duration config '#{key}': #{config_value} - #{e.message}")
       # Safe default fallback for active_census_range
       1.year

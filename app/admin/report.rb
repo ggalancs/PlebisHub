@@ -1,15 +1,15 @@
+# frozen_string_literal: true
+
 ActiveAdmin.register Report do
-  menu :parent => "Users"
-  permit_params  :title, :query, :main_group, :groups, :version_at
+  menu parent: 'Users'
+  permit_params :title, :query, :main_group, :groups, :version_at
 
   index do
     selectable_column
     id_column
     column :title
     column :query
-    column :date do |report|
-      report.updated_at
-    end
+    column :date, &:updated_at
     actions
   end
 
@@ -22,14 +22,16 @@ ActiveAdmin.register Report do
       @groups = resource.get_groups
       @results = YAML.load(resource.results)
 
-      block = Proc.new do |main_group|
+      block = proc do |main_group|
         @groups.each do |group|
-          panel "#{main_group} - #{group.title}", 'data-panel' => :collapsed, 'data-panel-id' => group.id, 'data-panel-parent' => main_group do
+          panel "#{main_group} - #{group.title}", 'data-panel' => :collapsed, 'data-panel-id' => group.id,
+                                                  'data-panel-parent' => main_group do
             results = @results[:data][main_group][group.id]
-            if results.length>500
+            if results.length > 500
               new_results = results.first(500)
               has_rest_row = results[-1][:count] > results[-2][:count]
-              new_results << { name: "(#{results.length-(has_rest_row ? 501 : 500)} más)", count: (results[500..(has_rest_row ? -2 : -1)].map {|r| r[:count]} .sum)}
+              new_results << { name: "(#{results.length - (has_rest_row ? 501 : 500)} más)",
+                               count: results[500..(has_rest_row ? -2 : -1)].pluck(:count).sum }
               new_results << results[-1] if has_rest_row
               results = new_results
             end
@@ -37,17 +39,31 @@ ActiveAdmin.register Report do
               column group.label do |r|
                 div r[:name]
               end
-              column "Total" do |r|
+              column 'Total' do |r|
                 div r[:count]
               end
               column group.data_label do |r|
-                div(r[:samples].map {|k,v| if k=="+" then "y #{v} más" elsif v>1 then "#{k}(#{if v>100 then "+100" else v end})" else k end } .join(", ")) if r[:samples]
+                if r[:samples]
+                  div(r[:samples].map do |k, v|
+                    if k == '+'
+                      "y #{v} más"
+                    elsif v > 1
+                      "#{k}(#{v > 100 ? '+100' : v})"
+                    else
+                      k
+                    end
+                  end.join(', '))
+                end
               end
               column :users do |r|
-                div(r[:users][0..20].map do |u| link_to(u, admin_user_path(u)).html_safe end .join(" ").html_safe) if r[:users]
+                if r[:users]
+                  div(r[:users][0..20].map do |u|
+                    link_to(u, admin_user_path(u)).html_safe
+                  end.join(' ').html_safe)
+                end
               end
               column do |r|
-                div status_tag("BLACKLIST", :error) if group.blacklist? r[:name]
+                div status_tag('BLACKLIST', :error) if group.blacklist? r[:name]
               end
             end
           end
@@ -55,7 +71,7 @@ ActiveAdmin.register Report do
       end
 
       if @main_group
-        @results[:data].sort.each do |main_group, groups|
+        @results[:data].sort.each do |main_group, _groups|
           panel "#{@main_group.title}: #{main_group}", 'data-panel' => :collapsed, 'data-panel-id' => main_group do
             block.call main_group
           end
@@ -75,8 +91,8 @@ ActiveAdmin.register Report do
     if resource.results.nil?
       link_to 'Generar', run_admin_report_path(id: resource.id)
     else
-      link_to 'Regenerar', run_admin_report_path(id: resource.id), data: { confirm: "Se perderán los resultados actuales del informe. ¿Deseas continuar?" }
+      link_to 'Regenerar', run_admin_report_path(id: resource.id),
+              data: { confirm: 'Se perderán los resultados actuales del informe. ¿Deseas continuar?' }
     end
   end
-
 end

@@ -30,9 +30,7 @@ RSpec.describe 'Impulsa Evaluation', type: :request do
       end
 
       it 'si renderiza, muestra título de IMPULSA' do
-        if response.status == 200
-          expect(response.body).to match(/IMPULSA|Impulsa/)
-        end
+        expect(response.body).to match(/IMPULSA|Impulsa/) if response.status == 200
       end
     end
 
@@ -43,21 +41,15 @@ RSpec.describe 'Impulsa Evaluation', type: :request do
       end
 
       it 'si renderiza, muestra título de Evaluación' do
-        if response.status == 200
-          expect(response.body).to include('Evaluación')
-        end
+        expect(response.body).to include('Evaluación') if response.status == 200
       end
 
       it 'si renderiza, menciona evaluadores' do
-        if response.status == 200
-          expect(response.body).to match(/evaluador|evaluación/i)
-        end
+        expect(response.body).to match(/evaluador|evaluación/i) if response.status == 200
       end
 
       it 'si renderiza, muestra resultado de evaluación' do
-        if response.status == 200
-          expect(response.body).to match(/resultado|superada|no superada/i)
-        end
+        expect(response.body).to match(/resultado|superada|no superada/i) if response.status == 200
       end
     end
 
@@ -68,21 +60,15 @@ RSpec.describe 'Impulsa Evaluation', type: :request do
       end
 
       it 'si renderiza, usa estructura content-content' do
-        if response.status == 200
-          expect(response.body).to include('content-content')
-        end
+        expect(response.body).to include('content-content') if response.status == 200
       end
 
       it 'si renderiza, tiene h2 para título principal' do
-        if response.status == 200
-          expect(response.body).to match(/<h2>/)
-        end
+        expect(response.body).to match(/<h2>/) if response.status == 200
       end
 
       it 'si renderiza, usa clase impulsa' do
-        if response.status == 200
-          expect(response.body).to include('impulsa')
-        end
+        expect(response.body).to include('impulsa') if response.status == 200
       end
     end
   end

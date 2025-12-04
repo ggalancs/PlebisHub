@@ -112,7 +112,7 @@ RSpec.describe 'Microcredit Info', type: :request do
       end
 
       it 'tiene múltiples párrafos' do
-        paragraphs = response.body.scan(/<p>/).count
+        paragraphs = response.body.scan('<p>').count
         expect(paragraphs).to be >= 8
       end
 

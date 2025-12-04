@@ -8,8 +8,8 @@ FactoryBot.define do
     ends_at { 1.day.from_now }
     scope { 0 } # Estatal
     election_type { :nvotes }
-    server { "default" }
-    voter_id_template { '%{secret_key_base}:%{user_id}:%{election_id}:%{scoped_agora_election_id}' }
+    server { 'default' }
+    voter_id_template { '%<secret_key_base>s:%<user_id>s:%<election_id>s:%<scoped_agora_election_id>s' }
 
     # FlagShihTzu flags (all false by default)
     flags { 0 }

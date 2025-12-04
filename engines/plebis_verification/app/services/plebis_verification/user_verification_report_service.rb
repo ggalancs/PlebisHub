@@ -15,7 +15,7 @@ module PlebisVerification
       @aacc_code = Rails.application.secrets.user_verifications[report_code]
     rescue StandardError => e
       Rails.logger.error({
-        event: "user_verification_report_init_failed",
+        event: 'user_verification_report_init_failed',
         report_code: report_code,
         error_class: e.class.name,
         error_message: e.message,
@@ -47,7 +47,7 @@ module PlebisVerification
       report
     rescue StandardError => e
       Rails.logger.error({
-        event: "user_verification_report_generation_failed",
+        event: 'user_verification_report_generation_failed',
         aacc_code: @aacc_code,
         error_class: e.class.name,
         error_message: e.message,
@@ -62,8 +62,8 @@ module PlebisVerification
     def validate_configuration!
       unless Rails.application.secrets.user_verifications &&
              Rails.application.secrets.users &&
-             Rails.application.secrets.users["active_census_range"]
-        raise "Missing user_verifications or users configuration in secrets"
+             Rails.application.secrets.users['active_census_range']
+        raise 'Missing user_verifications or users configuration in secrets'
       end
     end
 
@@ -89,27 +89,25 @@ module PlebisVerification
     def collect_data
       return @data if @data
 
-      @data = Hash[
-        base_query.joins(:user_verifications)
-                  .group(:prov, :status)
-                  .pluck("right(left(vote_town,4),2) as prov", "status", "count(distinct users.id)")
-                  .map { |prov, status, count| [[prov, status], count] }
-      ]
+      @data = base_query.joins(:user_verifications)
+                        .group(:prov, :status)
+                        .pluck('right(left(vote_town,4),2) as prov', 'status', 'count(distinct users.id)')
+                        .to_h { |prov, status, count| [[prov, status], count] }
 
       # Add users totals by prov
       # SECURITY FIX: Replace eval() with safe Integer() parsing
       active_census_days = parse_active_census_range
-      active_date = Date.today - active_census_days.days
+      active_date = Time.zone.today - active_census_days.days
 
       # SECURITY FIX: Use Arel for parameterized query instead of string interpolation
       users_table = User.arel_table
       base_query.group(:prov, :active, :verified).pluck(
-        "right(left(vote_town,4),2) as prov",
+        'right(left(vote_town,4),2) as prov',
         users_table[:current_sign_in_at].not_eq(nil)
           .and(users_table[:current_sign_in_at].gt(active_date))
           .to_sql.sub(/^"users"\./, '').concat(' as active'),
         "#{User.verified_condition} as verified",
-        "count(distinct users.id)"
+        'count(distinct users.id)'
       ).each do |prov, active, verified, count|
         @data[[prov, active, verified]] = count
       end
@@ -119,7 +117,7 @@ module PlebisVerification
 
     # SECURITY FIX: Replace dangerous eval() with safe Integer() parsing
     def parse_active_census_range
-      range_value = Rails.application.secrets.users["active_census_range"]
+      range_value = Rails.application.secrets.users['active_census_range']
 
       # Handle different formats: "30.days", "30", 30
       if range_value.is_a?(String)
@@ -127,9 +125,9 @@ module PlebisVerification
         numeric_match = range_value.match(/\d+/)
         unless numeric_match
           Rails.logger.error({
-            event: "invalid_active_census_range",
+            event: 'invalid_active_census_range',
             value: range_value,
-            error: "No numeric value found in string",
+            error: 'No numeric value found in string',
             timestamp: Time.current.iso8601
           }.to_json)
           return 30 # Default fallback
@@ -140,7 +138,7 @@ module PlebisVerification
       end
     rescue ArgumentError, TypeError => e
       Rails.logger.error({
-        event: "invalid_active_census_range",
+        event: 'invalid_active_census_range',
         value: range_value,
         error: e.message,
         timestamp: Time.current.iso8601
@@ -149,7 +147,7 @@ module PlebisVerification
     end
 
     def provinces
-      @provinces ||= Carmen::Country.coded("ES").subregions.map { |p| ["%02d" % +p.index, p.name] }
+      @provinces ||= Carmen::Country.coded('ES').subregions.map { |p| ['%02d' % +p.index, p.name] }
     end
 
     def process_province_data(report, data, province_num, province_name, autonomy_name)

@@ -1,0 +1,76 @@
+/* line 1, app/assets/stylesheets/user_verifications.css.scss */
+label.vatid_sample {
+  width: 45%;
+  min-width: 300px;
+  float: left;
+  text-align: center;
+  margin-bottom: 1em;
+}
+
+/* line 7, app/assets/stylesheets/user_verifications.css.scss */
+label.vatid_sample img {
+  cursor: pointer;
+  margin: 0 10px;
+  width: 95%;
+}
+
+/* line 13, app/assets/stylesheets/user_verifications.css.scss */
+label.vatid_sample .button {
+  font-size: 0.9em;
+  text-transform: none;
+}
+
+/* line 17, app/assets/stylesheets/user_verifications.css.scss */
+label.vatid_sample .button span {
+  font-weight: bold;
+  display: block;
+}
+
+/* line 24, app/assets/stylesheets/user_verifications.css.scss */
+.table {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+}
+
+/* line 30, app/assets/stylesheets/user_verifications.css.scss */
+.table td {
+  text-align: center;
+}
+
+/* line 33, app/assets/stylesheets/user_verifications.css.scss */
+.table th {
+  font-weight: bold;
+  text-align: left;
+}
+
+/* line 37, app/assets/stylesheets/user_verifications.css.scss */
+.table th, .table td {
+  margin: 0;
+  color: #612d62;
+  border: none;
+  padding: 0.55em 0;
+}
+
+/* line 43, app/assets/stylesheets/user_verifications.css.scss */
+.table thead th, .table thead td {
+  border-bottom: 1px solid #d7cad8;
+  text-align: center;
+}
+
+/* line 47, app/assets/stylesheets/user_verifications.css.scss */
+.table tfoot th, .table tfoot td {
+  border-top: 1px solid #d7cad8;
+  font-weight: bold;
+}
+
+/* line 51, app/assets/stylesheets/user_verifications.css.scss */
+.table .table-column {
+  border-left: 1px solid #d7cad8;
+}
+
+/* line 54, app/assets/stylesheets/user_verifications.css.scss */
+.table .good-column {
+  background: #DCF1DC;
+}

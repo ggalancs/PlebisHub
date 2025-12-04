@@ -1,0 +1,945 @@
+/*
+Author: wakalaka
+Author URI: http://wakalaka.es/
+Description: Responsive theme by wakalaka for Juntos PlebisBrand
+Version: 1.0
+*/
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+base
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+/* -----------------------------------
+box info & alerts
+----------------------------------- */
+/* line 17, app/assets/stylesheets/forms.css.scss */
+.box {
+  position: relative;
+}
+
+/* line 20, app/assets/stylesheets/forms.css.scss */
+.box-info {
+  background: #d7cad8;
+  padding: 1.5em 3em 1.5em 9em;
+  margin: 0 0 1.5em;
+}
+
+/* line 25, app/assets/stylesheets/forms.css.scss */
+.box-info:before {
+  display: inline-block;
+  margin: 0;
+  content: url(/assets/ico.ropes-purple-ea09c57aeacb199e67730b21f3e370f34029ed1da6c549bdbd1dedbef0abcd6d.png);
+  position: absolute;
+  top: -0.5em;
+  left: -0.5em;
+}
+
+/* line 33, app/assets/stylesheets/forms.css.scss */
+.box p {
+  color: #612d62;
+}
+
+/* line 37, app/assets/stylesheets/forms.css.scss */
+.box-ko {
+  background: #f5bfc9 url(/assets/ico.alert-circle-4b04d6e8e02ee38de1b4f85e9c43d4d854bb1f42dde28321ba343eb051f89a1c.png) 2.5em 1.25em no-repeat;
+  padding: 1.5em 3em 1.5em 9em;
+  margin: 0 0 1.5em;
+}
+
+/* line 42, app/assets/stylesheets/forms.css.scss */
+.box-ok {
+  background: #d0e0c9 url(/assets/ico.alert-circle-4b04d6e8e02ee38de1b4f85e9c43d4d854bb1f42dde28321ba343eb051f89a1c.png) 2.5em 1.25em no-repeat;
+  padding: 1.5em 3em 1.5em 9em;
+  margin: 0 0 1.5em;
+}
+
+/* line 47, app/assets/stylesheets/forms.css.scss */
+.logged-out .content-content .col-b-4a12 {
+  width: 100%;
+}
+
+/* line 51, app/assets/stylesheets/forms.css.scss */
+.box-info p {
+  color: #612d62;
+}
+
+/* line 54, app/assets/stylesheets/forms.css.scss */
+.box-ko p:last-of-type,
+.box-ok p:last-of-type,
+.box-info p:last-of-type {
+  margin: 0;
+}
+
+/* line 59, app/assets/stylesheets/forms.css.scss */
+.logged-out .box-ko p,
+.logged-out .box-ok p,
+.logged-out .box-info p {
+  margin: 0;
+}
+
+/* line 65, app/assets/stylesheets/forms.css.scss */
+.box-notif {
+  background: #d7cad8;
+  padding: 1.5em 3em 1.5em 1.5em;
+  margin: 0 0 1.5em;
+}
+
+/* line 70, app/assets/stylesheets/forms.css.scss */
+.box-notif p {
+  margin-bottom: 0.3em;
+}
+
+/* line 73, app/assets/stylesheets/forms.css.scss */
+.box-notif p.date span {
+  font-size: 0.8em;
+}
+
+/* line 78, app/assets/stylesheets/forms.css.scss */
+.box-notif {
+  background: #d7cad8;
+  padding: 1.5em 3em 1.5em 1.5em;
+  margin: 0 0 1.5em;
+}
+
+/* line 83, app/assets/stylesheets/forms.css.scss */
+.box-notif p {
+  margin-bottom: 0.3em;
+}
+
+/* line 86, app/assets/stylesheets/forms.css.scss */
+.box-notif p.date span {
+  font-size: 0.8em;
+}
+
+/* line 91, app/assets/stylesheets/forms.css.scss */
+.box .box-close {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  width: 1.8em;
+  height: 1.8em;
+  background: url(/assets/ico.box-close-white-ca39ed8fcf4c33151e1ceb5becdbaf285740eef330cc76f0634f2973a04076a3.png) 0 0 no-repeat;
+}
+
+/* line 99, app/assets/stylesheets/forms.css.scss */
+.box .box-close {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+}
+
+/* line 104, app/assets/stylesheets/forms.css.scss */
+.box .box-close span {
+  display: none;
+}
+
+/* -----------------------------------
+form elements
+----------------------------------- */
+/* line 113, app/assets/stylesheets/forms.css.scss */
+fieldset legend {
+  font-family: Montserrat,Arial,sans-sefif;
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid #d7cad8;
+  position: relative;
+  margin: 0 0 1.5em;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* line 123, app/assets/stylesheets/forms.css.scss */
+legend span {
+  background: #fff;
+  padding: 0 0.1em 0 0;
+  position: relative;
+  top: 0.3em;
+  color: #612d62;
+}
+
+/* line 131, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box {
+  width: 100%;
+  display: inline-block;
+  float: none;
+  clear: both;
+  padding-bottom: 1em;
+  position: relative;
+}
+
+/* line 140, app/assets/stylesheets/forms.css.scss */
+.with-border {
+  border: 1px solid #d3d8dc;
+}
+
+/* line 144, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box input, fieldset .inputlabel-box label, fieldset .inputlabel-box select, fieldset .inputlabel-box textarea, fieldset .inputlabel-box p {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-sefif;
+}
+
+/* line 148, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box-hint label {
+  height: 28px;
+}
+
+/* line 151, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box label,
+fieldset .inputlabel-box span.no-label,
+.content-content span.no-input {
+  display: block;
+  background: none;
+  float: left;
+  border: none;
+  color: #612d62;
+  padding: 0.55em 0;
+}
+
+/* line 161, app/assets/stylesheets/forms.css.scss */
+.content-content span.no-input {
+  font-weight: bold;
+}
+
+/* line 164, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box input, fieldset .inputlabel-box textarea {
+  background: #eaeaea;
+  float: left;
+  border: none;
+  padding: 0.85em 1.5%;
+  color: #555;
+}
+
+/* line 173, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box .error input, fieldset .inputlabel-box .error textarea, fieldset .inputlabel-box .error select, fieldset .inputlabel-box .error label.choice {
+  background: #F5BFC9;
+}
+
+/* line 178, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box textarea {
+  height: 4em;
+}
+
+/* line 181, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box .input-box,
+fieldset .inputlabel-box .form-wrapper {
+  float: left;
+  border: none;
+  width: 100%;
+}
+
+/* line 187, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box .checkbox-box {
+  float: left;
+  border: none;
+  width: 63%;
+}
+
+/* line 192, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box .input-box p {
+  padding-top: 0.9em;
+  float: left;
+  border: none;
+}
+
+/* line 197, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box input.input-xl, fieldset .inputlabel-box textarea.input-xl {
+  width: 99%;
+}
+
+/* line 200, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box input.input-m, fieldset .inputlabel-box textarea.input-m {
+  width: 62%;
+  margin-right: 2%;
+}
+
+/* line 204, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box input.input-s, fieldset .inputlabel-box textarea.input-s {
+  width: 29%;
+  margin-right: 2%;
+}
+
+/* line 208, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box input.input-account-4 {
+  width: 11.5%;
+  margin-right: 2%;
+}
+
+/* line 212, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box input.input-account-2 {
+  width: 7%;
+  margin-right: 2%;
+}
+
+/* line 216, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box input.input-account-10 {
+  width: 26%;
+  margin-right: 0;
+}
+
+/* line 220, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box .input-box p.text-xl {
+  width: 90%;
+}
+
+/* line 223, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box .input-box p.text-m {
+  width: 66%;
+}
+
+/* line 226, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box .input-box p.text-s {
+  width: 33%;
+}
+
+/* line 229, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box input.checkbox {
+  background: #fff;
+  float: left;
+  border: none;
+  padding: 0;
+  margin: 0.85em 0.5em 0.85em 0;
+  width: auto;
+}
+
+/* line 237, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box p {
+  float: left;
+  border: none;
+  padding: 0;
+  color: #666;
+  margin: 0;
+}
+
+/* line 244, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box p.note {
+  border: none;
+  padding: 0px;
+  margin: 5px 10px 15px;
+  clear: left;
+}
+
+/* line 249, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box p.note.right {
+  float: right;
+}
+
+/* line 253, app/assets/stylesheets/forms.css.scss */
+fieldset .alert-nexttolabel {
+  display: inline-block;
+  background: #d7cad8;
+  width: 30%;
+  clear: right;
+  float: none;
+  position: absolute;
+  top: 0;
+  left: -33%;
+  padding: 0;
+  margin: 0;
+}
+
+/* line 265, app/assets/stylesheets/forms.css.scss */
+fieldset .alert-nexttolabel .alert-ico {
+  padding: 2.5em 1.5em;
+  background: #612d62 url(/assets/ico.alert-exclam-e465a00afc1703922814d674d42606e8b85ae00d4c11e129b47ed3230fd92981.png) 50% 50% no-repeat;
+  display: inline-block;
+  float: right;
+  position: relative;
+}
+
+/* line 272, app/assets/stylesheets/forms.css.scss */
+fieldset .alert-nexttolabel .alert-ico span {
+  background: url(/assets/bg.purple-tip-h-187c4f71ae5a68b469778188480f5f59605644750844c9b1c7687d285596ba58.png) 50% 50% no-repeat;
+  display: block;
+  width: 1.1em;
+  height: 2.2em;
+  position: absolute;
+  top: 30%;
+  right: -1em;
+}
+
+/* line 281, app/assets/stylesheets/forms.css.scss */
+fieldset .alert-nexttolabel p {
+  color: #612d62;
+  margin: 1.1em 0 0.5em 3%;
+  width: 75%;
+  text-align: center;
+  float: left;
+}
+
+/* line 288, app/assets/stylesheets/forms.css.scss */
+fieldset .alert-nexttolabel p:last-child {
+  margin: 0;
+}
+
+/* line 292, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box .rb-unit {
+  float: left;
+}
+
+/* line 295, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box .rb-unit input {
+  float: left;
+}
+
+/* line 298, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box .rb-unit label {
+  float: left;
+  display: block;
+  width: auto;
+  white-space: nowrap;
+}
+
+/* line 305, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box label.choice {
+  width: 100%;
+}
+
+/* line 307, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box label.choice input {
+  margin: 5px;
+}
+
+/* line 312, app/assets/stylesheets/forms.css.scss */
+.rb-box-1col .rb-unit {
+  width: 63%;
+}
+
+/* line 315, app/assets/stylesheets/forms.css.scss */
+.rb-box-2col .rb-unit {
+  width: 29.5%;
+  margin-right: 2%;
+}
+
+/* line 319, app/assets/stylesheets/forms.css.scss */
+.rb-box-3col .rb-unit {
+  width: 19%;
+  margin-right: 2%;
+}
+
+/* line 323, app/assets/stylesheets/forms.css.scss */
+.rb-box-4col .rb-unit {
+  width: 13.75%;
+  margin-right: 2%;
+}
+
+/* line 327, app/assets/stylesheets/forms.css.scss */
+.rb-box-5col .rb-unit {
+  width: 12.6%;
+  margin-right: 2%;
+}
+
+/* line 331, app/assets/stylesheets/forms.css.scss */
+.rb-box-6col .rb-unit {
+  width: 10.5%;
+  margin-right: 2%;
+}
+
+/*
+*/
+/* line 339, app/assets/stylesheets/forms.css.scss */
+.dl-horizontal {
+  overflow: hidden;
+  margin-bottom: 1em;
+}
+
+/* line 343, app/assets/stylesheets/forms.css.scss */
+.dl-horizontal dt,
+.dl-horizontal dd {
+  display: block;
+  background: none;
+  float: left;
+  clear: right;
+  border: none;
+  color: #612d62;
+  padding: 0.55em 0;
+}
+
+/* line 353, app/assets/stylesheets/forms.css.scss */
+fieldset .inputlabel-box input {
+  background: #eaeaea;
+  float: left;
+  border: none;
+  padding: 0.85em 1.5%;
+  color: #555;
+}
+
+/* line 361, app/assets/stylesheets/forms.css.scss */
+.table-collaborations {
+  border-collapse: collapse;
+  margin-bottom: 1em;
+}
+
+/* line 366, app/assets/stylesheets/forms.css.scss */
+.dl-horizontal dd {
+  width: 63%;
+  font-weight: bold;
+}
+
+/* line 370, app/assets/stylesheets/forms.css.scss */
+.table-collaborations th,
+.table-collaborations td {
+  margin: 0;
+  color: #612d62;
+  border: none;
+  padding: 0.55em 0;
+}
+
+/* line 377, app/assets/stylesheets/forms.css.scss */
+.table-collaborations thead th {
+  font-weight: bold;
+  border-bottom: 1px solid #d7cad8;
+}
+
+/* line 381, app/assets/stylesheets/forms.css.scss */
+.table-collaborations tfoot th {
+  font-weight: bold;
+  font-style: italic;
+  border-top: 1px solid #d7cad8;
+}
+
+/* line 387, app/assets/stylesheets/forms.css.scss */
+.tos {
+  overflow: auto;
+  height: 20em;
+  width: 94%;
+  padding: 3%;
+  font-size: 1em;
+  background: #eaeaea;
+  font-weight: normal;
+}
+
+/* line 396, app/assets/stylesheets/forms.css.scss */
+fieldset.with-tos .inputlabel-box .tos p {
+  margin-bottom: 1em;
+}
+
+/* line 399, app/assets/stylesheets/forms.css.scss */
+fieldset.with-tos .inputlabel-box .tos p:last-of-type {
+  margin-bottom: 0;
+}
+
+/* line 403, app/assets/stylesheets/forms.css.scss */
+.fragments .fragment {
+  display: block;
+  width: 100%;
+  float: left;
+}
+
+/* line 409, app/assets/stylesheets/forms.css.scss */
+.fragments .fragment .select2-container {
+  width: 40%;
+}
+
+/* line 413, app/assets/stylesheets/forms.css.scss */
+span.help-block {
+  display: block;
+}
+
+/* line 414, app/assets/stylesheets/forms.css.scss */
+span.help-block span {
+  color: #269283;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+layout 1: 0-459 (simple) # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+/*
+elementos
+*/
+/* line 430, app/assets/stylesheets/forms.css.scss */
+.content-content label,
+.content-content span.no-label,
+.content-content span.no-input,
+.dl-horizontal dt {
+  width: 100%;
+  clear: both;
+}
+
+/* line 437, app/assets/stylesheets/forms.css.scss */
+.dl-horizontal dd {
+  margin-bottom: 0.5em;
+}
+
+/* line 440, app/assets/stylesheets/forms.css.scss */
+.table-collaborations {
+  margin-left: 0;
+  width: 100%;
+}
+
+/*
+font sizes
+*/
+/* line 449, app/assets/stylesheets/forms.css.scss */
+.content-content label,
+.content-content span.no-label,
+.content-content span.no-input {
+  font-size: 1.4em;
+}
+
+/* line 454, app/assets/stylesheets/forms.css.scss */
+fieldset.with-tos .inputlabel-box span.no-input {
+  font-size: 1em;
+}
+
+/* line 457, app/assets/stylesheets/forms.css.scss */
+.content-content input,
+.dl-horizontal dt,
+.dl-horizontal dd,
+.table-collaborations th,
+.table-collaborations td {
+  font-size: 1.3em;
+}
+
+/* line 464, app/assets/stylesheets/forms.css.scss */
+.alert-nexttolabel p {
+  font-size: 1.2em;
+}
+
+/* line 467, app/assets/stylesheets/forms.css.scss */
+.input-box p,
+span.help-block,
+fieldset.with-tos .inputlabel-box .tos p {
+  font-size: 1em;
+}
+
+/* line 472, app/assets/stylesheets/forms.css.scss */
+legend span {
+  font-size: 1.6em;
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+layout 2: 460-600 (intermedia 1) # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+@media only screen and (min-width: 460px) and (max-width: 600px) {
+  /*
+  elementos
+  */
+  /* line 489, app/assets/stylesheets/forms.css.scss */
+  .content-content label,
+.content-content span.no-label,
+.dl-horizontal dt {
+    width: 32%;
+    margin-right: 2%;
+    clear: none;
+  }
+  /* line 496, app/assets/stylesheets/forms.css.scss */
+  .content-content span.no-input,
+fieldset .inputlabel-box .input-box,
+fieldset .inputlabel-box .form-wrapper {
+    width: 63%;
+    clear: none;
+  }
+  /* line 502, app/assets/stylesheets/forms.css.scss */
+  .table-collaborations {
+    margin-left: 34%;
+    width: 63%;
+  }
+  /* line 506, app/assets/stylesheets/forms.css.scss */
+  .dl-horizontal dd {
+    margin-bottom: 0;
+  }
+  /* line 509, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-xl {
+    width: 99%;
+    margin-right: 0;
+  }
+  /* line 513, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-m {
+    width: 48%;
+    margin-right: 2%;
+  }
+  /* line 517, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-s {
+    width: 23%;
+    margin-right: 2%;
+  }
+  /*
+  font sizes
+  */
+  /* line 526, app/assets/stylesheets/forms.css.scss */
+  .content-content label,
+.content-content span.no-label,
+.content-content span.no-input {
+    font-size: 1.4em;
+  }
+  /* line 531, app/assets/stylesheets/forms.css.scss */
+  fieldset.with-tos .inputlabel-box span.no-input {
+    font-size: 1em;
+  }
+  /* line 534, app/assets/stylesheets/forms.css.scss */
+  .content-content input,
+.dl-horizontal dt,
+.dl-horizontal dd,
+.table-collaborations th,
+.table-collaborations td {
+    font-size: 1.3em;
+  }
+  /* line 541, app/assets/stylesheets/forms.css.scss */
+  .alert-nexttolabel p {
+    font-size: 1.2em;
+  }
+  /* line 544, app/assets/stylesheets/forms.css.scss */
+  .input-box p,
+span.help-block,
+fieldset.with-tos .inputlabel-box .tos p {
+    font-size: 1.1em;
+  }
+  /* line 549, app/assets/stylesheets/forms.css.scss */
+  legend span {
+    font-size: 1.6em;
+  }
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+layout 3: 600-768 (intermedia 2) # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+@media only screen and (min-width: 600px) and (max-width: 768px) {
+  /*
+  elementos
+  */
+  /* line 567, app/assets/stylesheets/forms.css.scss */
+  .content-content label,
+.content-content span.no-label,
+.dl-horizontal dt {
+    width: 32%;
+    margin-right: 2%;
+    clear: none;
+  }
+  /* line 574, app/assets/stylesheets/forms.css.scss */
+  .content-content span.no-input,
+fieldset .inputlabel-box .input-box,
+fieldset .inputlabel-box .form-wrapper {
+    width: 63%;
+    clear: none;
+  }
+  /* line 580, app/assets/stylesheets/forms.css.scss */
+  .table-collaborations {
+    margin-left: 34%;
+    width: 63%;
+  }
+  /* line 584, app/assets/stylesheets/forms.css.scss */
+  .dl-horizontal dd {
+    margin-bottom: 0;
+  }
+  /* line 587, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-xl {
+    width: 99%;
+    margin-right: 0;
+  }
+  /* line 591, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-m {
+    width: 48%;
+    margin-right: 2%;
+  }
+  /* line 595, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-s {
+    width: 23%;
+    margin-right: 2%;
+  }
+  /*
+  font sizes
+  */
+  /* line 604, app/assets/stylesheets/forms.css.scss */
+  .content-content label,
+.content-content span.no-label,
+.content-content span.no-input {
+    font-size: 1.5em;
+  }
+  /* line 609, app/assets/stylesheets/forms.css.scss */
+  fieldset.with-tos .inputlabel-box span.no-input {
+    font-size: 1em;
+  }
+  /* line 612, app/assets/stylesheets/forms.css.scss */
+  .content-content input,
+.dl-horizontal dt,
+.dl-horizontal dd,
+.table-collaborations th,
+.table-collaborations td {
+    font-size: 1.4em;
+  }
+  /* line 619, app/assets/stylesheets/forms.css.scss */
+  .alert-nexttolabel p {
+    font-size: 1.3em;
+  }
+  /* line 622, app/assets/stylesheets/forms.css.scss */
+  .input-box p,
+span.help-block,
+fieldset.with-tos .inputlabel-box .tos p {
+    font-size: 1.1em;
+  }
+  /* line 627, app/assets/stylesheets/forms.css.scss */
+  legend span {
+    font-size: 1.7em;
+  }
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+layout 4: 769-...+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+@media only screen and (min-width: 769px) {
+  /*
+  elementos
+  */
+  /* line 644, app/assets/stylesheets/forms.css.scss */
+  .content-content label,
+.content-content span.no-label,
+.dl-horizontal dt {
+    width: 32%;
+    margin-right: 2%;
+    clear: none;
+  }
+  /* line 651, app/assets/stylesheets/forms.css.scss */
+  .content-content span.no-input,
+fieldset .inputlabel-box .input-box,
+fieldset .inputlabel-box .form-wrapper {
+    width: 63%;
+    clear: none;
+  }
+  /* line 657, app/assets/stylesheets/forms.css.scss */
+  .table-collaborations {
+    margin-left: 34%;
+    width: 63%;
+  }
+  /* line 661, app/assets/stylesheets/forms.css.scss */
+  .dl-horizontal dd {
+    margin-bottom: 0;
+  }
+  /* line 664, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-xl {
+    width: 99%;
+    margin-right: 0;
+  }
+  /* line 668, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-m {
+    width: 48%;
+    margin-right: 2%;
+  }
+  /* line 672, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-s {
+    width: 23%;
+    margin-right: 2%;
+  }
+  /*
+  font sizes
+  */
+  /* line 681, app/assets/stylesheets/forms.css.scss */
+  .content-content label,
+.content-content span.no-label,
+.content-content span.no-input {
+    font-size: 1.6em;
+  }
+  /* line 686, app/assets/stylesheets/forms.css.scss */
+  fieldset.with-tos .inputlabel-box span.no-input {
+    font-size: 1em;
+  }
+  /* line 689, app/assets/stylesheets/forms.css.scss */
+  .content-content input,
+.dl-horizontal dt,
+.dl-horizontal dd,
+.table-collaborations th,
+.table-collaborations td {
+    font-size: 1.5em;
+  }
+  /* line 696, app/assets/stylesheets/forms.css.scss */
+  .alert-nexttolabel p {
+    font-size: 1.4em;
+  }
+  /* line 699, app/assets/stylesheets/forms.css.scss */
+  span.help-block {
+    font-size: 1.1em;
+  }
+  /* line 702, app/assets/stylesheets/forms.css.scss */
+  .input-box p,
+fieldset.with-tos .inputlabel-box .tos p {
+    font-size: 1.2em;
+  }
+  /* line 706, app/assets/stylesheets/forms.css.scss */
+  legend span {
+    font-size: 1.8em;
+  }
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+layout 4+: 978-...+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+@media only screen and (min-width: 978px) {
+  /*
+  elementos
+  */
+  /* line 723, app/assets/stylesheets/forms.css.scss */
+  .content-content label,
+.content-content span.no-label,
+.dl-horizontal dt {
+    width: 32%;
+    margin-right: 2%;
+    clear: none;
+  }
+  /* line 730, app/assets/stylesheets/forms.css.scss */
+  .content-content span.no-input,
+fieldset .inputlabel-box .input-box,
+fieldset .inputlabel-box .form-wrapper {
+    width: 63%;
+    clear: none;
+  }
+  /* line 736, app/assets/stylesheets/forms.css.scss */
+  .table-collaborations {
+    margin-left: 34%;
+    width: 63%;
+  }
+  /* line 740, app/assets/stylesheets/forms.css.scss */
+  .dl-horizontal dd {
+    margin-bottom: 0;
+  }
+  /* line 743, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-xl {
+    width: 99%;
+    margin-right: 0;
+  }
+  /* line 747, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-m {
+    width: 48%;
+    margin-right: 2%;
+  }
+  /* line 751, app/assets/stylesheets/forms.css.scss */
+  fieldset .inputlabel-box input.input-s {
+    width: 23%;
+    margin-right: 2%;
+  }
+  /*
+  font sizes
+  */
+  /* line 760, app/assets/stylesheets/forms.css.scss */
+  .content-content label,
+.content-content span.no-label,
+.content-content span.no-input {
+    font-size: 1.8em;
+  }
+  /* line 765, app/assets/stylesheets/forms.css.scss */
+  fieldset.with-tos .inputlabel-box span.no-input {
+    font-size: 1em;
+  }
+  /* line 768, app/assets/stylesheets/forms.css.scss */
+  .content-content input,
+.dl-horizontal dt,
+.dl-horizontal dd,
+.table-collaborations th,
+.table-collaborations td {
+    font-size: 1.6em;
+  }
+  /* line 775, app/assets/stylesheets/forms.css.scss */
+  .alert-nexttolabel p {
+    font-size: 1.4em;
+  }
+  /* line 778, app/assets/stylesheets/forms.css.scss */
+  .input-box p,
+fieldset.with-tos .inputlabel-box .tos p {
+    font-size: 1.2em;
+  }
+  /* line 782, app/assets/stylesheets/forms.css.scss */
+  legend span {
+    font-size: 2em;
+  }
+  /* line 785, app/assets/stylesheets/forms.css.scss */
+  span.help-block {
+    font-size: 1.1em;
+  }
+}

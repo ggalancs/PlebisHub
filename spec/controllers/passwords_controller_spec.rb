@@ -134,7 +134,7 @@ RSpec.describe PasswordsController, type: :controller do
         }
 
         expect(Rails.logger).to have_received(:error).with(a_string_matching(/password_reset_error/)).at_least(:once)
-        expect(response).to redirect_to("/en/users/sign_in")
+        expect(response).to redirect_to('/en/users/sign_in')
       end
     end
   end

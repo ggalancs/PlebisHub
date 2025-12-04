@@ -127,13 +127,12 @@ RSpec.describe ImpulsaEdition, type: :model do
 
       it 'returns new_projects during new projects period' do
         edition = create(:impulsa_edition,
-          start_at: 1.day.ago,
-          new_projects_until: 1.day.from_now,
-          review_projects_until: 2.days.from_now,
-          validation_projects_until: 3.days.from_now,
-          votings_start_at: 4.days.from_now,
-          ends_at: 5.days.from_now
-        )
+                         start_at: 1.day.ago,
+                         new_projects_until: 1.day.from_now,
+                         review_projects_until: 2.days.from_now,
+                         validation_projects_until: 3.days.from_now,
+                         votings_start_at: 4.days.from_now,
+                         ends_at: 5.days.from_now)
         expect(edition.current_phase).to eq(ImpulsaEdition::EDITION_PHASES[:new_projects])
       end
 
@@ -144,14 +143,13 @@ RSpec.describe ImpulsaEdition, type: :model do
 
       it 'returns ended after publish_results_at' do
         edition = create(:impulsa_edition,
-          start_at: 3.months.ago,
-          new_projects_until: 2.months.ago,
-          review_projects_until: 2.months.ago,
-          validation_projects_until: 2.months.ago,
-          votings_start_at: 2.months.ago,
-          ends_at: 1.month.ago,
-          publish_results_at: 1.day.ago
-        )
+                         start_at: 3.months.ago,
+                         new_projects_until: 2.months.ago,
+                         review_projects_until: 2.months.ago,
+                         validation_projects_until: 2.months.ago,
+                         votings_start_at: 2.months.ago,
+                         ends_at: 1.month.ago,
+                         publish_results_at: 1.day.ago)
         expect(edition.current_phase).to eq(ImpulsaEdition::EDITION_PHASES[:ended])
       end
     end
@@ -165,13 +163,12 @@ RSpec.describe ImpulsaEdition, type: :model do
     describe '#allow_creation?' do
       it 'returns true during new_projects phase' do
         edition = create(:impulsa_edition,
-          start_at: 1.day.ago,
-          new_projects_until: 1.day.from_now,
-          review_projects_until: 2.days.from_now,
-          validation_projects_until: 3.days.from_now,
-          votings_start_at: 4.days.from_now,
-          ends_at: 5.days.from_now
-        )
+                         start_at: 1.day.ago,
+                         new_projects_until: 1.day.from_now,
+                         review_projects_until: 2.days.from_now,
+                         validation_projects_until: 3.days.from_now,
+                         votings_start_at: 4.days.from_now,
+                         ends_at: 5.days.from_now)
         expect(edition.allow_creation?).to be true
       end
 
@@ -184,13 +181,12 @@ RSpec.describe ImpulsaEdition, type: :model do
     describe '#allow_edition?' do
       it 'returns true before review_projects' do
         edition = create(:impulsa_edition,
-          start_at: 1.day.ago,
-          new_projects_until: 1.day.from_now,
-          review_projects_until: 2.days.from_now,
-          validation_projects_until: 3.days.from_now,
-          votings_start_at: 4.days.from_now,
-          ends_at: 5.days.from_now
-        )
+                         start_at: 1.day.ago,
+                         new_projects_until: 1.day.from_now,
+                         review_projects_until: 2.days.from_now,
+                         validation_projects_until: 3.days.from_now,
+                         votings_start_at: 4.days.from_now,
+                         ends_at: 5.days.from_now)
         expect(edition.allow_edition?).to be true
       end
     end
@@ -198,13 +194,12 @@ RSpec.describe ImpulsaEdition, type: :model do
     describe '#allow_fixes?' do
       it 'returns true before validation_projects' do
         edition = create(:impulsa_edition,
-          start_at: 3.days.ago,
-          new_projects_until: 2.days.ago,
-          review_projects_until: 1.hour.from_now,
-          validation_projects_until: 1.day.from_now,
-          votings_start_at: 2.days.from_now,
-          ends_at: 3.days.from_now
-        )
+                         start_at: 3.days.ago,
+                         new_projects_until: 2.days.ago,
+                         review_projects_until: 1.hour.from_now,
+                         validation_projects_until: 1.day.from_now,
+                         votings_start_at: 2.days.from_now,
+                         ends_at: 3.days.from_now)
         expect(edition.allow_fixes?).to be true
       end
     end
@@ -212,13 +207,12 @@ RSpec.describe ImpulsaEdition, type: :model do
     describe '#allow_validation?' do
       it 'returns true during validation_projects phase' do
         edition = create(:impulsa_edition,
-          start_at: 3.days.ago,
-          new_projects_until: 2.days.ago,
-          review_projects_until: 1.day.ago,
-          validation_projects_until: 1.day.from_now,
-          votings_start_at: 2.days.from_now,
-          ends_at: 3.days.from_now
-        )
+                         start_at: 3.days.ago,
+                         new_projects_until: 2.days.ago,
+                         review_projects_until: 1.day.ago,
+                         validation_projects_until: 1.day.from_now,
+                         votings_start_at: 2.days.from_now,
+                         ends_at: 3.days.from_now)
         expect(edition.allow_validation?).to be true
       end
     end

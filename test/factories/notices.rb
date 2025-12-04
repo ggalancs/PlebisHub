@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :notice, class: 'PlebisCms::Notice' do
     sequence(:title) { |n| "Notice Title #{n}" }
@@ -10,7 +12,7 @@ FactoryBot.define do
 
     # Traits for different notice states
     trait :with_link do
-      link { "https://example.com/notice" }
+      link { 'https://example.com/notice' }
     end
 
     trait :sent do

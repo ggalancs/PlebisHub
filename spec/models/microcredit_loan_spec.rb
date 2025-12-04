@@ -78,35 +78,35 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
       it 'requires amount' do
         loan = build(:microcredit_loan, amount: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:amount]).to include("no puede estar en blanco")
+        expect(loan.errors[:amount]).to include('no puede estar en blanco')
       end
 
       it 'requires terms_of_service acceptance' do
         loan = build(:microcredit_loan, terms_of_service: false)
         expect(loan).not_to be_valid
-        expect(loan.errors[:terms_of_service]).to include("debe ser aceptado")
+        expect(loan.errors[:terms_of_service]).to include('debe ser aceptado')
       end
 
       it 'requires minimal_year_old acceptance' do
         loan = build(:microcredit_loan, minimal_year_old: false)
         expect(loan).not_to be_valid
-        expect(loan.errors[:minimal_year_old]).to include("debe ser aceptado")
+        expect(loan.errors[:minimal_year_old]).to include('debe ser aceptado')
       end
 
       it 'requires iban_account on create' do
         loan = build(:microcredit_loan, iban_account: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:iban_account]).to include("no puede estar en blanco")
+        expect(loan.errors[:iban_account]).to include('no puede estar en blanco')
       end
 
       it 'requires iban_bic on create if international' do
         loan = build(:microcredit_loan, :international_iban, iban_bic: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:iban_bic]).to include("no puede estar en blanco")
+        expect(loan.errors[:iban_bic]).to include('no puede estar en blanco')
       end
 
       it 'does not require iban_bic for Spanish IBAN' do
-        loan = build(:microcredit_loan, iban_account: "ES9121000418450200051332", iban_bic: nil)
+        loan = build(:microcredit_loan, iban_account: 'ES9121000418450200051332', iban_bic: nil)
         # BIC is calculated automatically for Spanish IBANs
         expect(loan).to be_valid, "Spanish IBAN should be valid without explicit BIC. Errors: #{loan.errors.full_messages.join(', ')}"
       end
@@ -116,73 +116,73 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
       it 'requires document_vatid if no user' do
         loan = build(:microcredit_loan, :without_user, document_vatid: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:document_vatid]).to include("is invalid")
+        expect(loan.errors[:document_vatid]).to include('is invalid')
       end
 
       it 'validates Spanish ID format for document_vatid if no user' do
-        loan = build(:microcredit_loan, :without_user, document_vatid: "12345678A")
-        expect(loan).not_to be_valid, "Invalid DNI check digit should be rejected"
+        loan = build(:microcredit_loan, :without_user, document_vatid: '12345678A')
+        expect(loan).not_to be_valid, 'Invalid DNI check digit should be rejected'
       end
 
       it 'accepts valid Spanish DNI if no user' do
-        loan = build(:microcredit_loan, :without_user, document_vatid: "12345678Z")
+        loan = build(:microcredit_loan, :without_user, document_vatid: '12345678Z')
         expect(loan).to be_valid, "Valid DNI should be accepted. Errors: #{loan.errors.full_messages.join(', ')}"
       end
 
       it 'requires first_name if no user' do
         loan = build(:microcredit_loan, :without_user, first_name: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:first_name]).to include("no puede estar en blanco")
+        expect(loan.errors[:first_name]).to include('no puede estar en blanco')
       end
 
       it 'requires last_name if no user' do
         loan = build(:microcredit_loan, :without_user, last_name: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:last_name]).to include("no puede estar en blanco")
+        expect(loan.errors[:last_name]).to include('no puede estar en blanco')
       end
 
       it 'requires email if no user' do
         loan = build(:microcredit_loan, :without_user, email: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:email]).to include("no puede estar en blanco")
+        expect(loan.errors[:email]).to include('no puede estar en blanco')
       end
 
       it 'validates email format if no user' do
         microcredit = create(:microcredit, :active)
         microcredit_option = create(:microcredit_option, microcredit: microcredit)
-        loan = build(:microcredit_loan, :without_user, microcredit: microcredit, microcredit_option: microcredit_option, email: "test@")
+        loan = build(:microcredit_loan, :without_user, microcredit: microcredit, microcredit_option: microcredit_option, email: 'test@')
         expect(loan).not_to be_valid
-        expect(loan.errors[:email]).to include("debe acabar con una letra")
+        expect(loan.errors[:email]).to include('debe acabar con una letra')
       end
 
       it 'requires address if no user' do
         loan = build(:microcredit_loan, :without_user, address: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:address]).to include("no puede estar en blanco")
+        expect(loan.errors[:address]).to include('no puede estar en blanco')
       end
 
       it 'requires postal_code if no user' do
         loan = build(:microcredit_loan, :without_user, postal_code: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:postal_code]).to include("no puede estar en blanco")
+        expect(loan.errors[:postal_code]).to include('no puede estar en blanco')
       end
 
       it 'requires town if no user' do
         loan = build(:microcredit_loan, :without_user, town: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:town]).to include("no puede estar en blanco")
+        expect(loan.errors[:town]).to include('no puede estar en blanco')
       end
 
       it 'requires province if no user' do
         loan = build(:microcredit_loan, :without_user, province: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:province]).to include("no puede estar en blanco")
+        expect(loan.errors[:province]).to include('no puede estar en blanco')
       end
 
       it 'requires country if no user' do
         loan = build(:microcredit_loan, :without_user, country: nil)
         expect(loan).not_to be_valid
-        expect(loan.errors[:country]).to include("no puede estar en blanco")
+        expect(loan.errors[:country]).to include('no puede estar en blanco')
       end
     end
 
@@ -191,7 +191,7 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
         user = create(:user, document_type: 3) # Passport
         loan = build(:microcredit_loan, user: user)
         expect(loan).not_to be_valid
-        expect(loan.errors[:user]).to include("No puedes suscribir un microcrédito si no dispones de DNI o NIE.")
+        expect(loan.errors[:user]).to include('No puedes suscribir un microcrédito si no dispones de DNI o NIE.')
       end
 
       it 'does not accept users under 18' do
@@ -199,7 +199,7 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
         user.update_column(:born_at, 17.years.ago)
         loan = build(:microcredit_loan, user: user)
         expect(loan).not_to be_valid
-        expect(loan.errors[:user]).to include("No puedes suscribir un microcrédito si eres menor de edad.")
+        expect(loan.errors[:user]).to include('No puedes suscribir un microcrédito si eres menor de edad.')
       end
 
       it 'accepts users 18 or older' do
@@ -211,24 +211,24 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
       it 'validates IBAN format' do
         loan = build(:microcredit_loan, :invalid_iban)
         expect(loan).not_to be_valid
-        expect(loan.errors[:iban_account]).to include("Cuenta corriente inválida. Dígito de control erroneo. Por favor revísala.")
+        expect(loan.errors[:iban_account]).to include('Cuenta corriente inválida. Dígito de control erroneo. Por favor revísala.')
       end
 
       it 'does not accept brand\'s own account number' do
-        microcredit = create(:microcredit, account_number: "ES9121000418450200051332")
-        loan = build(:microcredit_loan, microcredit: microcredit, iban_account: "ES9121000418450200051332")
+        microcredit = create(:microcredit, account_number: 'ES9121000418450200051332')
+        loan = build(:microcredit_loan, microcredit: microcredit, iban_account: 'ES9121000418450200051332')
         expect(loan).not_to be_valid
         expect(loan.errors[:iban_account].first).to match(/no la de/)
       end
 
       it 'accepts different account number from brand' do
-        microcredit = create(:microcredit, account_number: "ES1234567890123456789012")
-        loan = build(:microcredit_loan, microcredit: microcredit, iban_account: "ES9121000418450200051332")
+        microcredit = create(:microcredit, account_number: 'ES1234567890123456789012')
+        loan = build(:microcredit_loan, microcredit: microcredit, iban_account: 'ES9121000418450200051332')
         expect(loan).to be_valid, "Different account should be valid. Errors: #{loan.errors.full_messages.join(', ')}"
       end
 
       it 'rejects loan if amount not available' do
-        microcredit = create(:microcredit, :active, limits: "100€: 1")
+        microcredit = create(:microcredit, :active, limits: '100€: 1')
         microcredit_option = create(:microcredit_option, microcredit: microcredit)
 
         # Create first loan to fill the limit
@@ -241,23 +241,23 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
         # Try to create second loan
         loan = build(:microcredit_loan, :without_user, microcredit: microcredit, microcredit_option: microcredit_option, amount: 100)
         expect(loan).not_to be_valid
-        expect(loan.errors[:amount]).to include("Lamentablemente, ya no quedan préstamos por esa cantidad.")
+        expect(loan.errors[:amount]).to include('Lamentablemente, ya no quedan préstamos por esa cantidad.')
       end
 
       it 'rejects loan if microcredit is not active' do
         microcredit = create(:microcredit, :finished)
         loan = build(:microcredit_loan, microcredit: microcredit)
         expect(loan).not_to be_valid
-        expect(loan.errors[:microcredit]).to include("La campaña de microcréditos no está activa en este momento.")
+        expect(loan.errors[:microcredit]).to include('La campaña de microcréditos no está activa en este momento.')
       end
 
       it 'rejects if exceeds max loans per IP' do
         microcredit = create(:microcredit, :active)
         microcredit_option = create(:microcredit_option, microcredit: microcredit)
-        test_ip = "192.168.1.100"
+        test_ip = '192.168.1.100'
 
         # Create max loans for this IP using build + save(validate: false) + update_columns
-        51.times do |i|
+        51.times do |_i|
           user = create(:user, :with_dni)
           loan = build(:microcredit_loan, microcredit: microcredit, microcredit_option: microcredit_option, user: user, ip: nil)
           loan.save(validate: false)
@@ -267,12 +267,12 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
         # Try to create one more
         loan = build(:microcredit_loan, microcredit: microcredit, microcredit_option: microcredit_option, ip: test_ip)
         expect(loan).not_to be_valid
-        expect(loan.errors[:user]).to include("Lamentablemente, no es posible suscribir este microcrédito.")
+        expect(loan.errors[:user]).to include('Lamentablemente, no es posible suscribir este microcrédito.')
       end
 
       it 'rejects if exceeds max loans per user' do
         microcredit = create(:microcredit, :active)
-        test_document = "12345678Z"
+        test_document = '12345678Z'
 
         # Create max loans for this document using update_columns to bypass validations
         31.times do
@@ -283,30 +283,30 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
         # Try to create one more
         loan = build(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: test_document)
         expect(loan).not_to be_valid
-        expect(loan.errors[:user]).to include("Lamentablemente, no es posible suscribir este microcrédito.")
+        expect(loan.errors[:user]).to include('Lamentablemente, no es posible suscribir este microcrédito.')
       end
 
       it 'rejects if loan amount sum exceeds max' do
-        microcredit = create(:microcredit, :active, limits: "5000€: 10")
+        microcredit = create(:microcredit, :active, limits: '5000€: 10')
 
         # Create loans totaling 9000
         2.times do
-          create(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: "12345678Z", amount: 5000, confirmed_at: Time.current)
+          create(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: '12345678Z', amount: 5000, confirmed_at: Time.current)
         end
 
         # Try to create loan for 2000 (would exceed 10000 limit)
-        loan = build(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: "12345678Z", amount: 2000)
+        loan = build(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: '12345678Z', amount: 2000)
         expect(loan).not_to be_valid
-        expect(loan.errors[:user]).to include("Lamentablemente, no es posible suscribir este microcrédito.")
+        expect(loan.errors[:user]).to include('Lamentablemente, no es posible suscribir este microcrédito.')
       end
 
       it 'validates microcredit_option is leaf node' do
         parent_option = create(:microcredit_option)
-        child_option = create(:microcredit_option, parent: parent_option, microcredit: parent_option.microcredit)
+        create(:microcredit_option, parent: parent_option, microcredit: parent_option.microcredit)
 
         loan = build(:microcredit_loan, microcredit: parent_option.microcredit, microcredit_option: parent_option)
         expect(loan).not_to be_valid
-        expect(loan.errors[:microcredit_option_id]).to include("Debes elegir algún elemento")
+        expect(loan.errors[:microcredit_option_id]).to include('Debes elegir algún elemento')
       end
     end
   end
@@ -437,32 +437,32 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
 
   describe 'callbacks' do
     it 'sets user data from user on initialization' do
-      user = create(:user, first_name: "John", last_name: "Doe")
+      user = create(:user, first_name: 'John', last_name: 'Doe')
       loan = described_class.new(user: user)
 
-      expect(loan.first_name).to eq("John")
-      expect(loan.last_name).to eq("Doe")
+      expect(loan.first_name).to eq('John')
+      expect(loan.last_name).to eq('Doe')
       expect(loan.email).to eq(user.email)
       expect(loan.document_vatid).to eq(user.document_vatid)
     end
 
     it 'sets country to ES by default if no user' do
       loan = described_class.new
-      expect(loan.country).to eq("ES")
+      expect(loan.country).to eq('ES')
     end
 
     it 'upcases iban_account before save' do
-      loan = create(:microcredit_loan, iban_account: "es9121000418450200051332")
-      expect(loan.iban_account).to eq("ES9121000418450200051332")
+      loan = create(:microcredit_loan, iban_account: 'es9121000418450200051332')
+      expect(loan.iban_account).to eq('ES9121000418450200051332')
     end
 
     it 'saves user_data as YAML when no user' do
-      loan = create(:microcredit_loan, :without_user, first_name: "Juan", last_name: "García")
+      loan = create(:microcredit_loan, :without_user, first_name: 'Juan', last_name: 'García')
 
       expect(loan.user_data).not_to be_nil
       data = YAML.unsafe_load(loan.user_data)
-      expect(data[:first_name]).to eq("Juan")
-      expect(data[:last_name]).to eq("García")
+      expect(data[:first_name]).to eq('Juan')
+      expect(data[:last_name]).to eq('García')
     end
 
     it 'sets user_data to nil when user exists' do
@@ -471,14 +471,14 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
     end
 
     it 'upcases and strips document_vatid before save' do
-      loan = create(:microcredit_loan, :without_user, document_vatid: "12345678z")
-      expect(loan.document_vatid).to eq("12345678Z")
+      loan = create(:microcredit_loan, :without_user, document_vatid: '12345678z')
+      expect(loan.document_vatid).to eq('12345678Z')
     end
 
     it 'calculates BIC for Spanish IBAN before save' do
-      loan = create(:microcredit_loan, iban_account: "ES9121000418450200051332", iban_bic: nil)
+      loan = create(:microcredit_loan, iban_account: 'ES9121000418450200051332', iban_bic: nil)
       expect(loan.iban_bic).not_to be_nil
-      expect(loan.iban_bic).to eq("CAIXESBBXXX")
+      expect(loan.iban_bic).to eq('CAIXESBBXXX')
     end
   end
 
@@ -515,53 +515,53 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
       it 'sets virtual attributes from hash' do
         loan = described_class.new
         user_data = {
-          first_name: "Maria",
-          last_name: "Lopez",
-          email: "maria@example.com",
-          address: "Calle Test 1",
-          postal_code: "28001",
-          town: "Madrid",
-          province: "Madrid",
-          country: "ES"
+          first_name: 'Maria',
+          last_name: 'Lopez',
+          email: 'maria@example.com',
+          address: 'Calle Test 1',
+          postal_code: '28001',
+          town: 'Madrid',
+          province: 'Madrid',
+          country: 'ES'
         }
 
         loan.set_user_data(user_data)
 
-        expect(loan.first_name).to eq("Maria")
-        expect(loan.last_name).to eq("Lopez")
-        expect(loan.email).to eq("maria@example.com")
-        expect(loan.address).to eq("Calle Test 1")
+        expect(loan.first_name).to eq('Maria')
+        expect(loan.last_name).to eq('Lopez')
+        expect(loan.email).to eq('maria@example.com')
+        expect(loan.address).to eq('Calle Test 1')
       end
     end
 
     describe '#country_name' do
       it 'returns country name from Carmen' do
-        loan = build(:microcredit_loan, :without_user, country: "ES")
-        expect(loan.country_name).to eq("España")
+        loan = build(:microcredit_loan, :without_user, country: 'ES')
+        expect(loan.country_name).to eq('España')
       end
 
       it 'returns country code if not found' do
-        loan = build(:microcredit_loan, :without_user, country: "XX")
-        expect(loan.country_name).to eq("XX")
+        loan = build(:microcredit_loan, :without_user, country: 'XX')
+        expect(loan.country_name).to eq('XX')
       end
     end
 
     describe '#province_name' do
       it 'returns province name from Carmen' do
-        loan = build(:microcredit_loan, :without_user, country: "ES", province: "M")
-        expect(loan.province_name).to eq("Madrid")
+        loan = build(:microcredit_loan, :without_user, country: 'ES', province: 'M')
+        expect(loan.province_name).to eq('Madrid')
       end
 
       it 'returns province code if not found' do
-        loan = build(:microcredit_loan, :without_user, province: "XX")
-        expect(loan.province_name).to eq("XX")
+        loan = build(:microcredit_loan, :without_user, province: 'XX')
+        expect(loan.province_name).to eq('XX')
       end
     end
 
     describe '#town_name' do
       it 'returns town code as fallback' do
-        loan = build(:microcredit_loan, :without_user, town: "Madrid")
-        expect(loan.town_name).to eq("Madrid")
+        loan = build(:microcredit_loan, :without_user, town: 'Madrid')
+        expect(loan.town_name).to eq('Madrid')
       end
     end
 
@@ -584,49 +584,49 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
       end
 
       it 'returns false for Spanish IBAN' do
-        loan = build(:microcredit_loan, iban_account: "ES9121000418450200051332")
+        loan = build(:microcredit_loan, iban_account: 'ES9121000418450200051332')
         expect(loan.is_bank_international?).to be false
       end
     end
 
     describe '#iban_valid?' do
       it 'validates correct Spanish IBAN' do
-        loan = build(:microcredit_loan, iban_account: "ES9121000418450200051332")
+        loan = build(:microcredit_loan, iban_account: 'ES9121000418450200051332')
         expect(loan.iban_valid?).to be true
       end
 
       it 'rejects incorrect IBAN' do
-        loan = build(:microcredit_loan, iban_account: "ES9999999999999999999999")
+        loan = build(:microcredit_loan, iban_account: 'ES9999999999999999999999')
         expect(loan.iban_valid?).to be false
       end
     end
 
     describe '#calculate_bic' do
       it 'returns BIC for Spanish bank code' do
-        loan = build(:microcredit_loan, iban_account: "ES9121000418450200051332")
+        loan = build(:microcredit_loan, iban_account: 'ES9121000418450200051332')
         bic = loan.calculate_bic
         expect(bic).not_to be_nil
-        expect(bic).to eq("CAIXESBBXXX")
+        expect(bic).to eq('CAIXESBBXXX')
       end
     end
 
     describe '#possible_user' do
       it 'finds user by document_vatid' do
-        user = create(:user, document_type: 1, document_vatid: "12345678Z")
-        loan = build(:microcredit_loan, :without_user, document_vatid: "12345678Z")
+        user = create(:user, document_type: 1, document_vatid: '12345678Z')
+        loan = build(:microcredit_loan, :without_user, document_vatid: '12345678Z')
 
         expect(loan.possible_user).to eq(user)
       end
 
       it 'returns nil if no matching user' do
-        loan = build(:microcredit_loan, :without_user, document_vatid: "87654321X")
+        loan = build(:microcredit_loan, :without_user, document_vatid: '87654321X')
         expect(loan.possible_user).to be_nil
       end
     end
 
     describe '#unique_hash' do
       it 'generates consistent hash' do
-        loan = create(:microcredit_loan, :without_user, document_vatid: "12345678Z")
+        loan = create(:microcredit_loan, :without_user, document_vatid: '12345678Z')
         hash1 = loan.unique_hash
         hash2 = loan.unique_hash
 
@@ -787,9 +787,9 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
         microcredit = create(:microcredit)
 
         # Same user making multiple loans
-        create(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: "12345678Z", amount: 100)
-        create(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: "12345678Z", amount: 200, confirmed_at: Time.current)
-        create(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: "87654321X", amount: 300, confirmed_at: Time.current)
+        create(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: '12345678Z', amount: 100)
+        create(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: '12345678Z', amount: 200, confirmed_at: Time.current)
+        create(:microcredit_loan, :without_user, microcredit: microcredit, document_vatid: '87654321X', amount: 300, confirmed_at: Time.current)
 
         stats = described_class.get_loans_stats([microcredit.id])
 
@@ -836,23 +836,22 @@ RSpec.describe PlebisMicrocredit::MicrocreditLoan, type: :model do
 
     it 'handles loan with full user data without user object' do
       loan = create(:microcredit_loan, :without_user,
-        first_name: "Test",
-        last_name: "User",
-        email: "test@example.com",
-        address: "Test St 1",
-        postal_code: "28001",
-        town: "Madrid",
-        province: "Madrid",
-        country: "ES",
-        document_vatid: "12345678Z"
-      )
+                    first_name: 'Test',
+                    last_name: 'User',
+                    email: 'test@example.com',
+                    address: 'Test St 1',
+                    postal_code: '28001',
+                    town: 'Madrid',
+                    province: 'Madrid',
+                    country: 'ES',
+                    document_vatid: '12345678Z')
 
       loan.reload
       expect(loan.user_data).not_to be_nil
 
       data = YAML.unsafe_load(loan.user_data)
-      expect(data[:first_name]).to eq("Test")
-      expect(data[:email]).to eq("test@example.com")
+      expect(data[:first_name]).to eq('Test')
+      expect(data[:email]).to eq('test@example.com')
     end
   end
 end

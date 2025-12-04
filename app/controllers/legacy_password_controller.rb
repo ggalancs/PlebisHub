@@ -15,7 +15,7 @@
 # accessing the application.
 class LegacyPasswordController < ApplicationController
   before_action :authenticate_user!
-  before_action :verify_has_legacy_password, only: [:new, :update]
+  before_action :verify_has_legacy_password, only: %i[new update]
 
   # GET /users/legacy_password/new
   # Show form for updating legacy password
@@ -32,9 +32,8 @@ class LegacyPasswordController < ApplicationController
       current_user.update_column(:has_legacy_password, false)
 
       log_security_event('legacy_password_updated',
-        user_id: current_user.id,
-        email: current_user.email
-      )
+                         user_id: current_user.id,
+                         email: current_user.email)
 
       # Re-authenticate user with new password
       # Devise: Use bypass_sign_in instead of deprecated bypass option
@@ -44,9 +43,8 @@ class LegacyPasswordController < ApplicationController
     else
       # Password update failed
       log_security_event('legacy_password_update_failed',
-        user_id: current_user.id,
-        errors: current_user.errors.full_messages
-      )
+                         user_id: current_user.id,
+                         errors: current_user.errors.full_messages)
 
       render action: 'new'
     end
@@ -61,13 +59,12 @@ class LegacyPasswordController < ApplicationController
 
   # Verify user has legacy password before allowing access
   def verify_has_legacy_password
-    unless current_user.has_legacy_password?
-      log_security_event('legacy_password_unauthorized_access',
-        user_id: current_user.id,
-        has_legacy_password: false
-      )
-      redirect_to root_path
-    end
+    return if current_user.has_legacy_password?
+
+    log_security_event('legacy_password_unauthorized_access',
+                       user_id: current_user.id,
+                       has_legacy_password: false)
+    redirect_to root_path
   end
 
   # Strong parameters for password change

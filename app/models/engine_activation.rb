@@ -23,7 +23,7 @@ class EngineActivation < ApplicationRecord
   validates :engine_name, presence: true, uniqueness: true
   validates :engine_name, format: {
     with: /\A[a-z][a-z0-9_]*\z/,
-    message: "must start with a letter and contain only lowercase letters, numbers, and underscores"
+    message: 'must start with a letter and contain only lowercase letters, numbers, and underscores'
   }
   validates :engine_name, length: { minimum: 3, maximum: 50 }
   validate :engine_must_exist_in_registry, on: :create
@@ -36,7 +36,7 @@ class EngineActivation < ApplicationRecord
     Rails.cache.fetch("engine_activation:#{engine_name}", expires_in: 5.minutes) do
       exists?(engine_name: engine_name, enabled: true)
     end
-  rescue => e
+  rescue StandardError => e
     # If cache or database fails, assume disabled for safety
     Rails.logger.error "[EngineActivation] Error checking if #{engine_name} is enabled: #{e.message}"
     false
@@ -78,7 +78,7 @@ class EngineActivation < ApplicationRecord
   #
   def self.clear_cache(engine_name)
     Rails.cache.delete("engine_activation:#{engine_name}")
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error "[EngineActivation] Error clearing cache for #{engine_name}: #{e.message}"
   end
 
@@ -89,8 +89,8 @@ class EngineActivation < ApplicationRecord
   #
   def self.reload_routes!
     Rails.application.reload_routes!
-    Rails.logger.info "[EngineActivation] Routes reloaded"
-  rescue => e
+    Rails.logger.info '[EngineActivation] Routes reloaded'
+  rescue StandardError => e
     Rails.logger.error "[EngineActivation] Failed to reload routes: #{e.message}"
   end
 
@@ -104,20 +104,20 @@ class EngineActivation < ApplicationRecord
       # Use find_or_initialize_by to avoid race condition
       activation = find_or_initialize_by(engine_name: engine_name)
 
-      if activation.new_record?
-        info = PlebisCore::EngineRegistry.info(engine_name)
-        activation.description = info[:description]
-        activation.enabled = false # Disabled by default
+      next unless activation.new_record?
 
-        begin
-          activation.save!
-        rescue ActiveRecord::RecordNotUnique
-          # Race condition: another process created it, skip
-          Rails.logger.debug "[EngineActivation] #{engine_name} already seeded by another process"
-        end
+      info = PlebisCore::EngineRegistry.info(engine_name)
+      activation.description = info[:description]
+      activation.enabled = false # Disabled by default
+
+      begin
+        activation.save!
+      rescue ActiveRecord::RecordNotUnique
+        # Race condition: another process created it, skip
+        Rails.logger.debug { "[EngineActivation] #{engine_name} already seeded by another process" }
       end
     end
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error "[EngineActivation] Error seeding engines: #{e.message}"
   end
 
@@ -152,7 +152,7 @@ class EngineActivation < ApplicationRecord
   # @return [String] Status string
   #
   def status
-    enabled? ? "Active" : "Inactive"
+    enabled? ? 'Active' : 'Inactive'
   end
 
   private
@@ -167,7 +167,7 @@ class EngineActivation < ApplicationRecord
     unless available_engines.include?(engine_name)
       errors.add(:engine_name, "is not a registered engine. Available: #{available_engines.join(', ')}")
     end
-  rescue => e
+  rescue StandardError => e
     # If registry fails to load, skip validation
     Rails.logger.warn "[EngineActivation] Could not validate engine_name against registry: #{e.message}"
   end

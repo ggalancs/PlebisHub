@@ -23,6 +23,12 @@ class PasswordsController < Devise::PasswordsController
     flash[key] = I18n.t("devise.passwords.#{kind}") if flash[key].blank?
   end
 
+  # Override create to log password reset requests
+  def create
+    log_security_event('password_reset_requested', email: params.dig(:user, :email))
+    super
+  end
+
   # Override Devise PasswordsController update action
   # If user has a legacy password, clear the flag when they reset via email
   #
@@ -35,7 +41,7 @@ class PasswordsController < Devise::PasswordsController
     yield resource if block_given?
 
     # Check if password was successfully reset
-    if !resource.errors.include?(:password) && !resource.errors.include?(:password_confirmation)
+    if resource.errors.exclude?(:password) && resource.errors.exclude?(:password_confirmation)
       # Clear legacy password flag if user had one
       if resource.has_legacy_password?
         # Rails 7.2: Use update_column instead of deprecated update_attribute
@@ -57,9 +63,8 @@ class PasswordsController < Devise::PasswordsController
     else
       # Password reset failed - respond with errors
       log_security_event('password_reset_failed',
-        errors: resource.errors.full_messages,
-        token_present: params.dig(:user, :reset_password_token).present?
-      )
+                         errors: resource.errors.full_messages,
+                         token_present: params.dig(:user, :reset_password_token).present?)
       respond_with resource
     end
   rescue StandardError => e
@@ -67,12 +72,6 @@ class PasswordsController < Devise::PasswordsController
     # Ensure we don't expose error details to user
     flash[:alert] = I18n.t('devise.passwords.updated_not_active')
     redirect_to new_user_session_path
-  end
-
-  # Override create to log password reset requests
-  def create
-    log_security_event('password_reset_requested', email: params.dig(:user, :email))
-    super
   end
 
   private

@@ -10,7 +10,7 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
   describe 'factory' do
     it 'creates valid notice_registrar' do
       registrar = build(:notice_registrar)
-      expect(registrar).to be_valid, "Factory should create a valid notice_registrar"
+      expect(registrar).to be_valid, 'Factory should create a valid notice_registrar'
     end
 
     it 'creates registrar with attributes' do
@@ -37,8 +37,8 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
     end
 
     it 'allows duplicate registration_ids' do
-      registrar1 = create(:notice_registrar, registration_id: "DUPLICATE")
-      registrar2 = build(:notice_registrar, registration_id: "DUPLICATE")
+      create(:notice_registrar, registration_id: 'DUPLICATE')
+      registrar2 = build(:notice_registrar, registration_id: 'DUPLICATE')
 
       # No uniqueness constraint
       expect(registrar2).to be_valid
@@ -56,12 +56,11 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
 
     it 'reads notice_registrar attributes correctly' do
       registrar = create(:notice_registrar,
-        registration_id: "TEST123",
-        status: true
-      )
+                         registration_id: 'TEST123',
+                         status: true)
 
       found_registrar = NoticeRegistrar.find(registrar.id)
-      expect(found_registrar.registration_id).to eq("TEST123")
+      expect(found_registrar.registration_id).to eq('TEST123')
       expect(found_registrar.status).to eq(true)
     end
 
@@ -86,22 +85,22 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
 
   describe 'edge cases' do
     it 'handles empty registration_id' do
-      registrar = build(:notice_registrar, registration_id: "")
+      registrar = build(:notice_registrar, registration_id: '')
       expect(registrar).to be_valid
     end
 
     it 'handles very long registration_id' do
-      registrar = build(:notice_registrar, registration_id: "A" * 1000)
+      registrar = build(:notice_registrar, registration_id: 'A' * 1000)
       expect(registrar).to be_valid
     end
 
     it 'handles special characters in registration_id' do
-      registrar = build(:notice_registrar, registration_id: "REG-2024/001@TEST")
+      registrar = build(:notice_registrar, registration_id: 'REG-2024/001@TEST')
       expect(registrar).to be_valid
     end
 
     it 'handles unicode in registration_id' do
-      registrar = build(:notice_registrar, registration_id: "登録123")
+      registrar = build(:notice_registrar, registration_id: '登録123')
       expect(registrar).to be_valid
     end
 
@@ -131,7 +130,7 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
       initial_count = NoticeRegistrar.count
 
       # Create
-      registrar = create(:notice_registrar, registration_id: "LC001", status: true)
+      registrar = create(:notice_registrar, registration_id: 'LC001', status: true)
       expect(NoticeRegistrar.count).to eq(initial_count + 1)
 
       # Update
@@ -139,8 +138,8 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
       expect(registrar.reload.status).to eq(false)
 
       # Update registration_id
-      registrar.update(registration_id: "LC002")
-      expect(registrar.reload.registration_id).to eq("LC002")
+      registrar.update(registration_id: 'LC002')
+      expect(registrar.reload.registration_id).to eq('LC002')
 
       # Delete
       registrar.destroy
@@ -148,9 +147,9 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
     end
 
     it 'handles multiple registrars with different statuses' do
-      active = create(:notice_registrar, registration_id: "ACTIVE", status: true)
-      inactive = create(:notice_registrar, registration_id: "INACTIVE", status: false)
-      pending = create(:notice_registrar, registration_id: "PENDING", status: nil)
+      active = create(:notice_registrar, registration_id: 'ACTIVE', status: true)
+      inactive = create(:notice_registrar, registration_id: 'INACTIVE', status: false)
+      pending = create(:notice_registrar, registration_id: 'PENDING', status: nil)
 
       expect(NoticeRegistrar.count).to eq(3)
 
@@ -161,9 +160,9 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
     end
 
     it 'handles rapid creation of multiple registrars' do
-      expect {
+      expect do
         10.times { |i| create(:notice_registrar, registration_id: "BULK#{i}") }
-      }.to change(NoticeRegistrar, :count).by(10)
+      end.to change(NoticeRegistrar, :count).by(10)
     end
 
     it 'handles updates without changing timestamps inappropriately' do
@@ -181,10 +180,10 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
 
     it 'handles nil and empty values distinctly' do
       registrar_nil = create(:notice_registrar, registration_id: nil)
-      registrar_empty = create(:notice_registrar, registration_id: "")
+      registrar_empty = create(:notice_registrar, registration_id: '')
 
       expect(registrar_nil.registration_id).to be_nil
-      expect(registrar_empty.registration_id).to eq("")
+      expect(registrar_empty.registration_id).to eq('')
       expect(registrar_nil.registration_id).not_to eq(registrar_empty.registration_id)
     end
   end
@@ -195,9 +194,9 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
 
   describe 'queries' do
     it 'finds by registration_id' do
-      registrar = create(:notice_registrar, registration_id: "FIND_ME")
+      registrar = create(:notice_registrar, registration_id: 'FIND_ME')
 
-      found = NoticeRegistrar.find_by(registration_id: "FIND_ME")
+      found = NoticeRegistrar.find_by(registration_id: 'FIND_ME')
 
       expect(found).not_to be_nil
       expect(found.id).to eq(registrar.id)
@@ -217,11 +216,11 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
     end
 
     it 'handles ordering by created_at' do
-      first = create(:notice_registrar, registration_id: "FIRST")
+      first = create(:notice_registrar, registration_id: 'FIRST')
       sleep 0.01
-      second = create(:notice_registrar, registration_id: "SECOND")
+      second = create(:notice_registrar, registration_id: 'SECOND')
       sleep 0.01
-      third = create(:notice_registrar, registration_id: "THIRD")
+      third = create(:notice_registrar, registration_id: 'THIRD')
 
       ordered = NoticeRegistrar.order(created_at: :asc).last(3)
 
@@ -231,7 +230,7 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
     it 'counts registrars by status' do
       3.times { create(:notice_registrar, status: true) }
       2.times { create(:notice_registrar, status: false) }
-      1.times { create(:notice_registrar, status: nil) }
+      create(:notice_registrar, status: nil)
 
       expect(NoticeRegistrar.where(status: true).count).to eq(3)
       expect(NoticeRegistrar.where(status: false).count).to eq(2)

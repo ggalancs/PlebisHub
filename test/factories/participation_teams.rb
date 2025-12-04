@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :participation_team, class: 'ParticipationTeam' do
     sequence(:name) { |n| "Team #{n}" }
-    description { "Team description" }
+    description { 'Team description' }
     active { true }
 
     trait :inactive do

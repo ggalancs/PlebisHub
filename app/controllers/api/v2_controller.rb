@@ -14,7 +14,7 @@
 #
 # This API provides access to militant/user data filtered by geographic territories.
 # Authentication is via HMAC signature verification (timestamp + URL + secret).
-class Api::V2Controller < ActionController::Base
+class Api::V2Controller < ApplicationController
   # SECURITY: Skip CSRF for API - using HMAC signature authentication instead
   skip_before_action :verify_authenticity_token
 
@@ -82,7 +82,7 @@ class Api::V2Controller < ActionController::Base
   # Returns: [verified_boolean, debug_data_string]
   def verify_sign_url(url, param_list, len = nil)
     host = Rails.application.secrets.host
-    secret = Rails.application.secrets.forms["secret"]
+    secret = Rails.application.secrets.forms['secret']
     uri = URI(url)
     params_hash = URI.decode_www_form(uri.query || '').to_h
     timestamp = params_hash['timestamp']
@@ -153,7 +153,7 @@ class Api::V2Controller < ActionController::Base
 
     # Validate timestamp is not too old (prevent replay attacks)
     begin
-      ts = Time.at(timestamp.to_i)
+      ts = Time.zone.at(timestamp.to_i)
       if ts < 1.hour.ago || ts > 5.minutes.from_now
         log_security_event('invalid_timestamp', timestamp: timestamp, current_time: Time.current)
         return render json: {
@@ -259,7 +259,7 @@ class Api::V2Controller < ActionController::Base
 
     # SECURITY FIX: Was checking params[:user] which is never set
     # Changed to check the actual user variable
-    unless user.present?
+    if user.blank?
       log_security_event('user_not_found', email: email)
       return {
         success: false,
@@ -271,10 +271,10 @@ class Api::V2Controller < ActionController::Base
 
     # Log PII access for audit trail
     log_pii_access('militants_from_territory', {
-      email: email,
-      user_id: user.id,
-      territory: params[:territory]
-    })
+                     email: email,
+                     user_id: user.id,
+                     territory: params[:territory]
+                   })
 
     get_militants_data(user.vote_circle, params[:territory], params[:range_name])
   rescue StandardError => e
@@ -294,7 +294,7 @@ class Api::V2Controller < ActionController::Base
     # Changed to find_by which returns nil
     vote_circle = VoteCircle.find_by(id: vote_circle_id)
 
-    unless vote_circle.present?
+    if vote_circle.blank?
       log_security_event('vote_circle_not_found', vote_circle_id: vote_circle_id)
       return {
         success: false,
@@ -306,9 +306,9 @@ class Api::V2Controller < ActionController::Base
 
     # Log PII access for audit trail
     log_pii_access('militants_from_vote_circle_territory', {
-      vote_circle_id: vote_circle_id,
-      territory: params[:territory]
-    })
+                     vote_circle_id: vote_circle_id,
+                     territory: params[:territory]
+                   })
 
     get_militants_data(vote_circle, params[:territory], params[:range_name])
   rescue StandardError => e
@@ -322,7 +322,7 @@ class Api::V2Controller < ActionController::Base
 
   # Get militant data based on territory and vote circle
   def get_militants_data(app_circle, territory, range_name)
-    return [] unless app_circle.present?
+    return [] if app_circle.blank?
 
     territory_value, vc_query = build_territory_query(app_circle, territory, range_name)
 
@@ -371,11 +371,11 @@ class Api::V2Controller < ActionController::Base
       territory_value = app_circle.island_code
       vc_query = VoteCircle.where(island_code: territory_value).pluck(:id, :original_name)
     when 'circle'
-      if range_name && range_name.downcase == RANGE_NAMES[:exterior]
-        territory_value = VoteCircle.exterior.pluck(:id)
-      else
-        territory_value = app_circle.id
-      end
+      territory_value = if range_name && range_name.downcase == RANGE_NAMES[:exterior]
+                          VoteCircle.exterior.pluck(:id)
+                        else
+                          app_circle.id
+                        end
       vc_query = VoteCircle.where(id: territory_value).pluck(:id, :original_name)
     end
 
@@ -384,8 +384,8 @@ class Api::V2Controller < ActionController::Base
 
   # Get or create API logger
   def api_logger
-    @api_logger ||= Logger.new("#{Rails.root}/log/api.log").tap do |logger|
-      logger.formatter = proc do |severity, time, progname, msg|
+    @api_logger ||= Logger.new(Rails.root.join('log/api.log').to_s).tap do |logger|
+      logger.formatter = proc do |_severity, time, _progname, msg|
         "#{time.iso8601} | #{msg}\n"
       end
     end

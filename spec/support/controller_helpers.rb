@@ -8,13 +8,13 @@
 module RequestSpecHelpers
   # Stub asset_path to prevent AssetNotFound errors in tests
   # Returns a placeholder path for any requested asset
-  def asset_path(asset_name, options = {})
+  def asset_path(asset_name, _options = {})
     "/assets/test-placeholder-#{asset_name}"
   end
 
   # Stub funding_path route helper from CMS engine
   def funding_path
-    "/financiacion"
+    '/financiacion'
   end
 end
 
@@ -62,7 +62,7 @@ RSpec.configure do |config|
         "/#{I18n.locale}/qr"
       end
 
-      def new_collaboration_path(*args)
+      def new_collaboration_path(*_args)
         "/#{I18n.locale}/colabora"
       end
 
@@ -102,23 +102,23 @@ RSpec.configure do |config|
       allow_any_instance_of(PlebisMicrocredit::MicrocreditController).to receive(:init_env) do |controller|
         controller.instance_variable_set(:@brand, 'test_brand')
         controller.instance_variable_set(:@brand_config, {
-          'name' => 'Test Organization',
-          'mail_from' => 'test@example.com',
-          'main_url' => 'http://test.example.com',
-          'twitter_account' => '@testorg',
-          'external' => false
-        })
+                                           'name' => 'Test Organization',
+                                           'mail_from' => 'test@example.com',
+                                           'main_url' => 'http://test.example.com',
+                                           'twitter_account' => '@testorg',
+                                           'external' => false
+                                         })
         controller.instance_variable_set(:@external, false)
         controller.instance_variable_set(:@url_params, {})
       end
     end
 
     # Stub asset helpers in view context to prevent AssetNotFound errors
-    allow_any_instance_of(ActionView::Base).to receive(:asset_path) do |_, asset_name, options = {}|
+    allow_any_instance_of(ActionView::Base).to receive(:asset_path) do |_, asset_name, _options = {}|
       "/assets/test-placeholder-#{asset_name}"
     end
 
-    allow_any_instance_of(ActionView::Base).to receive(:image_path) do |_, source, options = {}|
+    allow_any_instance_of(ActionView::Base).to receive(:image_path) do |_, source, _options = {}|
       "/assets/test-placeholder-#{source}"
     end
 

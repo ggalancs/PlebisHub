@@ -1,33 +1,36 @@
+# frozen_string_literal: true
+
 require 'mail'
 
 module ActiveModel::Validations
   module EmailValidatorHelpers
-    def validate_email value
-      return false if value.nil? || value.length==0
+    def validate_email(value)
+      return false if value.blank?
 
       # First check, with the whole string
-      if (value.downcase =~ /[ÁÉÍÓÚàèìòùÀÈÍÓÚáéíóúñÑçÇ]/) != nil
-        return "no puede contener acentos, eñes u otros caracteres especiales"
-      elsif value.include? ".." 
-        return "no puede contener dos puntos seguidos"
-      elsif (value =~ /^["a-zA-Z0-9]/) == nil
-        return "debe comenzar con un número o una letra"
-      elsif (value =~ /[a-zA-Z]$/) == nil
-        return "debe acabar con una letra"
+      if (value.downcase =~ /[ÁÉÍÓÚàèìòùÀÈáéíóúñÑçÇ]/) != nil
+        return 'no puede contener acentos, eñes u otros caracteres especiales'
+      elsif value.include? '..'
+        return 'no puede contener dos puntos seguidos'
+      elsif (value =~ /^["a-zA-Z0-9]/).nil?
+        return 'debe comenzar con un número o una letra'
+      elsif (value =~ /[a-zA-Z]$/).nil?
+        return 'debe acabar con una letra'
       else
         begin
           m = Mail::Address.new(value)
 
           # when an unquoted comma is found, the parsed address is different than the received string
-          if value.include? "," and m.address != value
-            return "contiene caracteres inválidos"
-          elsif m.domain.nil? or not m.domain.include? "." or m.domain.starts_with? "."# domain validation
-            return "es incorrecto"
+          if value.include?(',') && (m.address != value)
+            return 'contiene caracteres inválidos'
+          elsif m.domain.nil? || m.domain.exclude?('.') || m.domain.starts_with?('.') # domain validation
+            return 'es incorrecto'
           end
-        rescue
-          return "es incorrecto"
+        rescue StandardError
+          return 'es incorrecto'
         end
       end
+
       false
     end
   end

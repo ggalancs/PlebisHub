@@ -24,10 +24,10 @@ module PlebisVerification
     # Verify user is allowed to change phone number
     # Users can only change phone every few months
     def can_change_phone
-      unless current_user.can_change_phone?
-        log_security_event('sms_validation_rate_limited', user_id: current_user.id)
-        redirect_to root_path, flash: { error: t('plebisbrand.valid.phone.rate_limited') }
-      end
+      return if current_user.can_change_phone?
+
+      log_security_event('sms_validation_rate_limited', user_id: current_user.id)
+      redirect_to root_path, flash: { error: t('plebisbrand.valid.phone.rate_limited') }
     end
 
     # Step 1: Display phone number entry form
@@ -79,15 +79,13 @@ module PlebisVerification
       if current_user.save
         current_user.set_sms_token!
         log_security_event('sms_validation_phone_saved',
-          user_id: current_user.id,
-          phone: current_user.unconfirmed_phone
-        )
+                           user_id: current_user.id,
+                           phone: current_user.unconfirmed_phone)
         redirect_to sms_validator_step2_path
       else
         log_security_event('sms_validation_phone_invalid',
-          user_id: current_user.id,
-          errors: current_user.errors.full_messages
-        )
+                           user_id: current_user.id,
+                           errors: current_user.errors.full_messages)
         render action: 'step1'
       end
     rescue StandardError => e
@@ -101,9 +99,8 @@ module PlebisVerification
       if simple_captcha_valid?
         current_user.send_sms_token!
         log_security_event('sms_validation_token_sent',
-          user_id: current_user.id,
-          phone: current_user.unconfirmed_phone
-        )
+                           user_id: current_user.id,
+                           phone: current_user.unconfirmed_phone)
         render action: 'step3'
       else
         log_security_event('sms_validation_captcha_invalid', user_id: current_user.id)
@@ -120,16 +117,14 @@ module PlebisVerification
     def valid
       if current_user.check_sms_token(sms_token_params[:sms_user_token_given])
         log_security_event('sms_validation_success',
-          user_id: current_user.id,
-          phone: current_user.unconfirmed_phone
-        )
+                           user_id: current_user.id,
+                           phone: current_user.unconfirmed_phone)
         flash.now[:notice] = t('plebisbrand.valid.phone.valid')
         redirect_to authenticated_root_path
       else
         log_security_event('sms_validation_token_invalid',
-          user_id: current_user.id,
-          attempts: current_user.sms_confirmation_attempts || 0
-        )
+                           user_id: current_user.id,
+                           attempts: current_user.sms_confirmation_attempts || 0)
         flash.now[:error] = t('plebisbrand.valid.phone.invalid')
         render action: 'step3'
       end

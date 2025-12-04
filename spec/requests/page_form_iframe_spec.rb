@@ -12,62 +12,46 @@ RSpec.describe 'Page Form Iframe', type: :request do
 
       it 'si renderiza, tiene título dinámico' do
         get '/es/formulario-iframe'
-        if response.status == 200
-          expect(response.body).to match(/<h2>/)
-        end
+        expect(response.body).to match(/<h2>/) if response.status == 200
       end
     end
 
     describe 'B. IFRAME DE FORMULARIO' do
       it 'si renderiza, tiene elemento iframe' do
         get '/es/formulario-iframe'
-        if response.status == 200
-          expect(response.body).to include('<iframe')
-        end
+        expect(response.body).to include('<iframe') if response.status == 200
       end
 
       it 'si renderiza, iframe tiene id js-iframe' do
         get '/es/formulario-iframe'
-        if response.status == 200
-          expect(response.body).to include('id="js-iframe"')
-        end
+        expect(response.body).to include('id="js-iframe"') if response.status == 200
       end
 
       it 'si renderiza, iframe tiene clase gfiframe' do
         get '/es/formulario-iframe'
-        if response.status == 200
-          expect(response.body).to include('gfiframe')
-        end
+        expect(response.body).to include('gfiframe') if response.status == 200
       end
 
       it 'si renderiza, iframe tiene ancho 100%' do
         get '/es/formulario-iframe'
-        if response.status == 200
-          expect(response.body).to match(/width="100%"/)
-        end
+        expect(response.body).to match(/width="100%"/) if response.status == 200
       end
 
       it 'si renderiza, iframe tiene altura configurada' do
         get '/es/formulario-iframe'
-        if response.status == 200
-          expect(response.body).to match(/height="\d+"/)
-        end
+        expect(response.body).to match(/height="\d+"/) if response.status == 200
       end
 
       it 'si renderiza, iframe tiene frameBorder 0' do
         get '/es/formulario-iframe'
-        if response.status == 200
-          expect(response.body).to include('frameBorder="0"')
-        end
+        expect(response.body).to include('frameBorder="0"') if response.status == 200
       end
     end
 
     describe 'C. SCRIPT DE GRAVITY FORMS' do
       it 'si renderiza, carga script de gfembed' do
         get '/es/formulario-iframe'
-        if response.status == 200
-          expect(response.body).to match(/gfembed\.min\.js/)
-        end
+        expect(response.body).to match(/gfembed\.min\.js/) if response.status == 200
       end
 
       it 'si renderiza, script usa dominio de forms configurado' do

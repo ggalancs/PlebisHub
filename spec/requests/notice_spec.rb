@@ -633,7 +633,7 @@ RSpec.describe 'Notice Index', type: :request do
         it 'muestra exactamente el cuerpo de la notificación' do
           parsed = Nokogiri::HTML(response.body)
           body_paragraphs = parsed.css('div.box-notif > p').select do |p|
-            !p.css('strong').any? && !p['class']&.include?('date')
+            p.css('strong').none? && !p['class']&.include?('date')
           end
 
           expect(body_paragraphs.first.text.strip).to eq('Specific Body 456')

@@ -39,7 +39,7 @@ module PlebisCore
       ActiveSupport::Notifications.instrument(full_event_name, payload) do
         Rails.logger.debug "[EventBus] Publishing: #{full_event_name} with payload: #{payload.inspect}"
       end
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "[EventBus] Error publishing #{event_name}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       raise
@@ -62,11 +62,11 @@ module PlebisCore
 
       ActiveSupport::Notifications.subscribe(full_event_name) do |*args|
         event = ActiveSupport::Notifications::Event.new(*args)
-        Rails.logger.debug "[EventBus] Received: #{full_event_name}"
+        Rails.logger.debug { "[EventBus] Received: #{full_event_name}" }
 
         begin
           block.call(event)
-        rescue => e
+        rescue StandardError => e
           Rails.logger.error "[EventBus] Error in subscriber for #{event_name}: #{e.message}"
           Rails.logger.error e.backtrace.join("\n")
           # Don't re-raise to prevent one subscriber from affecting others
@@ -84,11 +84,7 @@ module PlebisCore
     def self.unsubscribe(event_name, subscriber = nil)
       full_event_name = "plebis.#{event_name}"
 
-      if subscriber
-        ActiveSupport::Notifications.unsubscribe(subscriber)
-      else
-        ActiveSupport::Notifications.unsubscribe(full_event_name)
-      end
+      ActiveSupport::Notifications.unsubscribe(subscriber || full_event_name)
 
       Rails.logger.info "[EventBus] Unsubscribed from: #{full_event_name}"
     end
@@ -96,8 +92,8 @@ module PlebisCore
     # Clear all subscriptions (useful for testing)
     #
     def self.clear_all_subscriptions!
-      Rails.logger.warn "[EventBus] Clearing all subscriptions"
-      ActiveSupport::Notifications.notifier.listeners_for("plebis.*").each do |listener|
+      Rails.logger.warn '[EventBus] Clearing all subscriptions'
+      ActiveSupport::Notifications.notifier.listeners_for('plebis.*').each do |listener|
         ActiveSupport::Notifications.unsubscribe(listener)
       end
     end

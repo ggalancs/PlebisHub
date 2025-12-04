@@ -12,7 +12,7 @@ module EngineUser
     extend ActiveSupport::Concern
 
     included do
-      # Note: ImpulsaProject has author_id field
+      # NOTE: ImpulsaProject has author_id field
       # We don't define has_many here to avoid coupling
       # The relationship is managed through the engine
     end
@@ -23,7 +23,7 @@ module EngineUser
     # @return [Boolean] Whether user is an Impulsa author
     #
     def impulsa_author?
-      self.impulsa_author
+      impulsa_author
     end
   end
 end

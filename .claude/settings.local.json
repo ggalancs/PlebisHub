@@ -71,7 +71,14 @@
       "Bash(bundle exec brakeman:*)",
       "Bash(git commit:*)",
       "Bash(bundle check:*)",
-      "Bash(bundle lock:*)"
+      "Bash(bundle lock:*)",
+      "Bash(if [ -f coverage/.last_run.json ])",
+      "Bash(then cat coverage/.last_run.json)",
+      "Bash(else echo \"Coverage file not found\")",
+      "Bash(fi)",
+      "Bash(open:*)",
+      "Bash(rails runner:*)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,15 @@
+/* line 1, app/assets/stylesheets/podemos_forms.css.scss */
+fieldset.inputs.remove-padding-top {
+  background: #fff;
+  border: 1px solid #d3d8dc;
+  position: relative;
+  padding-top: 0px;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* line 10, app/assets/stylesheets/podemos_forms.css.scss */
+form fieldset > ol > li.check_boxes fieldset ol li, form fieldset > ol > li.radio fieldset ol li {
+  margin: 0.1em 0.5em 0.5em 0;
+  display: inline-block;
+}

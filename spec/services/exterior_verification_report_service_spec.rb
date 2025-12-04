@@ -21,35 +21,35 @@ RSpec.describe ExteriorVerificationReportService do
 
   # ==================== INITIALIZATION TESTS ====================
 
-  describe "initialization" do
-    it "initializes with valid report_code" do
+  describe 'initialization' do
+    it 'initializes with valid report_code' do
       service = described_class.new('c_99')
       expect(service.instance_variable_get(:@aacc_code)).to eq('c_99')
     end
 
-    it "handles missing report_code gracefully" do
+    it 'handles missing report_code gracefully' do
       service = described_class.new('nonexistent')
       expect(service.instance_variable_get(:@aacc_code)).to be_nil
     end
 
-    context "when configuration is missing" do
+    context 'when configuration is missing' do
       before do
         allow(Rails.application).to receive(:secrets).and_return(double(user_verifications: nil))
       end
 
-      it "sets @aacc_code to nil" do
+      it 'sets @aacc_code to nil' do
         service = described_class.new('c_99')
         expect(service.instance_variable_get(:@aacc_code)).to be_nil
       end
 
-      it "logs error" do
+      it 'logs error' do
         expect(Rails.logger).to receive(:error).with(a_string_matching(/exterior_verification_report_init_failed/))
         described_class.new('c_99')
       end
     end
 
-    it "logs initialization errors with context" do
-      allow(Rails.application).to receive(:secrets).and_raise(StandardError.new("Config error"))
+    it 'logs initialization errors with context' do
+      allow(Rails.application).to receive(:secrets).and_raise(StandardError.new('Config error'))
 
       expect(Rails.logger).to receive(:error).with(a_string_matching(/report_code.*c_99/))
 
@@ -59,8 +59,8 @@ RSpec.describe ExteriorVerificationReportService do
 
   # ==================== CONFIGURATION VALIDATION TESTS ====================
 
-  describe "configuration validation" do
-    it "requires user_verifications configuration" do
+  describe 'configuration validation' do
+    it 'requires user_verifications configuration' do
       allow(Rails.application).to receive(:secrets).and_return(
         double(user_verifications: nil, users: { 'active_census_range' => '30.days' })
       )
@@ -69,7 +69,7 @@ RSpec.describe ExteriorVerificationReportService do
       expect(service.instance_variable_get(:@aacc_code)).to be_nil
     end
 
-    it "requires users configuration" do
+    it 'requires users configuration' do
       allow(Rails.application).to receive(:secrets).and_return(
         double(user_verifications: { 'c_99' => 'c_99' }, users: nil)
       )
@@ -78,7 +78,7 @@ RSpec.describe ExteriorVerificationReportService do
       expect(service.instance_variable_get(:@aacc_code)).to be_nil
     end
 
-    it "requires active_census_range in users configuration" do
+    it 'requires active_census_range in users configuration' do
       allow(Rails.application).to receive(:secrets).and_return(
         double(user_verifications: { 'c_99' => 'c_99' }, users: {})
       )
@@ -90,9 +90,9 @@ RSpec.describe ExteriorVerificationReportService do
 
   # ==================== SECURITY TESTS ====================
 
-  describe "security" do
-    describe "eval() vulnerability fixed" do
-      it "does not use eval() for parsing active_census_range" do
+  describe 'security' do
+    describe 'eval() vulnerability fixed' do
+      it 'does not use eval() for parsing active_census_range' do
         service = described_class.new('c_99')
 
         # This should not raise any errors even with malicious input
@@ -102,7 +102,7 @@ RSpec.describe ExteriorVerificationReportService do
         expect { service.generate }.not_to raise_error
       end
 
-      it "safely parses numeric string" do
+      it 'safely parses numeric string' do
         allow(Rails.application.secrets.users).to receive(:[]).with('active_census_range').and_return('30')
 
         service = described_class.new('c_99')
@@ -120,7 +120,7 @@ RSpec.describe ExteriorVerificationReportService do
         expect(days).to eq(30)
       end
 
-      it "safely parses numeric value" do
+      it 'safely parses numeric value' do
         allow(Rails.application.secrets.users).to receive(:[]).with('active_census_range').and_return(30)
 
         service = described_class.new('c_99')
@@ -129,7 +129,7 @@ RSpec.describe ExteriorVerificationReportService do
         expect(days).to eq(30)
       end
 
-      it "returns default value for invalid format" do
+      it 'returns default value for invalid format' do
         allow(Rails.application.secrets.users).to receive(:[]).with('active_census_range').and_return('invalid')
 
         service = described_class.new('c_99')
@@ -138,7 +138,7 @@ RSpec.describe ExteriorVerificationReportService do
         expect(days).to eq(30)
       end
 
-      it "logs error for invalid format" do
+      it 'logs error for invalid format' do
         allow(Rails.application.secrets.users).to receive(:[]).with('active_census_range').and_return('invalid')
 
         service = described_class.new('c_99')
@@ -149,8 +149,8 @@ RSpec.describe ExteriorVerificationReportService do
       end
     end
 
-    describe "SQL injection prevention" do
-      it "uses Arel for date comparison" do
+    describe 'SQL injection prevention' do
+      it 'uses Arel for date comparison' do
         service = described_class.new('c_99')
 
         # Verify that SQL string interpolation is not used
@@ -162,18 +162,18 @@ RSpec.describe ExteriorVerificationReportService do
         expect(true).to be true
       end
 
-      it "does not include raw date in SQL query" do
+      it 'does not include raw date in SQL query' do
         service = described_class.new('c_99')
 
         # Mock the base query to verify parameterized query usage
-        base_query = double("base_query")
+        base_query = double('base_query')
         allow(service).to receive(:base_query).and_return(base_query)
 
         # Mock first call: base_query.joins(:user_verifications).group(:country, :status).pluck(...)
         allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([])
 
         # Mock second call: base_query.group(:country, :active, :verified).pluck(...)
-        pluck_result = double("pluck_result")
+        pluck_result = double('pluck_result')
         allow(pluck_result).to receive(:each).and_return([])
         allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
@@ -189,13 +189,13 @@ RSpec.describe ExteriorVerificationReportService do
 
   # ==================== REPORT GENERATION TESTS ====================
 
-  describe "generate" do
-    context "when initialization failed" do
+  describe 'generate' do
+    context 'when initialization failed' do
       before do
         allow(Rails.application).to receive(:secrets).and_return(double(user_verifications: nil))
       end
 
-      it "returns empty report" do
+      it 'returns empty report' do
         service = described_class.new('c_99')
         report = service.generate
 
@@ -203,8 +203,8 @@ RSpec.describe ExteriorVerificationReportService do
       end
     end
 
-    context "when report_code is not c_99" do
-      it "returns empty report" do
+    context 'when report_code is not c_99' do
+      it 'returns empty report' do
         service = described_class.new('c_00')
         report = service.generate
 
@@ -212,7 +212,7 @@ RSpec.describe ExteriorVerificationReportService do
       end
     end
 
-    context "when initialized with c_99 successfully" do
+    context 'when initialized with c_99 successfully' do
       let(:service) { described_class.new('c_99') }
 
       before do
@@ -222,19 +222,19 @@ RSpec.describe ExteriorVerificationReportService do
         allow(service).to receive(:collect_data).and_return({})
       end
 
-      it "returns report with paises" do
+      it 'returns report with paises' do
         report = service.generate
 
         expect(report).to have_key(:paises)
       end
 
-      it "processes all countries" do
+      it 'processes all countries' do
         report = service.generate
 
         expect(report[:paises]).to be_a(Hash)
       end
 
-      it "includes country data" do
+      it 'includes country data' do
         allow(service).to receive(:collect_data).and_return({ ['FR', 0] => 5 })
 
         report = service.generate
@@ -243,27 +243,27 @@ RSpec.describe ExteriorVerificationReportService do
       end
     end
 
-    context "when error occurs during generation" do
+    context 'when error occurs during generation' do
       let(:service) { described_class.new('c_99') }
 
-      it "returns empty report" do
-        allow(service).to receive(:collect_data).and_raise(StandardError.new("Database error"))
+      it 'returns empty report' do
+        allow(service).to receive(:collect_data).and_raise(StandardError.new('Database error'))
 
         report = service.generate
 
         expect(report).to eq({ paises: {} })
       end
 
-      it "logs error with context" do
-        allow(service).to receive(:collect_data).and_raise(StandardError.new("Database error"))
+      it 'logs error with context' do
+        allow(service).to receive(:collect_data).and_raise(StandardError.new('Database error'))
 
         expect(Rails.logger).to receive(:error).with(a_string_matching(/exterior_verification_report_generation_failed/))
 
         service.generate
       end
 
-      it "includes backtrace in error log" do
-        allow(service).to receive(:collect_data).and_raise(StandardError.new("Database error"))
+      it 'includes backtrace in error log' do
+        allow(service).to receive(:collect_data).and_raise(StandardError.new('Database error'))
 
         expect(Rails.logger).to receive(:error).with(a_string_matching(/backtrace/))
 
@@ -274,14 +274,14 @@ RSpec.describe ExteriorVerificationReportService do
 
   # ==================== DATA COLLECTION TESTS ====================
 
-  describe "data collection" do
+  describe 'data collection' do
     let(:service) { described_class.new('c_99') }
 
-    it "caches collected data" do
-      base_query = double("base_query")
+    it 'caches collected data' do
+      base_query = double('base_query')
       allow(service).to receive(:base_query).and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([['FR', 0, 1]])
-      pluck_result = double("pluck_result")
+      pluck_result = double('pluck_result')
       allow(pluck_result).to receive(:each).and_return([])
       allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
@@ -293,22 +293,22 @@ RSpec.describe ExteriorVerificationReportService do
       expect(service.instance_variable_get(:@data)).to be_present
     end
 
-    it "filters by non-Spain countries" do
-      base_query = double("base_query")
+    it 'filters by non-Spain countries' do
+      base_query = double('base_query')
       expect(User).to receive_message_chain(:confirmed, :where).with("country <> 'ES'").and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([])
-      pluck_result = double("pluck_result")
+      pluck_result = double('pluck_result')
       allow(pluck_result).to receive(:each).and_return([])
       allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
       service.send(:collect_data)
     end
 
-    it "includes verification status data" do
-      base_query = double("base_query")
+    it 'includes verification status data' do
+      base_query = double('base_query')
       allow(service).to receive(:base_query).and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([['FR', 0, 5]])
-      pluck_result = double("pluck_result")
+      pluck_result = double('pluck_result')
       allow(pluck_result).to receive(:each).and_return([])
       allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
@@ -318,8 +318,8 @@ RSpec.describe ExteriorVerificationReportService do
       expect(data[['FR', 0]]).to eq(5)
     end
 
-    it "includes user activity data" do
-      base_query = double("base_query")
+    it 'includes user activity data' do
+      base_query = double('base_query')
       allow(service).to receive(:base_query).and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([])
       allow(base_query).to receive(:group).and_return(base_query)
@@ -334,23 +334,23 @@ RSpec.describe ExteriorVerificationReportService do
 
   # ==================== COUNTRY HANDLING TESTS ====================
 
-  describe "country handling" do
+  describe 'country handling' do
     let(:service) { described_class.new('c_99') }
 
-    it "includes all Carmen countries" do
+    it 'includes all Carmen countries' do
       countries = service.send(:countries)
 
       expect(countries).to be_a(Hash)
       expect(countries.keys).not_to be_empty
     end
 
-    it "includes Desconocido for unknown countries" do
+    it 'includes Desconocido for unknown countries' do
       countries = service.send(:countries)
 
       expect(countries).to have_key('Desconocido')
     end
 
-    it "caches countries list" do
+    it 'caches countries list' do
       # Call twice
       countries1 = service.send(:countries)
       countries2 = service.send(:countries)
@@ -362,10 +362,10 @@ RSpec.describe ExteriorVerificationReportService do
 
   # ==================== EDGE CASES ====================
 
-  describe "edge cases" do
+  describe 'edge cases' do
     let(:service) { described_class.new('c_99') }
 
-    it "handles empty database" do
+    it 'handles empty database' do
       allow(service).to receive(:base_query).and_return(User.none)
       allow(service).to receive(:countries).and_return({})
 
@@ -374,7 +374,7 @@ RSpec.describe ExteriorVerificationReportService do
       expect(report[:paises]).to be_empty
     end
 
-    it "handles countries with no data" do
+    it 'handles countries with no data' do
       allow(service).to receive(:base_query).and_return(User.none)
       allow(service).to receive(:countries).and_return({ 'FR' => 'France' })
       allow(service).to receive(:collect_data).and_return({})
@@ -384,7 +384,7 @@ RSpec.describe ExteriorVerificationReportService do
       expect(report[:paises]['France']).to be_present
     end
 
-    it "handles nil values in data gracefully" do
+    it 'handles nil values in data gracefully' do
       allow(service).to receive(:base_query).and_return(User.none)
       allow(service).to receive(:countries).and_return({ 'FR' => 'France' })
       allow(service).to receive(:collect_data).and_return({ ['FR', 0] => nil })
@@ -392,7 +392,7 @@ RSpec.describe ExteriorVerificationReportService do
       expect { service.generate }.not_to raise_error
     end
 
-    it "handles unknown country codes" do
+    it 'handles unknown country codes' do
       allow(service).to receive(:base_query).and_return(User.none)
       allow(service).to receive(:countries).and_return({ 'XX' => nil })
       allow(service).to receive(:collect_data).and_return({ ['XX', 0] => 5 })
@@ -400,11 +400,11 @@ RSpec.describe ExteriorVerificationReportService do
       expect { service.generate }.not_to raise_error
     end
 
-    it "excludes Spain from exterior report" do
-      base_query = double("base_query")
+    it 'excludes Spain from exterior report' do
+      base_query = double('base_query')
       expect(User).to receive_message_chain(:confirmed, :where).with("country <> 'ES'").and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([])
-      pluck_result = double("pluck_result")
+      pluck_result = double('pluck_result')
       allow(pluck_result).to receive(:each).and_return([])
       allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
 
@@ -416,11 +416,11 @@ RSpec.describe ExteriorVerificationReportService do
 
   # ==================== REPORT CODE FILTERING TESTS ====================
 
-  describe "report code filtering" do
-    context "when report_code is c_99 (exterior)" do
+  describe 'report code filtering' do
+    context 'when report_code is c_99 (exterior)' do
       let(:service) { described_class.new('c_99') }
 
-      it "generates report" do
+      it 'generates report' do
         allow(service).to receive(:base_query).and_return(User.none)
         allow(service).to receive(:countries).and_return({})
 
@@ -430,16 +430,16 @@ RSpec.describe ExteriorVerificationReportService do
       end
     end
 
-    context "when report_code is not c_99" do
+    context 'when report_code is not c_99' do
       let(:service) { described_class.new('c_00') }
 
-      it "returns empty report" do
+      it 'returns empty report' do
         report = service.generate
 
         expect(report).to eq({ paises: {} })
       end
 
-      it "does not query database" do
+      it 'does not query database' do
         expect(service).not_to receive(:collect_data)
 
         service.generate
@@ -449,23 +449,23 @@ RSpec.describe ExteriorVerificationReportService do
 
   # ==================== INTEGRATION TESTS ====================
 
-  describe "integration" do
+  describe 'integration' do
     let(:service) { described_class.new('c_99') }
 
-    it "processes verification statuses correctly" do
+    it 'processes verification statuses correctly' do
       allow(service).to receive(:base_query).and_return(User.none)
       allow(service).to receive(:countries).and_return({ 'FR' => 'France' })
       allow(service).to receive(:collect_data).and_return({
-        ['FR', 0] => 5,  # pending
-        ['FR', 1] => 3,  # accepted
-        ['FR', 2] => 2   # issues
-      })
+                                                            ['FR', 0] => 5, # pending
+                                                            ['FR', 1] => 3,  # accepted
+                                                            ['FR', 2] => 2   # issues
+                                                          })
 
       allow(UserVerification).to receive(:statuses).and_return({
-        'pending' => 0,
-        'accepted' => 1,
-        'issues' => 2
-      })
+                                                                 'pending' => 0,
+                                                                 'accepted' => 1,
+                                                                 'issues' => 2
+                                                               })
 
       report = service.generate
 
@@ -476,33 +476,33 @@ RSpec.describe ExteriorVerificationReportService do
       )
     end
 
-    it "calculates totals correctly" do
+    it 'calculates totals correctly' do
       allow(service).to receive(:base_query).and_return(User.none)
       allow(service).to receive(:countries).and_return({ 'FR' => 'France' })
       allow(service).to receive(:collect_data).and_return({
-        ['FR', 0] => 5,
-        ['FR', 1] => 3
-      })
+                                                            ['FR', 0] => 5,
+                                                            ['FR', 1] => 3
+                                                          })
 
       allow(UserVerification).to receive(:statuses).and_return({
-        'pending' => 0,
-        'accepted' => 1
-      })
+                                                                 'pending' => 0,
+                                                                 'accepted' => 1
+                                                               })
 
       report = service.generate
 
       expect(report[:paises]['France'][:total]).to eq(8)
     end
 
-    it "processes user counts correctly" do
+    it 'processes user counts correctly' do
       allow(service).to receive(:base_query).and_return(User.none)
       allow(service).to receive(:countries).and_return({ 'FR' => 'France' })
       allow(service).to receive(:collect_data).and_return({
-        ['FR', true, true] => 10,    # active verified
-        ['FR', true, false] => 5,     # active not verified
-        ['FR', false, true] => 3,     # inactive verified
-        ['FR', false, false] => 2     # inactive not verified
-      })
+                                                            ['FR', true, true] => 10, # active verified
+                                                            ['FR', true, false] => 5,     # active not verified
+                                                            ['FR', false, true] => 3,     # inactive verified
+                                                            ['FR', false, false] => 2     # inactive not verified
+                                                          })
 
       report = service.generate
 

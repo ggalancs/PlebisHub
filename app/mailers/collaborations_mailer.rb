@@ -1,6 +1,8 @@
-class CollaborationsMailer < ActionMailer::Base
+# frozen_string_literal: true
+
+class CollaborationsMailer < ApplicationMailer
   def creditcard_error_email(user)
-    @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
+    @brand_config = Rails.application.secrets.microcredits['brands'][Rails.application.secrets.microcredits['default_brand']]
     @user = user
     mail(
       from: 'administracion@plebisbrand.info',
@@ -8,52 +10,52 @@ class CollaborationsMailer < ActionMailer::Base
       subject: 'Problema en el pago con tarjeta de su colaboración'
     ) do |format|
       format.text
-      end
+    end
   end
 
   def creditcard_expired_email(user)
-    @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
+    @brand_config = Rails.application.secrets.microcredits['brands'][Rails.application.secrets.microcredits['default_brand']]
     @user = user
     mail(
-        from: 'administracion@plebisbrand.info',
-        to: user.email,
-        subject: 'Problema en el pago con tarjeta de su colaboración'
+      from: 'administracion@plebisbrand.info',
+      to: user.email,
+      subject: 'Problema en el pago con tarjeta de su colaboración'
     ) do |format|
       format.text
-      end
+    end
   end
 
   def receipt_returned(user)
-    @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
+    @brand_config = Rails.application.secrets.microcredits['brands'][Rails.application.secrets.microcredits['default_brand']]
     @user = user
     mail(
-        from: 'administracion@plebisbrand.info',
-        to: user.email,
-        subject: 'Problema en la domiciliación del recibo de su colaboración'
-      ) do |format|
+      from: 'administracion@plebisbrand.info',
+      to: user.email,
+      subject: 'Problema en la domiciliación del recibo de su colaboración'
+    ) do |format|
       format.text
-      end
+    end
   end
 
   def receipt_suspended(user)
-    @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
+    @brand_config = Rails.application.secrets.microcredits['brands'][Rails.application.secrets.microcredits['default_brand']]
     @user = user
     mail(
-        from: 'administracion@plebisbrand.info',
-        to: user.email,
-        subject: 'Problema en la domicilación de sus recibos, colaboración suspendida temporalmente'
-      ) do |format|
+      from: 'administracion@plebisbrand.info',
+      to: user.email,
+      subject: 'Problema en la domicilación de sus recibos, colaboración suspendida temporalmente'
+    ) do |format|
       format.text
-      end
+    end
   end
 
   def order_returned_militant(collaboration)
-    @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
+    @brand_config = Rails.application.secrets.microcredits['brands'][Rails.application.secrets.microcredits['default_brand']]
     @user = collaboration.get_user
     @order = collaboration.order.returned.last
     @payment_day = Order.payment_day
-    @month = I18n.localize(@order.created_at, :format => "%B")
-    @date = I18n.localize(@order.created_at, :format => "%B %Y")
+    @month = I18n.l(@order.created_at, format: '%B')
+    @date = I18n.l(@order.created_at, format: '%B %Y')
     mail(
       from: 'colaboraciones@plebisbrand.info',
       to: @user.email,
@@ -62,12 +64,12 @@ class CollaborationsMailer < ActionMailer::Base
   end
 
   def order_returned_user(collaboration)
-    @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
+    @brand_config = Rails.application.secrets.microcredits['brands'][Rails.application.secrets.microcredits['default_brand']]
     @user = collaboration.get_user
     @order = collaboration.order.returned.last
     @payment_day = Order.payment_day
-    @month = I18n.localize(@order.created_at, :format => "%B")
-    @date = I18n.localize(@order.created_at, :format => "%B %Y")
+    @month = I18n.l(@order.created_at, format: '%B')
+    @date = I18n.l(@order.created_at, format: '%B %Y')
     mail(
       from: 'colaboraciones@plebisbrand.info',
       to: @user.email,
@@ -76,24 +78,24 @@ class CollaborationsMailer < ActionMailer::Base
   end
 
   def collaboration_suspended_user(collaboration)
-    @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
+    @brand_config = Rails.application.secrets.microcredits['brands'][Rails.application.secrets.microcredits['default_brand']]
     @user = collaboration.get_user
 
     mail(
       from: 'colaboraciones@plebisbrand.info',
       to: @user.email,
-      subject: "Suspensión colaboración"
+      subject: 'Suspensión colaboración'
     )
   end
 
   def collaboration_suspended_militant(collaboration)
-    @brand_config = Rails.application.secrets.microcredits["brands"][Rails.application.secrets.microcredits["default_brand"]]
+    @brand_config = Rails.application.secrets.microcredits['brands'][Rails.application.secrets.microcredits['default_brand']]
     @user = collaboration.get_user
 
     mail(
       from: 'colaboraciones@plebisbrand.info',
       to: @user.email,
-      subject: "Suspensión cuota"
+      subject: 'Suspensión cuota'
     )
   end
 end

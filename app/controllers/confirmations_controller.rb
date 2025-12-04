@@ -27,9 +27,8 @@ class ConfirmationsController < Devise::ConfirmationsController
       sign_in(resource)
 
       log_security_event('email_confirmed',
-        user_id: resource.id,
-        email: resource.email
-      )
+                         user_id: resource.id,
+                         email: resource.email)
 
       respond_with_navigational(resource) do
         redirect_to after_confirmation_path_for(resource_name, resource)
@@ -37,9 +36,8 @@ class ConfirmationsController < Devise::ConfirmationsController
     else
       # Confirmation failed
       log_security_event('email_confirmation_failed',
-        errors: resource.errors.full_messages,
-        token_present: params[:confirmation_token].present?
-      )
+                         errors: resource.errors.full_messages,
+                         token_present: params[:confirmation_token].present?)
 
       respond_with_navigational(resource.errors, status: :unprocessable_entity) do
         render :new
@@ -47,8 +45,7 @@ class ConfirmationsController < Devise::ConfirmationsController
     end
   rescue StandardError => e
     log_error('confirmation_error', e,
-      token_present: params[:confirmation_token].present?
-    )
+              token_present: params[:confirmation_token].present?)
 
     # Show user-friendly error
     flash[:alert] = I18n.t('devise.confirmations.invalid_token')
@@ -69,8 +66,7 @@ class ConfirmationsController < Devise::ConfirmationsController
   # Override create to log confirmation email requests
   def create
     log_security_event('confirmation_email_requested',
-      email: params.dig(:user, :email)
-    )
+                       email: params.dig(:user, :email))
     super
   end
 

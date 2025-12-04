@@ -10,9 +10,7 @@ RSpec.describe 'plebis_cms/notice/index.html.erb', type: :view do
     engine_path = PlebisCms::Engine.root.join('app', 'views').to_s
     # Convert PathSet to array, prepend engine path, then reassign
     current_paths = ActionController::Base.view_paths.paths.map(&:to_s)
-    unless current_paths.include?(engine_path)
-      ActionController::Base.view_paths = [engine_path] + current_paths
-    end
+    ActionController::Base.view_paths = [engine_path] + current_paths unless current_paths.include?(engine_path)
   end
 
   # Helper para crear colección paginada de Kaminari
@@ -760,7 +758,7 @@ RSpec.describe 'plebis_cms/notice/index.html.erb', type: :view do
         parsed = Nokogiri::HTML(rendered)
         # Buscar el párrafo que contiene el cuerpo (no el que tiene strong, no el que tiene clase date)
         body_paragraphs = parsed.css('div.box-notif > p').select do |p|
-          !p.css('strong').any? && !p['class']&.include?('date')
+          p.css('strong').none? && !p['class']&.include?('date')
         end
 
         expect(body_paragraphs.first.text.strip).to eq('Specific Body 456')

@@ -4,8 +4,8 @@ module Api
   module V1
     class ThemesController < ApplicationController
       # Permitir acceso sin autenticación para GET requests
-      skip_before_action :verify_authenticity_token, only: [:index, :show]
-      before_action :set_theme, only: [:show, :activate]
+      skip_before_action :verify_authenticity_token, only: %i[index show]
+      before_action :set_theme, only: %i[show activate]
       before_action :require_admin, only: [:activate]
 
       # GET /api/v1/themes
@@ -15,10 +15,10 @@ module Api
         per_page = [params[:per_page].to_i, 100].min
         per_page = 20 if per_page <= 0
 
-        @themes = ThemeSetting.all
-                              .order(created_at: :desc)
-                              .offset((page.to_i - 1) * per_page)
-                              .limit(per_page)
+        @themes = ThemeSetting
+                  .order(created_at: :desc)
+                  .offset((page.to_i - 1) * per_page)
+                  .limit(per_page)
 
         total_count = ThemeSetting.count
 
@@ -61,7 +61,7 @@ module Api
           success: false,
           error: e.message,
           details: e.record&.errors&.full_messages
-        }, status: :unprocessable_entity
+        }, status: :unprocessable_content
       rescue StandardError => e
         Rails.logger.error "Theme activation failed: #{e.class} - #{e.message}"
         render json: {
@@ -107,12 +107,12 @@ module Api
       def require_admin
         # Verificar si el usuario actual es administrador
         # Ajustar según tu sistema de autenticación
-        unless current_user&.is_admin?
-          render json: {
-            success: false,
-            error: 'No tienes permisos para realizar esta acción'
-          }, status: :forbidden
-        end
+        return if current_user&.is_admin?
+
+        render json: {
+          success: false,
+          error: 'No tienes permisos para realizar esta acción'
+        }, status: :forbidden
       end
     end
   end

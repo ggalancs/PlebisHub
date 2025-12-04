@@ -14,57 +14,68 @@
 
 namespace :paperclip do
   namespace :migrate do
-    desc "Dry run - show what would be migrated"
+    desc 'Dry run - show what would be migrated'
     task dry_run: :environment do
-      puts "=" * 60
-      puts "Paperclip to ActiveStorage Migration - DRY RUN"
-      puts "=" * 60
-      puts ""
+      puts '=' * 60
+      puts 'Paperclip to ActiveStorage Migration - DRY RUN'
+      puts '=' * 60
+      puts ''
 
       migrations = [
-        { model: "Election", attachment: "census_file", path_prefix: "non-public/system/elections/census_files" },
-        { model: "PlebisVotes::Election", attachment: "census_file", path_prefix: "non-public/system/plebis_votes/elections/census_files" },
-        { model: "PlebisImpulsa::ImpulsaEdition", attachments: %w[schedule_model activities_resources_model requested_budget_model monitoring_evaluation_model] },
-        { model: "PlebisVerification::UserVerification", attachments: %w[front_vatid back_vatid] },
-        { model: "PlebisMicrocredit::Microcredit", attachment: "renewal_terms" }
+        { model: 'Election', attachment: 'census_file', path_prefix: 'non-public/system/elections/census_files' },
+        { model: 'PlebisVotes::Election', attachment: 'census_file',
+          path_prefix: 'non-public/system/plebis_votes/elections/census_files' },
+        { model: 'PlebisImpulsa::ImpulsaEdition',
+          attachments: %w[schedule_model activities_resources_model requested_budget_model
+                          monitoring_evaluation_model] },
+        { model: 'PlebisVerification::UserVerification', attachments: %w[front_vatid back_vatid] },
+        { model: 'PlebisMicrocredit::Microcredit', attachment: 'renewal_terms' }
       ]
 
       total_files = 0
 
       migrations.each do |migration|
-        model_class = migration[:model].constantize rescue nil
+        model_class = begin
+          migration[:model].constantize
+        rescue StandardError
+          nil
+        end
         next unless model_class
 
         attachments = migration[:attachments] || [migration[:attachment]]
         attachments.each do |attachment|
-          count = model_class.where.not("#{attachment}_file_name" => nil).count rescue 0
+          count = begin
+            model_class.where.not("#{attachment}_file_name" => nil).count
+          rescue StandardError
+            0
+          end
           puts "#{migration[:model]}.#{attachment}: #{count} files"
           total_files += count
         end
       end
 
-      puts ""
+      puts ''
       puts "Total files to migrate: #{total_files}"
-      puts ""
+      puts ''
       puts "Run 'rails paperclip:migrate:all' to perform migration"
     end
 
-    desc "Migrate all Paperclip attachments to ActiveStorage"
+    desc 'Migrate all Paperclip attachments to ActiveStorage'
     task all: :environment do
-      puts "=" * 60
-      puts "Paperclip to ActiveStorage Migration"
-      puts "=" * 60
+      puts '=' * 60
+      puts 'Paperclip to ActiveStorage Migration'
+      puts '=' * 60
 
-      Rake::Task["paperclip:migrate:elections"].invoke
-      Rake::Task["paperclip:migrate:impulsa_editions"].invoke
-      Rake::Task["paperclip:migrate:user_verifications"].invoke
-      Rake::Task["paperclip:migrate:microcredits"].invoke
+      Rake::Task['paperclip:migrate:elections'].invoke
+      Rake::Task['paperclip:migrate:impulsa_editions'].invoke
+      Rake::Task['paperclip:migrate:user_verifications'].invoke
+      Rake::Task['paperclip:migrate:microcredits'].invoke
 
-      puts ""
-      puts "Migration complete!"
+      puts ''
+      puts 'Migration complete!'
     end
 
-    desc "Migrate Election census files"
+    desc 'Migrate Election census files'
     task elections: :environment do
       puts "\nMigrating Election census files..."
 
@@ -83,7 +94,7 @@ namespace :paperclip do
       end
     end
 
-    desc "Migrate ImpulsaEdition attachments"
+    desc 'Migrate ImpulsaEdition attachments'
     task impulsa_editions: :environment do
       puts "\nMigrating ImpulsaEdition attachments..."
 
@@ -95,17 +106,17 @@ namespace :paperclip do
         migrate_paperclip_attachment(
           model_class: model_class,
           attachment_name: attachment.to_sym,
-          content_type_column: "#{attachment}_content_type".to_sym,
-          file_name_column: "#{attachment}_file_name".to_sym,
-          file_size_column: "#{attachment}_file_size".to_sym,
-          updated_at_column: "#{attachment}_updated_at".to_sym
+          content_type_column: :"#{attachment}_content_type",
+          file_name_column: :"#{attachment}_file_name",
+          file_size_column: :"#{attachment}_file_size",
+          updated_at_column: :"#{attachment}_updated_at"
         )
       end
     rescue NameError => e
       puts "Skipping ImpulsaEdition: #{e.message}"
     end
 
-    desc "Migrate UserVerification attachments"
+    desc 'Migrate UserVerification attachments'
     task user_verifications: :environment do
       puts "\nMigrating UserVerification attachments..."
 
@@ -117,17 +128,17 @@ namespace :paperclip do
         migrate_paperclip_attachment(
           model_class: model_class,
           attachment_name: attachment.to_sym,
-          content_type_column: "#{attachment}_content_type".to_sym,
-          file_name_column: "#{attachment}_file_name".to_sym,
-          file_size_column: "#{attachment}_file_size".to_sym,
-          updated_at_column: "#{attachment}_updated_at".to_sym
+          content_type_column: :"#{attachment}_content_type",
+          file_name_column: :"#{attachment}_file_name",
+          file_size_column: :"#{attachment}_file_size",
+          updated_at_column: :"#{attachment}_updated_at"
         )
       end
     rescue NameError => e
       puts "Skipping UserVerification: #{e.message}"
     end
 
-    desc "Migrate Microcredit attachments"
+    desc 'Migrate Microcredit attachments'
     task microcredits: :environment do
       puts "\nMigrating Microcredit attachments..."
 
@@ -146,7 +157,8 @@ namespace :paperclip do
     end
 
     # Helper method to migrate a single Paperclip attachment to ActiveStorage
-    def migrate_paperclip_attachment(model_class:, attachment_name:, content_type_column:, file_name_column:, file_size_column:, updated_at_column:)
+    def migrate_paperclip_attachment(model_class:, attachment_name:, content_type_column:, file_name_column:,
+                                     file_size_column:, updated_at_column:)
       puts "  Migrating #{model_class.name}.#{attachment_name}..."
 
       # Check if model has the attachment columns
@@ -180,12 +192,14 @@ namespace :paperclip do
 
           # Try multiple path patterns
           possible_paths = [
-            Rails.root.join('non-public', 'system', class_name, attachment_name.to_s.pluralize, id_partition, file_name),
+            Rails.root.join('non-public', 'system', class_name, attachment_name.to_s.pluralize, id_partition,
+                            file_name),
             Rails.root.join('non-public', 'system', class_name, attachment_name.to_s, id_partition, file_name),
-            Rails.root.join('public', 'system', class_name, attachment_name.to_s.pluralize, id_partition, file_name),
-            Rails.root.join('public', 'system', class_name, attachment_name.to_s, id_partition, file_name),
+            Rails.public_path.join('system', class_name, attachment_name.to_s.pluralize, id_partition, file_name),
+            Rails.public_path.join('system', class_name, attachment_name.to_s, id_partition, file_name),
             # For engine models
-            Rails.root.join('non-public', 'system', model_class.table_name, attachment_name.to_s, id_partition, file_name)
+            Rails.root.join('non-public', 'system', model_class.table_name, attachment_name.to_s, id_partition,
+                            file_name)
           ]
 
           file_path = possible_paths.find { |path| File.exist?(path) }
@@ -208,9 +222,7 @@ namespace :paperclip do
           migrated += 1
 
           # Progress indicator
-          if (index + 1) % 100 == 0
-            puts "    Progress: #{index + 1}/#{total}"
-          end
+          puts "    Progress: #{index + 1}/#{total}" if ((index + 1) % 100).zero?
         rescue StandardError => e
           puts "    Error migrating #{model_class.name}##{record.id}: #{e.message}"
           errors += 1
@@ -222,24 +234,24 @@ namespace :paperclip do
   end
 
   namespace :cleanup do
-    desc "Remove old Paperclip columns after successful migration (DANGER: irreversible)"
+    desc 'Remove old Paperclip columns after successful migration (DANGER: irreversible)'
     task columns: :environment do
-      puts "This task removes old Paperclip columns from the database."
-      puts "Make sure you have:"
-      puts "  1. Run paperclip:migrate:all successfully"
-      puts "  2. Verified all files are accessible via ActiveStorage"
-      puts "  3. Backed up your database"
-      puts ""
+      puts 'This task removes old Paperclip columns from the database.'
+      puts 'Make sure you have:'
+      puts '  1. Run paperclip:migrate:all successfully'
+      puts '  2. Verified all files are accessible via ActiveStorage'
+      puts '  3. Backed up your database'
+      puts ''
       puts "Type 'YES I UNDERSTAND' to proceed:"
 
       input = $stdin.gets.chomp
       unless input == 'YES I UNDERSTAND'
-        puts "Aborted."
+        puts 'Aborted.'
         exit
       end
 
       # Generate migration to remove columns
-      timestamp = Time.now.strftime('%Y%m%d%H%M%S')
+      timestamp = Time.zone.now.strftime('%Y%m%d%H%M%S')
       migration_file = Rails.root.join('db', 'migrate', "#{timestamp}_remove_paperclip_columns.rb")
 
       migration_content = <<~RUBY
@@ -303,34 +315,38 @@ namespace :paperclip do
 
       File.write(migration_file, migration_content)
       puts "Migration generated: #{migration_file}"
-      puts "Review and run: rails db:migrate"
+      puts 'Review and run: rails db:migrate'
     end
 
-    desc "Remove old Paperclip files after successful migration"
+    desc 'Remove old Paperclip files after successful migration'
     task files: :environment do
-      puts "This will remove old Paperclip files from the filesystem."
-      puts "Make sure you have verified all files are accessible via ActiveStorage."
-      puts ""
-      puts "Directories that would be removed:"
+      puts 'This will remove old Paperclip files from the filesystem.'
+      puts 'Make sure you have verified all files are accessible via ActiveStorage.'
+      puts ''
+      puts 'Directories that would be removed:'
 
       paths = [
-        Rails.root.join('non-public', 'system'),
-        Rails.root.join('public', 'system')
+        Rails.root.join('non-public/system'),
+        Rails.public_path.join('system')
       ]
 
       paths.each do |path|
-        if Dir.exist?(path)
-          size = `du -sh #{path} 2>/dev/null`.split("\t").first rescue "unknown"
-          puts "  #{path} (#{size})"
+        next unless Dir.exist?(path)
+
+        size = begin
+          `du -sh #{path} 2>/dev/null`.split("\t").first
+        rescue StandardError
+          'unknown'
         end
+        puts "  #{path} (#{size})"
       end
 
-      puts ""
+      puts ''
       puts "Type 'DELETE FILES' to proceed:"
 
       input = $stdin.gets.chomp
       unless input == 'DELETE FILES'
-        puts "Aborted."
+        puts 'Aborted.'
         exit
       end
 
@@ -341,7 +357,7 @@ namespace :paperclip do
         end
       end
 
-      puts "Cleanup complete."
+      puts 'Cleanup complete.'
     end
   end
 end

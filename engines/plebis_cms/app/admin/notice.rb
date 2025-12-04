@@ -1,5 +1,7 @@
-ActiveAdmin.register PlebisCms::Notice, as: "Notice" do
-  menu :parent => "Users"
+# frozen_string_literal: true
+
+ActiveAdmin.register PlebisCms::Notice, as: 'Notice' do
+  menu parent: 'Users'
 
   permit_params :title, :body, :link, :created_at
 
@@ -22,9 +24,10 @@ ActiveAdmin.register PlebisCms::Notice, as: "Notice" do
       row :link
       row :send do
         if notice.has_sent
-          link_to "Ya se ha enviado", "#", disabled: :disabled, class: "button disabled"
+          link_to 'Ya se ha enviado', '#', disabled: :disabled, class: 'button disabled'
         else
-          link_to "Enviar a #{PlebisCms::NoticeRegistrar.all.count} usuario móviles y #{User.all.count} usuarios web", broadcast_admin_notice_path(notice), class: "button", method: :post
+          link_to "Enviar a #{PlebisCms::NoticeRegistrar.count} usuario móviles y #{User.count} usuarios web",
+                  broadcast_admin_notice_path(notice), class: 'button', method: :post
         end
       end
       row :sent_at
@@ -32,19 +35,18 @@ ActiveAdmin.register PlebisCms::Notice, as: "Notice" do
     active_admin_comments
   end
 
-  member_action :broadcast, :method => :post do
+  member_action :broadcast, method: :post do
     notice = PlebisCms::Notice.find(params[:id])
     notice.broadcast!
-    redirect_to({action: :show }, {:notice => "Se ha enviado el Aviso"})
+    redirect_to({ action: :show }, { notice: 'Se ha enviado el Aviso' })
   end
 
   form do |f|
-    f.inputs "Aviso" do
+    f.inputs 'Aviso' do
       f.input :title
       f.input :link
       f.input :body
     end
     f.actions
   end
-
 end

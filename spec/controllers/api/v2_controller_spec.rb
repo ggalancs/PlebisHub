@@ -12,11 +12,10 @@ RSpec.describe Api::V2Controller, type: :controller do
   let!(:vote_circle) { create(:vote_circle, autonomy_code: 'AN', province_code: 'SE', town: 'Sevilla') }
   let!(:user_with_vote_circle) do
     create(:user,
-      email: 'militant@example.com',
-      vote_circle: vote_circle,
-      first_name: 'Test',
-      phone: '+34666777888'
-    )
+           email: 'militant@example.com',
+           vote_circle: vote_circle,
+           first_name: 'Test',
+           phone: '+34666777888')
   end
 
   before do
@@ -82,7 +81,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:unauthorized)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['error']).to eq('Unauthorized')
         expect(json['message']).to eq('Invalid signature')
       end
@@ -123,7 +122,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:unauthorized)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['message']).to eq('Timestamp out of valid range')
       end
 
@@ -145,7 +144,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
         # 'invalid'.to_i becomes 0, which is way older than 1 hour ago
         expect(response).to have_http_status(:unauthorized)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['message']).to eq('Timestamp out of valid range')
       end
 
@@ -183,7 +182,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.except('command').transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:bad_request)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['message']).to eq('command parameter is required')
       end
 
@@ -193,7 +192,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:bad_request)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['message']).to eq('Invalid command')
       end
 
@@ -209,7 +208,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.except('territory').transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:bad_request)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['message']).to eq('territory parameter is required')
       end
 
@@ -219,7 +218,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:bad_request)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['message']).to eq('Invalid territory')
       end
 
@@ -241,7 +240,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.except('email').transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:bad_request)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['message']).to eq('email parameter is required for this command')
       end
 
@@ -251,7 +250,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:bad_request)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['message']).to eq('Invalid email format')
       end
 
@@ -286,7 +285,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.except('vote_circle_id').transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:bad_request)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['message']).to eq('vote_circle_id parameter is required for this command')
       end
 
@@ -296,7 +295,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:bad_request)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['message']).to eq('vote_circle_id must be numeric')
       end
 
@@ -332,7 +331,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:ok)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['success']).to be true
         expect(json['data']).to be_an(Array)
       end
@@ -346,16 +345,15 @@ RSpec.describe Api::V2Controller, type: :controller do
       it 'includes user details in response' do
         # Create a militant in the same autonomy
         militant = create(:user,
-          vote_circle: vote_circle,
-          first_name: 'Militant',
-          phone: '+34987654321'
-        )
+                          vote_circle: vote_circle,
+                          first_name: 'Militant',
+                          phone: '+34987654321')
         allow(militant).to receive(:vote_circle).and_return(vote_circle)
         allow(User).to receive_message_chain(:militant, :where, :find_each).and_yield(militant)
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['success']).to be true
       end
     end
@@ -369,7 +367,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:not_found)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['success']).to be false
         expect(json['error']).to eq('Not Found')
         expect(json['message']).to eq('User not found')
@@ -451,7 +449,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:ok)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['success']).to be true
         expect(json['data']).to be_an(Array)
       end
@@ -472,7 +470,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:not_found)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['success']).to be false
         expect(json['error']).to eq('Not Found')
         expect(json['message']).to eq('Vote circle not found')
@@ -515,7 +513,7 @@ RSpec.describe Api::V2Controller, type: :controller do
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
         expect(response).to have_http_status(:internal_server_error)
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json['success']).to be false
         expect(json['error']).to eq('Internal server error')
       end
@@ -525,7 +523,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
-        json = JSON.parse(response.body)
+        json = response.parsed_body
         expect(json).not_to have_key('details')
         expect(json['error']).to eq('Internal server error')
       end
@@ -643,7 +641,7 @@ RSpec.describe Api::V2Controller, type: :controller do
     it 'returns success response with consistent structure' do
       get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
-      json = JSON.parse(response.body)
+      json = response.parsed_body
       expect(json).to have_key('success')
       expect(json).to have_key('data')
       expect(json['success']).to be true
@@ -654,7 +652,7 @@ RSpec.describe Api::V2Controller, type: :controller do
 
       get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
 
-      json = JSON.parse(response.body)
+      json = response.parsed_body
       expect(json).to have_key('success')
       expect(json).to have_key('error')
       expect(json).to have_key('message')

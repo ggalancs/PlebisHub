@@ -13,8 +13,6 @@ module Gamification
     belongs_to :user
     belongs_to :badge, class_name: 'Gamification::Badge'
 
-    validates :user_id, presence: true
-    validates :badge_id, presence: true
     validates :earned_at, presence: true
     validates :user_id, uniqueness: { scope: :badge_id }
 

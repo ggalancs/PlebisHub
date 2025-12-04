@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :page, class: 'Page' do
     sequence(:title) { |n| "Page Title #{n}" }
@@ -30,16 +32,16 @@ FactoryBot.define do
     end
 
     trait :with_external_link do
-      link { "https://forms.plebisbrand.info/some-form/" }
+      link { 'https://forms.plebisbrand.info/some-form/' }
     end
 
     trait :with_meta_data do
-      meta_description { "A comprehensive description for SEO purposes" }
-      meta_image { "https://example.com/image.jpg" }
+      meta_description { 'A comprehensive description for SEO purposes' }
+      meta_image { 'https://example.com/image.jpg' }
     end
 
     trait :with_text_button do
-      text_button { "Click here to participate" }
+      text_button { 'Click here to participate' }
     end
 
     trait :deleted do

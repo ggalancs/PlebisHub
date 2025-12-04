@@ -43,19 +43,19 @@ RSpec.describe Collaboration, type: :model do
     it 'requires payment_type' do
       collaboration = build(:collaboration, payment_type: nil)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:payment_type]).to include("no puede estar en blanco")
+      expect(collaboration.errors[:payment_type]).to include('no puede estar en blanco')
     end
 
     it 'requires amount' do
       collaboration = build(:collaboration, amount: nil)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:amount]).to include("no puede estar en blanco")
+      expect(collaboration.errors[:amount]).to include('no puede estar en blanco')
     end
 
     it 'requires frequency' do
       collaboration = build(:collaboration, frequency: nil)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:frequency]).to include("no puede estar en blanco")
+      expect(collaboration.errors[:frequency]).to include('no puede estar en blanco')
     end
 
     it 'requires terms_of_service acceptance' do
@@ -73,7 +73,7 @@ RSpec.describe Collaboration, type: :model do
     it 'validates user_id uniqueness for recurring collaborations' do
       # Create user with DNI (not passport) to pass Collaboration validations
       dni_letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
-      number = rand(10000000..99999999)
+      number = rand(10_000_000..99_999_999)
       letter = dni_letters[number % 23]
       user = build(:user, document_type: 1, document_vatid: "#{number}#{letter}")
       user.save(validate: false)
@@ -88,7 +88,7 @@ RSpec.describe Collaboration, type: :model do
     it 'allows multiple single collaborations for same user' do
       # Create user with DNI (not passport) to pass Collaboration validations
       dni_letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
-      number = rand(10000000..99999999)
+      number = rand(10_000_000..99_999_999)
       letter = dni_letters[number % 23]
       user = build(:user, document_type: 1, document_vatid: "#{number}#{letter}")
       user.save(validate: false)
@@ -102,13 +102,13 @@ RSpec.describe Collaboration, type: :model do
     it 'validates CCC fields when payment_type is CCC' do
       collaboration = build(:collaboration, payment_type: 2, ccc_entity: nil)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:ccc_entity]).to include("no puede estar en blanco")
+      expect(collaboration.errors[:ccc_entity]).to include('no puede estar en blanco')
     end
 
     it 'validates IBAN presence when payment_type is IBAN' do
       collaboration = build(:collaboration, payment_type: 3, iban_account: nil, iban_bic: nil)
       expect(collaboration).not_to be_valid
-      expect(collaboration.errors[:iban_account]).to include("no puede estar en blanco")
+      expect(collaboration.errors[:iban_account]).to include('no puede estar en blanco')
     end
 
     it 'rejects passport users' do
@@ -123,7 +123,7 @@ RSpec.describe Collaboration, type: :model do
     it 'rejects underage users' do
       # Create user with DNI format
       dni_letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
-      number = rand(10000000..99999999)
+      number = rand(10_000_000..99_999_999)
       letter = dni_letters[number % 23]
 
       young_user = build(:user, document_type: 1, document_vatid: "#{number}#{letter}", born_at: 10.years.ago)
@@ -633,20 +633,19 @@ RSpec.describe Collaboration, type: :model do
     it 'completes credit card collaboration workflow' do
       # Create user with DNI (not passport) to pass Collaboration validations
       dni_letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
-      number = rand(10000000..99999999)
+      number = rand(10_000_000..99_999_999)
       letter = dni_letters[number % 23]
       user = build(:user, document_type: 1, document_vatid: "#{number}#{letter}")
       user.save(validate: false)
 
       collaboration = nil
-      expect {
+      expect do
         collaboration = create(:collaboration,
-          user: user,
-          payment_type: 1,
-          amount: 1000,
-          frequency: 1
-        )
-      }.to change(Collaboration, :count).by(1)
+                               user: user,
+                               payment_type: 1,
+                               amount: 1000,
+                               frequency: 1)
+      end.to change(Collaboration, :count).by(1)
 
       expect(collaboration.is_credit_card?).to be true
       expect(collaboration.is_bank?).to be false
@@ -657,16 +656,15 @@ RSpec.describe Collaboration, type: :model do
     it 'completes bank collaboration workflow' do
       # Create user with DNI (not passport) to pass Collaboration validations
       dni_letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
-      number = rand(10000000..99999999)
+      number = rand(10_000_000..99_999_999)
       letter = dni_letters[number % 23]
       user = build(:user, document_type: 1, document_vatid: "#{number}#{letter}")
       user.save(validate: false)
 
       collaboration = create(:collaboration, :with_iban, :active,
-        user: user,
-        amount: 2000,
-        frequency: 3
-      )
+                             user: user,
+                             amount: 2000,
+                             frequency: 3)
 
       # with_iban uses German IBAN by default (international)
       expect(collaboration.is_bank?).to be true

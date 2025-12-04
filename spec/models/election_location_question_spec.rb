@@ -40,44 +40,44 @@ RSpec.describe ElectionLocationQuestion, type: :model do
     it 'requires title' do
       question = build(:election_location_question, title: nil)
       expect(question).not_to be_valid
-      expect(question.errors[:title]).to include("no puede estar en blanco")
+      expect(question.errors[:title]).to include('no puede estar en blanco')
     end
 
     it 'requires voting_system' do
       question = build(:election_location_question, voting_system: nil)
       expect(question).not_to be_valid
-      expect(question.errors[:voting_system]).to include("no puede estar en blanco")
+      expect(question.errors[:voting_system]).to include('no puede estar en blanco')
     end
 
     it 'requires winners' do
       question = build(:election_location_question, winners: nil)
       expect(question).not_to be_valid
-      expect(question.errors[:winners]).to include("no puede estar en blanco")
+      expect(question.errors[:winners]).to include('no puede estar en blanco')
     end
 
     it 'requires minimum' do
       question = build(:election_location_question, minimum: nil)
       expect(question).not_to be_valid
-      expect(question.errors[:minimum]).to include("no puede estar en blanco")
+      expect(question.errors[:minimum]).to include('no puede estar en blanco')
     end
 
     it 'requires maximum' do
       question = build(:election_location_question, maximum: nil)
       expect(question).not_to be_valid
-      expect(question.errors[:maximum]).to include("no puede estar en blanco")
+      expect(question.errors[:maximum]).to include('no puede estar en blanco')
     end
 
     it 'requires totals' do
       question = build(:election_location_question, totals: nil)
       expect(question).not_to be_valid
-      expect(question.errors[:totals]).to include("no puede estar en blanco")
+      expect(question.errors[:totals]).to include('no puede estar en blanco')
     end
 
     it 'requires options' do
       question = build(:election_location_question)
-      question[:options] = nil  # Set directly to avoid getter calling headers.keys
+      question[:options] = nil # Set directly to avoid getter calling headers.keys
       expect(question).not_to be_valid
-      expect(question.errors[:options]).to include("no puede estar en blanco")
+      expect(question.errors[:options]).to include('no puede estar en blanco')
     end
   end
 
@@ -133,7 +133,7 @@ RSpec.describe ElectionLocationQuestion, type: :model do
       it 'returns array split by tab' do
         question = build(:election_location_question)
         question[:options_headers] = "Text\tImage\tURL"
-        expect(question.options_headers).to eq(['Text', 'Image', 'URL'])
+        expect(question.options_headers).to eq(%w[Text Image URL])
       end
 
       it 'returns default when nil' do
@@ -146,7 +146,7 @@ RSpec.describe ElectionLocationQuestion, type: :model do
     describe '#options_headers=' do
       it 'sets tab-separated string from array' do
         question = build(:election_location_question)
-        question.options_headers = ['Name', 'Description', 'URL']
+        question.options_headers = %w[Name Description URL]
         expect(question[:options_headers]).to eq("Name\tDescription\tURL")
       end
 
@@ -160,7 +160,7 @@ RSpec.describe ElectionLocationQuestion, type: :model do
     describe '#options=' do
       it 'processes multi-line tab-separated options' do
         question = build(:election_location_question)
-        question.options_headers = ['Text', 'URL']
+        question.options_headers = %w[Text URL]
         question.options = "Option 1\thttp://example.com/1\nOption 2\thttp://example.com/2"
 
         expected = "Option 1\thttp://example.com/1\nOption 2\thttp://example.com/2"

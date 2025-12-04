@@ -56,7 +56,7 @@ module PlebisCore
         dependencies: ['User'],
         default_config: {
           max_file_size_mb: 10,
-          allowed_file_types: ['pdf', 'doc', 'docx'],
+          allowed_file_types: %w[pdf doc docx],
           evaluation_enabled: true
         }
       },
@@ -80,7 +80,7 @@ module PlebisCore
         models: %w[Election ElectionLocation ElectionLocationQuestion
                    Vote VoteCircle VoteCircleType],
         controllers: %w[VoteController],
-        dependencies: ['User', 'plebis_verification'],
+        dependencies: %w[User plebis_verification],
         default_config: {
           nvotes_api_url: '',
           allow_paper_voting: true,
@@ -96,7 +96,7 @@ module PlebisCore
         dependencies: ['User'],
         default_config: {
           allow_renewals: true,
-          max_loan_amount: 10000
+          max_loan_amount: 10_000
         }
       },
       'plebis_collaborations' => {
@@ -118,7 +118,7 @@ module PlebisCore
         version: '1.0.0',
         models: %w[MilitantRecord],
         controllers: %w[MilitantController],
-        dependencies: ['User', 'plebis_collaborations', 'plebis_verification'],
+        dependencies: %w[User plebis_collaborations plebis_verification],
         default_config: {
           min_militant_amount: 3,
           external_api_enabled: true
@@ -162,7 +162,7 @@ module PlebisCore
         # 'User' is always available (core model)
         dep == 'User' || EngineActivation.enabled?(dep)
       end
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "[EngineRegistry] Error checking if #{engine_name} can be enabled: #{e.message}"
       false
     end
@@ -202,7 +202,7 @@ module PlebisCore
         enabled: EngineActivation.where(enabled: true).pluck(:engine_name),
         disabled: EngineActivation.where(enabled: false).pluck(:engine_name)
       }
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error "[EngineRegistry] Error getting engines by status: #{e.message}"
       { enabled: [], disabled: [] }
     end

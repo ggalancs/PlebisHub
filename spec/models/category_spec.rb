@@ -36,7 +36,7 @@ RSpec.describe Category, type: :model do
       it 'requires name' do
         category = build(:category, name: nil)
         expect(category).not_to be_valid
-        expect(category.errors[:name]).to include("no puede estar en blanco")
+        expect(category.errors[:name]).to include('no puede estar en blanco')
       end
 
       it 'accepts valid name' do
@@ -47,7 +47,7 @@ RSpec.describe Category, type: :model do
       it 'rejects empty string name' do
         category = build(:category, name: '')
         expect(category).not_to be_valid
-        expect(category.errors[:name]).to include("no puede estar en blanco")
+        expect(category.errors[:name]).to include('no puede estar en blanco')
       end
 
       it 'requires unique name (case insensitive)' do
@@ -109,7 +109,7 @@ RSpec.describe Category, type: :model do
 
       it 'requires unique slug if provided' do
         # Create category with a specific name that generates a specific slug
-        first = create(:category, name: 'Unique Test')
+        create(:category, name: 'Unique Test')
         # Try to create another category with the same name (which generates the same slug)
         duplicate = build(:category, name: 'Unique Test')
         expect(duplicate).not_to be_valid
@@ -125,7 +125,7 @@ RSpec.describe Category, type: :model do
 
       it 'updates slug when name changes' do
         category = create(:category, name: 'Original Name')
-        original_slug = category.slug
+        category.slug
 
         category.update(name: 'New Name')
 
@@ -345,7 +345,7 @@ RSpec.describe Category, type: :model do
       it 'orders by number of posts descending' do
         cat_many = create(:category, :with_many_posts) # 10 posts
         cat_few = create(:category, :with_one_post)    # 1 post
-        cat_none = create(:category)                    # 0 posts
+        cat_none = create(:category) # 0 posts
 
         ordered = Category.by_post_count.to_a
 

@@ -50,8 +50,16 @@ class ApplicationController < ActionController::Base
   rescue StandardError => e
     log_error('set_metas_error', e)
     # Set safe defaults
-    @meta_description ||= Rails.application.secrets.metas['description'] rescue nil
-    @meta_image ||= Rails.application.secrets.metas['image'] rescue nil
+    @meta_description ||= begin
+      Rails.application.secrets.metas['description']
+    rescue StandardError
+      nil
+    end
+    @meta_image ||= begin
+      Rails.application.secrets.metas['image']
+    rescue StandardError
+      nil
+    end
   end
 
   # Allow iframe requests by setting X-Frame-Options to SAMEORIGIN
@@ -72,26 +80,25 @@ class ApplicationController < ActionController::Base
     return unless params['controller']&.starts_with?('admin/')
 
     begin
-      tracking = Logger.new(File.join(Rails.root, 'log', 'activeadmin.log'))
+      tracking = Logger.new(Rails.root.join('log/activeadmin.log').to_s)
       user_info = user_signed_in? ? current_user.full_name : 'Anonymous'
       tracking.info "** #{user_info} ** #{request.method} #{request.path}"
 
       # SECURITY FIX (SEC-021): Filter sensitive parameters before logging
       filtered_params = params.except(:password, :password_confirmation, :current_password,
-                                       :email, :document_vatid, :phone, :otp, :token)
+                                      :email, :document_vatid, :phone, :otp, :token)
       tracking.info filtered_params.to_s
 
       log_security_event('admin_action',
-        user_id: current_user&.id,
-        action: "#{request.method} #{request.path}"
-      )
+                         user_id: current_user&.id,
+                         action: "#{request.method} #{request.path}")
     rescue StandardError => e
       log_error('admin_logger_error', e)
     end
   end
 
   # Set URL options to include locale
-  def default_url_options(options = {})
+  def default_url_options(_options = {})
     { locale: I18n.locale }
   end
 
@@ -124,14 +131,11 @@ class ApplicationController < ActionController::Base
 
       # Remove success message, show issue instead
       flash.delete(:notice)
-      if issue[:message]
-        issue[:message].each { |type, text| flash[type] = t("issues.#{text}") }
-      end
+      issue[:message]&.each { |type, text| flash[type] = t("issues.#{text}") }
 
       log_security_event('user_has_unresolved_issue',
-        user_id: user.id,
-        issue_controller: issue[:controller]
-      )
+                         user_id: user.id,
+                         issue_controller: issue[:controller])
 
       return issue[:path]
     end
@@ -154,9 +158,8 @@ class ApplicationController < ActionController::Base
     user_id = current_user.id
 
     log_security_event('banned_user_signed_out',
-      user_id: user_id,
-      full_name: name
-    )
+                       user_id: user_id,
+                       full_name: name)
 
     sign_out_and_redirect current_user
     flash[:notice] = t('plebisbrand.banned', full_name: name)
@@ -196,18 +199,16 @@ class ApplicationController < ActionController::Base
   # Handle CanCan authorization failures
   rescue_from CanCan::AccessDenied do |exception|
     log_security_event('access_denied_cancan',
-      user_id: current_user&.id,
-      exception_message: exception.message
-    )
+                       user_id: current_user&.id,
+                       exception_message: exception.message)
     redirect_to root_url, alert: exception.message
   end
 
   # Generic access denied handler
   def access_denied(exception)
     log_security_event('access_denied',
-      user_id: current_user&.id,
-      exception_message: exception.message
-    )
+                       user_id: current_user&.id,
+                       exception_message: exception.message)
     redirect_to root_url, alert: exception.message
   end
 
@@ -221,8 +222,7 @@ class ApplicationController < ActionController::Base
       current_user.paper_authority?
     )
       log_security_event('admin_authentication_failed',
-        user_id: current_user&.id
-      )
+                         user_id: current_user&.id)
       redirect_to root_url, flash: { error: t('plebisbrand.unauthorized') }
     end
   end
@@ -237,8 +237,7 @@ class ApplicationController < ActionController::Base
   # Configure Devise permitted parameters
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:sign_in,
-      keys: [:login, :document_vatid, :email, :password, :remember_me]
-    )
+                                      keys: %i[login document_vatid email password remember_me])
   end
 
   private

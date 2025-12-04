@@ -13,7 +13,6 @@ module Gamification
     belongs_to :user
     belongs_to :source, polymorphic: true, optional: true
 
-    validates :user_id, presence: true
     validates :amount, presence: true, numericality: { greater_than: 0 }
     validates :reason, presence: true
 
@@ -27,7 +26,7 @@ module Gamification
         .includes(:source)
         .order(created_at: :desc)
         .limit(limit)
-        .map { |point| point.as_json_detailed }
+        .map(&:as_json_detailed)
     end
 
     def as_json_detailed

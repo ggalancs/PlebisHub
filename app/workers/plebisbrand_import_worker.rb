@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 require 'plebisbrand_import'
 
 class PlebisBrandImportWorker
   include Sidekiq::Worker
+
   sidekiq_options queue: :plebisbrand_import_queue
 
   def perform(row)

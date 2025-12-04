@@ -6,13 +6,14 @@ module PlebisCms
 
     acts_as_paranoid
     extend FriendlyId
-    friendly_id :slug_candidates, use: [:slugged, :finders]
+
+    friendly_id :slug_candidates, use: %i[slugged finders]
 
     has_and_belongs_to_many :categories, class_name: 'PlebisCms::Category'
 
-    STATUS = {"Borrador" => 0, "Publicado" => 1}
+    STATUS = { 'Borrador' => 0, 'Publicado' => 1 }.freeze
 
-    scope :recent, -> { order(created_at: :desc)}
+    scope :recent, -> { order(created_at: :desc) }
     scope :created, -> { where(deleted_at: nil) }
     scope :drafts,  -> { where(status: 0) }
     scope :published,  -> { where(status: 1) }
@@ -21,7 +22,7 @@ module PlebisCms
     validates :title, :status, presence: true
 
     def published?
-      status>0
+      status.positive?
     end
 
     def slug_candidates

@@ -10,7 +10,7 @@ RSpec.describe Support, type: :model do
   describe 'factory' do
     it 'creates valid support' do
       support = build(:support)
-      expect(support).to be_valid, "Factory should create a valid support"
+      expect(support).to be_valid, 'Factory should create a valid support'
     end
 
     it 'creates support with associations' do
@@ -29,11 +29,11 @@ RSpec.describe Support, type: :model do
       it 'requires user' do
         support = build(:support, user: nil)
         expect(support).not_to be_valid
-        expect(support.errors[:user]).to include("no puede estar en blanco")
+        expect(support.errors[:user]).to include('no puede estar en blanco')
       end
 
       it 'accepts valid user' do
-        skip "Skipping due to email uniqueness issues from Collaboration factory workarounds"
+        skip 'Skipping due to email uniqueness issues from Collaboration factory workarounds'
         user = create(:user)
         support = build(:support, user: user)
         expect(support).to be_valid
@@ -44,7 +44,7 @@ RSpec.describe Support, type: :model do
       it 'requires proposal' do
         support = build(:support, proposal: nil)
         expect(support).not_to be_valid
-        expect(support.errors[:proposal]).to include("no puede estar en blanco")
+        expect(support.errors[:proposal]).to include('no puede estar en blanco')
       end
 
       it 'accepts valid proposal' do
@@ -63,7 +63,7 @@ RSpec.describe Support, type: :model do
 
         duplicate_support = build(:support, user: user, proposal: proposal)
         expect(duplicate_support).not_to be_valid
-        expect(duplicate_support.errors[:user_id]).to include("has already supported this proposal")
+        expect(duplicate_support.errors[:user_id]).to include('has already supported this proposal')
       end
 
       it 'allows same user to support different proposals' do
@@ -71,7 +71,7 @@ RSpec.describe Support, type: :model do
         proposal1 = create(:proposal)
         proposal2 = create(:proposal)
 
-        support1 = create(:support, user: user, proposal: proposal1)
+        create(:support, user: user, proposal: proposal1)
         support2 = build(:support, user: user, proposal: proposal2)
 
         expect(support2).to be_valid
@@ -82,7 +82,7 @@ RSpec.describe Support, type: :model do
         user2 = create(:user)
         proposal = create(:proposal)
 
-        support1 = create(:support, user: user1, proposal: proposal)
+        create(:support, user: user1, proposal: proposal)
         support2 = build(:support, user: user2, proposal: proposal)
 
         expect(support2).to be_valid
@@ -212,7 +212,7 @@ RSpec.describe Support, type: :model do
         proposal.update_column(:supports_count, 0)
         proposal.update_column(:hotness, 0)
 
-        support = create(:support, proposal: proposal)
+        create(:support, proposal: proposal)
 
         # Hotness should be updated to supports_count + days_since_created * 1000
         expected_hotness = proposal.reload.supports_count + (proposal.days_since_created * 1000)
@@ -255,11 +255,11 @@ RSpec.describe Support, type: :model do
       proposal = create(:proposal)
       users = 5.times.map { create(:user) }
 
-      expect {
+      expect do
         users.each do |user|
           create(:support, user: user, proposal: proposal)
         end
-      }.to change(Support, :count).by(5)
+      end.to change(Support, :count).by(5)
 
       expect(proposal.reload.supports_count).to eq(5)
     end
@@ -268,11 +268,11 @@ RSpec.describe Support, type: :model do
       user = create(:user)
       proposal = create(:proposal)
 
-      support1 = create(:support, user: user, proposal: proposal)
+      create(:support, user: user, proposal: proposal)
 
-      expect {
+      expect do
         create(:support, user: user, proposal: proposal)
-      }.to raise_error(ActiveRecord::RecordInvalid)
+      end.to raise_error(ActiveRecord::RecordInvalid)
     end
 
     it 'handles deletion of user\'s supports when user has multiple' do
@@ -349,7 +349,7 @@ RSpec.describe Support, type: :model do
     it 'maintains data integrity when user is deleted' do
       user = create(:user)
       proposal = create(:proposal)
-      support = create(:support, user: user, proposal: proposal)
+      create(:support, user: user, proposal: proposal)
 
       # User deletion should delete their supports (dependent: :destroy)
       expect { user.destroy }.to change(Support, :count).by(-1)
@@ -358,7 +358,7 @@ RSpec.describe Support, type: :model do
     it 'maintains data integrity when proposal is deleted' do
       proposal = create(:proposal)
       user = create(:user)
-      support = create(:support, user: user, proposal: proposal)
+      create(:support, user: user, proposal: proposal)
 
       # Proposal deletion should delete its supports (dependent: :destroy)
       expect { proposal.destroy }.to change(Support, :count).by(-1)

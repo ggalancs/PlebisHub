@@ -18,12 +18,12 @@ module PlebisProposals
 
     # Scopes
     scope :reddit,  -> { where(reddit_threshold: true) }
-    scope :recent,  -> { order('created_at desc') }
-    scope :popular, -> { order('supports_count desc') }
-    scope :time,    -> { order('created_at asc') }
-    scope :hot,     -> { order('hotness desc') }
+    scope :recent,  -> { order(created_at: :desc) }
+    scope :popular, -> { order(supports_count: :desc) }
+    scope :time,    -> { order(:created_at) }
+    scope :hot,     -> { order(hotness: :desc) }
     scope :active,  -> { where('created_at > ?', 3.months.ago) }
-    scope :finished, -> { where('created_at <= ?', 3.months.ago) }
+    scope :finished, -> { where(created_at: ..3.months.ago) }
 
     # Callbacks
     before_save :update_threshold
@@ -35,14 +35,14 @@ module PlebisProposals
       # Set to true if votes meet threshold
       return if skip_threshold_update
 
-      if reddit_required_votes?
-        if new_record?
-          # On create, don't override if explicitly set to false via accessor
-          self.reddit_threshold = true unless @reddit_threshold_explicitly_set == false
-        else
-          # On update, always set to true if threshold met
-          self.reddit_threshold = true
-        end
+      return unless reddit_required_votes?
+
+      if new_record?
+        # On create, don't override if explicitly set to false via accessor
+        self.reddit_threshold = true unless @reddit_threshold_explicitly_set == false
+      else
+        # On update, always set to true if threshold met
+        self.reddit_threshold = true
       end
     end
 
@@ -64,7 +64,7 @@ module PlebisProposals
     end
 
     def reddit_required_votes
-      ((0.2).percent * confirmed_users).to_i
+      (0.2.percent * confirmed_users).to_i
     end
 
     def monthly_email_required_votes
@@ -88,7 +88,7 @@ module PlebisProposals
     end
 
     def finished?
-      finishes_at<Date.today
+      finishes_at < Time.zone.today
     end
 
     def discarded?
@@ -101,15 +101,16 @@ module PlebisProposals
 
     def supported?(user)
       return false unless user
+
       user.supports.where(proposal: self).any?
     end
 
-    def supportable? user
-      not (finished? || discarded?)
+    def supportable?(_user)
+      !(finished? || discarded?)
     end
 
     def self.filter(filtering_params)
-      results = self.reddit
+      results = reddit
       results = results.public_send(filtering_params) if filtering_params.present?
       results
     end
@@ -119,7 +120,7 @@ module PlebisProposals
     end
 
     def days_since_created
-      ((Time.now - created_at)/60/60/24).to_i
+      ((Time.zone.now - created_at) / 60 / 60 / 24).to_i
     end
 
     # Override the association count to only count supports before finishes_at
@@ -129,12 +130,12 @@ module PlebisProposals
 
     # Get the current supports count - either from the column or by counting
     def current_supports_count
-      read_attribute(:supports_count) || calculate_supports_count
+      self[:supports_count] || calculate_supports_count
     end
 
     # Calculate supports count based on supports within the finish date
     def calculate_supports_count
-      supports.where("created_at<?", finishes_at).count
+      supports.where('created_at<?', finishes_at).count
     end
   end
 end

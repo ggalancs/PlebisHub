@@ -5,7 +5,7 @@
 # Example: X1234567L
 class ValidNieValidator < ActiveModel::EachValidator
   LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE'
-  NIE_PREFIXES = { 'X' => 0, 'Y' => 1, 'Z' => 2 }
+  NIE_PREFIXES = { 'X' => 0, 'Y' => 1, 'Z' => 2 }.freeze
 
   def validate_each(record, attribute, value)
     return if value.blank?
@@ -22,8 +22,8 @@ class ValidNieValidator < ActiveModel::EachValidator
     letter = value_clean[8]
     expected_letter = LETTERS[number % 23]
 
-    if letter != expected_letter
-      record.errors.add(attribute, 'is invalid')
-    end
+    return unless letter != expected_letter
+
+    record.errors.add(attribute, 'is invalid')
   end
 end

@@ -1,0 +1,117 @@
+/*
+Author: wakalaka
+Author URI: http://wakalaka.es/
+Description: Responsive theme by wakalaka for Juntos PlebisBrand
+Version: 1.0
+*/
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+base
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+/* -----------------------------------
+select 2
+----------------------------------- */
+/* line 19, app/assets/stylesheets/select2-adj.css.scss */
+.select2-container {
+  margin-top: 0.5em;
+  margin-right: 0.5em;
+  float: left;
+}
+
+/* line 24, app/assets/stylesheets/select2-adj.css.scss */
+.select2-results .select2-highlighted {
+  background-color: #954e99;
+}
+
+/* line 27, app/assets/stylesheets/select2-adj.css.scss */
+.select2-container {
+  width: 63%;
+}
+
+/* line 30, app/assets/stylesheets/select2-adj.css.scss */
+.select2-results {
+  text-align: left;
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+layout 1: 0-459 (simple) # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+/*
+font sizes
+*/
+/* line 44, app/assets/stylesheets/select2-adj.css.scss */
+.select2-container {
+  font-size: 1.6em;
+}
+
+/* line 47, app/assets/stylesheets/select2-adj.css.scss */
+.select2-results {
+  font-size: 1.6em;
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+layout 2: 460-600 (intermedia 1) # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+@media only screen and (min-width: 460px) and (max-width: 600px) {
+  /*
+  font sizes
+  */
+  /* line 66, app/assets/stylesheets/select2-adj.css.scss */
+  .select2-container {
+    font-size: 1.6em;
+  }
+  /* line 69, app/assets/stylesheets/select2-adj.css.scss */
+  .select2-results {
+    font-size: 1.6em;
+  }
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+layout 3: 600-768 (intermedia 2) # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+@media only screen and (min-width: 600px) and (max-width: 768px) {
+  /*
+  font sizes
+  */
+  /* line 89, app/assets/stylesheets/select2-adj.css.scss */
+  .select2-container {
+    font-size: 1.6em;
+  }
+  /* line 92, app/assets/stylesheets/select2-adj.css.scss */
+  .select2-results {
+    font-size: 1.6em;
+  }
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+layout 4: 769-...+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+@media only screen and (min-width: 769px) {
+  /*
+  font sizes
+  */
+  /* line 111, app/assets/stylesheets/select2-adj.css.scss */
+  .select2-container {
+    font-size: 1.6em;
+  }
+  /* line 114, app/assets/stylesheets/select2-adj.css.scss */
+  .select2-results {
+    font-size: 1.6em;
+  }
+}
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------
+layout 4+: 978-...+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+-------------------------------------------------------------------------------------------------------------------------------------------- */
+@media only screen and (min-width: 978px) {
+  /*
+  font sizes
+  */
+  /* line 133, app/assets/stylesheets/select2-adj.css.scss */
+  .select2-container {
+    font-size: 1.6em;
+  }
+  /* line 136, app/assets/stylesheets/select2-adj.css.scss */
+  .select2-results {
+    font-size: 1.6em;
+  }
+}

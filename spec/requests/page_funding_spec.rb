@@ -91,7 +91,7 @@ RSpec.describe 'Page Funding', type: :request do
       end
 
       it 'tiene boxes de financiación' do
-        boxes = response.body.scan(/box-funding/).count
+        boxes = response.body.scan('box-funding').count
         expect(boxes).to be >= 2
       end
 
@@ -101,11 +101,11 @@ RSpec.describe 'Page Funding', type: :request do
       end
 
       it 'tiene h2 para título principal' do
-        expect(response.body).to match(/<h2>Financiación<\/h2>/)
+        expect(response.body).to match(%r{<h2>Financiación</h2>})
       end
 
       it 'tiene h3 para subtítulos de secciones' do
-        h3_count = response.body.scan(/<h3>/).count
+        h3_count = response.body.scan('<h3>').count
         expect(h3_count).to be >= 2
       end
 

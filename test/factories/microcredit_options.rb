@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :microcredit_option, class: 'PlebisMicrocredit::MicrocreditOption' do
     association :microcredit

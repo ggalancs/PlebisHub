@@ -244,7 +244,7 @@ RSpec.describe 'Collaborations Confirm', type: :request do
       end
 
       context 'con cantidad grande (500 EUR)' do
-        let!(:collaboration) { create(:collaboration, :incomplete, user: user, amount: 50000) }
+        let!(:collaboration) { create(:collaboration, :incomplete, user: user, amount: 50_000) }
 
         before do
           sign_in user

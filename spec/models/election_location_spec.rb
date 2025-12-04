@@ -188,13 +188,13 @@ RSpec.describe ElectionLocation, type: :model do
       it 'calculates correctly without override' do
         election = create(:election, agora_election_id: 100, scope: 0)
         location = create(:election_location, election: election, location: '01', agora_version: 0)
-        expect(location.vote_id).to eq(100010)
+        expect(location.vote_id).to eq(100_010)
       end
 
       it 'uses override when present' do
         election = create(:election, agora_election_id: 100, scope: 0)
         location = create(:election_location, election: election, location: '01', override: '99', agora_version: 0)
-        expect(location.vote_id).to eq(100990)
+        expect(location.vote_id).to eq(100_990)
       end
     end
 
@@ -202,7 +202,7 @@ RSpec.describe ElectionLocation, type: :model do
       it 'calculates using new_agora_version' do
         election = create(:election, agora_election_id: 100, scope: 0)
         location = create(:election_location, election: election, location: '01', agora_version: 0, new_agora_version: 1)
-        expect(location.new_vote_id).to eq(100011)
+        expect(location.new_vote_id).to eq(100_011)
       end
     end
 
@@ -211,7 +211,7 @@ RSpec.describe ElectionLocation, type: :model do
         election = create(:election, agora_election_id: 100, server: 'default', scope: 0)
         location = create(:election_location, election: election, location: '01', agora_version: 0)
 
-        expect(location.link).to match(/booth\/\d+\/vote$/)
+        expect(location.link).to match(%r{booth/\d+/vote$})
         expect(location.link).to include(election.server_url)
       end
     end
@@ -221,7 +221,7 @@ RSpec.describe ElectionLocation, type: :model do
         election = create(:election, agora_election_id: 100, server: 'default', scope: 0)
         location = create(:election_location, election: election, location: '01', agora_version: 0, new_agora_version: 1)
 
-        expect(location.new_link).to match(/booth\/\d+\/vote$/)
+        expect(location.new_link).to match(%r{booth/\d+/vote$})
       end
     end
 

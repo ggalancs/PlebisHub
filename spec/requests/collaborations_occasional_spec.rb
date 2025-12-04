@@ -57,7 +57,7 @@ RSpec.describe 'Collaborations Occasional', type: :request do
       end
 
       it 'tiene al menos 2 párrafos de información' do
-        paragraphs = response.body.scan(/<p>/).count
+        paragraphs = response.body.scan('<p>').count
         expect(paragraphs).to be >= 2
       end
     end

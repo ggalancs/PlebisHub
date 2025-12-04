@@ -11,7 +11,7 @@ RSpec.describe 'Collaborations OK', type: :request do
   before do
     allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)
     # Stub collaboration calculation methods to avoid NoMethodError
-    allow_any_instance_of(Collaboration).to receive(:calculate_date_range_and_orders).and_return({orders: []})
+    allow_any_instance_of(Collaboration).to receive(:calculate_date_range_and_orders).and_return({ orders: [] })
     allow_any_instance_of(Collaboration).to receive(:set_warning!)
     allow_any_instance_of(Collaboration).to receive(:set_active!)
   end
@@ -74,7 +74,7 @@ RSpec.describe 'Collaborations OK', type: :request do
       end
 
       it 'tiene al menos 2 párrafos de información' do
-        paragraphs = response.body.scan(/<p>/).count
+        paragraphs = response.body.scan('<p>').count
         expect(paragraphs).to be >= 2
       end
     end
@@ -111,7 +111,7 @@ RSpec.describe 'Collaborations OK', type: :request do
       end
 
       it 'tiene un h2 con el título' do
-        expect(response.body).to match(/<h2>.*<\/h2>/i)
+        expect(response.body).to match(%r{<h2>.*</h2>}i)
       end
 
       it 'usa grid system con row y col' do

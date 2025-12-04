@@ -87,7 +87,7 @@ RSpec.describe 'SMS Validator Step1', type: :request do
       end
 
       it 'tiene párrafos con instrucciones' do
-        p_count = response.body.scan(/<p>/).count
+        p_count = response.body.scan('<p>').count
         expect(p_count).to be >= 3
       end
 

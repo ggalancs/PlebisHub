@@ -20,7 +20,7 @@ module EngineUser
     # @return [Boolean] Whether user passes VAT ID check
     #
     def pass_vatid_check?
-      self.verified? || self.user_verifications.pending.any?
+      verified? || user_verifications.pending.any?
     end
 
     # Check if user has any accepted verification
@@ -29,10 +29,10 @@ module EngineUser
     #
     def has_not_verification_accepted?
       UserVerification.where(
-        user_id: self.id,
+        user_id: id,
         status: [
-          UserVerification::statuses[:accepted],
-          UserVerification::statuses[:accepted_by_email]
+          UserVerification.statuses[:accepted],
+          UserVerification.statuses[:accepted_by_email]
         ]
       ).blank?
     end
@@ -46,8 +46,8 @@ module EngineUser
       return if verified? || !has_future_verified_elections?
 
       UserVerification.find_by(
-        user_id: self.id,
-        status: %w(pending issues paused).map { |status| UserVerification::statuses[status] }
+        user_id: id,
+        status: %w[pending issues paused].map { |status| UserVerification.statuses[status] }
       )
     end
 
@@ -57,10 +57,10 @@ module EngineUser
     # @return [Boolean] Whether photos are unnecessary
     #
     def photos_unnecessary?
-      self.has_future_verified_elections? &&
-        self.verified? &&
-        (UserVerification.where(user_id: self.id).none? ||
-         UserVerification.accepted_by_email.where(user_id: self.id).any?)
+      has_future_verified_elections? &&
+        verified? &&
+        (UserVerification.where(user_id: id).none? ||
+         UserVerification.accepted_by_email.where(user_id: id).any?)
     end
 
     # Check if photos are necessary for verification
@@ -68,9 +68,9 @@ module EngineUser
     # @return [Boolean] Whether photos are necessary
     #
     def photos_necessary?
-      (self.has_future_verified_elections? && !self.verified?) ||
-        (UserVerification.where(user_id: self.id).any? &&
-         UserVerification.accepted_by_email.where(user_id: self.id).none?)
+      (has_future_verified_elections? && !verified?) ||
+        (UserVerification.where(user_id: id).any? &&
+         UserVerification.accepted_by_email.where(user_id: id).none?)
     end
 
     # Check if user has future elections requiring verification
@@ -95,9 +95,9 @@ module EngineUser
     # @return [Boolean] Whether user is verified for militant status
     #
     def verified_for_militant?
-      status = self.user_verifications.last&.status
-      self.verified? || (self.user_verifications.any? &&
-                          (status == "pending" || status == "accepted" || status == "accepted_by_email"))
+      status = user_verifications.last&.status
+      verified? || (user_verifications.any? &&
+                          %w[pending accepted accepted_by_email].include?(status))
     end
   end
 end

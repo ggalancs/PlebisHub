@@ -43,7 +43,7 @@ class RegistrationsController < Devise::RegistrationsController
       required: true,
       field: :province,
       title: 'Provincia',
-      options_filter: ((!current_user || current_user.can_change_vote_location?) ? User.blocked_provinces : nil)
+      options_filter: (!current_user || current_user.can_change_vote_location? ? User.blocked_provinces : nil)
     }
   rescue StandardError => e
     log_error('regions_provinces_error', e)
@@ -199,7 +199,7 @@ class RegistrationsController < Devise::RegistrationsController
 
   # Check if personal data is locked (user is verified)
   def locked_personal_data?
-    @locked_personal_data ||= current_user && current_user.verified?
+    @locked_personal_data ||= current_user&.verified?
   end
 
   # SECURITY: Paranoid mode implementation
@@ -239,7 +239,7 @@ class RegistrationsController < Devise::RegistrationsController
   # SECURITY: Validate vote_circle_id changes
   # SEC-009: Added eligibility validation to prevent vote circle manipulation
   def validate_vote_circle
-    return unless params.dig(:user, :vote_circle_id).present?
+    return if params.dig(:user, :vote_circle_id).blank?
 
     vote_circle_id = params[:user][:vote_circle_id]
 
@@ -248,9 +248,8 @@ class RegistrationsController < Devise::RegistrationsController
 
     unless vote_circle
       log_security_event('invalid_vote_circle_attempt',
-        user_id: current_user.id,
-        vote_circle_id: vote_circle_id
-      )
+                         user_id: current_user.id,
+                         vote_circle_id: vote_circle_id)
       redirect_to edit_user_registration_path, alert: t('errors.messages.invalid_vote_circle')
       return false
     end
@@ -258,10 +257,9 @@ class RegistrationsController < Devise::RegistrationsController
     # SEC-009: SECURITY FIX - Validate user eligibility based on location
     unless user_eligible_for_vote_circle?(current_user, vote_circle)
       log_security_event('unauthorized_vote_circle_attempt',
-        user_id: current_user.id,
-        vote_circle_id: vote_circle_id,
-        user_location: "#{current_user.vote_province}/#{current_user.vote_town}"
-      )
+                         user_id: current_user.id,
+                         vote_circle_id: vote_circle_id,
+                         user_location: "#{current_user.vote_province}/#{current_user.vote_town}")
       redirect_to edit_user_registration_path, alert: t('errors.messages.vote_circle_location_mismatch')
       return false
     end
@@ -269,10 +267,9 @@ class RegistrationsController < Devise::RegistrationsController
     # Log vote_circle change for audit trail
     if current_user.vote_circle_id != vote_circle_id.to_i
       log_security_event('vote_circle_changed',
-        user_id: current_user.id,
-        old_vote_circle_id: current_user.vote_circle_id,
-        new_vote_circle_id: vote_circle_id
-      )
+                         user_id: current_user.id,
+                         old_vote_circle_id: current_user.vote_circle_id,
+                         new_vote_circle_id: vote_circle_id)
     end
 
     true

@@ -29,7 +29,7 @@ RSpec.describe UserVerification, type: :model do
 
       verification.update_column(:status, 1) # accepted = 1
 
-      expect(verification.reload.status).to eq("accepted")
+      expect(verification.reload.status).to eq('accepted')
       expect(verification).to be_accepted
     end
 
@@ -47,7 +47,7 @@ RSpec.describe UserVerification, type: :model do
   describe 'enum' do
     it 'has status enum' do
       verification = create(:user_verification, status: :accepted)
-      expect(verification.status).to eq("accepted")
+      expect(verification.status).to eq('accepted')
       expect(verification).to be_accepted
     end
 

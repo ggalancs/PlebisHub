@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 PlebisProposals::Engine.routes.draw do
-  resources :proposals, only: [:index, :show] do
+  resources :proposals, only: %i[index show] do
     collection do
       get 'info'
     end

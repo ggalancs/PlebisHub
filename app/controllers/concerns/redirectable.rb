@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 module Redirectable
   extend ActiveSupport::Concern
+
   included do
     # Rails 7.1+ raises errors if :only actions don't exist in the controller
     # Removed :only restriction since storable_location? already guards GET requests
@@ -9,7 +12,7 @@ module Redirectable
     end
 
     def storable_location?
-      request.get? && is_navigational_format?  && !request.xhr?
+      request.get? && is_navigational_format? && !request.xhr?
     end
 
     def store_user_location!

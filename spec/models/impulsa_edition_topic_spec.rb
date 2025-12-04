@@ -25,17 +25,16 @@ RSpec.describe ImpulsaEditionTopic, type: :model do
 
   describe 'CRUD operations' do
     it 'creates topic with valid attributes' do
-      expect {
+      expect do
         create(:impulsa_edition_topic)
-      }.to change(ImpulsaEditionTopic, :count).by(1)
+      end.to change(ImpulsaEditionTopic, :count).by(1)
     end
 
     it 'reads topic attributes correctly' do
       edition = create(:impulsa_edition)
       topic = create(:impulsa_edition_topic,
-        impulsa_edition: edition,
-        name: 'Test Topic'
-      )
+                     impulsa_edition: edition,
+                     name: 'Test Topic')
 
       found_topic = ImpulsaEditionTopic.find(topic.id)
       expect(found_topic.name).to eq('Test Topic')
@@ -52,9 +51,9 @@ RSpec.describe ImpulsaEditionTopic, type: :model do
     it 'deletes topic' do
       topic = create(:impulsa_edition_topic)
 
-      expect {
+      expect do
         topic.destroy
-      }.to change(ImpulsaEditionTopic, :count).by(-1)
+      end.to change(ImpulsaEditionTopic, :count).by(-1)
     end
   end
 
@@ -136,8 +135,8 @@ RSpec.describe ImpulsaEditionTopic, type: :model do
       edition1 = create(:impulsa_edition)
       edition2 = create(:impulsa_edition)
 
-      topic1 = create(:impulsa_edition_topic, impulsa_edition: edition1)
-      topic2 = create(:impulsa_edition_topic, impulsa_edition: edition2)
+      create(:impulsa_edition_topic, impulsa_edition: edition1)
+      create(:impulsa_edition_topic, impulsa_edition: edition2)
 
       expect(edition1.impulsa_edition_topics.count).to eq(1)
       expect(edition2.impulsa_edition_topics.count).to eq(1)
@@ -146,7 +145,7 @@ RSpec.describe ImpulsaEditionTopic, type: :model do
     it 'allows duplicate topic names within same edition' do
       edition = create(:impulsa_edition)
 
-      topic1 = create(:impulsa_edition_topic, impulsa_edition: edition, name: 'Duplicate')
+      create(:impulsa_edition_topic, impulsa_edition: edition, name: 'Duplicate')
       topic2 = build(:impulsa_edition_topic, impulsa_edition: edition, name: 'Duplicate')
 
       # No uniqueness validation, so it should be valid
@@ -157,7 +156,7 @@ RSpec.describe ImpulsaEditionTopic, type: :model do
       edition1 = create(:impulsa_edition)
       edition2 = create(:impulsa_edition)
 
-      topic1 = create(:impulsa_edition_topic, impulsa_edition: edition1, name: 'Same Name')
+      create(:impulsa_edition_topic, impulsa_edition: edition1, name: 'Same Name')
       topic2 = build(:impulsa_edition_topic, impulsa_edition: edition2, name: 'Same Name')
 
       expect(topic2).to be_valid

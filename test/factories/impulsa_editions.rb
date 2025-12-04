@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :impulsa_edition, class: 'ImpulsaEdition' do
     sequence(:name) { |n| "Impulsa Edition #{n}" }

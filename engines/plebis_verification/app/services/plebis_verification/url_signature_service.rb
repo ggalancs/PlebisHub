@@ -10,7 +10,7 @@ module PlebisVerification
   class UrlSignatureService
     def initialize(secret_key = nil)
       # RAILS 7.2 FIX: Use safe navigation to handle nil forms in test environment
-      @secret = secret_key || Rails.application.secrets.forms&.[]("secret")
+      @secret = secret_key || Rails.application.secrets.forms&.[]('secret')
     end
 
     # Sign a URL with timestamp and HMAC signature
@@ -55,8 +55,8 @@ module PlebisVerification
       # Build canonical URL with specific parameters
       data = "#{uri.scheme}://"
       data += "#{uri.userinfo}@" if uri.userinfo.present?
-      data += "#{host}"
-      data += "#{uri.path}"
+      data += host.to_s
+      data += uri.path.to_s
       data += "?participa_user_id=#{current_user_id}"
       data += "&exemption=#{params_hash['exemption']}" if params_hash['exemption'].present?
       data += "&collaborate=#{params_hash['collaborate']}" if params_hash['collaborate'].present?
@@ -70,13 +70,13 @@ module PlebisVerification
 
     def generate_signature(timestamp, url)
       Base64.urlsafe_encode64(
-        OpenSSL::HMAC.digest("SHA256", @secret, "#{timestamp}::#{url}")[0..20]
+        OpenSSL::HMAC.digest('SHA256', @secret, "#{timestamp}::#{url}")[0..20]
       )
     end
 
     def generate_signature_for_verification(timestamp, data)
       Base64.urlsafe_encode64(
-        OpenSSL::HMAC.digest("SHA256", @secret, "#{timestamp}::#{data}")
+        OpenSSL::HMAC.digest('SHA256', @secret, "#{timestamp}::#{data}")
       )[0..27]
     end
 
@@ -86,7 +86,7 @@ module PlebisVerification
       if allowed_params.any?
         query_params = allowed_params.select { |param| params_hash[param].present? }
                                      .map { |param| "#{param}=#{params_hash[param]}" }
-                                     .join("&")
+                                     .join('&')
         data += "?#{query_params}" if query_params.present?
       end
 

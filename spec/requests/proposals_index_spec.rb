@@ -121,11 +121,11 @@ RSpec.describe 'Proposals Index', type: :request do
       it 'muestra porcentaje de avales' do
         # May not have proposals, so check conditionally
         has_support_info = response.body.include?('avales') || response.body.include?('support')
-        expect(has_support_info || !response.body.include?('proposal-sidebar')).to be true
+        expect(has_support_info || response.body.exclude?('proposal-sidebar')).to be true
       end
 
       it 'muestra tiempo restante o finalización' do
-        has_time_info = response.body.match?(/Termina|Cerrada|finish/i) || !response.body.include?('proposal-sidebar')
+        has_time_info = response.body.match?(/Termina|Cerrada|finish/i) || response.body.exclude?('proposal-sidebar')
         expect(has_time_info).to be true
       end
     end

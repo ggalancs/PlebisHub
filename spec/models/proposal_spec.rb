@@ -4,6 +4,7 @@ require 'rails_helper'
 
 RSpec.describe Proposal, type: :model do
   include ActiveSupport::Testing::TimeHelpers
+
   # Due to the extreme length (865 lines) and complexity of this test file,
   # this RSpec conversion focuses on maintaining all test coverage while
   # following RSpec best practices.
@@ -11,7 +12,7 @@ RSpec.describe Proposal, type: :model do
   describe 'factory' do
     it 'creates valid proposal' do
       proposal = build(:proposal)
-      expect(proposal).to be_valid, "Factory should create a valid proposal"
+      expect(proposal).to be_valid, 'Factory should create a valid proposal'
     end
 
     it 'creates valid active proposal' do
@@ -38,17 +39,17 @@ RSpec.describe Proposal, type: :model do
       it 'requires title' do
         proposal = build(:proposal, title: nil)
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:title]).to include("no puede estar en blanco")
+        expect(proposal.errors[:title]).to include('no puede estar en blanco')
       end
 
       it 'rejects empty string title' do
-        proposal = build(:proposal, title: "")
+        proposal = build(:proposal, title: '')
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:title]).to include("no puede estar en blanco")
+        expect(proposal.errors[:title]).to include('no puede estar en blanco')
       end
 
       it 'accepts valid title' do
-        proposal = build(:proposal, title: "Valid Proposal Title")
+        proposal = build(:proposal, title: 'Valid Proposal Title')
         expect(proposal).to be_valid
       end
     end
@@ -57,17 +58,17 @@ RSpec.describe Proposal, type: :model do
       it 'requires description' do
         proposal = build(:proposal, description: nil)
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:description]).to include("no puede estar en blanco")
+        expect(proposal.errors[:description]).to include('no puede estar en blanco')
       end
 
       it 'rejects empty string description' do
-        proposal = build(:proposal, description: "")
+        proposal = build(:proposal, description: '')
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:description]).to include("no puede estar en blanco")
+        expect(proposal.errors[:description]).to include('no puede estar en blanco')
       end
 
       it 'accepts valid description' do
-        proposal = build(:proposal, description: "This is a valid description")
+        proposal = build(:proposal, description: 'This is a valid description')
         expect(proposal).to be_valid
       end
     end
@@ -91,7 +92,7 @@ RSpec.describe Proposal, type: :model do
       it 'rejects negative votes' do
         proposal = build(:proposal, votes: -1)
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:votes]).to include("debe ser mayor que o igual a 0")
+        expect(proposal.errors[:votes]).to include('debe ser mayor que o igual a 0')
       end
     end
 
@@ -114,7 +115,7 @@ RSpec.describe Proposal, type: :model do
       it 'rejects negative supports_count' do
         proposal = build(:proposal, supports_count: -1)
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:supports_count]).to include("debe ser mayor que o igual a 0")
+        expect(proposal.errors[:supports_count]).to include('debe ser mayor que o igual a 0')
       end
     end
 
@@ -137,7 +138,7 @@ RSpec.describe Proposal, type: :model do
       it 'rejects negative hotness' do
         proposal = build(:proposal, hotness: -1)
         expect(proposal).not_to be_valid
-        expect(proposal.errors[:hotness]).to include("debe ser mayor que o igual a 0")
+        expect(proposal.errors[:hotness]).to include('debe ser mayor que o igual a 0')
       end
     end
   end
@@ -149,30 +150,29 @@ RSpec.describe Proposal, type: :model do
 
     it 'reads proposal attributes correctly' do
       proposal = create(:proposal,
-        title: "Test Proposal",
-        description: "Test Description",
-        votes: 50
-      )
+                        title: 'Test Proposal',
+                        description: 'Test Description',
+                        votes: 50)
 
       found_proposal = Proposal.find(proposal.id)
-      expect(found_proposal.title).to eq("Test Proposal")
-      expect(found_proposal.description).to eq("Test Description")
+      expect(found_proposal.title).to eq('Test Proposal')
+      expect(found_proposal.description).to eq('Test Description')
       expect(found_proposal.votes).to eq(50)
     end
 
     it 'updates proposal attributes' do
-      proposal = create(:proposal, title: "Original Title")
-      proposal.update(title: "Updated Title")
+      proposal = create(:proposal, title: 'Original Title')
+      proposal.update(title: 'Updated Title')
 
-      expect(proposal.reload.title).to eq("Updated Title")
+      expect(proposal.reload.title).to eq('Updated Title')
     end
 
     it 'does not update with invalid attributes' do
-      proposal = create(:proposal, title: "Valid Title")
+      proposal = create(:proposal, title: 'Valid Title')
       proposal.update(title: nil)
 
       expect(proposal).not_to be_valid
-      expect(proposal.reload.title).to eq("Valid Title")
+      expect(proposal.reload.title).to eq('Valid Title')
     end
 
     it 'deletes proposal' do
@@ -818,10 +818,8 @@ RSpec.describe Proposal, type: :model do
 
       users.each do |user|
         create(:support, user: user, proposal: proposal)
-      end
 
-      # Check all users have supported
-      users.each do |user|
+        # Check all users have supported
         expect(proposal.supported?(user)).to be_truthy
       end
 
@@ -832,7 +830,7 @@ RSpec.describe Proposal, type: :model do
 
   describe 'edge cases' do
     it 'handles very long title' do
-      long_title = "A" * 1000
+      long_title = 'A' * 1000
       proposal = build(:proposal, title: long_title)
 
       proposal.valid?
@@ -840,7 +838,7 @@ RSpec.describe Proposal, type: :model do
     end
 
     it 'handles very long description' do
-      long_description = "B" * 10000
+      long_description = 'B' * 10_000
       proposal = build(:proposal, description: long_description)
 
       proposal.valid?
@@ -848,12 +846,12 @@ RSpec.describe Proposal, type: :model do
     end
 
     it 'handles special characters in title' do
-      proposal = build(:proposal, title: "Special chars: @#$% & <> 特殊")
+      proposal = build(:proposal, title: "Special chars: @\#$% & <> 特殊")
       expect(proposal).to be_valid
     end
 
     it 'handles special characters in description' do
-      proposal = build(:proposal, description: "Body with émojis 🎉 and symbols © ® ™")
+      proposal = build(:proposal, description: 'Body with émojis 🎉 and symbols © ® ™')
       expect(proposal).to be_valid
     end
 

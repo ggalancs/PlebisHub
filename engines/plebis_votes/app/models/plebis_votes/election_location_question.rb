@@ -2,15 +2,16 @@
 
 module PlebisVotes
   class ElectionLocationQuestion < ApplicationRecord
-    belongs_to :election_location, class_name: "PlebisVotes::ElectionLocation"
+    belongs_to :election_location, class_name: 'PlebisVotes::ElectionLocation'
 
-    VOTING_SYSTEMS = { "plurality-at-large" => "Elección entre todas las respuestas", "pairwise-beta" => "Comparaciones uno a uno (requiere layout simple)" }
-    TOTALS = { "over-total-valid-votes" => "Sobre votos válidos" }
+    VOTING_SYSTEMS = { 'plurality-at-large' => 'Elección entre todas las respuestas',
+                       'pairwise-beta' => 'Comparaciones uno a uno (requiere layout simple)' }.freeze
+    TOTALS = { 'over-total-valid-votes' => 'Sobre votos válidos' }.freeze
 
     validates :title, :voting_system, :winners, :minimum, :maximum, :totals, :options, presence: true
 
     after_initialize do
-      if self.title.blank?
+      if title.blank?
         self.voting_system = VOTING_SYSTEMS.keys.first
         self.totals = TOTALS.keys.first
         self.random_order = true
@@ -21,17 +22,17 @@ module PlebisVotes
     end
 
     def layout
-      if self.voting_system=="pairwise-beta"
-        "simple"
+      if voting_system == 'pairwise-beta'
+        'simple'
       elsif PlebisVotes::ElectionLocation::ELECTION_LAYOUTS.member? election_location.layout
-        ""
+        ''
       else
         election_location.layout
       end
     end
 
     def self.headers
-      @@headers ||= Rails.application.secrets.agora["options_headers"]
+      @@headers ||= Rails.application.secrets.agora['options_headers']
     end
 
     def options_headers
@@ -42,19 +43,19 @@ module PlebisVotes
       end
     end
 
-    def options_headers= value
-      if value
-        vs = value.select(&:present?)
-        self[:options_headers] = vs.join("\t") if vs.length>0
-      end
+    def options_headers=(value)
+      return unless value
+
+      vs = value.compact_blank
+      self[:options_headers] = vs.join("\t") if vs.length.positive?
     end
 
-    def options= value
-      line_length = self.options_headers.length
+    def options=(value)
+      options_headers.length
       opt = []
       value.strip.split("\n").each do |line|
         fields = line.strip.split("\t")
-        opt << fields.map(&:strip).join("\t") if fields.length>0
+        opt << fields.map(&:strip).join("\t") if fields.length.positive?
       end
       self[:options] = opt.join("\n")
     end

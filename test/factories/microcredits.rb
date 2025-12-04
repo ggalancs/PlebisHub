@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :microcredit, class: 'PlebisMicrocredit::Microcredit' do
     sequence(:title) { |n| "Microcredit #{n}" }
@@ -5,7 +7,7 @@ FactoryBot.define do
     ends_at { 1.month.from_now }
     limits { "100€: 10\n500€: 5\n1000€: 2" }
     # RAILS 7.2 FIX: Use different IBAN than test loan IBANs to avoid validation conflict
-    account_number { "ES7921000813610123456789" }
+    account_number { 'ES7921000813610123456789' }
 
     trait :active do
       starts_at { 1.week.ago }

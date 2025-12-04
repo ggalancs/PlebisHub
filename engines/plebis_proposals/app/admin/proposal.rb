@@ -1,5 +1,7 @@
-ActiveAdmin.register PlebisProposals::Proposal, as: "Proposal" do
-  menu :parent => "PlebisHub"
+# frozen_string_literal: true
+
+ActiveAdmin.register PlebisProposals::Proposal, as: 'Proposal' do
+  menu parent: 'PlebisHub'
 
   controller do
     def scoped_collection
@@ -30,12 +32,11 @@ ActiveAdmin.register PlebisProposals::Proposal, as: "Proposal" do
   end
 
   form do |f|
-    f.inputs "Proposal" do
+    f.inputs 'Proposal' do
       f.input :title
       f.input :description
       f.input :image_url
     end
     f.actions
   end
-
 end

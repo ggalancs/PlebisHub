@@ -36,7 +36,7 @@ RSpec.describe 'Participation Teams Index', type: :request do
       end
 
       it 'tiene múltiples buttonbox (inicio y final)' do
-        buttonbox_count = response.body.scan(/buttonbox/).count
+        buttonbox_count = response.body.scan('buttonbox').count
         expect(buttonbox_count).to be >= 2
       end
     end
@@ -126,7 +126,7 @@ RSpec.describe 'Participation Teams Index', type: :request do
       end
 
       it 'tiene múltiples párrafos explicativos' do
-        p_count = response.body.scan(/<p>/).count
+        p_count = response.body.scan('<p>').count
         expect(p_count).to be >= 3
       end
     end

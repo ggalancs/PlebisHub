@@ -20,7 +20,7 @@ module EngineUser
     # @return [Boolean] Whether user has renewable microcredits
     #
     def any_microcredit_renewable?
-      MicrocreditLoan.renewables.where(document_vatid: self.document_vatid).exists?
+      MicrocreditLoan.renewables.exists?(document_vatid: document_vatid)
     end
   end
 end

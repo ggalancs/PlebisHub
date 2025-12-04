@@ -14,11 +14,11 @@ RSpec.describe BrandSetting, type: :model do
     end
 
     it 'each predefined theme has required structure' do
-      BrandSetting::PREDEFINED_THEMES.each do |id, theme|
+      BrandSetting::PREDEFINED_THEMES.each_value do |theme|
         expect(theme).to have_key(:name)
         expect(theme).to have_key(:description)
         expect(theme).to have_key(:colors)
-        expect(theme[:colors].keys).to match_array([:primary, :primaryLight, :primaryDark, :secondary, :secondaryLight, :secondaryDark])
+        expect(theme[:colors].keys).to match_array(%i[primary primaryLight primaryDark secondary secondaryLight secondaryDark])
       end
     end
 
@@ -139,13 +139,13 @@ RSpec.describe BrandSetting, type: :model do
       end
 
       it 'validates all color fields' do
-        color_fields = [
-          :primary_color,
-          :primary_light_color,
-          :primary_dark_color,
-          :secondary_color,
-          :secondary_light_color,
-          :secondary_dark_color
+        color_fields = %i[
+          primary_color
+          primary_light_color
+          primary_dark_color
+          secondary_color
+          secondary_light_color
+          secondary_dark_color
         ]
 
         color_fields.each do |field|
@@ -165,7 +165,7 @@ RSpec.describe BrandSetting, type: :model do
       it 'allows only one brand setting per organization' do
         organization = Organization.create!(name: 'Test Org')
 
-        first_setting = BrandSetting.create!(
+        BrandSetting.create!(
           name: 'First Setting',
           scope: 'organization',
           organization_id: organization.id,
@@ -223,7 +223,7 @@ RSpec.describe BrandSetting, type: :model do
 
       it 'allows deactivating global setting when another is active' do
         first = BrandSetting.create!(name: 'Global 1', scope: 'global', theme_id: 'default', active: true)
-        second = BrandSetting.create!(name: 'Global 2', scope: 'global', theme_id: 'ocean', active: true)
+        BrandSetting.create!(name: 'Global 2', scope: 'global', theme_id: 'ocean', active: true)
 
         first.active = false
         expect(first).to be_valid
@@ -275,7 +275,7 @@ RSpec.describe BrandSetting, type: :model do
           scope: 'global',
           theme_id: 'default',
           primary_color: '#612d62', # Good contrast (5.02:1)
-          secondary_color: '#1a7568'  # Good contrast (4.58:1)
+          secondary_color: '#1a7568' # Good contrast (4.58:1)
         )
 
         setting.valid?
@@ -459,7 +459,7 @@ RSpec.describe BrandSetting, type: :model do
         )
 
         expect(Rails.cache).to receive(:delete).with(setting.cache_key_with_version)
-        expect(Rails.cache).to receive(:delete).with("brand_setting/global/global")
+        expect(Rails.cache).to receive(:delete).with('brand_setting/global/global')
 
         setting.update!(name: 'Updated')
       end
@@ -482,7 +482,7 @@ RSpec.describe BrandSetting, type: :model do
           active: true
         )
 
-        global_setting = BrandSetting.create!(
+        BrandSetting.create!(
           name: 'Global',
           scope: 'global',
           theme_id: 'default',

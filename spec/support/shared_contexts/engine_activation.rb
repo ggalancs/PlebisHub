@@ -2,21 +2,21 @@
 
 # Shared contexts for engine activation testing
 #
-RSpec.shared_context "with all engines disabled" do
+RSpec.shared_context 'with all engines disabled' do
   before do
     EngineActivation.update_all(enabled: false)
     Rails.cache.clear
   end
 end
 
-RSpec.shared_context "with all engines enabled" do
+RSpec.shared_context 'with all engines enabled' do
   before do
     EngineActivation.update_all(enabled: true)
     Rails.cache.clear
   end
 end
 
-RSpec.shared_context "with basic engines enabled" do
+RSpec.shared_context 'with basic engines enabled' do
   before do
     EngineActivation.update_all(enabled: false)
     %w[plebis_cms plebis_participation].each do |engine|

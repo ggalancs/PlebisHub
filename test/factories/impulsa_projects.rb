@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :impulsa_project, class: 'ImpulsaProject' do
     association :impulsa_edition_category
@@ -7,8 +9,8 @@ FactoryBot.define do
     sequence(:name) { |n| "Project #{n}" }
     status { 0 }
     # Rails 7.2: Acceptance validations require string "1" instead of boolean true
-    terms_of_service { "1" }
-    data_truthfulness { "1" }
-    content_rights { "1" }
+    terms_of_service { '1' }
+    data_truthfulness { '1' }
+    content_rights { '1' }
   end
 end

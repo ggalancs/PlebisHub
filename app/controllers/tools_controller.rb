@@ -22,9 +22,8 @@ class ToolsController < ApplicationController
     session.delete(:return_to)
 
     log_security_event('tools_dashboard_viewed',
-      user_id: current_user.id,
-      elections_count: @elections.size
-    )
+                       user_id: current_user.id,
+                       elections_count: @elections.size)
   rescue StandardError => e
     log_error('tools_index_error', e, user_id: current_user&.id)
     redirect_to root_path, alert: t('errors.messages.generic')
@@ -68,11 +67,10 @@ class ToolsController < ApplicationController
     end
 
     log_security_event('elections_loaded',
-      user_id: current_user.id,
-      active_count: @elections.size,
-      upcoming_count: @upcoming_elections.size,
-      finished_count: @finished_elections.size
-    )
+                       user_id: current_user.id,
+                       active_count: @elections.size,
+                       upcoming_count: @upcoming_elections.size,
+                       finished_count: @finished_elections.size)
   rescue StandardError => e
     log_error('user_elections_load_error', e, user_id: current_user&.id)
     # Set safe defaults

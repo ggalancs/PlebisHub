@@ -9,22 +9,22 @@ class CensusFileParser
     @election = election
   end
 
-  def find_user_by_validation_token(user_id, validation_token)
-    return nil unless @election.census_file.present?
+  def find_user_by_validation_token(user_id, _validation_token)
+    return nil if @election.census_file.blank?
 
     parse_csv do |row|
-      return User.find_by(id: user_id) if row["user_id"] == user_id
+      return User.find_by(id: user_id) if row['user_id'] == user_id
     end
 
     nil
   end
 
   def find_user_by_document(document_vatid, document_type)
-    return nil unless @election.census_file.present?
+    return nil if @election.census_file.blank?
 
     parse_csv do |row|
-      if row["dni"]&.downcase == document_vatid.downcase
-        return User.where("lower(document_vatid) = ?", document_vatid.downcase)
+      if row['dni']&.downcase == document_vatid.downcase
+        return User.where('lower(document_vatid) = ?', document_vatid.downcase)
                    .find_by(document_type: document_type)
       end
     end

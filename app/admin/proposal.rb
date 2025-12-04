@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 ActiveAdmin.register Proposal do
-  menu :parent => "PlebisHubción"
+  menu parent: 'PlebisHubción'
 
   controller do
     def scoped_collection
@@ -18,7 +20,7 @@ ActiveAdmin.register Proposal do
 
   filter :title
 
-  show do 
+  show do
     attributes_table do
       row :title
       row :description do
@@ -30,12 +32,11 @@ ActiveAdmin.register Proposal do
   end
 
   form do |f|
-    f.inputs "Election" do
+    f.inputs 'Election' do
       f.input :title
       f.input :description
       f.input :image_url
     end
     f.actions
   end
-  
 end

@@ -103,7 +103,7 @@ RSpec.describe 'Blog Index', type: :request do
         end
 
         it 'renderiza múltiples artículos' do
-          expect(response.body.scan(/<article class="post">/).count).to eq(3)
+          expect(response.body.scan('<article class="post">').count).to eq(3)
         end
       end
 
@@ -124,7 +124,7 @@ RSpec.describe 'Blog Index', type: :request do
 
         it 'contiene enlaces a las categorías' do
           expect(response.body).to include('Categorias')
-          expect(response.body.scan(/<li>/).count).to be >= 3
+          expect(response.body.scan('<li>').count).to be >= 3
         end
       end
 
@@ -151,7 +151,7 @@ RSpec.describe 'Blog Index', type: :request do
         end
 
         it 'muestra todos los 5 posts en la primera página' do
-          expect(response.body.scan(/<article class="post">/).count).to eq(5)
+          expect(response.body.scan('<article class="post">').count).to eq(5)
         end
 
         it 'no muestra enlaces de paginación' do
@@ -168,7 +168,7 @@ RSpec.describe 'Blog Index', type: :request do
         end
 
         it 'muestra solo 5 posts en la primera página' do
-          expect(response.body.scan(/<article class="post">/).count).to eq(5)
+          expect(response.body.scan('<article class="post">').count).to eq(5)
         end
 
         it 'muestra el enlace a la siguiente página' do
@@ -178,7 +178,7 @@ RSpec.describe 'Blog Index', type: :request do
         it 'el enlace de siguiente página funciona correctamente' do
           get '/es/brujula?page=2'
           expect(response).to have_http_status(:success)
-          expect(response.body.scan(/<article class="post">/).count).to eq(3)
+          expect(response.body.scan('<article class="post">').count).to eq(3)
         end
 
         it 'la página 2 muestra el enlace a la página anterior' do
@@ -194,17 +194,17 @@ RSpec.describe 'Blog Index', type: :request do
 
         it 'página 1 muestra 5 posts' do
           get '/es/brujula?page=1'
-          expect(response.body.scan(/<article class="post">/).count).to eq(5)
+          expect(response.body.scan('<article class="post">').count).to eq(5)
         end
 
         it 'página 2 muestra 5 posts' do
           get '/es/brujula?page=2'
-          expect(response.body.scan(/<article class="post">/).count).to eq(5)
+          expect(response.body.scan('<article class="post">').count).to eq(5)
         end
 
         it 'página 3 muestra 1 post' do
           get '/es/brujula?page=3'
-          expect(response.body.scan(/<article class="post">/).count).to eq(1)
+          expect(response.body.scan('<article class="post">').count).to eq(1)
         end
 
         it 'página 2 tiene enlaces a anterior y siguiente' do
@@ -266,7 +266,7 @@ RSpec.describe 'Blog Index', type: :request do
         before { get '/brujula' }
 
         it 'escapa el HTML peligroso en el contenido' do
-          # Note: formatted_content helper may allow some HTML, test actual behavior
+          # NOTE: formatted_content helper may allow some HTML, test actual behavior
           expect(response.body).not_to include('onerror="alert(1)"')
         end
       end
@@ -357,7 +357,7 @@ RSpec.describe 'Blog Index', type: :request do
         let!(:post) do
           create(:post, :published,
                  title: %q(Title with "quotes" and 'apostrophes'),
-                 content: %q(Content & special <characters>))
+                 content: 'Content & special <characters>')
         end
 
         before { get '/brujula' }
@@ -376,7 +376,7 @@ RSpec.describe 'Blog Index', type: :request do
       context 'con espacios en blanco excesivos' do
         let!(:post) do
           create(:post, :published,
-                 title: "   Title   with   spaces   ",
+                 title: '   Title   with   spaces   ',
                  content: "   Content   \n\n\n   with   \n   newlines   ")
         end
 
@@ -509,7 +509,7 @@ RSpec.describe 'Blog Index', type: :request do
         it 'maneja correctamente páginas fuera de rango' do
           expect(response).to have_http_status(:success)
           # Kaminari returns empty page for out of range
-          expect(response.body.scan(/<article class="post">/).count).to eq(0)
+          expect(response.body.scan('<article class="post">').count).to eq(0)
         end
       end
 
@@ -556,7 +556,7 @@ RSpec.describe 'Blog Index', type: :request do
           end
 
           it 'muestra exactamente 2 posts (solo publicados)' do
-            expect(response.body.scan(/<article class="post">/).count).to eq(2)
+            expect(response.body.scan('<article class="post">').count).to eq(2)
           end
         end
 
@@ -577,7 +577,7 @@ RSpec.describe 'Blog Index', type: :request do
           end
 
           it 'muestra exactamente 2 posts (solo publicados)' do
-            expect(response.body.scan(/<article class="post">/).count).to eq(2)
+            expect(response.body.scan('<article class="post">').count).to eq(2)
           end
         end
 
@@ -598,7 +598,7 @@ RSpec.describe 'Blog Index', type: :request do
           end
 
           it 'muestra todos los 4 posts (publicados + borradores)' do
-            expect(response.body.scan(/<article class="post">/).count).to eq(4)
+            expect(response.body.scan('<article class="post">').count).to eq(4)
           end
         end
       end
@@ -640,13 +640,13 @@ RSpec.describe 'Blog Index', type: :request do
         it 'usuario regular ve página vacía' do
           sign_in user
           get '/brujula'
-          expect(response.body.scan(/<article class="post">/).count).to eq(0)
+          expect(response.body.scan('<article class="post">').count).to eq(0)
         end
 
         it 'admin ve los 3 borradores' do
           sign_in admin_user
           get '/brujula'
-          expect(response.body.scan(/<article class="post">/).count).to eq(3)
+          expect(response.body.scan('<article class="post">').count).to eq(3)
         end
       end
     end

@@ -127,9 +127,7 @@ RSpec.describe ImpulsaMailer, type: :mailer do
     end
 
     it 'si hay votaciones, incluye información sobre fechas' do
-      if project.impulsa_edition_category.has_votings
-        expect(mail.body.encoded).to match(/votaciones|votar/)
-      end
+      expect(mail.body.encoded).to match(/votaciones|votar/) if project.impulsa_edition_category.has_votings
     end
   end
 end

@@ -12,9 +12,7 @@ RSpec.describe 'Microcredit Renewal', type: :request do
 
       it 'si renderiza, muestra título de Microcréditos' do
         get '/es/microcreditos/renovacion'
-        if response.status == 200
-          expect(response.body).to include('Microcrédito')
-        end
+        expect(response.body).to include('Microcrédito') if response.status == 200
       end
     end
 
@@ -31,14 +29,14 @@ RSpec.describe 'Microcredit Renewal', type: :request do
     describe 'C. CONTENIDO CON MICROCRÉDITOS RENOVABLES' do
       it 'si renderiza con renovables, muestra agradecimiento' do
         get '/es/microcreditos/renovacion'
-        if response.status == 200 && !response.body.include?('No hemos encontrado')
+        if response.status == 200 && response.body.exclude?('No hemos encontrado')
           expect(response.body).to match(/gracias|confianza/i)
         end
       end
 
       it 'si renderiza con renovables, tiene lista ordenada de campañas' do
         get '/es/microcreditos/renovacion'
-        if response.status == 200 && !response.body.include?('No hemos encontrado')
+        if response.status == 200 && response.body.exclude?('No hemos encontrado')
           expect(response.body).to include('<ol>')
         end
       end
@@ -47,16 +45,12 @@ RSpec.describe 'Microcredit Renewal', type: :request do
     describe 'D. ESTRUCTURA HTML' do
       it 'si renderiza, usa clase microcredits-wrapper' do
         get '/es/microcreditos/renovacion'
-        if response.status == 200
-          expect(response.body).to include('microcredits-wrapper')
-        end
+        expect(response.body).to include('microcredits-wrapper') if response.status == 200
       end
 
       it 'si renderiza, tiene h2 para título' do
         get '/es/microcreditos/renovacion'
-        if response.status == 200
-          expect(response.body).to match(/<h2>/)
-        end
+        expect(response.body).to match(/<h2>/) if response.status == 200
       end
     end
   end

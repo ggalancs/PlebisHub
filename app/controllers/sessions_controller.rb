@@ -39,9 +39,7 @@ class SessionsController < Devise::SessionsController
   # Override create to log successful logins
   def create
     super do |resource|
-      if resource.persisted?
-        log_security_event('login_success', user_id: resource.id, email: resource.email)
-      end
+      log_security_event('login_success', user_id: resource.id, email: resource.email) if resource.persisted?
     end
   end
 
@@ -65,24 +63,20 @@ class SessionsController < Devise::SessionsController
     # Update verification priority if it exists
     verification = current_user.imperative_verification
 
-    if verification
-      unless verification.update(priority: 1)
-        # Log error but don't fail login
-        log_error('verification_priority_update_failed',
-          StandardError.new('Update returned false'),
-          user_id: current_user.id,
-          verification_id: verification.id,
-          errors: verification.errors.full_messages
-        )
-      end
+    if verification && !verification.update(priority: 1)
+      # Log error but don't fail login
+      log_error('verification_priority_update_failed',
+                StandardError.new('Update returned false'),
+                user_id: current_user.id,
+                verification_id: verification.id,
+                errors: verification.errors.full_messages)
     end
   rescue StandardError => e
     # CRITICAL: Rescue any errors to ensure login succeeds
     # Verification priority update is not critical enough to fail login
     log_error('after_login_hook_error', e,
-      user_id: current_user&.id,
-      error_context: 'imperative_verification_update'
-    )
+              user_id: current_user&.id,
+              error_context: 'imperative_verification_update')
     # Don't re-raise - allow login to proceed
   end
 

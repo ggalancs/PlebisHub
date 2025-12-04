@@ -2,20 +2,20 @@
 
 # Shared examples for testing engine behavior
 #
-RSpec.shared_examples "an activatable engine" do |engine_name|
+RSpec.shared_examples 'an activatable engine' do |engine_name|
   let(:engine_activation) { EngineActivation.find_or_create_by!(engine_name: engine_name) }
 
-  it "can be enabled" do
+  it 'can be enabled' do
     engine_activation.update!(enabled: true)
     expect(EngineActivation.enabled?(engine_name)).to be true
   end
 
-  it "can be disabled" do
+  it 'can be disabled' do
     engine_activation.update!(enabled: false)
     expect(EngineActivation.enabled?(engine_name)).to be false
   end
 
-  it "has metadata in registry" do
+  it 'has metadata in registry' do
     info = PlebisCore::EngineRegistry.info(engine_name)
     expect(info).not_to be_empty
     expect(info[:name]).to be_present
@@ -23,15 +23,15 @@ RSpec.shared_examples "an activatable engine" do |engine_name|
   end
 end
 
-RSpec.shared_examples "an engine with dependencies" do |engine_name, dependencies|
-  it "lists its dependencies" do
+RSpec.shared_examples 'an engine with dependencies' do |engine_name, dependencies|
+  it 'lists its dependencies' do
     deps = PlebisCore::EngineRegistry.dependencies_for(engine_name)
     dependencies.each do |dep|
       expect(deps).to include(dep)
     end
   end
 
-  it "can only be enabled when dependencies are met" do
+  it 'can only be enabled when dependencies are met' do
     # Disable all engines
     EngineActivation.update_all(enabled: false)
 

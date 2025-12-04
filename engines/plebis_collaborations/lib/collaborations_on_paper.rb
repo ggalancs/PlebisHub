@@ -1,17 +1,17 @@
+# frozen_string_literal: true
+
 class CollaborationsOnPaper
   include ActiveModel::Validations::SpanishVatValidatorsHelpers
 
   DEFAULT_STATUS = 2
   DEFAULT_COUNTRY = 'ES'
-  SUPPORT_FOR_TOWN ='CCM'
-  SUPPORT_FOR_AUTONOMY ='CCA'
-  SUPPORT_FOR_COUNTRY ='CCE'
-  SUPPORT_FOR_ISLAND ='CCI'
+  SUPPORT_FOR_TOWN = 'CCM'
+  SUPPORT_FOR_AUTONOMY = 'CCA'
+  SUPPORT_FOR_COUNTRY = 'CCE'
+  SUPPORT_FOR_ISLAND = 'CCI'
 
   attr_accessor :logging_to_file
-  attr_reader :collaborations_processed
-  attr_reader :results
-  attr_reader :errors_on_save
+  attr_reader :collaborations_processed, :results, :errors_on_save
 
   def initialize(csv_file, col_sep = "\t")
     @headers = {
@@ -39,14 +39,14 @@ class CollaborationsOnPaper
       payment_type: 'METODO DE PAGO',
       payment_frecuency: 'FRECUENCIA DE PAGO',
       created_at: 'CREADO'
-      }
+    }
     @logging_to_file = false
     @collaborations_processed = []
     @results = []
     @errors_on_save = []
     @fields = {}
 
-    CSV.foreach(csv_file, {:headers => true, :col_sep => col_sep}) do |row|
+    CSV.foreach(csv_file, { headers: true, col_sep: col_sep }) do |row|
       @fields = get_fields row
       process_row
     end
@@ -55,16 +55,16 @@ class CollaborationsOnPaper
   end
 
   def all_ok?
-    @results.all?{|r| (r[1] == :ok || r[1] == :ok_non_user)}
+    @results.all? { |r| %i[ok ok_non_user].include?(r[1]) }
   end
 
   def has_errors_on_save?
-    @errors_on_save.count.positive?
+    @errors_on_save.any?
   end
 
   private
 
-  def get_fields(row,headers = @headers )
+  def get_fields(row, headers = @headers)
     { document_vatid: row[headers[:dni]].strip.upcase,
       full_name: row[headers[:surname1]] || row[headers[:surname2]] ? "#{row[headers[:name]]} #{row[headers[:surname1]]} #{row[headers[:surname2]]}" : row[headers[:name]],
       email: row[headers[:email]],
@@ -76,7 +76,7 @@ class CollaborationsOnPaper
       iban_2: row[headers[:swift_code]] || '',
       payment_type: row[headers[:payment_type]] || 2,
       amount: row[headers[:amount]].to_i * 100.0,
-      frequency: row[headers[:payment_frecuency]] || 1,  # 1 3 12
+      frequency: row[headers[:payment_frecuency]] || 1, #  1 3 12
       created_at: row[headers[:created_at]] ? DateTime.parse(row[headers[:created_at]]) : DateTime.now,
       address: row[headers[:address]] || '',
       town_name: row[headers[:town_name]],
@@ -87,19 +87,24 @@ class CollaborationsOnPaper
       gender: row[headers[:gender]],
       donation_type: row[headers[:donation_type]],
       row: row,
-      user: nil
-    }
+      user: nil }
   end
 
   def process_row
-    user1 = User.find_by_email @fields[:email]
-    user2 = User.find_by_document_vatid @fields[:document_vatid] unless user1
-    return add_error(:vatid_invalid) if user1 &&  has_invalid_vatid(user1)
-    return add_error("#{:email_invalid} email preexistente: #{user2.email}") if user2 && has_invalid_fullname(user2)
-    @fields[:document_vatid] = user1.document_vatid if user1 && vatid_invalid?(user1) && validate_collaboration_full_name(user1)
+    user1 = User.find_by email: @fields[:email]
+    user2 = User.find_by document_vatid: @fields[:document_vatid] unless user1
+    return add_error(:vatid_invalid) if user1 && has_invalid_vatid(user1)
+    return add_error("email_invalid email preexistente: #{user2.email}") if user2 && has_invalid_fullname(user2)
+
+    if user1 && vatid_invalid?(user1) && validate_collaboration_full_name(user1)
+      @fields[:document_vatid] =
+        user1.document_vatid
+    end
     @fields[:email] = user2.email if user2 && validate_collaboration_full_name(user2)
     @fields[:user] = user1 || user2
-    return add_error(:vatid_invalid) unless (user1 || user2) || (@fields[:document_vatid] && (validate_nif(@fields[:document_vatid]) || validate_nie(@fields[:document_vatid])))
+    unless (user1 || user2) || (@fields[:document_vatid] && (validate_nif(@fields[:document_vatid]) || validate_nie(@fields[:document_vatid])))
+      return add_error(:vatid_invalid)
+    end
 
     add_collaboration
   end
@@ -109,7 +114,7 @@ class CollaborationsOnPaper
     c.user = @fields[:user]
 
     unless c.user
-      info= {
+      info = {
         full_name: @fields[:full_name],
         document_vatid: @fields[:document_vatid],
         email: @fields[:email],
@@ -152,11 +157,11 @@ class CollaborationsOnPaper
     end
     status = c.user ? :ok : :ok_non_user
     @collaborations_processed.push(c)
-    @results.push([@fields,status])
+    @results.push([@fields, status])
   end
 
   def save_collaborations
-    filename = "#{Rails.root}/log/collaboration/results.txt"
+    filename = Rails.root.join('log/collaboration/results.txt').to_s
     ActiveRecord::Base.transaction do
       @collaborations_processed.each do |c|
         if c.valid?
@@ -164,9 +169,9 @@ class CollaborationsOnPaper
           data = "#{@fields[:row]}; 'user_valid'" if c.user
           data = "#{@fields[:row]}; 'non_user_valid'" unless c.user
         else
-          @errors_on_save.push [c.errors.messages.to_s,@fields[:row]]
-          data = "#{@fields[:row]};#{c.errors.messages.to_s} ; 'user_error'" if c.user
-          data = "#{@fields[:row]};#{c.errors.messages.to_s} #{c.created_at}; 'non_user_error'" unless c.user
+          @errors_on_save.push [c.errors.messages.to_s, @fields[:row]]
+          data = "#{@fields[:row]};#{c.errors.messages} ; 'user_error'" if c.user
+          data = "#{@fields[:row]};#{c.errors.messages} #{c.created_at}; 'non_user_error'" unless c.user
         end
         open_log_to_file filename, data if logging_to_file
       end

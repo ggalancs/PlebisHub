@@ -10,7 +10,7 @@ RSpec.describe MilitantRecord, type: :model do
   describe 'factory' do
     it 'creates valid militant_record' do
       record = build(:militant_record)
-      expect(record).to be_valid, "Factory should create a valid militant_record"
+      expect(record).to be_valid, 'Factory should create a valid militant_record'
     end
 
     it 'creates record with associations' do
@@ -31,11 +31,10 @@ RSpec.describe MilitantRecord, type: :model do
     it 'reads militant_record attributes correctly' do
       user = create(:user)
       record = create(:militant_record,
-        user: user,
-        amount: 5000,
-        payment_type: 2,
-        is_militant: true
-      )
+                      user: user,
+                      amount: 5000,
+                      payment_type: 2,
+                      is_militant: true)
 
       found_record = MilitantRecord.find(record.id)
       expect(found_record.user_id).to eq(user.id)
@@ -79,9 +78,8 @@ RSpec.describe MilitantRecord, type: :model do
   describe 'date ranges' do
     it 'tracks verification period' do
       record = create(:militant_record,
-        begin_verified: 1.year.ago,
-        end_verified: nil
-      )
+                      begin_verified: 1.year.ago,
+                      end_verified: nil)
 
       expect(record.begin_verified).not_to be_nil
       expect(record.end_verified).to be_nil
@@ -89,9 +87,8 @@ RSpec.describe MilitantRecord, type: :model do
 
     it 'tracks payment period' do
       record = create(:militant_record,
-        begin_payment: 1.year.ago,
-        end_payment: nil
-      )
+                      begin_payment: 1.year.ago,
+                      end_payment: nil)
 
       expect(record.begin_payment).not_to be_nil
       expect(record.end_payment).to be_nil
@@ -174,11 +171,10 @@ RSpec.describe MilitantRecord, type: :model do
   describe 'edge cases' do
     it 'handles nil dates' do
       record = create(:militant_record,
-        begin_verified: nil,
-        end_verified: nil,
-        begin_payment: nil,
-        end_payment: nil
-      )
+                      begin_verified: nil,
+                      end_verified: nil,
+                      begin_payment: nil,
+                      end_payment: nil)
 
       expect(record.begin_verified).to be_nil
       expect(record.end_verified).to be_nil

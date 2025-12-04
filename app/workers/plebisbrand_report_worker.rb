@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 class PlebisBrandReportWorker
   include Sidekiq::Worker
+
   sidekiq_options queue: :plebisbrand_report_queue
 
   def perform(report_id)

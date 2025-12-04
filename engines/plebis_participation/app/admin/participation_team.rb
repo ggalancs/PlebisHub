@@ -1,5 +1,7 @@
-ActiveAdmin.register PlebisParticipation::ParticipationTeam, as: "ParticipationTeam" do
-  menu :parent => "Users"
+# frozen_string_literal: true
+
+ActiveAdmin.register PlebisParticipation::ParticipationTeam, as: 'ParticipationTeam' do
+  menu parent: 'Users'
 
   permit_params :name, :description, :active
 
@@ -33,7 +35,7 @@ ActiveAdmin.register PlebisParticipation::ParticipationTeam, as: "ParticipationT
   end
 
   form do |f|
-    f.inputs "Participation Team" do
+    f.inputs 'Participation Team' do
       f.input :name
       f.input :description
       f.input :active

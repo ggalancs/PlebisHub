@@ -24,7 +24,7 @@ RSpec.describe 'API V2 Get Data', type: :request do
         get '/api/v2/datos'
         if response.status == 200
           # Es una vista muy simple que solo renderiza @result
-          has_content = response.body.length > 0
+          has_content = !response.body.empty?
           expect(has_content).to be true
         end
       end

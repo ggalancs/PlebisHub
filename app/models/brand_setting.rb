@@ -220,14 +220,16 @@ class BrandSetting < ApplicationRecord
       organizationId: organization_id,
       active: active,
       version: version,
-      customColors: has_custom_colors? ? {
-        primary: primary_color,
-        primaryLight: primary_light_color,
-        primaryDark: primary_dark_color,
-        secondary: secondary_color,
-        secondaryLight: secondary_light_color,
-        secondaryDark: secondary_dark_color
-      }.compact : nil,
+      customColors: if has_custom_colors?
+                      {
+                        primary: primary_color,
+                        primaryLight: primary_light_color,
+                        primaryDark: primary_dark_color,
+                        secondary: secondary_color,
+                        secondaryLight: secondary_light_color,
+                        secondaryDark: secondary_dark_color
+                      }.compact
+                    end,
       metadata: metadata,
       createdAt: created_at&.iso8601,
       updatedAt: updated_at&.iso8601
@@ -244,9 +246,9 @@ class BrandSetting < ApplicationRecord
       organization_id: organization_id
     ).where.not(id: id).exists?
 
-    if existing
-      errors.add(:organization_id, 'already has a brand setting. Only one per organization allowed.')
-    end
+    return unless existing
+
+    errors.add(:organization_id, 'already has a brand setting. Only one per organization allowed.')
   end
 
   def at_least_one_active_global
@@ -257,9 +259,9 @@ class BrandSetting < ApplicationRecord
                               .where.not(id: id)
                               .exists?
 
-    unless other_active_global
-      errors.add(:active, 'cannot be disabled. At least one global brand setting must be active.')
-    end
+    return if other_active_global
+
+    errors.add(:active, 'cannot be disabled. At least one global brand setting must be active.')
   end
 
   def wcag_contrast_validation
@@ -273,13 +275,13 @@ class BrandSetting < ApplicationRecord
     end
 
     # Validate secondary color contrast
-    if secondary_color.present? && secondary_color.match?(HEX_COLOR_REGEX)
-      ratio = calculate_contrast_ratio(secondary_color, '#ffffff')
-      if ratio < 4.5
-        errors.add(:secondary_color,
-                   "has insufficient contrast (#{ratio.round(2)}:1). WCAG AA requires ≥ 4.5:1.")
-      end
-    end
+    return unless secondary_color.present? && secondary_color.match?(HEX_COLOR_REGEX)
+
+    ratio = calculate_contrast_ratio(secondary_color, '#ffffff')
+    return unless ratio < 4.5
+
+    errors.add(:secondary_color,
+               "has insufficient contrast (#{ratio.round(2)}:1). WCAG AA requires ≥ 4.5:1.")
   end
 
   def calculate_contrast_ratio(color1, color2)
@@ -314,7 +316,7 @@ class BrandSetting < ApplicationRecord
     b_linear = b_srgb <= 0.03928 ? b_srgb / 12.92 : ((b_srgb + 0.055) / 1.055)**2.4
 
     # Calculate relative luminance using WCAG formula
-    0.2126 * r_linear + 0.7152 * g_linear + 0.0722 * b_linear
+    (0.2126 * r_linear) + (0.7152 * g_linear) + (0.0722 * b_linear)
   end
 
   def set_theme_name_from_predefined

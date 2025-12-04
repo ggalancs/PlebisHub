@@ -51,21 +51,15 @@ RSpec.describe 'Tools Militant Request', type: :request do
       end
 
       it 'si es militante, menciona derechos' do
-        if response.body.include?('Ya eres militante')
-          expect(response.body).to match(/derechos|Círculo/)
-        end
+        expect(response.body).to match(/derechos|Círculo/) if response.body.include?('Ya eres militante')
       end
 
       it 'si es militante, tiene enlace a plebisbrand.info/militantes' do
-        if response.body.include?('Ya eres militante')
-          expect(response.body).to include('plebisbrand.info/militantes')
-        end
+        expect(response.body).to include('plebisbrand.info/militantes') if response.body.include?('Ya eres militante')
       end
 
       it 'si es militante, agradece el compromiso' do
-        if response.body.include?('Ya eres militante')
-          expect(response.body).to match(/Gracias.*compromiso/i)
-        end
+        expect(response.body).to match(/Gracias.*compromiso/i) if response.body.include?('Ya eres militante')
       end
     end
 
@@ -76,27 +70,19 @@ RSpec.describe 'Tools Militant Request', type: :request do
       end
 
       it 'puede mostrar condiciones para ser militante' do
-        if response.body.include?('Para ser militante')
-          expect(response.body).to match(/tres condiciones/)
-        end
+        expect(response.body).to match(/tres condiciones/) if response.body.include?('Para ser militante')
       end
 
       it 'si no es militante, menciona verificación' do
-        if response.body.include?('Para ser militante')
-          expect(response.body).to match(/Verificar.*inscripción/)
-        end
+        expect(response.body).to match(/Verificar.*inscripción/) if response.body.include?('Para ser militante')
       end
 
       it 'si no es militante, menciona círculo' do
-        if response.body.include?('Para ser militante')
-          expect(response.body).to match(/Círculo/)
-        end
+        expect(response.body).to match(/Círculo/) if response.body.include?('Para ser militante')
       end
 
       it 'si no es militante, menciona cuota de 3€' do
-        if response.body.include?('Para ser militante')
-          expect(response.body).to match(/3.*€/)
-        end
+        expect(response.body).to match(/3.*€/) if response.body.include?('Para ser militante')
       end
 
       it 'tiene enlace a verificación de identidad' do
@@ -106,15 +92,11 @@ RSpec.describe 'Tools Militant Request', type: :request do
       end
 
       it 'tiene enlace a seleccionar círculo' do
-        if response.body.include?('Para ser militante')
-          expect(response.body).to match(/Círculo|edit_user_registration/)
-        end
+        expect(response.body).to match(/Círculo|edit_user_registration/) if response.body.include?('Para ser militante')
       end
 
       it 'tiene enlace a colaboración' do
-        if response.body.include?('Para ser militante')
-          expect(response.body).to match(/colaboración|new_collaboration/)
-        end
+        expect(response.body).to match(/colaboración|new_collaboration/) if response.body.include?('Para ser militante')
       end
     end
 
@@ -125,29 +107,29 @@ RSpec.describe 'Tools Militant Request', type: :request do
       end
 
       it 'puede tener iconos de check-circle' do
-        has_check = response.body.include?('check-circle') || !response.body.include?('Para ser militante')
+        has_check = response.body.include?('check-circle') || response.body.exclude?('Para ser militante')
         expect(has_check).to be true
       end
 
       it 'puede tener iconos de times-circle' do
-        has_times = response.body.include?('times-circle') || !response.body.include?('Para ser militante')
+        has_times = response.body.include?('times-circle') || response.body.exclude?('Para ser militante')
         expect(has_times).to be true
       end
 
       it 'puede tener texto verde (cumple condición)' do
-        has_green = response.body.include?('text-green') || !response.body.include?('Para ser militante')
+        has_green = response.body.include?('text-green') || response.body.exclude?('Para ser militante')
         expect(has_green).to be true
       end
 
       it 'puede tener texto naranja (no cumple)' do
-        has_orange = response.body.include?('text-orange') || !response.body.include?('Para ser militante')
+        has_orange = response.body.include?('text-orange') || response.body.exclude?('Para ser militante')
         expect(has_orange).to be true
       end
 
       it 'puede tener texto morado (exento de pago)', :pending do
         # This test requires a user with exempt status (payment_exempt flag or specific conditions)
         # Current test user doesn't have exempt status set up properly
-        has_purple = response.body.include?('text-purple') || !response.body.include?('Para ser militante')
+        has_purple = response.body.include?('text-purple') || response.body.exclude?('Para ser militante')
         expect(has_purple).to be true
       end
     end
@@ -164,7 +146,7 @@ RSpec.describe 'Tools Militant Request', type: :request do
 
       it 'puede tener email de colaboraciones' do
         has_collab_email = response.body.include?('colaboraciones@plebisbrand.info') ||
-                           !response.body.include?('Para ser militante')
+                           response.body.exclude?('Para ser militante')
         expect(has_collab_email).to be true
       end
     end
@@ -189,7 +171,7 @@ RSpec.describe 'Tools Militant Request', type: :request do
       end
 
       it 'tiene múltiples párrafos' do
-        p_count = response.body.scan(/<p>/).count
+        p_count = response.body.scan('<p>').count
         expect(p_count).to be >= 3
       end
     end

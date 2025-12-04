@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module CollaborationsHelper
   include ActionView::Helpers::NumberHelper
 
@@ -5,8 +7,7 @@ module CollaborationsHelper
     collaboration ? edit_collaboration_path : new_collaboration_path
   end
 
-  def number_to_euro(amount, precision=2)
-    number_to_currency(amount/100.0, unit: "€", format: "%n%u", precision:precision)
+  def number_to_euro(amount, precision = 2)
+    number_to_currency(amount / 100.0, unit: '€', format: '%n%u', precision: precision)
   end
-
 end
