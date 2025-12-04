@@ -79,7 +79,6 @@ jobs:
             --format RspecJunitFormatter \
             --out test-results/rspec/results.xml \
             --failure-exit-code 1
-        continue-on-error: true
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -109,8 +108,9 @@ jobs:
           bundler-cache: true
 
       - name: Run RuboCop
-        run: bundle exec rubocop --parallel --format github
-        continue-on-error: true
+        run: |
+          bundle exec rubocop --parallel --format github \
+            --except Layout/LineLength,Metrics/MethodLength,Metrics/AbcSize,Metrics/BlockLength,Metrics/ClassLength
 
   security:
     runs-on: ubuntu-latest
@@ -127,9 +127,7 @@ jobs:
 
       - name: Run Brakeman security scanner
         run: bundle exec brakeman --no-pager --format github
-        continue-on-error: true
 
       - name: Run bundler-audit
         run: |
           bundle exec bundler-audit check --update
-        continue-on-error: true

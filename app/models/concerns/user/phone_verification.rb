@@ -187,9 +187,9 @@ module User::PhoneVerification
     _phone = Phonelib.parse(phone)
     begin
       _code = _phone.country
-      return Carmen::Country.coded(_code.upcase).name
+      Carmen::Country.coded(_code.upcase).name
     rescue StandardError
-      return country_name
+      country_name
     end
   end
 

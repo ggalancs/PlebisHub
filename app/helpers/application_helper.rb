@@ -1,9 +1,10 @@
 # frozen_string_literal: true
+
 module ApplicationHelper
   # Rails 7.2 FIX: semantic_form_with doesn't exist in formtastic gem
   # This method provides compatibility by delegating to semantic_form_for
   # which is the correct formtastic helper method
-  def semantic_form_with(model: nil, scope: nil, url: nil, **options, &block)
+  def semantic_form_with(model: nil, scope: nil, url: nil, **options, &)
     # Convert Rails 7+ form_with params to formtastic semantic_form_for params
     record = model
     as = scope
@@ -13,7 +14,7 @@ module ApplicationHelper
     form_options[:url] = url if url
     form_options[:as] = as if as
 
-    semantic_form_for(record, **form_options, &block)
+    semantic_form_for(record, **form_options, &)
   end
 
   # Like link_to but third parameter is an array of options for current_page?.
@@ -41,28 +42,28 @@ module ApplicationHelper
     end
   end
 
-  def info_box(&block)
-    content = with_output_buffer(&block)
+  def info_box(&)
+    content = with_output_buffer(&)
     render partial: 'application/info', locals: { content: content }
   end
 
   # Renders an alert with given title,
   # text for close-button and content given in
   # a block.
-  def alert_box(title, close_text = '', &block)
-    render_flash('application/alert', title, close_text, &block)
+  def alert_box(title, close_text = '', &)
+    render_flash('application/alert', title, close_text, &)
   end
 
   # Renders an error with given title,
   # text for close-button and content given in
   # a block.
-  def error_box(title, close_text = '', &block)
-    render_flash('application/error', title, close_text, &block)
+  def error_box(title, close_text = '', &)
+    render_flash('application/error', title, close_text, &)
   end
 
   # Generalization from render_alert and render_error
-  def render_flash(partial_name, title, close_text = '', &block)
-    content = with_output_buffer(&block)
+  def render_flash(partial_name, title, close_text = '', &)
+    content = with_output_buffer(&)
     render partial: partial_name, locals: { title: title, content: content, close_text: close_text }
   end
 

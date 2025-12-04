@@ -128,7 +128,6 @@ class Collaboration < ApplicationRecord
     status.positive?
   end
 
-
   def validates_not_passport
     return unless user&.is_passport?
 
@@ -141,7 +140,6 @@ class Collaboration < ApplicationRecord
     errors.add(:user, 'No puedes colaborar si eres menor de edad.')
   end
 
-
   def frequency_name
     Collaboration::FREQUENCIES.invert[frequency]
   end
@@ -149,7 +147,6 @@ class Collaboration < ApplicationRecord
   def status_name
     Collaboration::STATUS.invert[status]
   end
-
 
   def admin_permalink
     admin_collaboration_path(self)
@@ -274,7 +271,6 @@ class Collaboration < ApplicationRecord
     order.target_territory = order.generate_target_territory
     order
   end
-
 
   MAX_RETURNED_ORDERS = 2
   def processed_order!(error = nil, warn = false, is_error = false)

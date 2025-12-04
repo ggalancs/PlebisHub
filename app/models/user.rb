@@ -118,7 +118,6 @@ class User < ApplicationRecord
     end
   end
 
-
   def check_issue(validation_response, path, message, controller)
     return unless validation_response
 
@@ -286,7 +285,6 @@ class User < ApplicationRecord
     admin
   end
 
-
   def document_type_name
     User::DOCUMENTS_TYPE.select { |v| v[1] == document_type }[0][0]
   end
@@ -298,7 +296,6 @@ class User < ApplicationRecord
   def in_spain?
     country == 'ES'
   end
-
 
   def self.ban_users(ids, value)
     t = User.with_deleted.arel_table
@@ -336,19 +333,12 @@ class User < ApplicationRecord
     admin_user_path(self)
   end
 
-
-  private
-
   # Safely parse duration configuration strings without using eval()
   # Supports ActiveSupport duration formats: "5.minutes", "1.hour", "1.year"
-
-  public
-
 
   def pass_vatid_check?
     verified || user_verifications.pending.any?
   end
-
 
   # Rails 7.2 FIX: Removed duplicate methods that were shadowing EngineUser::Verifiable concern
   # These methods are already defined as public in app/models/concerns/engine_user/verifiable.rb
@@ -361,7 +351,6 @@ class User < ApplicationRecord
   # RAILS 7.2 FIX: Make vote location methods public
   # These methods are called from PageController#add_user_params
   # They were incorrectly placed in the private section, causing NoMethodError
-
 
   # Back to private for internal helper methods
 
@@ -600,7 +589,6 @@ class User < ApplicationRecord
   end
 
   private
-
 
   def encrypt_data(data)
     cipher_type = Rails.application.secrets.users['cipher_type']
