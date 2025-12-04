@@ -1,6 +1,7 @@
+# frozen_string_literal: true
 
 ENV['RAILS_ENV'] ||= 'test'
-require File.expand_path('../../config/environment', __FILE__)
+require File.expand_path('../config/environment', __dir__)
 require 'rails/test_help'
 require 'simplecov'
 require 'webmock/minitest'
@@ -26,40 +27,44 @@ Minitest::Reporters.use!
 include Warden::Test::Helpers
 Warden.test_mode!
 
-class ActiveSupport::TestCase
-  include FactoryBot::Syntax::Methods
+module ActiveSupport
+  class TestCase
+    include FactoryBot::Syntax::Methods
 
-  # Run tests in parallel with specified workers
-  # parallelize(workers: :number_of_processors)
+    # Run tests in parallel with specified workers
+    # parallelize(workers: :number_of_processors)
 
-  # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
-  # fixtures :all
+    # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
+    # fixtures :all
 
-  # Add more helper methods to be used by all tests here...
+    # Add more helper methods to be used by all tests here...
+  end
 end
 
-class ActionController::TestCase
-  include Devise::TestHelpers
-  include FactoryBot::Syntax::Methods
+module ActionController
+  class TestCase
+    include Devise::TestHelpers
+    include FactoryBot::Syntax::Methods
+  end
 end
 
 def with_blocked_change_location
-  begin
-    Rails.application.secrets.users["allows_location_change"] = false
-    yield
-  ensure
-    Rails.application.secrets.users["allows_location_change"] = true
-  end
+  Rails.application.secrets.users['allows_location_change'] = false
+  yield
+ensure
+  Rails.application.secrets.users['allows_location_change'] = true
 end
 
 # FIX Capybara error: SQLite3::BusyException: database is locked
 # http://atlwendy.ghost.io/capybara-database-locked/
-class ActiveRecord::Base
-  mattr_accessor :shared_connection
-  @@shared_connection = nil
+module ActiveRecord
+  class Base
+    mattr_accessor :shared_connection
+    @@shared_connection = nil
 
-  def self.connection
-    @@shared_connection || retrieve_connection
+    def self.connection
+      @@shared_connection || retrieve_connection
+    end
   end
 end
 
