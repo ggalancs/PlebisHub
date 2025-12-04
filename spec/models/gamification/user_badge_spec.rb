@@ -80,7 +80,7 @@ RSpec.describe Gamification::UserBadge, type: :model do
       user1 = create(:user)
       user2 = create(:user)
 
-      badge1 = create(:gamification_user_badge, user: user1, badge: badge)
+      create(:gamification_user_badge, user: user1, badge: badge)
       badge2 = build(:gamification_user_badge, user: user2, badge: badge)
 
       expect(badge2).to be_valid
@@ -91,7 +91,7 @@ RSpec.describe Gamification::UserBadge, type: :model do
       badge1 = create(:gamification_badge)
       badge2 = create(:gamification_badge)
 
-      user_badge1 = create(:gamification_user_badge, user: user, badge: badge1)
+      create(:gamification_user_badge, user: user, badge: badge1)
       user_badge2 = build(:gamification_user_badge, user: user, badge: badge2)
 
       expect(user_badge2).to be_valid
@@ -143,7 +143,7 @@ RSpec.describe Gamification::UserBadge, type: :model do
       end
 
       it 'shows most recently earned badges first' do
-        newest = create(:gamification_user_badge, earned_at: 1.minute.ago)
+        newest = create(:gamification_user_badge, earned_at: Time.current + 1.hour)
         result = described_class.recent
 
         expect(result.first).to eq(newest)
@@ -253,6 +253,8 @@ RSpec.describe Gamification::UserBadge, type: :model do
     it 'includes user badge id' do
       json = user_badge.as_json_summary
       expect(json[:id]).to eq(user_badge.id)
+      expect(json[:id]).to be_a(Integer)
+      expect(json[:id]).to be > 0
     end
 
     it 'includes badge details' do
@@ -287,6 +289,68 @@ RSpec.describe Gamification::UserBadge, type: :model do
       user_badge.update(metadata: nil)
       json = user_badge.as_json_summary
       expect(json[:metadata]).to be_nil
+    end
+
+    it 'returns complete hash structure' do
+      json = user_badge.as_json_summary
+
+      # Verify top-level structure
+      expect(json).to be_a(Hash)
+      expect(json.keys).to match_array([:id, :badge, :earned_at, :metadata])
+
+      # Verify badge nested structure
+      expect(json[:badge]).to be_a(Hash)
+      expect(json[:badge].keys).to match_array([:key, :name, :description, :icon, :tier, :category])
+    end
+
+    it 'converts all badge attributes correctly' do
+      json = user_badge.as_json_summary
+      badge_json = json[:badge]
+
+      expect(badge_json[:key]).to eq(badge.key)
+      expect(badge_json[:name]).to eq(badge.name)
+      expect(badge_json[:description]).to eq(badge.description)
+      expect(badge_json[:icon]).to eq(badge.icon)
+      expect(badge_json[:tier]).to eq(badge.tier)
+      expect(badge_json[:category]).to eq(badge.category)
+    end
+
+    it 'includes all fields in json output' do
+      # Create fresh instance to ensure coverage
+      fresh_badge = create(:gamification_badge,
+                           key: 'coverage_test',
+                           name: 'Coverage Test',
+                           description: 'Test for coverage',
+                           icon: '📊',
+                           tier: 'bronze',
+                           category: 'testing')
+      fresh_user_badge = create(:gamification_user_badge,
+                                badge: fresh_badge,
+                                earned_at: Time.zone.parse('2024-06-15 14:30:00'),
+                                metadata: { test: 'data' })
+
+      # Call as_json_summary to hit all lines including line 27
+      result = fresh_user_badge.as_json_summary
+
+      # Verify each field explicitly to ensure line 27 is executed
+      expect(result.key?(:id)).to be true
+      expect(result[:id]).to eq(fresh_user_badge.id)
+      expect(result.key?(:badge)).to be true
+      expect(result[:badge][:key]).to eq('coverage_test')
+      expect(result.key?(:earned_at)).to be true
+      expect(result.key?(:metadata)).to be true
+    end
+
+    it 'properly serializes id field in hash' do
+      # Specific test to ensure line 27 coverage (id: id,)
+      ub = create(:gamification_user_badge)
+      json = ub.as_json_summary
+
+      # Access id field multiple ways
+      id_value = json[:id]
+      expect(id_value).not_to be_nil
+      expect(json.fetch(:id)).to eq(ub.id)
+      expect(json.dig(:id)).to eq(ub.id)
     end
   end
 
@@ -395,7 +459,7 @@ RSpec.describe Gamification::UserBadge, type: :model do
 
     it 'handles user deletion (cascade behavior)' do
       user = create(:user)
-      user_badge = create(:gamification_user_badge, user: user)
+      create(:gamification_user_badge, user: user)
 
       expect { user.destroy! }.to change(described_class, :count).by(-1)
     end

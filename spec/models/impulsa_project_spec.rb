@@ -152,6 +152,55 @@ RSpec.describe ImpulsaProject, type: :model do
         expect(result).not_to include(hidden_project)
       end
     end
+
+    describe '.no_phase' do
+      it 'returns projects with status 5, 7, or 10' do
+        no_phase_project = create(:impulsa_project, status: 5)
+        first_phase_project = create(:impulsa_project, status: 1)
+
+        result = ImpulsaProject.no_phase
+        expect(result).to include(no_phase_project)
+        expect(result).not_to include(first_phase_project)
+      end
+    end
+  end
+
+  # ====================
+  # UNIQUENESS VALIDATION TESTS
+  # ====================
+
+  describe 'uniqueness validation' do
+    it 'allows same user to submit to different categories' do
+      user = create(:user)
+      category1 = create(:impulsa_edition_category)
+      category2 = create(:impulsa_edition_category)
+
+      create(:impulsa_project, user: user, impulsa_edition_category: category1)
+      project2 = build(:impulsa_project, user: user, impulsa_edition_category: category2)
+
+      expect(project2).to be_valid
+    end
+
+    it 'prevents same user from submitting multiple projects to same category' do
+      user = create(:user)
+      category = create(:impulsa_edition_category)
+
+      create(:impulsa_project, user: user, impulsa_edition_category: category)
+      project2 = build(:impulsa_project, user: user, impulsa_edition_category: category)
+
+      expect(project2).not_to be_valid
+      expect(project2.errors[:user]).to be_present
+    end
+
+    it 'allows impulsa_author to submit multiple projects to same category' do
+      author = create(:user, impulsa_author: true)
+      category = create(:impulsa_edition_category)
+
+      create(:impulsa_project, user: author, impulsa_edition_category: category)
+      project2 = build(:impulsa_project, user: author, impulsa_edition_category: category)
+
+      expect(project2).to be_valid
+    end
   end
 
   # ====================
@@ -204,6 +253,671 @@ RSpec.describe ImpulsaProject, type: :model do
         allow(project).to receive(:evaluation_method_missing).and_return(:super)
 
         expect { project.some_undefined_method }.to raise_error(NoMethodError)
+      end
+    end
+  end
+
+  # ====================
+  # WIZARD TESTS (ImpulsaProjectWizard)
+  # ====================
+
+  describe 'wizard methods' do
+    let(:wizard_config) do
+      {
+        step1: {
+          title: 'Basic Info',
+          groups: {
+            basic: {
+              condition: nil,
+              fields: {
+                project_name: { type: 'text', optional: false, limit: 100, export: 'name' },
+                description: { type: 'textarea', optional: true, limit: 500, export: 'desc' },
+                website: { type: 'url', optional: true, export: 'web' },
+                contact_email: { type: 'email', optional: false, export: 'email' },
+                terms: { type: 'checkbox', optional: false, format: 'accept' }
+              }
+            }
+          }
+        },
+        step2: {
+          title: 'Additional Info',
+          groups: {
+            details: {
+              condition: nil,
+              fields: {
+                budget: { type: 'number', optional: false },
+                category: { type: 'select', optional: false, collection: { 'tech' => 'Technology', 'edu' => 'Education' }, export: 'cat' },
+                tags: { type: 'check_boxes', optional: false, minimum: 1, maximum: 3, collection: { 'tag1' => 'Tag 1', 'tag2' => 'Tag 2', 'tag3' => 'Tag 3' }, export: 'tags' },
+                document: { type: 'file', optional: true, filetype: 'document', maxsize: 1024 * 1024 }
+              }
+            }
+          }
+        }
+      }
+    end
+
+    let(:edition) { create(:impulsa_edition, :active) }
+    let(:category) { create(:impulsa_edition_category, impulsa_edition: edition, wizard: wizard_config) }
+    let(:project) { create(:impulsa_project, impulsa_edition_category: category) }
+
+    describe '#wizard_steps' do
+      it 'returns step names with titles' do
+        steps = project.wizard_steps
+        expect(steps).to eq({ 'step1' => 'Basic Info', 'step2' => 'Additional Info' })
+      end
+    end
+
+    describe '#wizard_next_step' do
+      it 'returns the next step' do
+        project.wizard_step = 'step1'
+        expect(project.wizard_next_step).to eq('step2')
+      end
+
+      it 'returns nil for last step' do
+        project.wizard_step = 'step2'
+        expect(project.wizard_next_step).to be_nil
+      end
+    end
+
+    describe '#wizard_step_info' do
+      it 'returns current step info' do
+        project.wizard_step = 'step1'
+        info = project.wizard_step_info
+        expect(info[:title]).to eq('Basic Info')
+        expect(info[:groups]).to have_key(:basic)
+      end
+    end
+
+    describe '#wizard_status' do
+      it 'returns status for all steps' do
+        status = project.wizard_status
+        expect(status).to have_key('step1')
+        expect(status).to have_key('step2')
+        expect(status['step1'][:title]).to eq('Basic Info')
+        expect(status['step1'][:fields]).to eq(5)
+        expect(status['step1'][:values]).to eq(0)
+        expect(status['step1'][:errors]).to be >= 0
+      end
+
+      it 'marks steps as filled when they have values' do
+        project.wizard_values = { 'basic.project_name' => 'Test Project' }
+        project.save
+        project.instance_variable_set(:@wizard_status, nil)
+        status = project.wizard_status
+        expect(status['step1'][:filled]).to be true
+      end
+    end
+
+    describe '#wizard_step_params' do
+      it 'returns permitted params for current step' do
+        project.wizard_step = 'step1'
+        allow(project).to receive(:editable?).and_return(true)
+        params = project.wizard_step_params
+        expect(params).to be_an(Array)
+        expect(params.flatten).to include('_wiz_basic__project_name')
+      end
+    end
+
+    describe '#wizard_step_admin_params' do
+      it 'returns all wizard params' do
+        params = project.wizard_step_admin_params
+        expect(params).to be_an(Array)
+        expect(params.flatten).to include('_wiz_basic__project_name')
+        expect(params.flatten).to include('_wiz_details__budget')
+      end
+    end
+
+    describe '#wizard_editable_field?' do
+      it 'returns true when editable' do
+        allow(project).to receive(:editable?).and_return(true)
+        expect(project.wizard_editable_field?(:basic, :project_name)).to be true
+      end
+
+      it 'returns true when fixable and has review comment' do
+        allow(project).to receive(:editable?).and_return(false)
+        allow(project).to receive(:fixable?).and_return(true)
+        project.wizard_review = { 'basic.project_name' => 'Please fix this' }
+        expect(project.wizard_editable_field?(:basic, :project_name)).to be true
+      end
+
+      it 'returns false when neither editable nor fixable' do
+        allow(project).to receive(:editable?).and_return(false)
+        allow(project).to receive(:fixable?).and_return(false)
+        expect(project.wizard_editable_field?(:basic, :project_name)).to be false
+      end
+    end
+
+    describe '#wizard_step_valid?' do
+      it 'returns true when step has no errors' do
+        project.wizard_values = {
+          'basic.project_name' => 'Test',
+          'basic.contact_email' => 'test@example.com',
+          'basic.terms' => '1'
+        }
+        expect(project.wizard_step_valid?(:step1)).to be true
+      end
+
+      it 'returns false and adds errors when step has errors' do
+        project.wizard_values = {}
+        expect(project.wizard_step_valid?(:step1)).to be false
+        expect(project.errors[:_wiz_basic__project_name]).to include('es obligatorio')
+      end
+    end
+
+    describe '#wizard_has_errors?' do
+      it 'returns true when wizard has errors' do
+        project.wizard_values = {}
+        expect(project.wizard_has_errors?).to be true
+      end
+
+      it 'returns false when wizard is valid' do
+        project.wizard_values = {
+          'basic.project_name' => 'Test',
+          'basic.contact_email' => 'test@example.com',
+          'basic.terms' => '1',
+          'details.budget' => '1000',
+          'details.category' => 'tech',
+          'details.tags' => ['tag1']
+        }
+        expect(project.wizard_has_errors?).to be false
+      end
+    end
+
+    describe '#wizard_count_errors' do
+      it 'counts total errors across all steps' do
+        project.wizard_values = {}
+        count = project.wizard_count_errors
+        expect(count).to be > 0
+      end
+    end
+
+    describe '#wizard_all_errors' do
+      it 'returns errors from all steps' do
+        project.wizard_values = {}
+        errors = project.wizard_all_errors
+        expect(errors).to be_an(Array)
+        expect(errors.length).to be > 0
+      end
+    end
+
+    describe '#wizard_export' do
+      it 'exports wizard values with export keys' do
+        project.wizard_values = {
+          'basic.project_name' => 'My Project',
+          'basic.description' => 'A great project',
+          'basic.website' => 'http://example.com',
+          'basic.contact_email' => 'test@example.com',
+          'details.category' => 'tech',
+          'details.tags' => %w[tag1 tag2]
+        }
+        export = project.wizard_export
+        expect(export['wizard_name']).to eq('My Project')
+        expect(export['wizard_desc']).to eq('A great project')
+        expect(export['wizard_cat']).to eq('Technology')
+        expect(export['wizard_tags']).to eq(['Tag 1', 'Tag 2'])
+      end
+
+      it 'excludes fields without export key' do
+        project.wizard_values = { 'details.budget' => '1000' }
+        export = project.wizard_export
+        expect(export.keys).not_to include('wizard_budget')
+      end
+    end
+
+    describe '#wizard_eval_condition' do
+      it 'returns true when condition is blank' do
+        group = { condition: nil, fields: {} }
+        expect(project.wizard_eval_condition(group)).to be true
+      end
+
+      it 'returns false on evaluation error' do
+        group = { condition: 'invalid ruby code', fields: {} }
+        expect(project.wizard_eval_condition(group)).to be false
+      end
+    end
+
+    describe '#wizard_field_error' do
+      let(:basic_group) { wizard_config[:step1][:groups][:basic] }
+
+      it 'returns nil for valid field' do
+        project.wizard_values = { 'basic.project_name' => 'Test' }
+        error = project.wizard_field_error(:basic, :project_name, basic_group, basic_group[:fields][:project_name])
+        expect(error).to be_nil
+      end
+
+      it 'returns error for missing required field' do
+        project.wizard_values = {}
+        error = project.wizard_field_error(:basic, :project_name, basic_group, basic_group[:fields][:project_name])
+        expect(error).to eq('es obligatorio')
+      end
+
+      it 'returns error for field exceeding limit' do
+        project.wizard_values = { 'basic.project_name' => 'a' * 101 }
+        error = project.wizard_field_error(:basic, :project_name, basic_group, basic_group[:fields][:project_name])
+        expect(error).to include('puede tener hasta 100 caracteres')
+      end
+
+      it 'returns error for unaccepted terms' do
+        project.wizard_values = { 'basic.terms' => '0' }
+        error = project.wizard_field_error(:basic, :terms, basic_group, basic_group[:fields][:terms])
+        expect(error).to eq('debe ser aceptado')
+      end
+
+      it 'returns error for invalid email' do
+        project.wizard_values = { 'basic.contact_email' => 'invalid-email' }
+        error = project.wizard_field_error(:basic, :contact_email, basic_group, basic_group[:fields][:contact_email])
+        expect(error).to be_present
+      end
+
+      it 'returns error for invalid URL' do
+        project.wizard_values = { 'basic.website' => 'not-a-url' }
+        error = project.wizard_field_error(:basic, :website, basic_group, basic_group[:fields][:website])
+        expect(error).to eq('no es una dirección web válida')
+      end
+
+      it 'returns error for check_boxes below minimum' do
+        details_group = wizard_config[:step2][:groups][:details]
+        project.wizard_values = {}
+        error = project.wizard_field_error(:details, :tags, details_group, details_group[:fields][:tags])
+        expect(error).to eq('es obligatorio')
+      end
+
+      it 'returns error for check_boxes above maximum' do
+        details_group = wizard_config[:step2][:groups][:details]
+        project.wizard_values = { 'details.tags' => %w[tag1 tag2 tag3 tag4] }
+        error = project.wizard_field_error(:details, :tags, details_group, details_group[:fields][:tags])
+        expect(error).to include('puedes seleccionar hasta 3 opciones')
+      end
+
+      it 'returns review comment when fixable' do
+        allow(project).to receive(:fixable?).and_return(true)
+        project.wizard_review = { 'basic.project_name' => 'Please improve this' }
+        project.wizard_values = { 'basic.project_name' => 'Test' }
+        error = project.wizard_field_error(:basic, :project_name, basic_group, basic_group[:fields][:project_name])
+        expect(error).to eq('Please improve this')
+      end
+    end
+
+    describe '#assign_wizard_value' do
+      it 'assigns text value' do
+        result = project.assign_wizard_value(:basic, :project_name, 'New Name')
+        expect(result).to eq(:ok)
+        expect(project.wizard_values['basic.project_name']).to eq('New Name')
+      end
+
+      it 'assigns check_boxes value and removes blanks' do
+        result = project.assign_wizard_value(:details, :tags, %w[tag1 tag2])
+        expect(result).to eq(:ok)
+        expect(project.wizard_values['details.tags']).to eq(%w[tag1 tag2])
+      end
+
+      it 'returns :wrong_field for invalid field' do
+        result = project.assign_wizard_value(:invalid, :field, 'value')
+        expect(result).to eq(:wrong_field)
+      end
+
+      it 'marks review comment as addressed when fixable' do
+        allow(project).to receive(:fixable?).and_return(true)
+        project.wizard_review = { 'basic.project_name' => 'Fix this' }
+        project.wizard_values = { 'basic.project_name' => 'Old Value' }
+        project.assign_wizard_value(:basic, :project_name, 'New Value')
+        expect(project.wizard_review['basic.project_name']).to eq('*Fix this')
+      end
+    end
+
+    describe '#wizard_path' do
+      it 'returns nil for blank filename' do
+        project.wizard_values = {}
+        expect(project.wizard_path(:details, :document)).to be_nil
+      end
+
+      it 'returns safe path for valid filename' do
+        project.wizard_values = { 'details.document' => 'myfile.pdf' }
+        path = project.wizard_path(:details, :document)
+        expect(path).to include('impulsa_projects')
+        expect(path).to include('myfile.pdf')
+      end
+
+      it 'sanitizes path traversal attempts' do
+        project.wizard_values = { 'details.document' => '../../../etc/passwd' }
+        path = project.wizard_path(:details, :document)
+        expect(path).to include('impulsa_projects')
+        expect(path).to include('passwd')
+        expect(path).not_to include('../')
+      end
+    end
+
+    describe '#wizard_method_missing' do
+      it 'creates getter for wizard field' do
+        project.wizard_values = { 'basic.project_name' => 'Test Name' }
+        expect(project._wiz_basic__project_name).to eq('Test Name')
+      end
+
+      it 'creates setter for wizard field' do
+        project._wiz_basic__project_name = 'New Name'
+        expect(project.wizard_values['basic.project_name']).to eq('New Name')
+      end
+
+      it 'creates getter for review field' do
+        project.wizard_review = { 'basic.project_name' => 'Review comment' }
+        expect(project._rvw_basic__project_name).to eq('Review comment')
+      end
+
+      it 'creates setter for review field' do
+        project._rvw_basic__project_name = 'New comment'
+        expect(project.wizard_review['basic.project_name']).to eq('New comment')
+      end
+
+      it 'returns :super for non-matching methods' do
+        result = project.send(:wizard_method_missing, :unknown_method)
+        expect(result).to eq(:super)
+      end
+    end
+
+    describe 'before_create callback' do
+      it 'sets wizard_step to first step' do
+        new_project = build(:impulsa_project, impulsa_edition_category: category)
+        expect(new_project.wizard_step).to be_nil
+        new_project.save
+        expect(new_project.wizard_step).to eq('step1')
+      end
+    end
+  end
+
+  # ====================
+  # EVALUATION TESTS (ImpulsaProjectEvaluation)
+  # ====================
+
+  describe 'evaluation methods' do
+    let(:evaluation_config) do
+      {
+        criteria1: {
+          title: 'Technical Criteria',
+          groups: {
+            technical: {
+              fields: {
+                innovation: { type: 'number', optional: false, export: 'innov' },
+                feasibility: { type: 'number', optional: false, export: 'feas' },
+                comments: { type: 'textarea', optional: true, limit: 500 }
+              }
+            }
+          }
+        },
+        criteria2: {
+          title: 'Social Criteria',
+          groups: {
+            social: {
+              fields: {
+                impact: { type: 'number', optional: false, export: 'impact' },
+                total: { type: 'number', sum: 'criteria1', export: 'total' }
+              }
+            }
+          }
+        }
+      }
+    end
+
+    let(:edition) { create(:impulsa_edition, :active) }
+    let(:category) { create(:impulsa_edition_category, impulsa_edition: edition, evaluation: evaluation_config) }
+    let(:project) { create(:impulsa_project, impulsa_edition_category: category, state: 'validable') }
+
+    describe '#evaluators' do
+      it 'returns range of evaluator numbers' do
+        expect(project.evaluators).to eq(1..2)
+      end
+    end
+
+    describe '#evaluator accessor' do
+      it 'gets evaluator by index' do
+        user = create(:user)
+        project.evaluator1 = user
+        expect(project.evaluator[1]).to eq(user)
+      end
+
+      it 'sets evaluator by index' do
+        user = create(:user)
+        project.evaluator[1] = user
+        expect(project.evaluator1).to eq(user)
+      end
+
+      it 'returns nil for invalid index' do
+        expect(project.evaluator[0]).to be_nil
+        expect(project.evaluator[99]).to be_nil
+      end
+
+      it 'prevents setting same user as different evaluators' do
+        user = create(:user)
+        project.evaluator[1] = user
+        expect { project.evaluator[2] = user }.to raise_error(RuntimeError, /Can't set same user/)
+      end
+    end
+
+    describe '#current_evaluator' do
+      it 'returns evaluator number for user' do
+        user = create(:user)
+        project.evaluator1 = user
+        expect(project.current_evaluator(user.id)).to eq(1)
+      end
+
+      it 'returns nil when all evaluator slots are filled' do
+        user1 = create(:user)
+        user2 = create(:user)
+        project.evaluator1 = user1
+        project.evaluator2 = user2
+        project.save
+
+        new_user = create(:user)
+        expect(project.current_evaluator(new_user.id)).to be_nil
+      end
+    end
+
+    describe '#is_current_evaluator?' do
+      it 'returns true when user is an evaluator' do
+        user = create(:user)
+        project.evaluator1 = user
+        project.save
+        expect(project.is_current_evaluator?(user.id)).to be true
+      end
+
+      it 'returns false when user is not an evaluator' do
+        user = create(:user)
+        expect(project.is_current_evaluator?(user.id)).to be false
+      end
+    end
+
+    describe '#reset_evaluator' do
+      it 'clears evaluator and their evaluation' do
+        user = create(:user)
+        project.evaluator1 = user
+        project.evaluator1_evaluation = { 'technical.innovation' => '5' }
+        project.save
+
+        project.reset_evaluator(user.id)
+        expect(project.evaluator1).to be_nil
+        expect(project.evaluator1_evaluation).to eq({})
+      end
+
+      it 'does nothing when user is not an evaluator' do
+        user = create(:user)
+        original_evaluator = project.evaluator1
+        project.reset_evaluator(user.id)
+        expect(project.evaluator1).to eq(original_evaluator)
+      end
+    end
+
+    describe '#evaluation_values' do
+      it 'returns evaluation hash for evaluator' do
+        project.evaluator1_evaluation = { 'technical.innovation' => '5' }
+        values = project.evaluation_values(1)
+        expect(values['technical.innovation']).to eq('5')
+      end
+    end
+
+    describe '#evaluation_admin_params' do
+      it 'returns all evaluation params' do
+        params = project.evaluation_admin_params
+        expect(params).to include('_evl1_technical__innovation')
+        expect(params).to include('_evl2_technical__innovation')
+      end
+
+      it 'excludes sum fields' do
+        params = project.evaluation_admin_params
+        expect(params).not_to include('_evl1_social__total')
+      end
+    end
+
+    describe '#evaluation_has_errors?' do
+      it 'returns true when any evaluator has errors' do
+        eval1 = create(:user)
+        fresh_project = create(:impulsa_project, impulsa_edition_category: category, state: 'validable', evaluator1: eval1)
+        fresh_project.evaluator1_evaluation = {}
+        expect(fresh_project.evaluation_has_errors?).to be true
+      end
+    end
+
+    describe '#evaluation_count_errors' do
+      it 'counts errors for specific evaluator' do
+        project.evaluator1_evaluation = {}
+        count = project.evaluation_count_errors(1)
+        expect(count).to be > 0
+      end
+    end
+
+    describe '#evaluation_export' do
+      it 'responds to evaluation_export' do
+        expect(project).to respond_to(:evaluation_export)
+      end
+    end
+
+    describe '#evaluation_step_errors' do
+      it 'returns errors for specific step and evaluator' do
+        project.evaluator1_evaluation = {}
+        errors = project.evaluation_step_errors(1, :criteria1)
+        expect(errors.length).to be > 0
+        expect(errors.first).to be_an(Array)
+      end
+    end
+
+    describe '#evaluation_field_error' do
+      let(:technical_group) { evaluation_config[:criteria1][:groups][:technical] }
+
+      it 'returns nil for valid field' do
+        project.evaluator1_evaluation = { 'technical.innovation' => '5' }
+        error = project.evaluation_field_error(1, :technical, :innovation, technical_group, technical_group[:fields][:innovation])
+        expect(error).to be_nil
+      end
+
+      it 'returns error for missing required field' do
+        project.evaluator1_evaluation = {}
+        error = project.evaluation_field_error(1, :technical, :innovation, technical_group, technical_group[:fields][:innovation])
+        expect(error).to eq('es obligatorio')
+      end
+
+      it 'returns error for field exceeding limit' do
+        project.evaluator1_evaluation = { 'technical.comments' => 'a' * 501 }
+        error = project.evaluation_field_error(1, :technical, :comments, technical_group, technical_group[:fields][:comments])
+        expect(error).to include('puede tener hasta 500 caracteres')
+      end
+    end
+
+    describe '#assign_evaluation_value' do
+      it 'assigns value and returns :ok' do
+        result = project.assign_evaluation_value(1, :technical, :innovation, '5')
+        expect(result).to eq(:ok)
+        expect(project.evaluator1_evaluation['technical.innovation']).to eq('5')
+      end
+
+
+      it 'returns :wrong_field for sum field' do
+        result = project.assign_evaluation_value(1, :social, :total, '10')
+        expect(result).to eq(:wrong_field)
+      end
+    end
+
+    describe '#evaluation_path' do
+      it 'returns path for evaluation file' do
+        project.evaluator1_evaluation = { 'technical.document' => 'eval.pdf' }
+        path = project.evaluation_path(1, :technical, :document)
+        expect(path).to include('impulsa_projects')
+        expect(path).to include('1-eval.pdf')
+      end
+    end
+
+    describe '#evaluation_method_missing' do
+      it 'creates getter for evaluation field' do
+        project.evaluator1_evaluation = { 'technical.innovation' => '5' }
+        expect(project._evl1_technical__innovation).to eq('5')
+      end
+
+      it 'creates setter for evaluation field' do
+        project._evl1_technical__innovation = '5'
+        expect(project.evaluator1_evaluation['technical.innovation']).to eq('5')
+      end
+
+      it 'returns :super for non-matching methods' do
+        result = project.send(:evaluation_method_missing, :unknown_method)
+        expect(result).to eq(:super)
+      end
+    end
+
+    describe '#evaluation_update_formulas' do
+      it 'calculates sum fields' do
+        project.evaluator1 = create(:user)
+        project.evaluator1_evaluation = { 'technical.innovation' => '5', 'technical.feasibility' => '4' }
+        project.evaluation_update_formulas
+        expect(project.evaluator1_evaluation['social.total']).to eq(9)
+      end
+
+      it 'processes all evaluators' do
+        project.evaluator1 = create(:user)
+        project.evaluator2 = create(:user)
+        project.evaluator1_evaluation = { 'technical.innovation' => '5', 'technical.feasibility' => '4' }
+        project.evaluator2_evaluation = { 'technical.innovation' => '3', 'technical.feasibility' => '2' }
+
+        project.evaluation_update_formulas
+        expect(project.evaluator1_evaluation['social.total']).to eq(9)
+        expect(project.evaluator2_evaluation['social.total']).to eq(5)
+      end
+    end
+
+    describe '#can_finish_evaluation?' do
+      let(:admin) { create(:user, :admin) }
+      let(:regular_user) { create(:user) }
+
+      it 'returns true when validable, no errors, and user is admin' do
+        project.state = 'validable'
+        project.evaluator1_evaluation = { 'technical.innovation' => '5', 'technical.feasibility' => '4', 'social.impact' => '3' }
+        project.evaluator2_evaluation = { 'technical.innovation' => '5', 'technical.feasibility' => '4', 'social.impact' => '3' }
+
+        expect(project.can_finish_evaluation?(admin)).to be true
+      end
+
+      it 'returns false when not validable' do
+        project.state = 'new'
+        expect(project.can_finish_evaluation?(admin)).to be false
+      end
+
+      it 'returns false when has errors' do
+        project.state = 'validable'
+        project.evaluator1_evaluation = {}
+        expect(project.can_finish_evaluation?(admin)).to be false
+      end
+
+      it 'returns false when user is not admin' do
+        project.state = 'validable'
+        project.evaluator1_evaluation = { 'technical.innovation' => '5', 'technical.feasibility' => '4', 'social.impact' => '3' }
+        project.evaluator2_evaluation = { 'technical.innovation' => '5', 'technical.feasibility' => '4', 'social.impact' => '3' }
+
+        expect(project.can_finish_evaluation?(regular_user)).to be false
+      end
+    end
+
+    describe 'EvaluatorAccessor' do
+      it 'returns nil for invalid index when getting' do
+        user = create(:user)
+        project.evaluator1 = user
+        expect(project.evaluator[0]).to be_nil
+        expect(project.evaluator[99]).to be_nil
       end
     end
   end

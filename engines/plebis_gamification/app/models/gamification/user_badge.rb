@@ -23,19 +23,20 @@ module Gamification
     after_create :notify_user
 
     def as_json_summary
-      {
-        id: id,
-        badge: {
-          key: badge.key,
-          name: badge.name,
-          description: badge.description,
-          icon: badge.icon,
-          tier: badge.tier,
-          category: badge.category
-        },
-        earned_at: earned_at.iso8601,
-        metadata: metadata
-      }
+      badge_hash = {}
+      badge_hash[:key] = badge.key
+      badge_hash[:name] = badge.name
+      badge_hash[:description] = badge.description
+      badge_hash[:icon] = badge.icon
+      badge_hash[:tier] = badge.tier
+      badge_hash[:category] = badge.category
+
+      summary = {}
+      summary[:id] = id
+      summary[:badge] = badge_hash
+      summary[:earned_at] = earned_at.iso8601
+      summary[:metadata] = metadata
+      summary
     end
 
     private

@@ -738,8 +738,9 @@ RSpec.describe ImpulsaProjectStates, type: :model do
     it 'prevents invalid transitions' do
       project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
 
-      # Try invalid transition - mark_as_winner from new state should raise error
-      expect { project.mark_as_winner }.to raise_error(StateMachines::InvalidTransition)
+      # Try invalid transition - mark_as_winner from new state should fail
+      expect(project.mark_as_winner).to be false
+      expect(project.state).to eq('new')
     end
 
     it 'does not allow mark_for_review when resigned' do
@@ -747,8 +748,279 @@ RSpec.describe ImpulsaProjectStates, type: :model do
       project.wizard_values = { 'group1.field1' => 'value' }
       project.mark_as_resigned
 
-      # Should raise error because markable_for_review? returns false when resigned
-      expect { project.mark_for_review }.to raise_error(StateMachines::InvalidTransition)
+      # Should fail because markable_for_review? returns false when resigned
+      expect(project.mark_for_review).to be false
+      expect(project.state).to eq('resigned')
+    end
+
+    it 'handles transition from spam to spam' do
+      project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'spam')
+      expect { project.mark_as_spam }.not_to change { project.state }
+    end
+
+    it 'handles transition from resigned to resigned' do
+      project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'resigned')
+      expect { project.mark_as_resigned }.not_to change { project.state }
+    end
+  end
+
+  # ====================
+  # ADDITIONAL GUARD CLAUSE TESTS
+  # ====================
+
+  describe 'guard clauses' do
+    describe 'evaluation_result? guard' do
+      it 'prevents mark_as_validated without evaluation_result' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'validable')
+        allow(project).to receive(:evaluation_result?).and_return(false)
+
+        expect(project.mark_as_validated).to be false
+        expect(project.state).to eq('validable')
+      end
+
+      it 'prevents mark_as_invalidated without evaluation_result' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'validable')
+        allow(project).to receive(:evaluation_result?).and_return(false)
+
+        expect(project.mark_as_invalidated).to be false
+        expect(project.state).to eq('validable')
+      end
+    end
+
+    describe 'markable_for_review? guard' do
+      it 'allows transition from new when markable' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        project.wizard_values = { 'group1.field1' => 'value' }
+
+        expect(project.markable_for_review?).to be true
+        expect(project.mark_for_review).to be true
+      end
+
+      it 'prevents transition from new when not markable (wizard errors)' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        project.wizard_values = {} # Missing required field
+
+        expect(project.markable_for_review?).to be false
+        expect(project.mark_for_review).to be false
+      end
+
+      it 'allows transition from spam when markable' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'spam')
+        project.wizard_values = { 'group1.field1' => 'value' }
+
+        expect(project.markable_for_review?).to be true
+        expect(project.mark_for_review).to be true
+      end
+
+      it 'prevents transition from spam when not markable' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'spam')
+        project.wizard_values = {} # Missing required field
+
+        expect(project.markable_for_review?).to be false
+        expect(project.mark_for_review).to be false
+      end
+
+      it 'allows transition from fixes when markable' do
+        project = create(:impulsa_project, impulsa_edition_category: category_fixes, state: 'fixes')
+        project.wizard_values = { 'group1.field1' => 'value' }
+
+        expect(project.markable_for_review?).to be true
+        expect(project.mark_for_review).to be true
+      end
+
+      it 'prevents transition from fixes when not markable' do
+        project = create(:impulsa_project, impulsa_edition_category: category_fixes, state: 'fixes')
+        project.wizard_values = {} # Missing required field
+
+        expect(project.markable_for_review?).to be false
+        expect(project.mark_for_review).to be false
+      end
+    end
+  end
+
+  # ====================
+  # COMPREHENSIVE STATE COVERAGE
+  # ====================
+
+  describe 'comprehensive state coverage' do
+    describe 'editable? with resigned flag' do
+      it 'returns false for new state when resigned' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        project.mark_as_resigned
+        expect(project.editable?).to be false
+        expect(project.resigned?).to be true
+      end
+
+      it 'returns false for review state when resigned' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'review')
+        project.mark_as_resigned
+        expect(project.editable?).to be false
+        expect(project.resigned?).to be true
+      end
+
+      it 'returns false for spam state when resigned' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'spam')
+        project.mark_as_resigned
+        expect(project.editable?).to be false
+        expect(project.resigned?).to be true
+      end
+    end
+
+    describe 'saveable? comprehensive' do
+      it 'returns true when editable but not fixable' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        expect(project.editable?).to be true
+        expect(project.fixable?).to be false
+        expect(project.saveable?).to be true
+      end
+
+      it 'returns true when fixable but not editable' do
+        project = create(:impulsa_project, impulsa_edition_category: category_fixes, state: 'fixes')
+        expect(project.editable?).to be false
+        expect(project.fixable?).to be true
+        expect(project.saveable?).to be true
+      end
+
+      it 'returns true when both editable and fixable' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        # In new state, editable is true but fixable is false (not in fixes state)
+        # So this tests the OR condition
+        expect(project.saveable?).to be true
+      end
+    end
+
+    describe 'reviewable? comprehensive' do
+      it 'returns false for review state when resigned' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'review')
+        project.mark_as_resigned
+        expect(project.reviewable?).to be false
+      end
+
+      it 'returns false for review_fixes state when resigned' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'review_fixes')
+        project.mark_as_resigned
+        expect(project.reviewable?).to be false
+      end
+
+      it 'returns false for non-review states' do
+        %w[new spam fixes validable validated invalidated winner resigned].each do |state|
+          project = create(:impulsa_project, impulsa_edition_category: category_active, state: state)
+          expect(project.reviewable?).to be false
+        end
+      end
+    end
+
+    describe 'deleteable? comprehensive' do
+      it 'requires all three conditions: persisted, not resigned, editable' do
+        # Not persisted
+        project = build(:impulsa_project, impulsa_edition_category: category_active)
+        expect(project.deleteable?).to be false
+
+        # Persisted but resigned
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        project.mark_as_resigned
+        expect(project.deleteable?).to be false
+
+        # Persisted but not editable
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'validable')
+        expect(project.deleteable?).to be false
+
+        # All conditions met
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        expect(project.deleteable?).to be true
+      end
+    end
+
+    describe 'fixable? comprehensive' do
+      it 'requires all four conditions: persisted, not resigned, fixes state, edition allows' do
+        # Not persisted
+        project = build(:impulsa_project, impulsa_edition_category: category_fixes)
+        project.state = 'fixes'
+        expect(project.fixable?).to be false
+
+        # Persisted but resigned
+        project = create(:impulsa_project, impulsa_edition_category: category_fixes, state: 'fixes')
+        project.mark_as_resigned
+        expect(project.fixable?).to be false
+
+        # Persisted but not in fixes state
+        project = create(:impulsa_project, impulsa_edition_category: category_fixes, state: 'review')
+        expect(project.fixable?).to be false
+
+        # Persisted, fixes state, but edition doesn't allow
+        project = create(:impulsa_project, impulsa_edition_category: category_closed, state: 'fixes')
+        expect(project.fixable?).to be false
+
+        # All conditions met
+        project = create(:impulsa_project, impulsa_edition_category: category_fixes, state: 'fixes')
+        expect(project.fixable?).to be true
+      end
+    end
+
+    describe 'markable_for_review? comprehensive' do
+      it 'requires all five conditions' do
+        # Not persisted
+        project = build(:impulsa_project, impulsa_edition_category: category_active)
+        project.wizard_values = { 'group1.field1' => 'value' }
+        expect(project.markable_for_review?).to be false
+
+        # Persisted but resigned
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        project.wizard_values = { 'group1.field1' => 'value' }
+        project.mark_as_resigned
+        expect(project.markable_for_review?).to be false
+
+        # Persisted but already reviewable
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'review')
+        project.wizard_values = { 'group1.field1' => 'value' }
+        expect(project.markable_for_review?).to be false
+
+        # Persisted but not saveable (edition closed)
+        project = create(:impulsa_project, impulsa_edition_category: category_closed, state: 'validable')
+        expect(project.markable_for_review?).to be false
+
+        # Persisted but wizard has errors
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        project.wizard_values = {} # Missing required field
+        expect(project.markable_for_review?).to be false
+
+        # All conditions met
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        project.wizard_values = { 'group1.field1' => 'value' }
+        expect(project.markable_for_review?).to be true
+      end
+    end
+  end
+
+  # ====================
+  # ADDITIONAL TRANSITION COMBINATIONS
+  # ====================
+
+  describe 'additional transition combinations' do
+    it 'can transition review_fixes to fixes' do
+      project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'review_fixes')
+      expect { project.mark_as_fixes }.to change { project.state }.from('review_fixes').to('fixes')
+    end
+
+    it 'exportable scope includes only validated and winner' do
+      validated = create(:impulsa_project, impulsa_edition_category: category_active, state: 'validated')
+      winner = create(:impulsa_project, impulsa_edition_category: category_active, state: 'winner')
+      other = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+
+      exportable = ImpulsaProject.exportable
+      expect(exportable).to include(validated, winner)
+      expect(exportable).not_to include(other)
+      expect(exportable.count).to eq(2)
+    end
+
+    it 'maintains state through reload' do
+      project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+      project.wizard_values = { 'group1.field1' => 'value' }
+      project.mark_for_review
+
+      project.reload
+      expect(project.state).to eq('review')
+      expect(project.reviewable?).to be true
     end
   end
 end
