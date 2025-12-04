@@ -538,6 +538,425 @@ RSpec.describe RegistrationsController, type: :controller do
           expect(controller.send(:locked_personal_data?)).to be false
         end
       end
+
+      context 'when user is not logged in' do
+        it 'returns false' do
+          expect(controller.send(:locked_personal_data?)).to be_falsey
+        end
+      end
+    end
+  end
+
+  # ==================== ADDITIONAL COVERAGE TESTS ====================
+
+  describe 'POST #create - successful registration' do
+    context 'with valid attributes and captcha' do
+      before do
+        allow_any_instance_of(User).to receive(:valid_with_captcha?).and_return(true)
+        allow_any_instance_of(SimpleCaptcha::ControllerHelpers).to receive(:simple_captcha_valid?).and_return(true)
+      end
+
+      it 'logs successful registration when created' do
+        # Since actual user creation may fail due to validations, just test the logging path
+        allow_any_instance_of(User).to receive(:persisted?).and_return(true)
+        allow_any_instance_of(User).to receive(:save).and_return(true)
+        allow(Rails.logger).to receive(:warn).and_call_original
+
+        post :create, params: { user: valid_user_attributes }
+
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/user_registration_success/)).at_least(:once)
+      end
+    end
+  end
+
+  describe 'GET #edit' do
+    let(:user) { create(:user) }
+
+    before do
+      sign_in user
+    end
+
+    it 'renders the edit template' do
+      get :edit
+      expect(response).to be_successful
+    end
+
+    it 'loads user location' do
+      expect(User).to receive(:get_location).with(user, anything)
+      get :edit
+    end
+  end
+
+  describe 'PATCH #update' do
+    let(:user) { create(:user) }
+
+    before do
+      sign_in user
+    end
+
+    context 'with valid parameters' do
+      it 'updates user attributes' do
+        patch :update, params: { user: { address: '456 New St', current_password: 'Password123456' } }
+        expect(response).to have_http_status(:redirect)
+      end
+    end
+
+    context 'without vote_circle_id' do
+      it 'skips vote_circle validation' do
+        # The before_action validate_vote_circle has `only: [:update]` but returns early if no vote_circle_id
+        patch :update, params: { user: { address: '456 New St', current_password: 'Password123456' } }
+        expect(response).to have_http_status(:redirect)
+      end
+    end
+  end
+
+  describe '#set_flash_message' do
+    let(:user) { create(:user) }
+
+    before do
+      sign_in user
+    end
+
+    it 'sets flash message with resource params' do
+      controller.params = ActionController::Parameters.new(user: { email: 'test@example.com' })
+      controller.send(:set_flash_message, :notice, :updated)
+      expect(flash[:notice]).to be_present
+    end
+
+    context 'when message is not present' do
+      it 'does not set flash' do
+        allow(controller).to receive(:find_message).and_return(nil)
+        controller.params = ActionController::Parameters.new(user: { email: 'test@example.com' })
+        flash.clear
+        controller.send(:set_flash_message, :notice, :some_missing_key)
+        expect(flash[:notice]).to be_nil
+      end
+    end
+  end
+
+  describe 'AJAX endpoints error handling' do
+    describe 'GET #regions_municipies' do
+      context 'when rendering fails' do
+        before do
+          allow(controller).to receive(:render).and_raise(StandardError.new('Render error'))
+        end
+
+        it 'handles error' do
+          allow(Rails.logger).to receive(:error).and_call_original
+          get :regions_municipies, xhr: true
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/regions_municipies_error/)).at_least(:once)
+        end
+      end
+    end
+
+    describe 'GET #vote_municipies' do
+      context 'when rendering fails' do
+        before do
+          allow(controller).to receive(:render).and_raise(StandardError.new('Render error'))
+        end
+
+        it 'handles error' do
+          allow(Rails.logger).to receive(:error).and_call_original
+          get :vote_municipies, xhr: true
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/vote_municipies_error/)).at_least(:once)
+        end
+      end
+    end
+  end
+
+  describe 'GET #qr_code - IDOR protection' do
+    let(:user) { create(:user) }
+
+    before do
+      sign_in user
+      allow_any_instance_of(User).to receive(:can_show_qr?).and_return(true)
+    end
+
+    context 'when user_id parameter is present' do
+      it 'rejects request and logs IDOR attempt' do
+        allow(Rails.logger).to receive(:warn).and_call_original
+        get :qr_code, params: { user_id: 999 }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/qr_idor_attempt/)).at_least(:once)
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to eq('Unauthorized access')
+      end
+    end
+
+    context 'when id parameter is present' do
+      it 'rejects request and logs IDOR attempt' do
+        allow(Rails.logger).to receive(:warn).and_call_original
+        get :qr_code, params: { id: 999 }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/qr_idor_attempt/)).at_least(:once)
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to eq('Unauthorized access')
+      end
+    end
+  end
+
+  describe '#user_already_exists?' do
+    let(:existing_user) { create(:user, email: 'existing@example.com', document_vatid: 'PASS87654321') }
+    let(:new_user) { build(:user, email: existing_user.email) }
+
+    before do
+      @request.env['devise.mapping'] = Devise.mappings[:user]
+    end
+
+    it 'detects duplicate email' do
+      new_user.validate
+      _result, exists = controller.send(:user_already_exists?, new_user, :email)
+      expect(exists).to be true
+    end
+
+    it 'removes taken error from resource' do
+      new_user.validate
+      expect(new_user.errors[:email]).not_to be_empty
+      controller.send(:user_already_exists?, new_user, :email)
+      # Error should be cleared or removed
+      expect(new_user.errors[:email].join).not_to include('ya está en uso')
+    end
+
+    context 'when error checking fails' do
+      it 'handles error gracefully' do
+        allow(new_user.errors).to receive(:details).and_raise(StandardError.new('Error checking'))
+        allow(Rails.logger).to receive(:error).and_call_original
+        _result, exists = controller.send(:user_already_exists?, new_user, :email)
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/user_already_exists_error/)).at_least(:once)
+        expect(exists).to be false
+      end
+    end
+  end
+
+  describe '#user_eligible_for_vote_circle?' do
+    let(:user) { instance_double(User, vote_province: 'm_28', vote_town: 'm_28_079') }
+
+    context 'when vote_circle does not respond to scope' do
+      let(:vote_circle) { double('VoteCircle') }
+
+      it 'returns true' do
+        allow(vote_circle).to receive(:respond_to?).with(:scope).and_return(false)
+        expect(controller.send(:user_eligible_for_vote_circle?, user, vote_circle)).to be true
+      end
+    end
+
+    context 'when vote_circle scope is town' do
+      it 'returns true for matching town' do
+        vote_circle = double('VoteCircle', scope: 'town', town: 'm_28_079')
+        allow(vote_circle).to receive(:respond_to?).with(:scope).and_return(true)
+        expect(controller.send(:user_eligible_for_vote_circle?, user, vote_circle)).to be true
+      end
+
+      it 'returns false for different town' do
+        vote_circle = double('VoteCircle', scope: 'town', town: 'm_08_019')
+        allow(vote_circle).to receive(:respond_to?).with(:scope).and_return(true)
+        expect(controller.send(:user_eligible_for_vote_circle?, user, vote_circle)).to be false
+      end
+    end
+
+    context 'when vote_circle scope is province' do
+      it 'returns true for matching province' do
+        vote_circle = double('VoteCircle', scope: 'province', province_code: 'm_28')
+        allow(vote_circle).to receive(:respond_to?).with(:scope).and_return(true)
+        expect(controller.send(:user_eligible_for_vote_circle?, user, vote_circle)).to be true
+      end
+
+      it 'returns false for different province' do
+        vote_circle = double('VoteCircle', scope: 'province', province_code: 'm_08')
+        allow(vote_circle).to receive(:respond_to?).with(:scope).and_return(true)
+        expect(controller.send(:user_eligible_for_vote_circle?, user, vote_circle)).to be false
+      end
+    end
+
+    context 'when vote_circle scope is autonomy' do
+      it 'returns true for matching autonomy' do
+        # Use a real string that will respond to starts_with?
+        user_with_prefix = instance_double(User, vote_town: 'm_28_079')
+        allow(user_with_prefix).to receive(:vote_province).and_return('28_123')
+        vote_circle = double('VoteCircle', scope: 'autonomy', autonomy_code: '28')
+        allow(vote_circle).to receive(:respond_to?).with(:scope).and_return(true)
+        expect(controller.send(:user_eligible_for_vote_circle?, user_with_prefix, vote_circle)).to be true
+      end
+
+      it 'returns false for different autonomy' do
+        # Use a real string that will respond to starts_with?
+        user_with_prefix = instance_double(User, vote_town: 'm_28_079')
+        allow(user_with_prefix).to receive(:vote_province).and_return('28_123')
+        vote_circle = double('VoteCircle', scope: 'autonomy', autonomy_code: '08')
+        allow(vote_circle).to receive(:respond_to?).with(:scope).and_return(true)
+        expect(controller.send(:user_eligible_for_vote_circle?, user_with_prefix, vote_circle)).to be false
+      end
+    end
+
+    context 'when vote_circle scope is national' do
+      it 'returns true for any user' do
+        vote_circle = double('VoteCircle', scope: 'national')
+        allow(vote_circle).to receive(:respond_to?).with(:scope).and_return(true)
+        expect(controller.send(:user_eligible_for_vote_circle?, user, vote_circle)).to be true
+      end
+    end
+
+    context 'when vote_circle scope is unknown' do
+      it 'returns true' do
+        vote_circle = double('VoteCircle', scope: 'other')
+        allow(vote_circle).to receive(:respond_to?).with(:scope).and_return(true)
+        expect(controller.send(:user_eligible_for_vote_circle?, user, vote_circle)).to be true
+      end
+    end
+  end
+
+  describe 'validate_vote_circle - eligibility checks' do
+    let(:user) { create(:user) }
+    let(:vote_circle) { create(:vote_circle) }
+
+    before do
+      sign_in user
+    end
+
+    context 'when user is not eligible for vote_circle' do
+      before do
+        allow(controller).to receive(:user_eligible_for_vote_circle?).and_return(false)
+      end
+
+      it 'redirects with location mismatch error' do
+        patch :update, params: { user: { vote_circle_id: vote_circle.id } }
+        expect(response).to redirect_to(edit_user_registration_path)
+        expect(flash[:alert]).to eq(I18n.t('errors.messages.vote_circle_location_mismatch'))
+      end
+
+      it 'logs unauthorized attempt' do
+        allow(Rails.logger).to receive(:warn).and_call_original
+        patch :update, params: { user: { vote_circle_id: vote_circle.id } }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/unauthorized_vote_circle_attempt/)).at_least(:once)
+      end
+    end
+
+    context 'when vote_circle validation raises error' do
+      before do
+        allow(VoteCircle).to receive(:find_by).and_raise(StandardError.new('DB error'))
+      end
+
+      it 'handles error gracefully' do
+        allow(Rails.logger).to receive(:error).and_call_original
+        patch :update, params: { user: { vote_circle_id: vote_circle.id } }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/validate_vote_circle_error/)).at_least(:once)
+        expect(response).to redirect_to(edit_user_registration_path)
+      end
+    end
+  end
+
+  describe 'account_update_params - dynamic permissions' do
+    let(:user) { create(:user) }
+
+    before do
+      sign_in user
+    end
+
+    context 'when user can change vote location' do
+      before do
+        allow_any_instance_of(User).to receive(:can_change_vote_location?).and_return(true)
+      end
+
+      it 'permits vote_province and vote_town' do
+        params = ActionController::Parameters.new(user: { vote_province: 'p_28', vote_town: 'm_28_079' })
+        controller.params = params
+        result = controller.send(:account_update_params)
+        expect(result.keys).to include('vote_province', 'vote_town')
+      end
+    end
+
+    context 'when user cannot change vote location' do
+      before do
+        allow_any_instance_of(User).to receive(:can_change_vote_location?).and_return(false)
+      end
+
+      it 'does not permit vote_province and vote_town' do
+        params = ActionController::Parameters.new(user: { vote_province: 'p_28', vote_town: 'm_28_079' })
+        controller.params = params
+        result = controller.send(:account_update_params)
+        expect(result.keys).not_to include('vote_province', 'vote_town')
+      end
+    end
+
+    context 'when personal data is not locked' do
+      before do
+        allow(controller).to receive(:locked_personal_data?).and_return(false)
+      end
+
+      it 'permits first_name, last_name, born_at' do
+        params = ActionController::Parameters.new(user: { first_name: 'New', last_name: 'Name', born_at: '1990-01-01' })
+        controller.params = params
+        result = controller.send(:account_update_params)
+        expect(result.keys).to include('first_name', 'last_name', 'born_at')
+      end
+    end
+
+    context 'when personal data is locked' do
+      before do
+        allow(controller).to receive(:locked_personal_data?).and_return(true)
+      end
+
+      it 'does not permit first_name, last_name, born_at' do
+        params = ActionController::Parameters.new(user: { first_name: 'New', last_name: 'Name', born_at: '1990-01-01' })
+        controller.params = params
+        result = controller.send(:account_update_params)
+        expect(result.keys).not_to include('first_name', 'last_name', 'born_at')
+      end
+    end
+  end
+
+  describe 'AJAX endpoints with user restrictions' do
+    describe 'GET #regions_provinces' do
+      context 'when user can change vote location' do
+        let(:user) { create(:user) }
+
+        before do
+          sign_in user
+          allow_any_instance_of(User).to receive(:can_change_vote_location?).and_return(true)
+          allow(User).to receive(:get_location).and_return({
+                                                             country: 'ES',
+                                                             province: 'Madrid',
+                                                             town: 'Madrid'
+                                                           })
+        end
+
+        it 'includes blocked provinces filter' do
+          expect(User).to receive(:blocked_provinces)
+          get :regions_provinces, xhr: true
+        end
+      end
+
+      context 'when user cannot change vote location' do
+        let(:user) { create(:user) }
+
+        before do
+          sign_in user
+          allow_any_instance_of(User).to receive(:can_change_vote_location?).and_return(false)
+          allow(User).to receive(:get_location).and_return({
+                                                             country: 'ES',
+                                                             province: 'Madrid',
+                                                             town: 'Madrid'
+                                                           })
+        end
+
+        it 'does not include blocked provinces filter' do
+          expect(User).not_to receive(:blocked_provinces)
+          get :regions_provinces, xhr: true
+        end
+      end
+
+      context 'when no user is signed in' do
+        before do
+          allow(User).to receive(:get_location).and_return({
+                                                             country: 'ES',
+                                                             province: 'Madrid',
+                                                             town: 'Madrid'
+                                                           })
+        end
+
+        it 'includes blocked provinces filter' do
+          expect(User).to receive(:blocked_provinces)
+          get :regions_provinces, xhr: true
+        end
+      end
     end
   end
 end

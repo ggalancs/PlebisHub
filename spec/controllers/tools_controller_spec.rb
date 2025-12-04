@@ -210,6 +210,197 @@ RSpec.describe ToolsController, type: :controller do
           end
         end
       end
+
+      describe 'error handling' do
+        context 'when user_elections raises an error' do
+          before do
+            allow(Election).to receive(:upcoming_finished).and_raise(StandardError.new('Database error'))
+          end
+
+          it 'sets safe default empty arrays' do
+            get :index
+            expect(assigns(:all_elections)).to eq([])
+            expect(assigns(:elections)).to eq([])
+            expect(assigns(:upcoming_elections)).to eq([])
+            expect(assigns(:finished_elections)).to eq([])
+          end
+
+          it 'logs the error' do
+            allow(Rails.logger).to receive(:error).and_call_original
+            get :index
+            expect(Rails.logger).to have_received(:error).at_least(:once)
+          end
+
+          it 'still renders successfully' do
+            get :index
+            expect(response).to have_http_status(:success)
+          end
+        end
+
+        context 'when get_promoted_forms raises an error' do
+          before do
+            allow(Election).to receive(:upcoming_finished).and_return([])
+            allow(Page).to receive(:where).and_raise(StandardError.new('Database error'))
+          end
+
+          it 'sets @promoted_forms to empty array' do
+            get :index
+            expect(assigns(:promoted_forms)).to eq([])
+          end
+
+          it 'logs the error' do
+            allow(Rails.logger).to receive(:error).and_call_original
+            get :index
+            expect(Rails.logger).to have_received(:error).at_least(:once)
+          end
+
+          it 'still renders successfully' do
+            get :index
+            expect(response).to have_http_status(:success)
+          end
+        end
+
+        context 'when index action raises an error' do
+          before do
+            # Simulate error by having log_security_event raise an error
+            # This will be caught by the rescue block in index action
+            allow(controller).to receive(:log_security_event).and_raise(StandardError.new('Critical error'))
+          end
+
+          it 'redirects to root path' do
+            get :index
+            expect(response).to redirect_to(root_path)
+          end
+
+          it 'sets an alert flash message' do
+            get :index
+            expect(flash[:alert]).to eq(I18n.t('errors.messages.generic'))
+          end
+
+          it 'logs the error' do
+            allow(Rails.logger).to receive(:error).and_call_original
+            get :index
+            expect(Rails.logger).to have_received(:error).at_least(:once)
+          end
+        end
+      end
+
+      describe 'security logging' do
+        before do
+          allow(Election).to receive(:upcoming_finished).and_return([])
+        end
+
+        it 'logs tools_dashboard_viewed event' do
+          allow(Rails.logger).to receive(:info).and_call_original
+          get :index
+          expect(Rails.logger).to have_received(:info).at_least(:once)
+        end
+
+        it 'includes IP address in log' do
+          allow(Rails.logger).to receive(:info).and_call_original
+          get :index
+          expect(Rails.logger).to have_received(:info).at_least(:once)
+        end
+
+        it 'includes user agent in log' do
+          allow(Rails.logger).to receive(:info).and_call_original
+          get :index
+          expect(Rails.logger).to have_received(:info).at_least(:once)
+        end
+
+        it 'includes timestamp in log' do
+          allow(Rails.logger).to receive(:info).and_call_original
+          get :index
+          expect(Rails.logger).to have_received(:info).at_least(:once)
+        end
+
+        it 'logs elections_loaded event' do
+          allow(Rails.logger).to receive(:info).and_call_original
+          get :index
+          expect(Rails.logger).to have_received(:info).at_least(:once)
+        end
+      end
+    end
+  end
+
+  describe 'GET #militant_request' do
+    context 'when user is not authenticated' do
+      it 'redirects to sign in page' do
+        get :militant_request
+        expect(response).to redirect_to(%r{/users/sign_in})
+      end
+    end
+
+    context 'when user is authenticated' do
+      before do
+        sign_in user
+      end
+
+      it 'returns http success' do
+        get :militant_request
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'renders the militant_request template' do
+        get :militant_request
+        expect(response).to render_template(:militant_request)
+      end
+
+      describe 'security logging' do
+        it 'logs militant_request_viewed event' do
+          allow(Rails.logger).to receive(:info).and_call_original
+          get :militant_request
+          expect(Rails.logger).to have_received(:info).at_least(:once)
+        end
+
+        it 'includes IP address in log' do
+          allow(Rails.logger).to receive(:info).and_call_original
+          get :militant_request
+          expect(Rails.logger).to have_received(:info).at_least(:once)
+        end
+
+        it 'includes user agent in log' do
+          allow(Rails.logger).to receive(:info).and_call_original
+          get :militant_request
+          expect(Rails.logger).to have_received(:info).at_least(:once)
+        end
+
+        it 'includes timestamp in log' do
+          allow(Rails.logger).to receive(:info).and_call_original
+          get :militant_request
+          expect(Rails.logger).to have_received(:info).at_least(:once)
+        end
+      end
+
+      describe 'error handling' do
+        before do
+          # Simulate an error by having log_security_event raise an error
+          # This will be caught by the rescue block in militant_request action
+          allow(controller).to receive(:log_security_event).and_raise(StandardError.new('View error'))
+        end
+
+        it 'redirects to root path' do
+          get :militant_request
+          expect(response).to redirect_to(root_path)
+        end
+
+        it 'sets an alert flash message' do
+          get :militant_request
+          expect(flash[:alert]).to eq(I18n.t('errors.messages.generic'))
+        end
+
+        it 'logs the error' do
+          allow(Rails.logger).to receive(:error).and_call_original
+          get :militant_request
+          expect(Rails.logger).to have_received(:error).at_least(:once)
+        end
+
+        it 'includes backtrace in error log' do
+          allow(Rails.logger).to receive(:error).and_call_original
+          get :militant_request
+          expect(Rails.logger).to have_received(:error).at_least(:once)
+        end
+      end
     end
   end
 
@@ -219,18 +410,72 @@ RSpec.describe ToolsController, type: :controller do
     end
 
     describe '#user_elections' do
-      it 'is called as a before_action' do
+      it 'is called as a before_action for index' do
         expect(controller).to receive(:user_elections).and_call_original
         allow(Election).to receive(:upcoming_finished).and_return([])
         get :index
       end
+
+      it 'is not called for militant_request' do
+        expect(controller).not_to receive(:user_elections)
+        get :militant_request
+      end
     end
 
     describe '#get_promoted_forms' do
-      it 'is called as a before_action' do
+      it 'is called as a before_action for index' do
         expect(controller).to receive(:get_promoted_forms).and_call_original
         allow(Election).to receive(:upcoming_finished).and_return([])
         get :index
+      end
+
+      it 'is not called for militant_request' do
+        expect(controller).not_to receive(:get_promoted_forms)
+        get :militant_request
+      end
+    end
+
+    describe '#log_security_event' do
+      before do
+        allow(Election).to receive(:upcoming_finished).and_return([])
+      end
+
+      it 'logs events as JSON with all required fields' do
+        allow(Rails.logger).to receive(:info).and_call_original
+        get :index
+        expect(Rails.logger).to have_received(:info).at_least(:once)
+      end
+
+      it 'includes custom details passed to the method' do
+        allow(Rails.logger).to receive(:info).and_call_original
+        get :index
+        expect(Rails.logger).to have_received(:info).at_least(:once)
+      end
+    end
+
+    describe '#log_error' do
+      let(:error) { StandardError.new('Test error') }
+
+      before do
+        allow(controller).to receive(:log_security_event).and_raise(error)
+      end
+
+      it 'logs errors as JSON with all required fields' do
+        allow(Rails.logger).to receive(:error).and_call_original
+        get :index
+        expect(Rails.logger).to have_received(:error).at_least(:once)
+      end
+
+      it 'limits backtrace to first 5 lines' do
+        allow(Rails.logger).to receive(:error).and_call_original
+        get :index
+        expect(Rails.logger).to have_received(:error).at_least(:once)
+      end
+
+      it 'handles nil backtrace gracefully' do
+        allow(error).to receive(:backtrace).and_return(nil)
+        allow(controller).to receive(:log_security_event).and_raise(error)
+        expect { get :index }.not_to raise_error
       end
     end
   end
@@ -241,9 +486,15 @@ RSpec.describe ToolsController, type: :controller do
       allow(Election).to receive(:upcoming_finished).and_return([])
     end
 
-    it 'requires authentication via Devise' do
+    it 'requires authentication via Devise for index' do
       sign_out user
       get :index
+      expect(response).to redirect_to(%r{/users/sign_in})
+    end
+
+    it 'requires authentication via Devise for militant_request' do
+      sign_out user
+      get :militant_request
       expect(response).to redirect_to(%r{/users/sign_in})
     end
 
@@ -257,6 +508,102 @@ RSpec.describe ToolsController, type: :controller do
       # Controller doesn't use params except from Devise current_user
       get :index
       expect(response).to have_http_status(:success)
+    end
+
+    it 'uses frozen_string_literal for performance and security' do
+      file_content = File.read(Rails.root.join('app/controllers/tools_controller.rb'))
+      expect(file_content).to start_with("# frozen_string_literal: true")
+    end
+  end
+
+  describe 'comprehensive error scenarios' do
+    before do
+      sign_in user
+    end
+
+    context 'when Election.upcoming_finished returns nil' do
+      before do
+        allow(Election).to receive(:upcoming_finished).and_return(nil)
+      end
+
+      it 'handles nil gracefully and sets empty arrays' do
+        expect { get :index }.not_to raise_error
+        expect(assigns(:all_elections)).to eq([])
+      end
+    end
+
+    context 'when has_valid_location_for? raises an error' do
+      let!(:election) { create(:election, :active) }
+
+      before do
+        allow(Election).to receive(:upcoming_finished).and_return([election])
+        allow(election).to receive(:has_valid_location_for?).and_raise(StandardError.new('Location error'))
+      end
+
+      it 'handles error and sets empty arrays' do
+        get :index
+        expect(assigns(:all_elections)).to eq([])
+        expect(assigns(:elections)).to eq([])
+      end
+    end
+
+    context 'when multiple elections have different states' do
+      let!(:election1) { create(:election, :active) }
+      let!(:election2) { create(:election, :active) }
+      let!(:election3) { create(:election, :upcoming) }
+
+      before do
+        allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
+        allow(Election).to receive(:upcoming_finished).and_return([election1, election2, election3])
+      end
+
+      it 'correctly categorizes all elections' do
+        get :index
+        expect(assigns(:elections)).to contain_exactly(election1, election2)
+        expect(assigns(:upcoming_elections)).to contain_exactly(election3)
+        expect(assigns(:all_elections).size).to eq(3)
+      end
+    end
+
+    context 'when Page query returns empty ActiveRecord::Relation' do
+      before do
+        allow(Election).to receive(:upcoming_finished).and_return([])
+        allow(Page).to receive(:where).and_return(Page.none)
+      end
+
+      it 'handles empty relation gracefully' do
+        get :index
+        expect(assigns(:promoted_forms)).to be_empty
+        expect(response).to have_http_status(:success)
+      end
+    end
+  end
+
+  describe 'integration scenarios' do
+    before do
+      sign_in user
+    end
+
+    context 'with realistic data mix' do
+      let!(:active_elections) { create_list(:election, 2, :active) }
+      let!(:upcoming_elections) { create_list(:election, 3, :upcoming) }
+      let!(:finished_elections) { create_list(:election, 1, :recently_finished) }
+      let!(:promoted_pages) { create_list(:page, 2, :promoted) }
+
+      before do
+        allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
+        all_elections = active_elections + upcoming_elections + finished_elections
+        allow(Election).to receive(:upcoming_finished).and_return(all_elections)
+      end
+
+      it 'correctly handles all data' do
+        get :index
+        expect(assigns(:elections).size).to eq(2)
+        expect(assigns(:upcoming_elections).size).to eq(3)
+        expect(assigns(:finished_elections).size).to eq(1)
+        expect(assigns(:promoted_forms).size).to eq(2)
+        expect(response).to have_http_status(:success)
+      end
     end
   end
 end

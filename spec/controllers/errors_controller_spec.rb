@@ -3,6 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe ErrorsController, type: :controller do
+  let(:user) { create(:user) }
+
   # Skip ApplicationController filters that may cause issues in testing
   before do
     allow(controller).to receive(:banned_user).and_return(true)
@@ -301,6 +303,427 @@ RSpec.describe ErrorsController, type: :controller do
           expect(response.status).to eq(code_str.to_i)
         end
       end
+    end
+
+    context 'security logging' do
+      it 'logs security event when error page is displayed' do
+        logged_events = []
+        allow(Rails.logger).to receive(:info) do |log_entry|
+          begin
+            logged_events << JSON.parse(log_entry)
+          rescue JSON::ParserError
+            # Skip non-JSON log entries
+          end
+        end
+
+        get :show, params: { code: '404' }
+
+        event = logged_events.find { |e| e['event'] == 'error_page_displayed' }
+        expect(event).to be_present
+        expect(event['code']).to eq('404')
+        expect(event['raw_code']).to eq('404')
+        expect(event['controller']).to eq('errors')
+        expect(event).to have_key('ip_address')
+        expect(event).to have_key('user_agent')
+        expect(event).to have_key('timestamp')
+      end
+
+      it 'logs security event for invalid error code attempt' do
+        logged_events = []
+        allow(Rails.logger).to receive(:info) do |log_entry|
+          begin
+            logged_events << JSON.parse(log_entry)
+          rescue JSON::ParserError
+            # Skip non-JSON log entries
+          end
+        end
+
+        get :show, params: { code: '999' }
+
+        invalid_code_event = logged_events.find { |e| e['event'] == 'invalid_error_code_attempt' }
+        expect(invalid_code_event).to be_present
+        expect(invalid_code_event['attempted_code']).to eq('999')
+        expect(invalid_code_event['controller']).to eq('errors')
+      end
+
+      it 'logs user_id when user is logged in' do
+        allow(controller).to receive(:current_user).and_return(user)
+        logged_events = []
+        allow(Rails.logger).to receive(:info) do |log_entry|
+          begin
+            logged_events << JSON.parse(log_entry)
+          rescue JSON::ParserError
+            # Skip non-JSON log entries
+          end
+        end
+
+        get :show, params: { code: '404' }
+
+        event = logged_events.find { |e| e['event'] == 'error_page_displayed' }
+        expect(event).to be_present
+        expect(event['user_id']).to eq(user.id)
+      end
+
+      it 'logs nil user_id when no user is logged in' do
+        allow(controller).to receive(:current_user).and_return(nil)
+        logged_events = []
+        allow(Rails.logger).to receive(:info) do |log_entry|
+          begin
+            logged_events << JSON.parse(log_entry)
+          rescue JSON::ParserError
+            # Skip non-JSON log entries
+          end
+        end
+
+        get :show, params: { code: '404' }
+
+        event = logged_events.find { |e| e['event'] == 'error_page_displayed' }
+        expect(event).to be_present
+        expect(event['user_id']).to be_nil
+      end
+
+      it 'logs IP address and user agent' do
+        logged_events = []
+        allow(Rails.logger).to receive(:info) do |log_entry|
+          begin
+            logged_events << JSON.parse(log_entry)
+          rescue JSON::ParserError
+            # Skip non-JSON log entries
+          end
+        end
+
+        get :show, params: { code: '404' }
+
+        event = logged_events.find { |e| e['event'] == 'error_page_displayed' }
+        expect(event).to be_present
+        expect(event['ip_address']).to be_present
+        expect(event['user_agent']).to be_present
+      end
+    end
+
+    context 'error handling in show action' do
+      it 'rescues StandardError and renders plain error message' do
+        allow(controller).to receive(:sanitize_error_code).and_raise(StandardError.new('Test error'))
+        allow(Rails.logger).to receive(:error)
+
+        get :show, params: { code: '404' }
+
+        expect(response.body).to eq('Internal Server Error')
+        expect(response).to have_http_status(:internal_server_error)
+      end
+
+      it 'logs error details when StandardError is raised' do
+        test_error = StandardError.new('Test error message')
+        allow(controller).to receive(:sanitize_error_code).and_raise(test_error)
+
+        expect(Rails.logger).to receive(:error) do |log_entry|
+          parsed = JSON.parse(log_entry)
+          expect(parsed['event']).to eq('error_page_render_error')
+          expect(parsed['error_class']).to eq('StandardError')
+          expect(parsed['error_message']).to eq('Test error message')
+          expect(parsed['controller']).to eq('errors')
+          expect(parsed['code']).to eq('404')
+          expect(parsed).to have_key('backtrace')
+          expect(parsed).to have_key('ip_address')
+          expect(parsed).to have_key('timestamp')
+        end
+
+        get :show, params: { code: '404' }
+      end
+
+      it 'includes backtrace in error logs' do
+        test_error = StandardError.new('Test error')
+        test_error.set_backtrace(['/path/to/file.rb:123', '/path/to/file2.rb:456'])
+        allow(controller).to receive(:sanitize_error_code).and_raise(test_error)
+
+        expect(Rails.logger).to receive(:error) do |log_entry|
+          parsed = JSON.parse(log_entry)
+          expect(parsed['backtrace']).to be_an(Array)
+          expect(parsed['backtrace'].length).to be <= 5
+        end
+
+        get :show, params: { code: '404' }
+      end
+    end
+
+    context 'edge cases for code parameter' do
+      it 'handles string code that looks like a number' do
+        get :show, params: { code: '404' }
+        expect(assigns(:code)).to eq('404')
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'handles integer code' do
+        get :show, params: { code: 404 }
+        expect(assigns(:code)).to eq('404')
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'handles code as a string with leading zeros' do
+        get :show, params: { code: '0404' }
+        expect(assigns(:code)).to eq('500')
+        expect(response).to have_http_status(:internal_server_error)
+      end
+
+      it 'handles code with special characters' do
+        get :show, params: { code: '404!@#' }
+        expect(assigns(:code)).to eq('500')
+        expect(response).to have_http_status(:internal_server_error)
+      end
+
+      it 'handles very large code numbers' do
+        get :show, params: { code: 99999999 }
+        expect(assigns(:code)).to eq('500')
+        expect(response).to have_http_status(:internal_server_error)
+      end
+
+      it 'handles negative code numbers' do
+        get :show, params: { code: -404 }
+        expect(assigns(:code)).to eq('500')
+        expect(response).to have_http_status(:internal_server_error)
+      end
+
+      it 'handles code as array (Rails strong params)' do
+        get :show, params: { code: ['404', '500'] }
+        expect(assigns(:code)).to eq('500')
+        expect(response).to have_http_status(:internal_server_error)
+      end
+
+      it 'handles code as hash (Rails strong params)' do
+        get :show, params: { code: { nested: '404' } }
+        expect(assigns(:code)).to eq('500')
+        expect(response).to have_http_status(:internal_server_error)
+      end
+    end
+
+    context '4xx client error codes' do
+      [
+        ['400', :bad_request],
+        ['401', :unauthorized],
+        ['403', :forbidden],
+        ['404', :not_found],
+        ['405', :method_not_allowed],
+        ['406', :not_acceptable],
+        ['408', :request_timeout],
+        ['409', :conflict],
+        ['410', :gone],
+        ['422', :unprocessable_entity],
+        ['429', :too_many_requests]
+      ].each do |code, status_symbol|
+        it "handles #{code} (#{status_symbol}) correctly" do
+          get :show, params: { code: code }
+          expect(assigns(:code)).to eq(code)
+          expect(response).to have_http_status(status_symbol)
+          expect(response.status).to eq(code.to_i)
+        end
+      end
+    end
+
+    context '5xx server error codes' do
+      [
+        ['500', :internal_server_error],
+        ['501', :not_implemented],
+        ['502', :bad_gateway],
+        ['503', :service_unavailable],
+        ['504', :gateway_timeout]
+      ].each do |code, status_symbol|
+        it "handles #{code} (#{status_symbol}) correctly" do
+          get :show, params: { code: code }
+          expect(assigns(:code)).to eq(code)
+          expect(response).to have_http_status(status_symbol)
+          expect(response.status).to eq(code.to_i)
+        end
+      end
+    end
+  end
+
+  describe 'private methods' do
+    describe '#sanitize_error_code' do
+      it 'returns code if it is in whitelist' do
+        result = controller.send(:sanitize_error_code, '404')
+        expect(result).to eq('404')
+      end
+
+      it 'returns 500 if code is not in whitelist' do
+        result = controller.send(:sanitize_error_code, '999')
+        expect(result).to eq('500')
+      end
+
+      it 'converts non-string codes to string before checking' do
+        result = controller.send(:sanitize_error_code, 404)
+        expect(result).to eq('404')
+      end
+
+      it 'handles nil by converting to string and defaulting to 500' do
+        result = controller.send(:sanitize_error_code, nil)
+        expect(result).to eq('500')
+      end
+
+      it 'logs security event for invalid codes' do
+        expect(Rails.logger).to receive(:info) do |log_entry|
+          parsed = JSON.parse(log_entry)
+          expect(parsed['event']).to eq('invalid_error_code_attempt')
+          expect(parsed['attempted_code']).to eq('999')
+        end
+
+        controller.send(:sanitize_error_code, '999')
+      end
+    end
+
+    describe '#http_status_code' do
+      it 'converts @code to integer' do
+        controller.instance_variable_set(:@code, '404')
+        result = controller.send(:http_status_code)
+        expect(result).to eq(404)
+        expect(result).to be_a(Integer)
+      end
+
+      it 'handles 500 code' do
+        controller.instance_variable_set(:@code, '500')
+        result = controller.send(:http_status_code)
+        expect(result).to eq(500)
+      end
+    end
+
+    describe '#log_security_event' do
+      let(:mock_logger) { instance_double(ActiveSupport::Logger) }
+
+      before do
+        allow(Rails).to receive(:logger).and_return(mock_logger)
+      end
+
+      it 'logs event with correct format' do
+        expect(mock_logger).to receive(:info) do |log_entry|
+          parsed = JSON.parse(log_entry)
+          expect(parsed['event']).to eq('test_event')
+          expect(parsed['test_detail']).to eq('test_value')
+          expect(parsed['controller']).to eq('errors')
+          expect(parsed).to have_key('ip_address')
+          expect(parsed).to have_key('user_agent')
+          expect(parsed).to have_key('timestamp')
+        end
+
+        controller.send(:log_security_event, 'test_event', test_detail: 'test_value')
+      end
+
+      it 'includes timestamp in ISO8601 format' do
+        frozen_time = Time.parse('2025-01-15 12:00:00 UTC')
+        allow(Time).to receive(:current).and_return(frozen_time)
+
+        expect(mock_logger).to receive(:info) do |log_entry|
+          parsed = JSON.parse(log_entry)
+          expect(parsed['timestamp']).to eq(frozen_time.iso8601)
+        end
+
+        controller.send(:log_security_event, 'test_event')
+      end
+
+      it 'includes request details' do
+        expect(mock_logger).to receive(:info) do |log_entry|
+          parsed = JSON.parse(log_entry)
+          expect(parsed['ip_address']).to eq(controller.request.remote_ip)
+          expect(parsed['user_agent']).to eq(controller.request.user_agent)
+        end
+
+        controller.send(:log_security_event, 'test_event')
+      end
+    end
+
+    describe '#log_error' do
+      let(:mock_logger) { instance_double(ActiveSupport::Logger) }
+      let(:test_exception) { StandardError.new('Test error') }
+
+      before do
+        allow(Rails).to receive(:logger).and_return(mock_logger)
+        test_exception.set_backtrace([
+                                       '/path/to/file1.rb:10',
+                                       '/path/to/file2.rb:20',
+                                       '/path/to/file3.rb:30',
+                                       '/path/to/file4.rb:40',
+                                       '/path/to/file5.rb:50',
+                                       '/path/to/file6.rb:60'
+                                     ])
+      end
+
+      it 'logs error with correct format' do
+        expect(mock_logger).to receive(:error) do |log_entry|
+          parsed = JSON.parse(log_entry)
+          expect(parsed['event']).to eq('test_error_event')
+          expect(parsed['error_class']).to eq('StandardError')
+          expect(parsed['error_message']).to eq('Test error')
+          expect(parsed['controller']).to eq('errors')
+          expect(parsed['test_detail']).to eq('test_value')
+          expect(parsed).to have_key('backtrace')
+          expect(parsed).to have_key('ip_address')
+          expect(parsed).to have_key('timestamp')
+        end
+
+        controller.send(:log_error, 'test_error_event', test_exception, test_detail: 'test_value')
+      end
+
+      it 'limits backtrace to first 5 entries' do
+        expect(mock_logger).to receive(:error) do |log_entry|
+          parsed = JSON.parse(log_entry)
+          expect(parsed['backtrace'].length).to eq(5)
+          expect(parsed['backtrace'].first).to eq('/path/to/file1.rb:10')
+          expect(parsed['backtrace'].last).to eq('/path/to/file5.rb:50')
+        end
+
+        controller.send(:log_error, 'test_error', test_exception)
+      end
+
+      it 'handles exceptions with no backtrace' do
+        exception_no_backtrace = StandardError.new('Error without backtrace')
+
+        expect(mock_logger).to receive(:error) do |log_entry|
+          parsed = JSON.parse(log_entry)
+          expect(parsed['backtrace']).to be_nil
+        end
+
+        controller.send(:log_error, 'test_error', exception_no_backtrace)
+      end
+
+      it 'includes timestamp in ISO8601 format' do
+        frozen_time = Time.parse('2025-01-15 12:00:00 UTC')
+        allow(Time).to receive(:current).and_return(frozen_time)
+
+        expect(mock_logger).to receive(:error) do |log_entry|
+          parsed = JSON.parse(log_entry)
+          expect(parsed['timestamp']).to eq(frozen_time.iso8601)
+        end
+
+        controller.send(:log_error, 'test_error', test_exception)
+      end
+    end
+  end
+
+  describe 'ALLOWED_ERROR_CODES constant' do
+    it 'is frozen to prevent modification' do
+      expect(ErrorsController::ALLOWED_ERROR_CODES).to be_frozen
+    end
+
+    it 'contains all expected 4xx error codes' do
+      expected_4xx = %w[400 401 403 404 405 406 408 409 410 422 429]
+      expected_4xx.each do |code|
+        expect(ErrorsController::ALLOWED_ERROR_CODES).to have_key(code)
+      end
+    end
+
+    it 'contains all expected 5xx error codes' do
+      expected_5xx = %w[500 501 502 503 504]
+      expected_5xx.each do |code|
+        expect(ErrorsController::ALLOWED_ERROR_CODES).to have_key(code)
+      end
+    end
+
+    it 'has symbol values for each code' do
+      ErrorsController::ALLOWED_ERROR_CODES.each do |_code, status|
+        expect(status).to be_a(Symbol)
+      end
+    end
+
+    it 'has exactly 16 error codes defined' do
+      expect(ErrorsController::ALLOWED_ERROR_CODES.size).to eq(16)
     end
   end
 end

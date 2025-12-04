@@ -849,4 +849,291 @@ RSpec.describe BrandSetting, type: :model do
       expect(result_other).not_to eq(org_setting)
     end
   end
+
+  # ====================
+  # ADDITIONAL EDGE CASES
+  # ====================
+
+  describe 'additional edge cases' do
+    describe '#increment_version_if_colors_changed' do
+      it 'increments version when secondary_light_color changes' do
+        setting = BrandSetting.create!(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          secondary_light_color: '#14b8a6'
+        )
+
+        original_version = setting.version
+        setting.update!(secondary_light_color: '#00ff00')
+
+        expect(setting.version).to eq(original_version + 1)
+      end
+
+      it 'increments version when secondary_dark_color changes' do
+        setting = BrandSetting.create!(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          secondary_dark_color: '#0f766e'
+        )
+
+        original_version = setting.version
+        setting.update!(secondary_dark_color: '#006600')
+
+        expect(setting.version).to eq(original_version + 1)
+      end
+
+      it 'increments version when primary_light_color changes' do
+        setting = BrandSetting.create!(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          primary_light_color: '#8a4f98'
+        )
+
+        original_version = setting.version
+        setting.update!(primary_light_color: '#ff00ff')
+
+        expect(setting.version).to eq(original_version + 1)
+      end
+
+      it 'increments version when primary_dark_color changes' do
+        setting = BrandSetting.create!(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          primary_dark_color: '#4c244a'
+        )
+
+        original_version = setting.version
+        setting.update!(primary_dark_color: '#330033')
+
+        expect(setting.version).to eq(original_version + 1)
+      end
+    end
+
+    describe '#to_brand_json' do
+      it 'includes organization_id when present' do
+        organization = Organization.create!(name: 'Test Org')
+        setting = BrandSetting.create!(
+          name: 'Org Setting',
+          scope: 'organization',
+          organization_id: organization.id,
+          theme_id: 'default'
+        )
+
+        json = setting.to_brand_json
+        expect(json[:organizationId]).to eq(organization.id)
+      end
+
+      it 'includes custom theme_name when provided' do
+        setting = BrandSetting.create!(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          theme_name: 'My Custom Theme'
+        )
+
+        json = setting.to_brand_json
+        expect(json[:theme][:name]).to eq('My Custom Theme')
+      end
+
+      it 'compacts custom colors to exclude nil values' do
+        setting = BrandSetting.create!(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          primary_color: '#0066cc',
+          primary_light_color: nil,
+          secondary_color: nil
+        )
+
+        json = setting.to_brand_json
+        expect(json[:customColors][:primary]).to eq('#0066cc')
+        expect(json[:customColors]).not_to have_key(:primaryLight)
+        expect(json[:customColors]).not_to have_key(:secondary)
+      end
+    end
+
+    describe 'color validation edge cases' do
+      it 'allows blank color values' do
+        setting = BrandSetting.new(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          primary_color: '',
+          secondary_color: nil
+        )
+
+        setting.valid?
+        expect(setting.errors[:primary_color]).to be_empty
+        expect(setting.errors[:secondary_color]).to be_empty
+      end
+
+      it 'rejects short hex format without hash' do
+        setting = BrandSetting.new(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          primary_color: 'fff'
+        )
+
+        expect(setting).not_to be_valid
+        expect(setting.errors[:primary_color]).to be_present
+      end
+
+      it 'rejects long hex format without hash' do
+        setting = BrandSetting.new(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          primary_color: 'ffffff'
+        )
+
+        expect(setting).not_to be_valid
+        expect(setting.errors[:primary_color]).to be_present
+      end
+    end
+
+    describe 'WCAG contrast edge cases' do
+      it 'only validates contrast when custom colors are present' do
+        setting = BrandSetting.new(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          primary_color: nil,
+          secondary_color: nil
+        )
+
+        expect(setting.has_custom_colors?).to be false
+        expect(setting).to be_valid
+      end
+
+      it 'validates contrast only for valid hex colors' do
+        setting = BrandSetting.new(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          primary_color: 'invalid'
+        )
+
+        setting.valid?
+        # Should have format error but not contrast error
+        expect(setting.errors[:primary_color]).to include(match(/invalid/i))
+      end
+
+      it 'calculates correct contrast for 3-char hex codes' do
+        setting = BrandSetting.new(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          primary_color: '#000' # Black in short format
+        )
+
+        expect(setting).to be_valid
+        expect(setting.errors[:primary_color]).to be_empty
+      end
+    end
+
+    describe '.current_for_organization with empty string' do
+      it 'treats empty string as nil' do
+        global_setting = BrandSetting.create!(
+          name: 'Global',
+          scope: 'global',
+          theme_id: 'default',
+          active: true
+        )
+
+        result = BrandSetting.current_for_organization('')
+        expect(result).to eq(global_setting)
+      end
+    end
+
+    describe '#predefined_theme_description edge case' do
+      it 'returns nil for invalid theme_id' do
+        setting = BrandSetting.new(theme_id: 'nonexistent')
+        expect(setting.predefined_theme_description).to be_nil
+      end
+    end
+
+    describe 'clear_cache for organization scope' do
+      it 'clears cache with organization_id' do
+        organization = Organization.create!(name: 'Test Org')
+        setting = BrandSetting.create!(
+          name: 'Org Setting',
+          scope: 'organization',
+          organization_id: organization.id,
+          theme_id: 'default'
+        )
+
+        expect(Rails.cache).to receive(:delete).with(setting.cache_key_with_version)
+        expect(Rails.cache).to receive(:delete).with("brand_setting/organization/#{organization.id}")
+
+        setting.update!(name: 'Updated')
+      end
+    end
+
+    describe 'theme_colors with all custom colors' do
+      it 'returns all custom colors when all are set' do
+        setting = BrandSetting.new(
+          theme_id: 'default',
+          primary_color: '#111111',
+          primary_light_color: '#222222',
+          primary_dark_color: '#000000',
+          secondary_color: '#333333',
+          secondary_light_color: '#444444',
+          secondary_dark_color: '#111111'
+        )
+
+        colors = setting.theme_colors
+        expect(colors[:primary]).to eq('#111111')
+        expect(colors[:primaryLight]).to eq('#222222')
+        expect(colors[:primaryDark]).to eq('#000000')
+        expect(colors[:secondary]).to eq('#333333')
+        expect(colors[:secondaryLight]).to eq('#444444')
+        expect(colors[:secondaryDark]).to eq('#111111')
+      end
+    end
+
+    describe 'version validation' do
+      it 'rejects negative version' do
+        setting = BrandSetting.create!(name: 'Test', scope: 'global', theme_id: 'default')
+        setting.version = -1
+        expect(setting).not_to be_valid
+        expect(setting.errors[:version]).to be_present
+      end
+
+      it 'rejects decimal version' do
+        setting = BrandSetting.create!(name: 'Test', scope: 'global', theme_id: 'default')
+        setting.version = 1.5
+        expect(setting).not_to be_valid
+        expect(setting.errors[:version]).to be_present
+      end
+    end
+
+    describe 'metadata handling' do
+      it 'defaults to empty hash' do
+        setting = BrandSetting.create!(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default'
+        )
+
+        expect(setting.metadata).to eq({})
+      end
+
+      it 'preserves custom metadata in JSON' do
+        setting = BrandSetting.create!(
+          name: 'Test',
+          scope: 'global',
+          theme_id: 'default',
+          metadata: { foo: 'bar', nested: { key: 'value' } }
+        )
+
+        json = setting.to_brand_json
+        expect(json[:metadata]).to eq({ 'foo' => 'bar', 'nested' => { 'key' => 'value' } })
+      end
+    end
+  end
 end
