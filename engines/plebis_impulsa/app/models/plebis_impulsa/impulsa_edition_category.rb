@@ -70,7 +70,7 @@ module PlebisImpulsa
     end
 
     def territories=(values)
-      self[:territories] = values.reject(&:present?).join('|')
+      self[:territories] = values.select(&:present?).join('|')
     end
 
     def territories_names

@@ -4,9 +4,9 @@ module PlebisVotes
   class Vote < ApplicationRecord
     acts_as_paranoid
 
-    belongs_to :user, class_name: '::User'
-    belongs_to :election, class_name: 'PlebisVotes::Election'
-    belongs_to :paper_authority, class_name: '::User'
+    belongs_to :user, class_name: '::User', optional: false
+    belongs_to :election, class_name: 'PlebisVotes::Election', optional: false
+    belongs_to :paper_authority, class_name: '::User', optional: true
 
     validates :voter_id, presence: true
     validates :voter_id, uniqueness: { scope: :user_id }

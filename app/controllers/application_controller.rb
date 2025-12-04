@@ -40,8 +40,8 @@ class ApplicationController < ActionController::Base
     end
 
     # RAILS 7.2 FIX: Handle nil secrets.metas in test environment
-    @meta_description ||= Rails.application.secrets.metas&.[]('description')
-    @meta_image ||= Rails.application.secrets.metas&.[]('image')
+    @meta_description ||= Rails.application.secrets.metas&.dig('description')
+    @meta_image ||= Rails.application.secrets.metas&.dig('image')
 
     if flash[:metas]&.dig('description')
       @meta_description = flash[:metas]['description']

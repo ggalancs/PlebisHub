@@ -29,7 +29,7 @@ RSpec.describe Support, type: :model do
       it 'requires user' do
         support = build(:support, user: nil)
         expect(support).not_to be_valid
-        expect(support.errors[:user]).to include('no puede estar en blanco')
+        expect(support.errors[:user]).to include('must exist')
       end
 
       it 'accepts valid user' do
@@ -44,7 +44,7 @@ RSpec.describe Support, type: :model do
       it 'requires proposal' do
         support = build(:support, proposal: nil)
         expect(support).not_to be_valid
-        expect(support.errors[:proposal]).to include('no puede estar en blanco')
+        expect(support.errors[:proposal]).to include('must exist')
       end
 
       it 'accepts valid proposal' do

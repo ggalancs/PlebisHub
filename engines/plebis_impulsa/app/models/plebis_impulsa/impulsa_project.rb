@@ -13,8 +13,8 @@ module PlebisImpulsa
 
     self.table_name = 'impulsa_projects'
 
-    belongs_to :impulsa_edition_category, class_name: 'PlebisImpulsa::ImpulsaEditionCategory'
-    belongs_to :user, -> { with_deleted }
+    belongs_to :impulsa_edition_category, class_name: 'PlebisImpulsa::ImpulsaEditionCategory', optional: false
+    belongs_to :user, -> { with_deleted }, optional: false
     has_one :impulsa_edition, through: :impulsa_edition_category
     # Rails 7.2: Disable automatic validation of state_transitions (managed by state_machine gem)
     # Using autosave: false to prevent validation errors during state_machine transitions

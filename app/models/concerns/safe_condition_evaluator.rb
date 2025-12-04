@@ -94,7 +94,7 @@ module SafeConditionEvaluator
         when *SAFE_METHODS
           # Call the whitelisted method and get boolean result
           result = context.public_send(token)
-          result = !result.nil? # Convert to boolean
+          result = !!result # Convert to boolean (preserves false vs nil)
 
           # Apply NOT if flag is set
           if negate_next

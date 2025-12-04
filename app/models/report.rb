@@ -203,7 +203,7 @@ class Report < ApplicationRecord
 
     # Write to rank file
     File.open(rank_file, 'w:UTF-8') do |f|
-      sorted_counts.each_value do |data|
+      sorted_counts.each do |_, data|
         f.puts "#{data[:count]} #{data[:line]}"
       end
     end

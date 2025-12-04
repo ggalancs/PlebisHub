@@ -65,7 +65,7 @@ RSpec.describe ImpulsaProject, type: :model do
     it 'requires impulsa_edition_category_id' do
       project = build(:impulsa_project, impulsa_edition_category_id: nil)
       expect(project).not_to be_valid
-      expect(project.errors[:impulsa_edition_category_id]).to include('no puede estar en blanco')
+      expect(project.errors[:impulsa_edition_category]).to include('must exist')
     end
 
     it 'requires status' do
