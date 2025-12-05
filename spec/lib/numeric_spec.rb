@@ -53,6 +53,24 @@ RSpec.describe Numeric do
       end
     end
 
+    context 'with Rational numbers' do
+      it 'converts Rational(1, 2) to 0.005' do
+        expect(Rational(1, 2).percent).to eq(0.005)
+      end
+
+      it 'converts Rational(3, 4) to 0.0075' do
+        expect(Rational(3, 4).percent).to eq(0.0075)
+      end
+    end
+
+    context 'with BigDecimal' do
+      it 'converts BigDecimal("50.5") correctly' do
+        require 'bigdecimal'
+        result = BigDecimal('50.5').percent
+        expect(result).to be_within(0.0001).of(0.505)
+      end
+    end
+
     context 'with edge cases' do
       it 'handles very large numbers' do
         expect(10_000.percent).to eq(100.0)
@@ -60,6 +78,14 @@ RSpec.describe Numeric do
 
       it 'handles very small numbers' do
         expect(0.01.percent).to eq(0.0001)
+      end
+
+      it 'handles Float::INFINITY' do
+        expect(Float::INFINITY.percent).to eq(Float::INFINITY)
+      end
+
+      it 'handles negative infinity' do
+        expect((-Float::INFINITY).percent).to eq(-Float::INFINITY)
       end
     end
   end
@@ -153,6 +179,50 @@ RSpec.describe Numeric do
       end
     end
 
+    context 'with Rational numbers' do
+      it 'calculates Rational(1, 2) as percent of 100' do
+        expect(Rational(1, 2).percent_of(100)).to eq(0.5)
+      end
+
+      it 'calculates 50 as percent of Rational(100, 1)' do
+        expect(50.percent_of(Rational(100, 1))).to eq(50.0)
+      end
+    end
+
+    context 'with BigDecimal' do
+      it 'calculates BigDecimal as percent' do
+        require 'bigdecimal'
+        result = BigDecimal('50.5').percent_of(100)
+        expect(result).to be_within(0.01).of(50.5)
+      end
+    end
+
+    context 'with infinity and special values' do
+      it 'handles infinity numerator' do
+        expect(Float::INFINITY.percent_of(100)).to eq(Float::INFINITY)
+      end
+
+      it 'handles infinity denominator' do
+        result = 100.percent_of(Float::INFINITY)
+        expect(result).to eq(0.0)
+      end
+
+      it 'handles NaN denominator' do
+        result = 100.percent_of(Float::NAN)
+        expect(result.nan?).to be true
+      end
+    end
+
+    context 'with division by zero' do
+      it 'returns infinity when dividing by zero' do
+        expect(100.percent_of(0)).to eq(Float::INFINITY)
+      end
+
+      it 'returns negative infinity when dividing negative by zero' do
+        expect(-100.percent_of(0)).to eq(-Float::INFINITY)
+      end
+    end
+
     context 'with edge cases' do
       it 'handles very large numbers' do
         expect(1_000_000.percent_of(10_000_000)).to eq(10.0)
@@ -160,6 +230,10 @@ RSpec.describe Numeric do
 
       it 'handles very small numbers' do
         expect(0.001.percent_of(0.01)).to eq(10.0)
+      end
+
+      it 'handles complex calculations' do
+        expect(123.456.percent_of(789.012)).to be_within(0.01).of(15.64)
       end
     end
   end

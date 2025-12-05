@@ -28,6 +28,13 @@ RSpec.describe EngineUser::ImpulsaAuthor, type: :model do
       it 'matches impulsa_author flag value' do
         expect(user.impulsa_author?).to eq(user.impulsa_author)
       end
+
+      it 'delegates to impulsa_author attribute' do
+        # Explicitly test that the method calls the attribute
+        allow(user).to receive(:impulsa_author).and_call_original
+        user.impulsa_author?
+        expect(user).to have_received(:impulsa_author)
+      end
     end
 
     context 'when user has impulsa_author flag set to false' do

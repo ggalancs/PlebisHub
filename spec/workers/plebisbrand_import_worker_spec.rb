@@ -472,6 +472,17 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
 
       worker.perform(row)
     end
+
+    it 'directly calls PlebisBrandImport.process_row in perform method' do
+      worker = described_class.new
+      row = [['test_key', 'test_value']]
+
+      # Ensure the actual method line is executed
+      expect(PlebisBrandImport).to receive(:process_row).with(row).and_return(true)
+
+      result = worker.perform(row)
+      expect(result).to be true
+    end
   end
 
   describe 'return value' do

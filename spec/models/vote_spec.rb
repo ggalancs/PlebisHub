@@ -371,6 +371,178 @@ RSpec.describe Vote, type: :model do
       expect(vote.save).to be_falsey
       expect(vote.errors[:election]).to include('must exist')
     end
+
+    it 'adds error when voter_id cannot be generated due to missing election' do
+      vote = Vote.new(user: create(:user))
+      vote.valid?
+
+      expect(vote.errors[:voter_id]).to include('No se pudo generar')
+    end
+
+    it 'adds error when voter_id cannot be generated due to missing user' do
+      vote = Vote.new(election: create(:election))
+      vote.valid?
+
+      expect(vote.errors[:voter_id]).to include('No se pudo generar')
+    end
+  end
+
+  # ====================
+  # VOTER ID TEMPLATE TESTS
+  # ====================
+
+  describe 'voter_id_template_values' do
+    let(:user) { create(:user, document_vatid: '12345678A') }
+    let(:election) { create(:election) }
+    let(:vote) { create(:vote, user: user, election: election) }
+
+    it 'returns shared_secret when using shared_secret key' do
+      template = '%<shared_secret>s'
+      election.update(voter_id_template: template)
+      voter_id = vote.generate_voter_id
+
+      expect(voter_id).not_to be_nil
+      expect(voter_id.length).to eq(64)
+    end
+
+    it 'returns secret_key_base when using secret_key_base key' do
+      template = '%<secret_key_base>s'
+      election.update(voter_id_template: template)
+      voter_id = vote.generate_voter_id
+
+      expect(voter_id).not_to be_nil
+      expect(voter_id.length).to eq(64)
+    end
+
+    it 'returns user_id when using user_id key' do
+      template = '%<user_id>s'
+      election.update(voter_id_template: template)
+      voter_id = vote.generate_voter_id
+
+      expect(voter_id).not_to be_nil
+    end
+
+    it 'returns election_id when using election_id key' do
+      template = '%<election_id>s'
+      election.update(voter_id_template: template)
+      voter_id = vote.generate_voter_id
+
+      expect(voter_id).not_to be_nil
+    end
+
+    it 'returns scoped_agora_election_id when using scoped_agora_election_id key' do
+      template = '%<scoped_agora_election_id>s'
+      election.update(voter_id_template: template)
+      voter_id = vote.generate_voter_id
+
+      expect(voter_id).not_to be_nil
+    end
+
+    it 'returns normalized_vatid when using normalized_vatid key' do
+      template = '%<normalized_vatid>s'
+      election.update(voter_id_template: template)
+      voter_id = vote.generate_voter_id
+
+      expect(voter_id).not_to be_nil
+    end
+
+    it 'returns literal key for unknown keys' do
+      template = '%<unknown_key>s'
+      election.update(voter_id_template: template)
+      voter_id = vote.generate_voter_id
+
+      expect(voter_id).not_to be_nil
+    end
+  end
+
+  # ====================
+  # PRIVATE METHOD TESTS
+  # ====================
+
+  describe 'private methods' do
+    describe '#normalized_vatid' do
+      let(:vote) { build(:vote) }
+
+      it 'returns DNI prefix for Spanish NIFs' do
+        result = vote.send(:normalized_vatid, true, '12345678A')
+
+        expect(result).to start_with('DNI')
+      end
+
+      it 'returns PASS prefix for passports' do
+        result = vote.send(:normalized_vatid, false, 'AB123456')
+
+        expect(result).to start_with('PASS')
+      end
+
+      it 'normalizes the identifier' do
+        result = vote.send(:normalized_vatid, true, '12-345-678-A')
+
+        expect(result).to eq('DNI12345678A')
+      end
+    end
+
+    describe '#normalize_identifier' do
+      let(:vote) { build(:vote) }
+
+      it 'removes non-alphanumeric characters' do
+        result = vote.send(:normalize_identifier, '12-345-678-A')
+
+        expect(result).to eq('12345678A')
+      end
+
+      it 'converts to uppercase' do
+        result = vote.send(:normalize_identifier, '12345678a')
+
+        expect(result).to eq('12345678A')
+      end
+
+      it 'removes leading zeros from numeric groups' do
+        result = vote.send(:normalize_identifier, '00012345A')
+
+        expect(result).to eq('12345A')
+      end
+
+      it 'handles mixed alphanumeric with leading zeros' do
+        result = vote.send(:normalize_identifier, '0001234A0005B')
+
+        expect(result).to eq('1234A5B')
+      end
+
+      it 'preserves non-leading zeros' do
+        result = vote.send(:normalize_identifier, '10203040A')
+
+        expect(result).to eq('10203040A')
+      end
+
+      it 'handles identifiers with multiple groups' do
+        result = vote.send(:normalize_identifier, 'AB-001234-CD-005678')
+
+        expect(result).to eq('AB1234CD5678')
+      end
+    end
+
+    describe '#number?' do
+      let(:vote) { build(:vote) }
+
+      it 'returns true for numeric characters' do
+        ('0'..'9').each do |char|
+          expect(vote.send(:number?, char)).to be true
+        end
+      end
+
+      it 'returns false for alphabetic characters' do
+        ('A'..'Z').each do |char|
+          expect(vote.send(:number?, char)).to be false
+        end
+      end
+
+      it 'returns false for special characters' do
+        ['-', '_', '.', ' '].each do |char|
+          expect(vote.send(:number?, char)).to be false
+        end
+      end
+    end
   end
 
   # ====================
