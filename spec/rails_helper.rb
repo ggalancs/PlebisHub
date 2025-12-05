@@ -16,11 +16,11 @@ SimpleCov.start 'rails' do
   add_group 'Mailers', 'app/mailers'
 
   # Set minimum coverage percentages
-  # Current: 42.5% - incrementally increasing to 50%
+  # Current: 65.01% - excellent progress!
   # Adjusted to current level to allow passing CI
-  # TODO: Incrementally increase to 45%, then 50% as more tests are added
-  minimum_coverage 42
-  minimum_coverage_by_file 25
+  # Next target: 70%, then 80%, then 90%
+  minimum_coverage 65
+  minimum_coverage_by_file 40
 end
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
