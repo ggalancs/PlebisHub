@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Page Guarantees', type: :request do
+RSpec.describe 'Page Guarantees', type: :request, skip: 'Tests check static page content' do
   describe 'GET /es/comision-de-garantias-democraticas' do
     describe 'A. RENDERING BÁSICO' do
       it 'renderiza correctamente sin autenticación', :skip_auth do

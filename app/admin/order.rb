@@ -133,8 +133,8 @@ ActiveAdmin.register Order do
   end
 
   action_item(:restore_order, only: :show) do
-    if order.deleted?
-      link_to('Recuperar orden borrada', recover_admin_order_path(order), method: :post,
+    if resource.deleted?
+      link_to('Recuperar orden borrada', recover_admin_order_path(resource), method: :post,
                                                                           data: { confirm: '¿Estas segura de querer recuperar esta order?' })
     end
   end
