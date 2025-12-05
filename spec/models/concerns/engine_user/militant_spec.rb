@@ -4,10 +4,15 @@ require 'rails_helper'
 
 RSpec.describe EngineUser::Militant, type: :model do
   let(:vote_circle) { create(:vote_circle) }
-  let(:user) { create(:user, vote_circle: vote_circle) }
+  let(:user) { create(:user, vote_circle: vote_circle, document_type: 1, document_vatid: '12345678Z') }
 
   describe 'associations' do
-    it { expect(user).to have_many(:militant_records).dependent(:destroy) }
+    it 'has many militant_records with dependent destroy' do
+      association = user.class.reflect_on_association(:militant_records)
+      expect(association).not_to be_nil
+      expect(association.macro).to eq(:has_many)
+      expect(association.options[:dependent]).to eq(:destroy)
+    end
   end
 
   describe '#still_militant?' do
@@ -276,13 +281,13 @@ RSpec.describe EngineUser::Militant, type: :model do
 
       it 'sets begin_verified date' do
         user.militant_records_management(false)
-        record = user.militant_records.last
+        record = user.militant_records.order(id: :desc).first
         expect(record.begin_verified).not_to be_nil
       end
 
       it 'keeps end_verified as nil' do
         user.militant_records_management(false)
-        record = user.militant_records.last
+        record = user.militant_records.order(id: :desc).first
         expect(record.end_verified).to be_nil
       end
     end
@@ -298,7 +303,7 @@ RSpec.describe EngineUser::Militant, type: :model do
 
       it 'sets end_verified date' do
         user.militant_records_management(false)
-        record = user.militant_records.last
+        record = user.militant_records.order(id: :desc).first
         expect(record.end_verified).not_to be_nil
       end
     end
@@ -314,13 +319,13 @@ RSpec.describe EngineUser::Militant, type: :model do
 
       it 'sets begin_in_vote_circle date' do
         user.militant_records_management(false)
-        record = user.militant_records.last
+        record = user.militant_records.order(id: :desc).first
         expect(record.begin_in_vote_circle).not_to be_nil
       end
 
       it 'stores vote circle name' do
         user.militant_records_management(false)
-        record = user.militant_records.last
+        record = user.militant_records.order(id: :desc).first
         expect(record.vote_circle_name).to eq(vote_circle.name)
       end
     end
@@ -335,13 +340,13 @@ RSpec.describe EngineUser::Militant, type: :model do
 
       it 'sets payment_type to 0' do
         user.militant_records_management(true)
-        record = user.militant_records.last
+        record = user.militant_records.order(id: :desc).first
         expect(record.payment_type).to eq(0)
       end
 
       it 'sets amount to 0' do
         user.militant_records_management(true)
-        record = user.militant_records.last
+        record = user.militant_records.order(id: :desc).first
         expect(record.amount).to eq(0)
       end
     end
@@ -357,13 +362,13 @@ RSpec.describe EngineUser::Militant, type: :model do
 
       it 'sets payment_type to 1' do
         user.militant_records_management(true)
-        record = user.militant_records.last
+        record = user.militant_records.order(id: :desc).first
         expect(record.payment_type).to eq(1)
       end
 
       it 'stores collaboration amount' do
         user.militant_records_management(true)
-        record = user.militant_records.last
+        record = user.militant_records.order(id: :desc).first
         expect(record.amount).to eq(500)
       end
     end

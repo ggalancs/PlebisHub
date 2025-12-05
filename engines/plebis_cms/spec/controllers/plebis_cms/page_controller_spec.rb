@@ -144,7 +144,13 @@ module PlebisCms
     end
 
     describe 'form pages' do
-      before { sign_in user }
+      before do
+        sign_in user
+        allow(Rails.application.secrets).to receive(:forms).and_return({
+                                                                          'domain' => 'https://example.com',
+                                                                          'secret' => 'test_secret'
+                                                                        })
+      end
 
       it 'renders guarantees_form with correct form_id' do
         get :guarantees_form
@@ -198,7 +204,13 @@ module PlebisCms
     end
 
     describe 'private #form_url' do
-      before { sign_in user }
+      before do
+        sign_in user
+        allow(Rails.application.secrets).to receive(:forms).and_return({
+                                                                          'domain' => 'https://example.com',
+                                                                          'secret' => 'test_secret'
+                                                                        })
+      end
 
       it 'generates signed URL with form ID' do
         url = controller.send(:form_url, 77)

@@ -131,25 +131,27 @@ module EngineUser
     # @param is_militant [Boolean] Current militant status
     #
     def militant_records_management(is_militant)
-      last_record = militant_records.last || MilitantRecord.new
-      new_record = MilitantRecord.new
-      new_record.user_id = id
+      militant_records.reset
+      last_record = militant_records.last
+      new_record = militant_records.build
       now = DateTime.now
 
       # Track verification period
       if verified_for_militant?
-        new_record.begin_verified = last_record.begin_verified if last_record.end_verified.blank?
+        if last_record && last_record.end_verified.blank?
+          new_record.begin_verified = last_record.begin_verified
+        end
         new_record.begin_verified ||= user_verifications.pluck(:updated_at).last
         new_record.end_verified = nil
       else
-        new_record.begin_verified = last_record.begin_verified || nil
+        new_record.begin_verified = last_record&.begin_verified
         new_record.end_verified = now if new_record.begin_verified.present?
       end
 
       # Track vote circle membership
       if in_vote_circle?
         if vote_circle&.name.present? &&
-           last_record.vote_circle_name.present? &&
+           last_record&.vote_circle_name.present? &&
            vote_circle.name.downcase.strip == last_record.vote_circle_name.downcase.strip
           new_record.begin_in_vote_circle = last_record.begin_in_vote_circle if
             last_record.end_in_vote_circle.blank?
@@ -158,23 +160,25 @@ module EngineUser
             last_record.vote_circle_name.present? && last_record.end_in_vote_circle.nil?
           new_record.vote_circle_name ||= vote_circle&.name
         else
-          last_record.update(end_in_vote_circle: vote_circle_changed_at) if vote_circle_changed_at.present?
+          last_record&.update(end_in_vote_circle: vote_circle_changed_at) if vote_circle_changed_at.present?
           new_record.begin_in_vote_circle = vote_circle_changed_at
           new_record.vote_circle_name = vote_circle&.name
         end
         new_record.end_in_vote_circle = nil
       else
-        new_record.begin_in_vote_circle = last_record.begin_in_vote_circle if
-          last_record.begin_in_vote_circle.present?
-        new_record.vote_circle_name = last_record.vote_circle_name if
-          last_record.vote_circle_name.present?
+        new_record.begin_in_vote_circle = last_record&.begin_in_vote_circle if
+          last_record&.begin_in_vote_circle.present?
+        new_record.vote_circle_name = last_record&.vote_circle_name if
+          last_record&.vote_circle_name.present?
         new_record.end_in_vote_circle = now if new_record.begin_in_vote_circle.present?
       end
 
       # Track payment/collaboration
       if exempt_from_payment? || collaborator_for_militant?
-        date_collaboration = last_record.begin_payment if last_record.end_payment.blank?
-        new_record.payment_type = last_record.payment_type if last_record.end_payment.blank?
+        if last_record && last_record.end_payment.blank?
+          date_collaboration = last_record.begin_payment
+          new_record.payment_type = last_record.payment_type
+        end
 
         if exempt_from_payment?
           date_collaboration ||= now
@@ -199,12 +203,15 @@ module EngineUser
         new_record.begin_payment = date_collaboration
         new_record.end_payment = nil
       else
-        new_record.begin_payment = last_record.begin_payment if last_record.begin_payment.present?
+        new_record.begin_payment = last_record&.begin_payment if last_record&.begin_payment.present?
         new_record.end_payment = now if new_record.begin_payment.present?
       end
 
       new_record.is_militant = is_militant
-      new_record.save if new_record.diff?(last_record)
+      if last_record.nil? || new_record.diff?(last_record)
+        new_record.save!
+        militant_records.reset
+      end
     end
   end
 end

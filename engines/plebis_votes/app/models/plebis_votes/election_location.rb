@@ -2,6 +2,8 @@
 
 module PlebisVotes
   class ElectionLocation < ApplicationRecord
+    self.table_name = 'election_locations'
+
     belongs_to :election, class_name: 'PlebisVotes::Election'
     has_many :election_location_questions, lambda {
       order(:id)

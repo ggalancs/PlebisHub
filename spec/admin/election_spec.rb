@@ -25,7 +25,7 @@ RSpec.describe 'Election Admin', type: :request do
   let!(:election_location) { create(:election_location, election: election, location: '00') }
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
     # Stub available_servers to avoid secrets dependency
     allow(Election).to receive(:available_servers).and_return({ 'default' => { 'url' => 'http://test.com' } })
   end
@@ -807,7 +807,7 @@ RSpec.describe 'ElectionLocation Admin', type: :request do
   end
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
   end
 
   describe 'GET /admin/elections/:election_id/election_locations/new' do

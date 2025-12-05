@@ -15,7 +15,7 @@ RSpec.describe 'MicrocreditLoan Admin', type: :request do
   end
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
   end
 
   describe 'configuration' do

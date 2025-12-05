@@ -2,6 +2,8 @@
 
 module PlebisVotes
   class ElectionLocationQuestion < ApplicationRecord
+    self.table_name = 'election_location_questions'
+
     belongs_to :election_location, class_name: 'PlebisVotes::ElectionLocation'
 
     VOTING_SYSTEMS = { 'plurality-at-large' => 'Elección entre todas las respuestas',

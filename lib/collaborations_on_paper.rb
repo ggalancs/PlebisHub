@@ -46,7 +46,7 @@ class CollaborationsOnPaper
     @errors_on_save = []
     @fields = {}
 
-    CSV.foreach(csv_file, { headers: true, col_sep: col_sep }) do |row|
+    CSV.foreach(csv_file, headers: true, col_sep: col_sep) do |row|
       @fields = get_fields row
       process_row
     end

@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require 'plebisbrand_import_collaborations2017'
+
+# Manually load the file to avoid Zeitwerk issues
+load File.expand_path('../../lib/plebisbrand_import_collaborations2017.rb', __dir__)
 
 RSpec.describe PlebisBrandImportCollaborations2017 do
   describe '.log_to_file' do

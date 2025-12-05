@@ -40,7 +40,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
 
   describe 'GET /admin/user_verifications' do
     context 'as admin user' do
-      before { sign_in admin_user }
+      before { sign_in_admin admin_user }
 
       it 'displays the index page' do
         get admin_user_verifications_path
@@ -65,7 +65,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   end
 
   describe 'scopes' do
-    before { sign_in admin_user }
+    before { sign_in_admin admin_user }
 
     it 'filters all verifications' do
       get admin_user_verifications_path, params: { scope: 'all' }
@@ -109,7 +109,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   end
 
   describe 'filters' do
-    before { sign_in admin_user }
+    before { sign_in_admin admin_user }
 
     it 'filters by status' do
       get admin_user_verifications_path, params: { q: { status_eq: 0 } }
@@ -138,7 +138,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   end
 
   describe 'GET /admin/user_verifications/:id' do
-    before { sign_in admin_user }
+    before { sign_in_admin admin_user }
 
     it 'displays the show page' do
       get admin_user_verification_path(pending_verification)
@@ -152,7 +152,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   end
 
   describe 'GET /admin/user_verifications/:id/edit' do
-    before { sign_in admin_user }
+    before { sign_in_admin admin_user }
 
     it 'displays the edit form' do
       get edit_admin_user_verification_path(pending_verification)
@@ -169,7 +169,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   describe 'PUT /admin/user_verifications/:id' do
     context 'as admin user' do
       before do
-        sign_in admin_user
+        sign_in_admin admin_user
         allow(redis_double).to receive(:hget).with(:processing, pending_verification.id).and_return(
           "{author_id=>#{admin_user.id}, locked_at=>\"#{DateTime.now.utc.strftime('%d/%m/%Y %H|%M')}\"}"
         )
@@ -248,7 +248,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   end
 
   describe 'GET /admin/user_verifications/get_first_free' do
-    before { sign_in admin_user }
+    before { sign_in_admin admin_user }
 
     context 'when pending verifications exist' do
       before do
@@ -300,7 +300,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   end
 
   describe 'GET /admin/user_verifications/:id/cancel_edition' do
-    before { sign_in admin_user }
+    before { sign_in_admin admin_user }
 
     it 'removes verification from redis' do
       expect(redis_double).to receive(:hget).with(:processing, pending_verification.id.to_s)
@@ -316,7 +316,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
 
   describe 'PATCH /admin/user_verifications/:id/rotate' do
     before do
-      sign_in admin_user
+      sign_in_admin admin_user
       allow_any_instance_of(UserVerification).to receive(:rotate).and_return({})
       # Mock the attachment reprocessing
       attachment_double = instance_double(ActiveStorage::Attached::One)
@@ -353,7 +353,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   end
 
   describe 'GET /admin/user_verifications/:id/view_image' do
-    before { sign_in admin_user }
+    before { sign_in_admin admin_user }
 
     context 'with missing parameters' do
       it 'handles missing attachment parameter gracefully' do
@@ -402,7 +402,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   end
 
   describe 'controller methods' do
-    before { sign_in admin_user }
+    before { sign_in_admin admin_user }
 
     describe '#remove_redis_hash' do
       it 'removes verification from redis processing' do
@@ -445,7 +445,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   describe 'permitted parameters' do
     context 'as admin user' do
       before do
-        sign_in admin_user
+        sign_in_admin admin_user
         allow(redis_double).to receive(:hget).with(:processing, pending_verification.id).and_return(
           "{author_id=>#{admin_user.id}, locked_at=>\"#{DateTime.now.utc.strftime('%d/%m/%Y %H|%M')}\"}"
         )
@@ -493,7 +493,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   end
 
   describe 'actions configuration' do
-    before { sign_in admin_user }
+    before { sign_in_admin admin_user }
 
     it 'allows index action' do
       get admin_user_verifications_path
@@ -527,7 +527,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
   end
 
   describe 'sort order configuration' do
-    before { sign_in admin_user }
+    before { sign_in_admin admin_user }
 
     it 'applies default sort order' do
       get admin_user_verifications_path

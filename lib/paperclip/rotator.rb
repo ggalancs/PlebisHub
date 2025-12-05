@@ -12,9 +12,12 @@ module Paperclip
 
     def rotate_command
       target = @attachment.instance
-      return unless target.respond_to?(:rotate) && target.rotate[@attachment.name].present?
+      return unless target.respond_to?(:rotate)
 
-      " -rotate #{target.rotate[@attachment.name]} "
+      rotate_data = target.rotate
+      return unless rotate_data && rotate_data[@attachment.name].present?
+
+      " -rotate #{rotate_data[@attachment.name]} "
     end
   end
 end

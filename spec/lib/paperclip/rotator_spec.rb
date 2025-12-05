@@ -1,6 +1,22 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+
+# Stub Paperclip module and Thumbnail class since Paperclip has been replaced
+module Paperclip
+  class Thumbnail
+    def initialize(file, options, attachment)
+      @file = file
+      @options = options
+      @attachment = attachment
+    end
+
+    def transformation_command
+      ['-resize', '100x100']
+    end
+  end
+end
+
 require 'paperclip/rotator'
 
 RSpec.describe Paperclip::Rotator do
@@ -13,9 +29,6 @@ RSpec.describe Paperclip::Rotator do
       before do
         allow(model_instance).to receive(:respond_to?).with(:rotate).and_return(true)
         allow(model_instance).to receive(:rotate).and_return({ avatar: '90' })
-        # Mock superclass transformation_command
-        allow_any_instance_of(described_class).to receive(:transformation_command).and_call_original
-        allow_any_instance_of(Paperclip::Thumbnail).to receive(:transformation_command).and_return(['-resize', '100x100'])
       end
 
       it 'prepends rotate command to superclass command' do
@@ -39,7 +52,6 @@ RSpec.describe Paperclip::Rotator do
     context 'when rotate_command is nil' do
       before do
         allow(model_instance).to receive(:respond_to?).with(:rotate).and_return(false)
-        allow_any_instance_of(Paperclip::Thumbnail).to receive(:transformation_command).and_return(['-resize', '100x100'])
       end
 
       it 'returns only superclass transformation command' do

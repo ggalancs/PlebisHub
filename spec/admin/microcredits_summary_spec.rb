@@ -6,7 +6,7 @@ RSpec.describe 'Microcredits Summary Admin Page', type: :request do
   let(:admin_user) { create(:user, :admin) }
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
     # Stub Microcredit model if it exists
     unless defined?(Microcredit)
       stub_const('Microcredit', Class.new(ApplicationRecord))

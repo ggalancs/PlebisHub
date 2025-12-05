@@ -2,6 +2,8 @@
 
 module PlebisVotes
   class VoteCircle < ApplicationRecord
+    self.table_name = 'vote_circles'
+
     include PlebisVotes::TerritoryDetails
 
     enum :kind, { interno: 0, barrial: 1, municipal: 2, comarcal: 3, exterior: 4 }
@@ -53,7 +55,7 @@ module PlebisVotes
     end
 
     def in_spain?
-      [[VoteCircle.kinds[:barrial], VoteCircle.kinds[:municipal], VoteCircle.kinds[:comarcal]]].include? kind
+      [VoteCircle.kinds[:barrial], VoteCircle.kinds[:municipal], VoteCircle.kinds[:comarcal]].include? kind
     end
 
     def code_in_spain?

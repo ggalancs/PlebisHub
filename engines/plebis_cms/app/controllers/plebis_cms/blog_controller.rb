@@ -39,10 +39,10 @@ module PlebisCms
       log_security_event('blog_post_viewed', post_id: @post.id, admin: current_user&.is_admin? || false)
     rescue ActiveRecord::RecordNotFound
       log_security_event('blog_post_not_found', post_id: params[:id])
-      redirect_to blog_index_path, alert: t('errors.messages.not_found')
+      redirect_to blog_path, alert: t('errors.messages.not_found')
     rescue StandardError => e
       log_error('blog_post_error', e, post_id: params[:id])
-      redirect_to blog_index_path, alert: t('errors.messages.generic')
+      redirect_to blog_path, alert: t('errors.messages.generic')
     end
 
     # Display posts by category
@@ -57,10 +57,10 @@ module PlebisCms
       log_security_event('blog_category_viewed', category_id: @category.id, admin: current_user&.is_admin? || false)
     rescue ActiveRecord::RecordNotFound
       log_security_event('blog_category_not_found', category_id: params[:id])
-      redirect_to blog_index_path, alert: t('errors.messages.not_found')
+      redirect_to blog_path, alert: t('errors.messages.not_found')
     rescue StandardError => e
       log_error('blog_category_error', e, category_id: params[:id])
-      redirect_to blog_index_path, alert: t('errors.messages.generic')
+      redirect_to blog_path, alert: t('errors.messages.generic')
     end
 
     private

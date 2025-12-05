@@ -27,6 +27,10 @@ module PlebisVerification
       allow(controller).to receive(:banned_user).and_return(true)
       allow(controller).to receive(:unresolved_issues).and_return(true)
       allow(controller).to receive(:allow_iframe_requests).and_return(true)
+
+      # Stub route helpers that reference main app
+      allow(controller).to receive(:root_path).and_return('/')
+      allow(controller).to receive(:new_user_session_path).and_return('/users/sign_in')
       allow(controller).to receive(:admin_logger).and_return(true)
       allow(controller).to receive(:set_metas).and_return(true)
       allow(controller).to receive(:set_locale).and_return(true)
@@ -296,11 +300,11 @@ module PlebisVerification
     # ==================== REPORT ACTION TESTS ====================
 
     describe 'GET #report' do
-      let(:admin_user) { create(:admin_user) }
+      let(:admin_user) { create(:user, :admin) }
       let(:report_code) { 'test_code' }
 
       before do
-        sign_in_admin_user admin_user
+        sign_in admin_user
         allow(Rails.application).to receive(:secrets).and_return(
           double(user_verifications: { report_code => {} })
         )

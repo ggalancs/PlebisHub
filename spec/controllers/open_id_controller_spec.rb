@@ -23,9 +23,12 @@ RSpec.describe OpenIdController, type: :controller do
     allow(OpenID::Server::Server).to receive(:new).and_return(openid_server)
 
     # Mock URL helpers since routes may not be available
-    allow(controller).to receive(:open_id_xrds_url).and_return('http://test.host/openid/xrds')
-    allow(controller).to receive(:open_id_create_url).and_return('http://test.host/openid')
-    allow(controller).to receive(:open_id_user_url).and_return('http://test.host/user/1')
+    # Use without_partial_double_verification for URL helpers that may not exist
+    RSpec::Mocks.without_partial_double_verification do
+      allow(controller).to receive(:open_id_xrds_url).and_return('http://test.host/openid/xrds')
+      allow(controller).to receive(:open_id_create_url).and_return('http://test.host/openid')
+      allow(controller).to receive(:open_id_user_url).and_return('http://test.host/user/1')
+    end
   end
 
   # ==================== DISCOVERY ENDPOINT TESTS ====================

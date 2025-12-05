@@ -2,6 +2,8 @@
 
 module PlebisVotes
   class Election < ApplicationRecord
+    self.table_name = 'elections'
+
     include FlagShihTzu
 
     SCOPE = [['Estatal', 0], ['Comunidad', 1], ['Provincial', 2], ['Municipal', 3], ['Insular', 4], ['Extranjeros', 5],

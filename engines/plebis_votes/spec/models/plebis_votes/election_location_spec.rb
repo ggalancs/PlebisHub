@@ -58,19 +58,19 @@ module PlebisVotes
         it 'requires title' do
           election_location.title = nil
           expect(election_location.valid?).to be_falsey
-          expect(election_location.errors[:title]).to include("can't be blank")
+          expect(election_location.errors[:title]).to include("no puede estar en blanco")
         end
 
         it 'requires layout' do
           election_location.layout = nil
           expect(election_location.valid?).to be_falsey
-          expect(election_location.errors[:layout]).to include("can't be blank")
+          expect(election_location.errors[:layout]).to include("no puede estar en blanco")
         end
 
         it 'requires theme' do
           election_location.theme = nil
           expect(election_location.valid?).to be_falsey
-          expect(election_location.errors[:theme]).to include("can't be blank")
+          expect(election_location.errors[:theme]).to include("no puede estar en blanco")
         end
       end
 

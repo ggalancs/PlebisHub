@@ -25,7 +25,7 @@ RSpec.describe 'Microcredit Admin', type: :request do
   let!(:microcredit_option) { create(:microcredit_option, microcredit: microcredit, name: 'Option 1') }
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
   end
 
   describe 'GET /admin/microcredits' do

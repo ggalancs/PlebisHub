@@ -5,16 +5,34 @@ require 'rails_helper'
 module PlebisCms
   RSpec.describe Category, type: :model do
     describe 'associations' do
-      it { is_expected.to have_and_belong_to_many(:posts).class_name('PlebisCms::Post') }
+      it 'has and belongs to many posts' do
+        category = create(:category)
+        expect(category).to respond_to(:posts)
+        expect(category.posts).to be_a(ActiveRecord::Associations::CollectionProxy)
+      end
     end
 
     describe 'validations' do
-      it { is_expected.to validate_presence_of(:name) }
+      it 'validates presence of name' do
+        category = Category.new(name: nil)
+        expect(category.valid?).to be false
+        expect(category.errors[:name]).to include("no puede estar en blanco")
+      end
 
       describe 'uniqueness validations' do
-        subject { create(:category) }
-        it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
-        it { is_expected.to validate_uniqueness_of(:slug).case_insensitive.allow_nil }
+        it 'validates uniqueness of name (case insensitive)' do
+          create(:category, name: 'Test Name')
+          duplicate = Category.new(name: 'TEST NAME')
+          expect(duplicate.valid?).to be false
+          expect(duplicate.errors[:name]).to include("ya está en uso")
+        end
+
+        it 'validates uniqueness of slug (case insensitive, allows nil)' do
+          category1 = create(:category)
+          category2 = Category.new(name: 'Different Name', slug: category1.slug.upcase)
+          expect(category2.valid?).to be false
+          expect(category2.errors[:slug]).to include("ya está en uso")
+        end
       end
     end
 

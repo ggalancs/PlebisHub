@@ -15,7 +15,7 @@ RSpec.describe 'Report Admin', type: :request do
   end
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
     # Stub PlebisBrandReportWorker if it exists
     unless defined?(PlebisBrandReportWorker)
       stub_const('PlebisBrandReportWorker', Class.new)

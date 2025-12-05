@@ -6,7 +6,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
   let(:admin_user) { create(:user, :admin) }
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
     # Stub User verification methods that may cause issues
     allow_any_instance_of(User).to receive(:verified_for_militant?).and_return(false)
     allow_any_instance_of(User).to receive(:still_militant?).and_return(false)

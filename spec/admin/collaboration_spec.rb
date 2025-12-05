@@ -10,7 +10,7 @@ RSpec.describe 'Collaboration Admin', type: :request do
   let!(:collaboration_deleted) { create(:collaboration, :deleted) }
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
     # Mock helper methods and dependencies
     allow_any_instance_of(Collaboration).to receive(:get_orders).and_return([])
     allow(Collaboration).to receive(:has_bank_file?).and_return([false, false])

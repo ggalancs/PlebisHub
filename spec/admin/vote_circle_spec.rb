@@ -9,7 +9,7 @@ RSpec.describe 'VoteCircle Admin', type: :request do
   let!(:default_vote_circle) { create(:vote_circle, code: 'IP000000001', name: 'Default Circle', kind: :interno) }
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
   end
 
   describe 'GET /admin/vote_circles' do

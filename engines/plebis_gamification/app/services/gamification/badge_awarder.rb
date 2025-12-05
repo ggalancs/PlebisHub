@@ -71,6 +71,10 @@ module Gamification
       def user_has_badge?(user, badge)
         UserBadge.exists?(user_id: user.id, badge_id: badge.id)
       end
+
+      def publish_event(event_name, payload = {})
+        EventBus.instance.publish(event_name, payload)
+      end
     end
   end
 end

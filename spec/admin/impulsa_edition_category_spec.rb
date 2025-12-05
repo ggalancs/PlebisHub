@@ -18,7 +18,7 @@ RSpec.describe 'ImpulsaEditionCategory Admin', type: :request do
   end
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
 
     # Skip authorization for ImpulsaEditionCategory
     # ImpulsaEditionCategory is not explicitly defined in the Ability model

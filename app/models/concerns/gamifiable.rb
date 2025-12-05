@@ -92,6 +92,13 @@ module Gamifiable
   private
 
   def initialize_gamification_stats
-    Gamification::UserStats.create!(user_id: id)
+    return gamification_user_stats if gamification_user_stats.present?
+
+    # Use find_or_create_by to handle race conditions and avoid deadlocks
+    Gamification::UserStats.find_or_create_by!(user_id: id)
+  rescue ActiveRecord::RecordNotUnique, ActiveRecord::Deadlocked
+    # If there's a uniqueness constraint violation or deadlock, reload the association
+    reload_gamification_user_stats
+    gamification_user_stats
   end
 end

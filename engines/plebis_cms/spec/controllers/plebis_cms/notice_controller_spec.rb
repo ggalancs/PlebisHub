@@ -60,7 +60,7 @@ module PlebisCms
 
       context 'scoping' do
         let!(:draft_notice) { create(:notice, sent_at: nil) }
-        let!(:inactive_notice) { create(:notice, :sent, deleted_at: Time.current) }
+        let!(:inactive_notice) { create(:notice, :sent, final_valid_at: 1.day.ago) }
 
         it 'only shows sent notices' do
           get :index

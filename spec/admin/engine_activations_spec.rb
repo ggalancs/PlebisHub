@@ -15,7 +15,7 @@ RSpec.describe 'EngineActivation Admin', type: :request do
   end
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
     # Stub PlebisCore::EngineRegistry
     stub_const('PlebisCore::EngineRegistry', Class.new)
     allow(PlebisCore::EngineRegistry).to receive(:info).and_return({

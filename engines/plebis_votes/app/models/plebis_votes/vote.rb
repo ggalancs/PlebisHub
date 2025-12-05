@@ -2,6 +2,8 @@
 
 module PlebisVotes
   class Vote < ApplicationRecord
+    self.table_name = 'votes'
+
     acts_as_paranoid
 
     belongs_to :user, class_name: '::User', optional: false

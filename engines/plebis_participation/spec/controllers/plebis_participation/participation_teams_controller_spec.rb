@@ -7,7 +7,7 @@ module PlebisParticipation
     routes { PlebisParticipation::Engine.routes }
 
     let(:user) { create(:user) }
-    let(:team) { create(:participation_team, :active) }
+    let(:team) { create(:participation_team) }
 
     before { sign_in user }
 
@@ -38,8 +38,8 @@ module PlebisParticipation
     end
 
     describe 'GET #index' do
-      let!(:active_team) { create(:participation_team, :active) }
-      let!(:inactive_team) { create(:participation_team, active: false) }
+      let!(:active_team) { create(:participation_team) }
+      let!(:inactive_team) { create(:participation_team, :inactive) }
 
       it 'loads active teams' do
         get :index

@@ -6,7 +6,7 @@ RSpec.describe 'Dashboard Admin Page', type: :request do
   let(:admin_user) { create(:user, :admin) }
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
     # Stub Notice and Election models if they're from engines
     stub_const('Notice', Class.new(ApplicationRecord)) unless defined?(Notice)
     stub_const('Election', Class.new(ApplicationRecord)) unless defined?(Election)

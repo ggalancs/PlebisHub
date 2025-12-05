@@ -4,14 +4,37 @@ require 'rails_helper'
 require 'generators/plebis/engine/engine_generator'
 
 RSpec.describe Plebis::Generators::EngineGenerator, type: :generator do
-  destination File.expand_path('../../../../../tmp/generator_test', __dir__)
+  include FileUtils
 
-  before(:all) do
-    prepare_destination
+  let(:destination_root) { File.expand_path('../../../../../tmp/generator_test', __dir__) }
+
+  before(:each) do
+    rm_rf(destination_root) if File.exist?(destination_root)
+    mkdir_p(destination_root)
   end
 
   after(:each) do
-    FileUtils.rm_rf(destination_root) if File.exist?(destination_root)
+    rm_rf(destination_root) if File.exist?(destination_root)
+  end
+
+  def run_generator(args = [], options = {})
+    silence_stream(STDOUT) do
+      Plebis::Generators::EngineGenerator.start(args, { destination_root: destination_root }.merge(options))
+    end
+  rescue Thor::Error => e
+    raise e
+  rescue SystemExit
+    # Generator may exit successfully
+  end
+
+  def silence_stream(stream)
+    old_stream = stream.dup
+    stream.reopen(File::NULL)
+    stream.sync = true
+    yield
+  ensure
+    stream.reopen(old_stream)
+    old_stream.close
   end
 
   describe '#validate_engine_name' do

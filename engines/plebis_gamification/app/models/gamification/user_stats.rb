@@ -178,7 +178,7 @@ module Gamification
     class << self
       # Get or create stats for user
       def for_user(user)
-        find_or_create_by!(user_id: user.id)
+        find_or_create_by(user_id: user.id)
       end
 
       # Leaderboard

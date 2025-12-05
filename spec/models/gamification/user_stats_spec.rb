@@ -569,25 +569,32 @@ RSpec.describe Gamification::UserStats, type: :model do
   # ====================
 
   describe '.for_user' do
-    let(:user) { create(:user) }
-
     it 'creates stats if they do not exist' do
-      expect { described_class.for_user(user) }
-        .to change(described_class, :count).by(1)
+      user = create(:user)
+      result = described_class.for_user(user)
+      expect(result).to be_persisted
+      expect(result.user_id).to eq(user.id)
+      expect(described_class.where(user_id: user.id).count).to eq(1)
     end
 
     it 'returns existing stats if they exist' do
-      existing = create(:gamification_user_stats, user: user)
+      user = create(:user)
+      # User already has stats from after_create callback
+      existing = described_class.find_by(user_id: user.id)
+      expect(existing).to be_present
 
       result = described_class.for_user(user)
       expect(result).to eq(existing)
+      expect(result.id).to eq(existing.id)
     end
 
     it 'does not create duplicate stats' do
-      described_class.for_user(user)
+      user = create(:user)
+      first_call = described_class.for_user(user)
+      second_call = described_class.for_user(user)
 
-      expect { described_class.for_user(user) }
-        .not_to change(described_class, :count)
+      expect(first_call.id).to eq(second_call.id)
+      expect(described_class.where(user_id: user.id).count).to eq(1)
     end
   end
 

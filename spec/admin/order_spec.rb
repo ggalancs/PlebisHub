@@ -10,7 +10,7 @@ RSpec.describe 'Order Admin', type: :request do
   let!(:order_deleted) { create(:order, :deleted) }
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
     # Mock helper methods to avoid dependencies
     allow_any_instance_of(Order).to receive(:generate_target_territory).and_return('Estatal')
   end

@@ -13,7 +13,7 @@ RSpec.describe 'Proposal Admin', type: :request do
   end
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
     # Stub the reddit scope on Proposal
     allow(Proposal).to receive(:reddit).and_return(Proposal.all)
   end

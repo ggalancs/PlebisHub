@@ -9,8 +9,8 @@ module PlebisCms
     let(:user) { create(:user) }
     let(:admin) { create(:user, :admin) }
     let(:category) { create(:category, :active) }
-    let!(:published_post) { create(:post, :published, category: category) }
-    let!(:draft_post) { create(:post, category: category, published_at: nil) }
+    let!(:published_post) { create(:post, :published, categories: [category]) }
+    let!(:draft_post) { create(:post, status: 0, categories: [category]) }
 
     describe 'GET #index' do
       context 'as regular user' do
@@ -123,7 +123,7 @@ module PlebisCms
 
         it 'redirects to blog index' do
           get :post, params: { id: 99999 }
-          expect(response).to redirect_to(blog_index_path)
+          expect(response).to redirect_to(blog_path)
         end
 
         it 'sets alert message' do
@@ -145,7 +145,7 @@ module PlebisCms
 
         it 'redirects to blog index on error' do
           get :post, params: { id: published_post.id }
-          expect(response).to redirect_to(blog_index_path)
+          expect(response).to redirect_to(blog_path)
         end
 
         it 'logs the error' do
@@ -186,7 +186,7 @@ module PlebisCms
 
         it 'redirects to blog index' do
           get :category, params: { id: 99999 }
-          expect(response).to redirect_to(blog_index_path)
+          expect(response).to redirect_to(blog_path)
         end
 
         it 'logs the not found event' do
@@ -203,7 +203,7 @@ module PlebisCms
 
         it 'redirects on error' do
           get :category, params: { id: category.id }
-          expect(response).to redirect_to(blog_index_path)
+          expect(response).to redirect_to(blog_path)
         end
 
         it 'logs the error' do

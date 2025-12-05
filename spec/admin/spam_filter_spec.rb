@@ -25,7 +25,7 @@ RSpec.describe 'SpamFilter Admin', type: :request do
   end
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
   end
 
   describe 'GET /admin/spam_filters' do

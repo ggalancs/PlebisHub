@@ -5,12 +5,25 @@ require 'rails_helper'
 module PlebisCms
   RSpec.describe Post, type: :model do
     describe 'associations' do
-      it { is_expected.to have_and_belong_to_many(:categories).class_name('PlebisCms::Category') }
+      it 'has and belongs to many categories' do
+        post = create(:post)
+        expect(post).to respond_to(:categories)
+        expect(post.categories).to be_a(ActiveRecord::Associations::CollectionProxy)
+      end
     end
 
     describe 'validations' do
-      it { is_expected.to validate_presence_of(:title) }
-      it { is_expected.to validate_presence_of(:status) }
+      it 'validates presence of title' do
+        post = Post.new(title: nil)
+        expect(post.valid?).to be false
+        expect(post.errors[:title]).to include("no puede estar en blanco")
+      end
+
+      it 'validates presence of status' do
+        post = Post.new(status: nil)
+        expect(post.valid?).to be false
+        expect(post.errors[:status]).to include("no puede estar en blanco")
+      end
     end
 
     describe 'FriendlyId' do

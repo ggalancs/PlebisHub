@@ -5,8 +5,17 @@ require 'rails_helper'
 module PlebisCms
   RSpec.describe Notice, type: :model do
     describe 'validations' do
-      it { is_expected.to validate_presence_of(:title) }
-      it { is_expected.to validate_presence_of(:body) }
+      it 'validates presence of title' do
+        notice = Notice.new(title: nil)
+        expect(notice.valid?).to be false
+        expect(notice.errors[:title]).to include("no puede estar en blanco")
+      end
+
+      it 'validates presence of body' do
+        notice = Notice.new(body: nil)
+        expect(notice.valid?).to be false
+        expect(notice.errors[:body]).to include("no puede estar en blanco")
+      end
 
       describe 'link validation' do
         it 'allows blank link' do

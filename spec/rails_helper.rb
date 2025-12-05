@@ -108,9 +108,16 @@ RSpec.configure do |config|
   config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Devise::Test::IntegrationHelpers, type: :request
 
+  # Include ActiveSupport::Testing::TimeHelpers for time travel in tests
+  config.include ActiveSupport::Testing::TimeHelpers
+
   # Database Cleaner configuration
   config.before(:suite) do
-    DatabaseCleaner.clean_with(:truncation)
+    DatabaseCleaner.clean_with(:deletion)
+  rescue ActiveRecord::Deadlocked
+    # Retry once if deadlock occurs
+    sleep 1
+    DatabaseCleaner.clean_with(:deletion)
   end
 
   config.before(:each) do

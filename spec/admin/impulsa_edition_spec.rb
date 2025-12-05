@@ -19,7 +19,7 @@ RSpec.describe 'ImpulsaEdition Admin', type: :request do
   end
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
   end
 
   describe 'ActiveAdmin configuration' do
@@ -364,7 +364,7 @@ RSpec.describe 'ImpulsaEditionTopic Admin', type: :request do
   end
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
   end
 
   describe 'GET /admin/impulsa_editions/:impulsa_edition_id/impulsa_edition_topics/new' do

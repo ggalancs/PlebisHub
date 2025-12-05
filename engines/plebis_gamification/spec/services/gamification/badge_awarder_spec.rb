@@ -14,9 +14,12 @@ module Gamification
              icon: '🏆',
              points_reward: 100)
     end
+    let(:notification_class) { class_double('Notification').as_stubbed_const }
 
     before do
       allow(UserStats).to receive(:for_user).with(user).and_return(user_stats)
+      allow(notification_class).to receive(:create!)
+      allow_any_instance_of(Object).to receive(:publish_event)
     end
 
     describe '.check_and_award!' do
@@ -67,8 +70,8 @@ module Gamification
         allow(badge2).to receive(:criteria_met?).with(user).and_return(true)
         allow(UserBadge).to receive(:create!).and_return(user_badge2)
         allow(user_stats).to receive(:earn_points!)
-        allow(Notification).to receive(:create!)
-        allow(described_class).to receive(:publish_event)
+        allow(notification_class).to receive(:create!)
+        allow_any_instance_of(Object).to receive(:publish_event)
 
         expect(UserBadge).not_to receive(:create!).with(hash_including(badge: badge1))
         described_class.check_and_award!(user)
@@ -80,8 +83,8 @@ module Gamification
         allow(badge2).to receive(:criteria_met?).with(user).and_return(false)
         allow(UserBadge).to receive(:create!).and_return(user_badge1)
         allow(user_stats).to receive(:earn_points!)
-        allow(Notification).to receive(:create!)
-        allow(described_class).to receive(:publish_event)
+        allow(notification_class).to receive(:create!)
+        allow_any_instance_of(Object).to receive(:publish_event)
 
         result = described_class.check_and_award!(user)
         expect(result).to include(user_badge1)
@@ -93,8 +96,8 @@ module Gamification
         allow(badge2).to receive(:criteria_met?).with(user).and_return(true)
         allow(UserBadge).to receive(:create!).and_return(user_badge1, user_badge2)
         allow(user_stats).to receive(:earn_points!)
-        allow(Notification).to receive(:create!)
-        allow(described_class).to receive(:publish_event)
+        allow(notification_class).to receive(:create!)
+        allow_any_instance_of(Object).to receive(:publish_event)
 
         result = described_class.check_and_award!(user)
         expect(result).to match_array([user_badge1, user_badge2])
@@ -126,8 +129,8 @@ module Gamification
           ).and_return(user_badge)
 
           allow(user_stats).to receive(:earn_points!)
-          allow(Notification).to receive(:create!)
-          allow(described_class).to receive(:publish_event)
+          allow(notification_class).to receive(:create!)
+          allow_any_instance_of(Object).to receive(:publish_event)
 
           described_class.award_badge!(user, badge)
         end
@@ -135,8 +138,8 @@ module Gamification
         it 'awards bonus points when badge has points reward' do
           allow(UserBadge).to receive(:create!).and_return(user_badge)
           allow(badge).to receive(:points_reward).and_return(100)
-          allow(Notification).to receive(:create!)
-          allow(described_class).to receive(:publish_event)
+          allow(notification_class).to receive(:create!)
+          allow_any_instance_of(Object).to receive(:publish_event)
 
           expect(user_stats).to receive(:earn_points!).with(
             100,
@@ -150,8 +153,8 @@ module Gamification
         it 'does not award points when badge has no points reward' do
           allow(UserBadge).to receive(:create!).and_return(user_badge)
           allow(badge).to receive(:points_reward).and_return(0)
-          allow(Notification).to receive(:create!)
-          allow(described_class).to receive(:publish_event)
+          allow(notification_class).to receive(:create!)
+          allow_any_instance_of(Object).to receive(:publish_event)
 
           expect(user_stats).not_to receive(:earn_points!)
 
@@ -161,9 +164,9 @@ module Gamification
         it 'publishes badge earned event' do
           allow(UserBadge).to receive(:create!).and_return(user_badge)
           allow(user_stats).to receive(:earn_points!)
-          allow(Notification).to receive(:create!)
+          allow(notification_class).to receive(:create!)
 
-          expect(described_class).to receive(:publish_event).with(
+          expect_any_instance_of(Object).to receive(:publish_event).with(
             'gamification.badge_earned',
             {
               user_id: user.id,
@@ -179,9 +182,9 @@ module Gamification
         it 'creates notification for user' do
           allow(UserBadge).to receive(:create!).and_return(user_badge)
           allow(user_stats).to receive(:earn_points!)
-          allow(described_class).to receive(:publish_event)
+          allow_any_instance_of(Object).to receive(:publish_event)
 
-          expect(Notification).to receive(:create!).with(
+          expect(notification_class).to receive(:create!).with(
             user: user,
             notification_type: 'badge_earned',
             title: "¡Badge desbloqueado! #{badge.icon}",
@@ -196,8 +199,8 @@ module Gamification
         it 'returns created user badge' do
           allow(UserBadge).to receive(:create!).and_return(user_badge)
           allow(user_stats).to receive(:earn_points!)
-          allow(Notification).to receive(:create!)
-          allow(described_class).to receive(:publish_event)
+          allow(notification_class).to receive(:create!)
+          allow_any_instance_of(Object).to receive(:publish_event)
 
           result = described_class.award_badge!(user, badge)
           expect(result).to eq(user_badge)
@@ -225,12 +228,12 @@ module Gamification
         end
 
         it 'does not publish event' do
-          expect(described_class).not_to receive(:publish_event)
+          expect_any_instance_of(Object).not_to receive(:publish_event)
           described_class.award_badge!(user, badge)
         end
 
         it 'does not create notification' do
-          expect(Notification).not_to receive(:create!)
+          expect(notification_class).not_to receive(:create!)
           described_class.award_badge!(user, badge)
         end
       end
@@ -251,8 +254,8 @@ module Gamification
         it 'raises error when notification creation fails' do
           allow(UserBadge).to receive(:create!).and_return(user_badge)
           allow(user_stats).to receive(:earn_points!)
-          allow(described_class).to receive(:publish_event)
-          allow(Notification).to receive(:create!).and_raise(ActiveRecord::RecordInvalid.new)
+          allow_any_instance_of(Object).to receive(:publish_event)
+          allow(notification_class).to receive(:create!).and_raise(ActiveRecord::RecordInvalid.new)
 
           expect do
             described_class.award_badge!(user, badge)
@@ -315,8 +318,8 @@ module Gamification
 
         allow(UserBadge).to receive(:create!).and_return(bronze_user_badge, silver_user_badge)
         allow(user_stats).to receive(:earn_points!)
-        allow(Notification).to receive(:create!)
-        allow(described_class).to receive(:publish_event)
+        allow(notification_class).to receive(:create!)
+        allow_any_instance_of(Object).to receive(:publish_event)
 
         result = described_class.check_and_award!(user)
         expect(result.length).to eq(2)
@@ -329,8 +332,8 @@ module Gamification
         allow(silver_badge).to receive(:criteria_met?).and_return(true)
         allow(UserBadge).to receive(:create!)
           .and_return(double('UserBadge', id: 1), double('UserBadge', id: 2))
-        allow(Notification).to receive(:create!)
-        allow(described_class).to receive(:publish_event)
+        allow(notification_class).to receive(:create!)
+        allow_any_instance_of(Object).to receive(:publish_event)
 
         expect(user_stats).to receive(:earn_points!).with(10, anything).once
         expect(user_stats).to receive(:earn_points!).with(50, anything).once

@@ -20,7 +20,7 @@ class Reddit
   end
 
   def proposals(url)
-    JSON.parse(open(url))['data']['children']
+    JSON.parse(open(url).read)['data']['children']
   end
 
   def create_or_update(proposal)

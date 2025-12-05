@@ -5,7 +5,7 @@ require 'collaborations_on_paper'
 
 RSpec.describe CollaborationsOnPaper do
   let(:csv_file) { Rails.root.join('spec/fixtures/files/collaborations.csv') }
-  let(:user) { create(:user, :with_dni, email: 'test@example.com', document_vatid: '12345678Z', first_name: 'Juan', last_name_1: 'García') }
+  let(:user) { create(:user, :with_dni, email: 'test@example.com', document_vatid: '12345678Z', first_name: 'Juan', last_name: 'García') }
 
   before do
     # Create CSV file for testing
@@ -173,7 +173,8 @@ RSpec.describe CollaborationsOnPaper do
 
     it 'processes created_at timestamp' do
       collaboration = processor.collaborations_processed.first
-      expect(collaboration.created_at).to be_a(DateTime)
+      expect(collaboration.created_at).to be_present
+      expect(collaboration.created_at).to be_a(ActiveSupport::TimeWithZone)
     end
   end
 
@@ -272,7 +273,7 @@ RSpec.describe CollaborationsOnPaper do
     end
 
     context 'with existing user by document_vatid' do
-      let(:vatid_user) { create(:user, :with_dni, email: 'different@example.com', document_vatid: '12345678Z', first_name: 'Juan', last_name_1: 'García') }
+      let(:vatid_user) { create(:user, :with_dni, email: 'different@example.com', document_vatid: '12345678Z', first_name: 'Juan', last_name: 'García') }
       let(:different_csv) { Rails.root.join('spec/fixtures/files/collaborations_vatid.csv') }
 
       before do
@@ -380,10 +381,10 @@ RSpec.describe CollaborationsOnPaper do
     it 'processes CCC fields' do
       processor = described_class.new(csv_file)
       collaboration = processor.collaborations_processed.first
-      expect(collaboration.ccc_entity).to eq('1234')
-      expect(collaboration.ccc_office).to eq('5678')
-      expect(collaboration.ccc_dc).to eq('90')
-      expect(collaboration.ccc_account).to eq('1234567890')
+      expect(collaboration.ccc_entity).to eq(1234)
+      expect(collaboration.ccc_office).to eq(5678)
+      expect(collaboration.ccc_dc).to eq(90)
+      expect(collaboration.ccc_account).to eq(1234567890)
     end
 
     it 'calculates IBAN from CCC' do
@@ -400,7 +401,7 @@ RSpec.describe CollaborationsOnPaper do
   end
 
   describe 'full name validation' do
-    let(:mismatch_user) { create(:user, :with_dni, email: 'mismatch@example.com', document_vatid: '12345678Z', first_name: 'Wrong', last_name_1: 'Name') }
+    let(:mismatch_user) { create(:user, :with_dni, email: 'mismatch@example.com', document_vatid: '12345678Z', first_name: 'Wrong', last_name: 'Name') }
     let(:mismatch_csv) { Rails.root.join('spec/fixtures/files/collaborations_mismatch.csv') }
 
     before do

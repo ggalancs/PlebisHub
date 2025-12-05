@@ -12,7 +12,7 @@ RSpec.describe 'CensusTool Admin Page', type: :request do
   end
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
   end
 
   # Helper to create a militant user (sets militant and verified flags)

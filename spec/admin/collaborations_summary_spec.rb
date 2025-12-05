@@ -6,7 +6,7 @@ RSpec.describe 'Collaborations Summary Admin Page', type: :request do
   let(:admin_user) { create(:user, :admin) }
 
   before do
-    sign_in admin_user
+    sign_in_admin admin_user
   end
 
   describe 'GET /admin/collaborations_summary' do

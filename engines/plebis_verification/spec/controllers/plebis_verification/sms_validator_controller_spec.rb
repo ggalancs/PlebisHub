@@ -11,6 +11,9 @@ module PlebisVerification
     before do
       sign_in user
       allow(user).to receive(:can_change_phone?).and_return(true)
+      # Stub route helpers that reference main app
+      allow(controller).to receive(:root_path).and_return('/')
+      allow(controller).to receive(:new_user_session_path).and_return('/users/sign_in')
     end
 
     describe 'authentication' do
