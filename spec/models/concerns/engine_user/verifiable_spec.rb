@@ -426,5 +426,41 @@ RSpec.describe EngineUser::Verifiable, type: :model do
         expect(user.verified_for_militant?).to be true
       end
     end
+
+    context 'when user has discarded verification' do
+      let!(:verification) { create(:user_verification, user: user, status: :discarded) }
+
+      it 'returns false' do
+        expect(user.verified_for_militant?).to be false
+      end
+    end
+
+    context 'when user has paused verification' do
+      let!(:verification) { create(:user_verification, user: user, status: :paused) }
+
+      it 'returns false' do
+        expect(user.verified_for_militant?).to be false
+      end
+    end
+
+    context 'when user is verified and has no last verification status' do
+      before do
+        user.update_column(:flags, user.flags | 4)
+        allow(user.user_verifications).to receive(:last).and_return(nil)
+      end
+
+      it 'returns true based on verified flag' do
+        expect(user.verified_for_militant?).to be true
+      end
+    end
+  end
+
+  describe 'dependent destroy' do
+    it 'destroys associated user_verifications when user is destroyed' do
+      user_with_verification = create(:user)
+      create(:user_verification, user: user_with_verification)
+
+      expect { user_with_verification.destroy }.to change(UserVerification, :count).by(-1)
+    end
   end
 end

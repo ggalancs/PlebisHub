@@ -389,4 +389,27 @@ RSpec.describe UsersMailer, type: :mailer do
       expect(mail.from.first).to match(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i)
     end
   end
+
+  # Test microcredit title sanitization
+  describe 'microcredit title sanitization' do
+    let(:microcredit_with_hash) { create(:microcredit, title: 'Campaign #2024') }
+    let(:brand_config) { { 'name' => 'Test', 'mail_from' => 'test@example.com' } }
+
+    before do
+      allow(WickedPdf).to receive(:new).and_return(double(pdf_from_string: 'fake_pdf_content'))
+    end
+
+    it 'removes # character from microcredit title' do
+      test_loan = create(:microcredit_loan, microcredit: microcredit_with_hash, user: user, email: 'test@example.com')
+      described_class.microcredit_email(microcredit_with_hash, test_loan, brand_config)
+      expect(microcredit_with_hash.title).not_to include('#')
+    end
+
+    it 'handles multiple # characters' do
+      test_microcredit = create(:microcredit, title: '#Campaign# #2024#')
+      test_loan = create(:microcredit_loan, microcredit: test_microcredit, user: user, email: 'test@example.com')
+      described_class.microcredit_email(test_microcredit, test_loan, brand_config)
+      expect(test_microcredit.title).not_to include('#')
+    end
+  end
 end

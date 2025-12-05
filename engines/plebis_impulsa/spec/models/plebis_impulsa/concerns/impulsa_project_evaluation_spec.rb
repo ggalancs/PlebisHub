@@ -658,5 +658,106 @@ module PlebisImpulsa
         expect(project.evaluator1_evaluation).to be_empty
       end
     end
+
+    # ====================
+    # ADDITIONAL VALIDATION TESTS
+    # ====================
+
+    describe 'additional validation tests' do
+      it 'validates DNI/NIE format' do
+        config = evaluation_config.deep_dup
+        config[:step1][:groups][:technical][:fields][:dni] = { type: 'text', format: 'dni', optional: false }
+        cat = create(:impulsa_edition_category, impulsa_edition: edition, evaluation: config)
+        proj = create(:impulsa_project, impulsa_edition_category: cat, state: 'validable')
+
+        proj.evaluator1_evaluation = { 'technical.dni' => '12345678Z' }
+        error = proj.evaluation_field_error(1, :technical, :dni)
+        expect(error).to be_present
+      end
+
+      it 'validates NIE format' do
+        config = evaluation_config.deep_dup
+        config[:step1][:groups][:technical][:fields][:nie] = { type: 'text', format: 'nie', optional: false }
+        cat = create(:impulsa_edition_category, impulsa_edition: edition, evaluation: config)
+        proj = create(:impulsa_project, impulsa_edition_category: cat, state: 'validable')
+
+        proj.evaluator1_evaluation = { 'technical.nie' => 'invalid' }
+        error = proj.evaluation_field_error(1, :technical, :nie)
+        expect(error).to be_present
+      end
+
+      it 'validates CIF format' do
+        config = evaluation_config.deep_dup
+        config[:step1][:groups][:technical][:fields][:cif] = { type: 'text', format: 'cif', optional: false }
+        cat = create(:impulsa_edition_category, impulsa_edition: edition, evaluation: config)
+        proj = create(:impulsa_project, impulsa_edition_category: cat, state: 'validable')
+
+        proj.evaluator1_evaluation = { 'technical.cif' => 'invalid' }
+        error = proj.evaluation_field_error(1, :technical, :cif)
+        expect(error).to be_present
+      end
+
+      it 'validates DNINIE format' do
+        config = evaluation_config.deep_dup
+        config[:step1][:groups][:technical][:fields][:dninie] = { type: 'text', format: 'dninie', optional: false }
+        cat = create(:impulsa_edition_category, impulsa_edition: edition, evaluation: config)
+        proj = create(:impulsa_project, impulsa_edition_category: cat, state: 'validable')
+
+        proj.evaluator1_evaluation = { 'technical.dninie' => 'invalid' }
+        error = proj.evaluation_field_error(1, :technical, :dninie)
+        expect(error).to eq('no es un DNI o NIE correcto')
+      end
+
+      it 'validates phone format' do
+        config = evaluation_config.deep_dup
+        config[:step1][:groups][:technical][:fields][:phone] = { type: 'text', format: 'phone', optional: false }
+        cat = create(:impulsa_edition_category, impulsa_edition: edition, evaluation: config)
+        proj = create(:impulsa_project, impulsa_edition_category: cat, state: 'validable')
+
+        proj.evaluator1_evaluation = { 'technical.phone' => '+34600123456' }
+        error = proj.evaluation_field_error(1, :technical, :phone)
+        expect(error).to be_nil
+      end
+
+      it 'validates URL format' do
+        config = evaluation_config.deep_dup
+        config[:step1][:groups][:technical][:fields][:website] = { type: 'url', optional: false }
+        cat = create(:impulsa_edition_category, impulsa_edition: edition, evaluation: config)
+        proj = create(:impulsa_project, impulsa_edition_category: cat, state: 'validable')
+
+        proj.evaluator1_evaluation = { 'technical.website' => 'invalid' }
+        error = proj.evaluation_field_error(1, :technical, :website)
+        expect(error).to eq('no es una dirección web válida')
+      end
+
+      it 'exports check_boxes fields correctly' do
+        config = evaluation_config.deep_dup
+        config[:step1][:groups][:technical][:fields][:options] = {
+          type: 'check_boxes',
+          collection: { opt1: 'Option 1', opt2: 'Option 2' },
+          export: 'options',
+          optional: true
+        }
+        cat = create(:impulsa_edition_category, impulsa_edition: edition, evaluation: config)
+        proj = create(:impulsa_project, impulsa_edition_category: cat, state: 'validable')
+
+        proj.evaluator1_evaluation = { 'technical.options' => ['opt1', 'opt2', ''] }
+        export = proj.evaluation_export
+        expect(export['evaluation_1_options']).to eq(['Option 1', 'Option 2'])
+      end
+    end
+
+    # ====================
+    # EVALUATION PATH TEST
+    # ====================
+
+    describe '#evaluation_path' do
+      it 'returns path for evaluation file' do
+        project.evaluator1_evaluation = { 'technical.file' => 'document.pdf' }
+        allow(project).to receive(:files_folder).and_return('/uploads/')
+        path = project.evaluation_path(1, :technical, :file)
+        expect(path).to eq('/uploads/1-document.pdf')
+      end
+    end
   end
 end

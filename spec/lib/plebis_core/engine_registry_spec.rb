@@ -180,14 +180,18 @@ RSpec.describe PlebisCore::EngineRegistry do
     context 'when errors occur' do
       it 'returns false and logs error' do
         allow(EngineActivation).to receive(:enabled?).and_raise(StandardError.new('Test error'))
-        expect(Rails.logger).to receive(:error).with(/Error checking if .* can be enabled/)
-        expect(described_class.can_enable?('plebis_cms')).to be false
+        allow(Rails.logger).to receive(:error).and_call_original
+        result = described_class.can_enable?('plebis_cms')
+        expect(result).to be false
+        expect(Rails.logger).to have_received(:error).with(/Error checking if .* can be enabled/)
       end
 
       it 'handles missing EngineActivation gracefully' do
-        allow(EngineActivation).to receive(:enabled?).and_raise(NameError)
-        expect(Rails.logger).to receive(:error)
-        expect(described_class.can_enable?('plebis_cms')).to be false
+        allow(EngineActivation).to receive(:enabled?).and_raise(NameError.new('Test error'))
+        allow(Rails.logger).to receive(:error).and_call_original
+        result = described_class.can_enable?('plebis_cms')
+        expect(result).to be false
+        expect(Rails.logger).to have_received(:error)
       end
     end
   end
@@ -275,12 +279,10 @@ RSpec.describe PlebisCore::EngineRegistry do
   describe '.engines_by_status' do
     context 'when database is available' do
       before do
-        allow(EngineActivation).to receive(:where).with(enabled: true).and_return(
-          double(pluck: ['plebis_cms', 'plebis_proposals'])
-        )
-        allow(EngineActivation).to receive(:where).with(enabled: false).and_return(
-          double(pluck: ['plebis_voting'])
-        )
+        # Create actual engine activation records
+        EngineActivation.find_or_create_by!(engine_name: 'plebis_cms', enabled: true)
+        EngineActivation.find_or_create_by!(engine_name: 'plebis_proposals', enabled: true)
+        EngineActivation.find_or_create_by!(engine_name: 'plebis_voting', enabled: false)
       end
 
       it 'returns hash with enabled and disabled keys' do
@@ -306,14 +308,15 @@ RSpec.describe PlebisCore::EngineRegistry do
       end
 
       it 'returns empty arrays on error' do
-        expect(Rails.logger).to receive(:error).with(/Error getting engines by status/)
+        allow(Rails.logger).to receive(:error).and_call_original
         result = described_class.engines_by_status
         expect(result[:enabled]).to eq([])
         expect(result[:disabled]).to eq([])
+        expect(Rails.logger).to have_received(:error).with(/Error getting engines by status/)
       end
 
       it 'does not raise error' do
-        allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:error).and_call_original
         expect { described_class.engines_by_status }.not_to raise_error
       end
     end
