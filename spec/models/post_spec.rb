@@ -326,4 +326,37 @@ RSpec.describe Post, type: :model do
       expect(Post.published.reload).to include(post)
     end
   end
+
+  # ====================
+  # ALIAS CLASS TESTS (for coverage)
+  # ====================
+
+  describe 'Post alias' do
+    it 'is an alias for PlebisCms::Post' do
+      expect(Post).to eq(PlebisCms::Post)
+    end
+
+    it 'creates instances through the alias' do
+      post = Post.new(title: 'Alias Test Post', status: 1)
+      expect(post).to be_a(Post)
+      expect(post).to be_a(PlebisCms::Post)
+    end
+
+    it 'saves instances through the alias' do
+      post = Post.create!(title: 'Alias Saved Post', status: 1)
+      expect(post).to be_persisted
+      expect(Post.find(post.id)).to eq(post)
+    end
+
+    it 'queries through the alias' do
+      post = Post.create!(title: 'Alias Query Post', status: 1)
+      found = Post.where(title: 'Alias Query Post').first
+      expect(found).to eq(post)
+    end
+
+    it 'uses scopes through the alias' do
+      published_post = Post.create!(title: 'Published Alias', status: 1)
+      expect(Post.published).to include(published_post)
+    end
+  end
 end

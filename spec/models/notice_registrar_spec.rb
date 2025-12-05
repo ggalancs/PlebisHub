@@ -237,4 +237,32 @@ RSpec.describe PlebisCms::NoticeRegistrar, type: :model do
       expect(NoticeRegistrar.where(status: nil).count).to eq(1)
     end
   end
+
+  # ====================
+  # ALIAS CLASS TESTS (for coverage)
+  # ====================
+
+  describe 'NoticeRegistrar alias' do
+    it 'is an alias for PlebisCms::NoticeRegistrar' do
+      expect(NoticeRegistrar).to eq(PlebisCms::NoticeRegistrar)
+    end
+
+    it 'creates instances through the alias' do
+      registrar = NoticeRegistrar.new(registration_id: 'ALIAS_TEST', status: true)
+      expect(registrar).to be_a(NoticeRegistrar)
+      expect(registrar).to be_a(PlebisCms::NoticeRegistrar)
+    end
+
+    it 'saves instances through the alias' do
+      registrar = NoticeRegistrar.create!(registration_id: 'ALIAS_SAVE', status: true)
+      expect(registrar).to be_persisted
+      expect(NoticeRegistrar.find(registrar.id)).to eq(registrar)
+    end
+
+    it 'queries through the alias' do
+      registrar = NoticeRegistrar.create!(registration_id: 'ALIAS_QUERY', status: true)
+      found = NoticeRegistrar.where(registration_id: 'ALIAS_QUERY').first
+      expect(found).to eq(registrar)
+    end
+  end
 end

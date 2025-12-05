@@ -444,4 +444,37 @@ RSpec.describe Page, type: :model do
       end
     end
   end
+
+  # ====================
+  # ALIAS CLASS TESTS (for coverage)
+  # ====================
+
+  describe 'Page alias' do
+    it 'is an alias for PlebisCms::Page' do
+      expect(Page).to eq(PlebisCms::Page)
+    end
+
+    it 'creates instances through the alias' do
+      page = Page.new(title: 'Alias Test Page', slug: 'alias-test-page', id_form: 1)
+      expect(page).to be_a(Page)
+      expect(page).to be_a(PlebisCms::Page)
+    end
+
+    it 'saves instances through the alias' do
+      page = Page.create!(title: 'Alias Saved Page', slug: 'alias-saved-page', id_form: 1)
+      expect(page).to be_persisted
+      expect(Page.find(page.id)).to eq(page)
+    end
+
+    it 'queries through the alias' do
+      page = Page.create!(title: 'Alias Query Page', slug: 'alias-query-page', id_form: 1)
+      found = Page.where(slug: 'alias-query-page').first
+      expect(found).to eq(page)
+    end
+
+    it 'uses scopes through the alias' do
+      promoted_page = Page.create!(title: 'Promoted Alias', slug: 'promoted-alias', id_form: 1, promoted: true, priority: 10)
+      expect(Page.promoted).to include(promoted_page)
+    end
+  end
 end

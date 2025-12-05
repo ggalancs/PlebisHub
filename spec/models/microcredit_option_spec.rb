@@ -362,4 +362,40 @@ RSpec.describe PlebisMicrocredit::MicrocreditOption, type: :model do
       expect(microcredit2.microcredit_options).not_to include(child1)
     end
   end
+
+  # ====================
+  # ALIAS CLASS TESTS (for coverage)
+  # ====================
+
+  describe 'MicrocreditOption alias' do
+    it 'is an alias for PlebisMicrocredit::MicrocreditOption' do
+      expect(MicrocreditOption).to eq(PlebisMicrocredit::MicrocreditOption)
+    end
+
+    it 'creates instances through the alias' do
+      microcredit = create(:microcredit)
+      option = MicrocreditOption.new(name: 'Alias Test Option', microcredit: microcredit)
+      expect(option).to be_a(MicrocreditOption)
+      expect(option).to be_a(PlebisMicrocredit::MicrocreditOption)
+    end
+
+    it 'saves instances through the alias' do
+      microcredit = create(:microcredit)
+      option = MicrocreditOption.create!(name: 'Alias Saved Option', microcredit: microcredit)
+      expect(option).to be_persisted
+      expect(MicrocreditOption.find(option.id)).to eq(option)
+    end
+
+    it 'queries through the alias' do
+      microcredit = create(:microcredit)
+      option = MicrocreditOption.create!(name: 'Alias Query Option', microcredit: microcredit)
+      found = MicrocreditOption.where(name: 'Alias Query Option').first
+      expect(found).to eq(option)
+    end
+
+    it 'uses scopes through the alias' do
+      root_option = MicrocreditOption.create!(name: 'Root Alias', microcredit: create(:microcredit))
+      expect(MicrocreditOption.root_parents).to include(root_option)
+    end
+  end
 end

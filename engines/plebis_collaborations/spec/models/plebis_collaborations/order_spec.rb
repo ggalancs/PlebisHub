@@ -6,14 +6,37 @@ require 'rails_helper'
 # The engine's model file defines the same Order class
 RSpec.describe Order, type: :model do
   describe 'associations' do
-    it { is_expected.to belong_to(:parent) }
-    it { is_expected.to belong_to(:user) }
+    it 'belongs to parent' do
+      order = create(:order)
+      expect(order).to respond_to(:parent)
+      expect(order.parent).to be_present
+    end
+
+    it 'belongs to user' do
+      order = create(:order)
+      expect(order).to respond_to(:user)
+      expect(order.user).to be_present
+    end
   end
 
   describe 'validations' do
-    it { is_expected.to validate_presence_of(:payment_type) }
-    it { is_expected.to validate_presence_of(:amount) }
-    it { is_expected.to validate_presence_of(:payable_at) }
+    it 'validates presence of payment_type' do
+      order = build(:order, payment_type: nil)
+      expect(order).not_to be_valid
+      expect(order.errors[:payment_type]).to be_present
+    end
+
+    it 'validates presence of amount' do
+      order = build(:order, amount: nil)
+      expect(order).not_to be_valid
+      expect(order.errors[:amount]).to be_present
+    end
+
+    it 'validates presence of payable_at' do
+      order = build(:order, payable_at: nil)
+      expect(order).not_to be_valid
+      expect(order.errors[:payable_at]).to be_present
+    end
   end
 
   describe 'callbacks' do
@@ -302,18 +325,28 @@ RSpec.describe Order, type: :model do
     end
 
     describe '#processed!' do
-      let(:order) { create(:order, :nueva) }
+      let(:collaboration) { create(:collaboration, :active) }
+      let(:order) { create(:order, :nueva, parent: collaboration, user: collaboration.user) }
+      let(:mailer_double) { double('Mailer', deliver_now: true) }
+
+      before do
+        stub_const('PlebisCollaborations::CollaborationsMailer', Class.new)
+        allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_user).and_return(mailer_double)
+        allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_militant).and_return(mailer_double)
+        allow(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_user).and_return(mailer_double)
+        allow(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_militant).and_return(mailer_double)
+      end
 
       it 'sets status to 5 (devuelta) without code' do
         result = order.processed!
         expect(result).to be true
-        expect(order.status).to eq(5)
+        expect(order.reload.status).to eq(5)
       end
 
       it 'sets status to 4 (error) for error codes' do
         result = order.processed!('AC01')
         expect(result).to be true
-        expect(order.status).to eq(4)
+        expect(order.reload.status).to eq(4)
         expect(order.payment_response).to eq('AC01')
       end
 
@@ -324,7 +357,13 @@ RSpec.describe Order, type: :model do
 
       it 'handles SEPA error codes correctly' do
         order.processed!('AC04')
-        expect(order.status).to eq(4)
+        expect(order.reload.status).to eq(4)
+      end
+
+      it 'does not call parent.processed_order! when parent is deleted' do
+        order.parent.update_column(:deleted_at, Time.zone.now)
+        order.reload
+        expect { order.processed! }.not_to raise_error
       end
     end
 
@@ -422,7 +461,8 @@ RSpec.describe Order, type: :model do
 
     describe '#redsys_expiration' do
       it 'returns expiration date from redsys_response for first orders' do
-        order.update(payment_response: { 'Ds_ExpiryDate' => '2512' }.to_json)
+        order.update_columns(payment_response: { 'Ds_ExpiryDate' => '2512' }.to_json, first: true)
+        order.reload
         expiration = order.redsys_expiration
         expect(expiration).to be_a(DateTime)
         expect(expiration.year).to eq(2026)
@@ -430,13 +470,14 @@ RSpec.describe Order, type: :model do
       end
 
       it 'returns nil when no redsys_response' do
-        order.payment_response = nil
+        order.update_columns(payment_response: nil, first: true)
+        order.reload
         expect(order.redsys_expiration).to be_nil
       end
 
       it 'returns nil for non-first orders' do
-        order.first = false
-        order.update(payment_response: { 'Ds_ExpiryDate' => '2512' }.to_json)
+        order.update_columns(first: false, payment_response: { 'Ds_ExpiryDate' => '2512' }.to_json)
+        order.reload
         expect(order.redsys_expiration).to be_nil
       end
     end
@@ -514,34 +555,36 @@ RSpec.describe Order, type: :model do
     end
 
     describe '#redsys_parse_response!' do
+      let(:collaboration) { create(:collaboration, :active, payment_type: 1) }
+      let(:test_order) { create(:order, :credit_card, :first_order, parent: collaboration, user: collaboration.user) }
       let(:params) do
         {
           'Ds_Response' => '0000',
-          'Ds_Date' => Time.zone.now.strftime('%d/%m/%Y'),
-          'Ds_Hour' => Time.zone.now.strftime('%H:%M'),
+          'Ds_Date' => Time.zone.now.in_time_zone(described_class::REDSYS_SERVER_TIME_ZONE).strftime('%d/%m/%Y'),
+          'Ds_Hour' => Time.zone.now.in_time_zone(described_class::REDSYS_SERVER_TIME_ZONE).strftime('%H:%M'),
           'Ds_Merchant_Identifier' => '999999999R'
         }
       end
 
-      it 'sets status to 2 for successful payments' do
-        order.redsys_parse_response!(params, '<Request></Request>')
-        expect(order.status).to be_in([2, 3])
+      it 'sets status to 2 or 3 for successful payments' do
+        test_order.redsys_parse_response!(params, '<Request></Request>')
+        expect(test_order.reload.status).to be_in([2, 3])
       end
 
       it 'sets status to 4 for failed payments' do
         params['Ds_Response'] = '9999'
-        order.redsys_parse_response!(params, '<Request></Request>')
-        expect(order.status).to eq(4)
+        test_order.redsys_parse_response!(params, '<Request></Request>')
+        expect(test_order.reload.status).to eq(4)
       end
 
       it 'sets payed_at for successful payments' do
-        order.redsys_parse_response!(params, '<Request></Request>')
-        expect(order.payed_at).to be_present
+        test_order.redsys_parse_response!(params, '<Request></Request>')
+        expect(test_order.reload.payed_at).to be_present
       end
 
       it 'calls parent.payment_processed!' do
-        expect(order.parent).to receive(:payment_processed!).with(order)
-        order.redsys_parse_response!(params, '<Request></Request>')
+        expect(test_order.parent).to receive(:payment_processed!).with(test_order)
+        test_order.redsys_parse_response!(params, '<Request></Request>')
       end
     end
 
@@ -570,16 +613,21 @@ RSpec.describe Order, type: :model do
     end
 
     describe '#redsys_callback_response' do
+      let(:collaboration) { create(:collaboration, :active, payment_type: 1) }
+      let(:test_order) { create(:order, :credit_card, :first_order, parent: collaboration, user: collaboration.user) }
+
       it 'returns SOAP response with OK for paid orders' do
-        order.update(status: 2, payed_at: Time.zone.now)
-        response = order.redsys_callback_response
+        test_order.update_columns(status: 2, payed_at: Time.zone.now)
+        test_order.reload
+        response = test_order.redsys_callback_response
         expect(response).to include('OK')
         expect(response).to include('SOAP-ENV:Envelope')
       end
 
       it 'returns SOAP response with KO for unpaid orders' do
-        order.update(status: 0)
-        response = order.redsys_callback_response
+        test_order.update_columns(status: 0, payed_at: nil)
+        test_order.reload
+        response = test_order.redsys_callback_response
         expect(response).to include('KO')
       end
     end
@@ -664,10 +712,11 @@ RSpec.describe Order, type: :model do
 
   describe '.payment_day' do
     it 'returns payment day from secrets' do
+      allow(Rails.application).to receive(:secrets).and_return(
+        double(orders: { 'payment_day' => 15 })
+      )
       day = described_class.payment_day
-      expect(day).to be_a(Integer)
-      expect(day).to be > 0
-      expect(day).to be <= 31
+      expect(day).to eq(15)
     end
   end
 
@@ -685,7 +734,7 @@ RSpec.describe Order, type: :model do
 
     it 'has PARENT_CLASSES constant' do
       expect(described_class::PARENT_CLASSES).to be_a(Hash)
-      expect(described_class::PARENT_CLASSES[PlebisCollaborations::Collaboration]).to eq('C')
+      expect(described_class::PARENT_CLASSES[Collaboration]).to eq('C')
     end
 
     it 'has SEPA_RETURNED_REASONS constant' do
@@ -728,6 +777,16 @@ RSpec.describe Order, type: :model do
   end
 
   describe 'integration tests' do
+    let(:mailer_double) { double('Mailer', deliver_now: true) }
+
+    before do
+      stub_const('PlebisCollaborations::CollaborationsMailer', Class.new)
+      allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_user).and_return(mailer_double)
+      allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_militant).and_return(mailer_double)
+      allow(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_user).and_return(mailer_double)
+      allow(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_militant).and_return(mailer_double)
+    end
+
     describe 'order lifecycle for credit cards' do
       let(:collaboration) { create(:collaboration, :active, payment_type: 1) }
       let(:order) { create(:order, :credit_card, :first_order, parent: collaboration, user: collaboration.user) }
@@ -744,25 +803,25 @@ RSpec.describe Order, type: :model do
         # Process successful payment
         params = {
           'Ds_Response' => '0000',
-          'Ds_Date' => Time.zone.now.strftime('%d/%m/%Y'),
-          'Ds_Hour' => Time.zone.now.strftime('%H:%M'),
+          'Ds_Date' => Time.zone.now.in_time_zone(described_class::REDSYS_SERVER_TIME_ZONE).strftime('%d/%m/%Y'),
+          'Ds_Hour' => Time.zone.now.in_time_zone(described_class::REDSYS_SERVER_TIME_ZONE).strftime('%H:%M'),
           'Ds_Merchant_Identifier' => '999999999R'
         }
         order.redsys_parse_response!(params, '<Request></Request>')
 
-        expect(order.is_paid?).to be true
+        expect(order.reload.is_paid?).to be true
         expect(order.payed_at).to be_present
       end
 
       it 'processes failed payment flow' do
         params = {
           'Ds_Response' => '9999',
-          'Ds_Date' => Time.zone.now.strftime('%d/%m/%Y'),
-          'Ds_Hour' => Time.zone.now.strftime('%H:%M')
+          'Ds_Date' => Time.zone.now.in_time_zone(described_class::REDSYS_SERVER_TIME_ZONE).strftime('%d/%m/%Y'),
+          'Ds_Hour' => Time.zone.now.in_time_zone(described_class::REDSYS_SERVER_TIME_ZONE).strftime('%H:%M')
         }
         order.redsys_parse_response!(params, '<Request></Request>')
 
-        expect(order.status).to eq(4)
+        expect(order.reload.status).to eq(4)
         expect(order.has_errors?).to be true
       end
     end
@@ -786,13 +845,77 @@ RSpec.describe Order, type: :model do
       end
 
       it 'processes returned payment flow' do
-        order.update(status: 1)
+        order.update_columns(status: 1)
+        order.reload
         result = order.processed!('AM04')
 
         expect(result).to be true
-        expect(order.status).to eq(5)
+        expect(order.reload.status).to eq(5)
         expect(order.was_returned?).to be true
         expect(order.payment_response).to eq('AM04')
+      end
+    end
+  end
+
+  describe 'additional methods for coverage' do
+    let(:order) { create(:order, :nueva) }
+
+    describe '#is_bank_international?' do
+      it 'returns true for international IBAN starting payment_identifier' do
+        order.update_columns(payment_type: 3, payment_identifier: 'DE89370400440532013000/BIC')
+        order.reload
+        expect(order.is_bank_international?).to be true
+      end
+
+      it 'returns false for Spanish IBAN' do
+        order.update_columns(payment_type: 3, payment_identifier: 'ES9121000418450200051332/BIC')
+        order.reload
+        expect(order.is_bank_international?).to be false
+      end
+    end
+
+    describe '#redsys_merchant_request_signature' do
+      let(:cc_order) { create(:order, :credit_card, :first_order) }
+
+      it 'generates signature for request' do
+        signature = cc_order.redsys_merchant_request_signature
+        expect(signature).to be_present
+        expect(signature).to be_a(String)
+      end
+    end
+
+    describe '#redsys_secret' do
+      let(:cc_order) { create(:order, :credit_card) }
+
+      it 'retrieves secret from Rails secrets' do
+        allow(Rails.application).to receive(:secrets).and_return(
+          double(redsys: { 'post_url' => 'https://test.com' })
+        )
+        expect(cc_order.send(:redsys_secret, 'post_url')).to eq('https://test.com')
+      end
+    end
+
+    describe '#redsys_post_url' do
+      let(:cc_order) { create(:order, :credit_card) }
+
+      it 'returns redsys post URL' do
+        allow(Rails.application).to receive(:secrets).and_return(
+          double(redsys: { 'post_url' => 'https://test.redsys.es/sis/realizarPago' })
+        )
+        expect(cc_order.redsys_post_url).to be_present
+      end
+    end
+
+    describe '#admin_permalink' do
+      it 'returns admin order path' do
+        expect(order.admin_permalink).to be_present
+        expect(order.admin_permalink).to include(order.id.to_s)
+      end
+    end
+
+    describe '#url_source' do
+      it 'returns new collaboration URL' do
+        expect(order.url_source).to be_present
       end
     end
   end

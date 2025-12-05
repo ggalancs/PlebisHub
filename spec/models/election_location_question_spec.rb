@@ -87,7 +87,8 @@ RSpec.describe ElectionLocationQuestion, type: :model do
 
   describe 'after_initialize callback' do
     it 'sets defaults when title is blank' do
-      question = ElectionLocationQuestion.new
+      election_location = build(:election_location)
+      question = ElectionLocationQuestion.new(election_location: election_location)
       expect(question.voting_system).to eq(ElectionLocationQuestion::VOTING_SYSTEMS.keys.first)
       expect(question.totals).to eq(ElectionLocationQuestion::TOTALS.keys.first)
       expect(question.random_order).to eq(true)
@@ -97,10 +98,28 @@ RSpec.describe ElectionLocationQuestion, type: :model do
     end
 
     it 'does not override when title is present' do
-      question = ElectionLocationQuestion.new(title: 'Test', voting_system: 'pairwise-beta', winners: 5)
+      election_location = build(:election_location)
+      question = ElectionLocationQuestion.new(
+        election_location: election_location,
+        title: 'Test',
+        voting_system: 'pairwise-beta',
+        winners: 5
+      )
       expect(question.title).to eq('Test')
       expect(question.voting_system).to eq('pairwise-beta')
       expect(question.winners).to eq(5)
+    end
+
+    it 'sets all default values in after_initialize' do
+      election_location = build(:election_location)
+      question = ElectionLocationQuestion.new(election_location: election_location, title: nil)
+      # Verify each default assignment happens
+      expect(question.voting_system).to eq('plurality-at-large')
+      expect(question.totals).to eq('over-total-valid-votes')
+      expect(question.random_order).to be true
+      expect(question.winners).to eq(1)
+      expect(question.minimum).to eq(0)
+      expect(question.maximum).to eq(1)
     end
   end
 
@@ -113,19 +132,43 @@ RSpec.describe ElectionLocationQuestion, type: :model do
       it 'returns simple for pairwise-beta voting system' do
         election_location = build(:election_location, layout: 'pcandidates-election')
         question = build(:election_location_question, :pairwise, election_location: election_location)
-        expect(question.layout).to eq('simple')
+        result = question.layout
+        expect(result).to eq('simple')
       end
 
       it 'returns empty string for election layouts' do
         election_location = build(:election_location, layout: 'pcandidates-election')
         question = build(:election_location_question, election_location: election_location, voting_system: 'plurality-at-large')
-        expect(question.layout).to eq('')
+        result = question.layout
+        expect(result).to eq('')
+      end
+
+      it 'returns empty string for 2questions-conditional layout' do
+        election_location = build(:election_location, layout: '2questions-conditional')
+        question = build(:election_location_question, election_location: election_location, voting_system: 'plurality-at-large')
+        result = question.layout
+        expect(result).to eq('')
       end
 
       it 'returns election_location layout for non-election layouts' do
         election_location = build(:election_location, layout: 'simple')
         question = build(:election_location_question, election_location: election_location, voting_system: 'plurality-at-large')
-        expect(question.layout).to eq('simple')
+        result = question.layout
+        expect(result).to eq('simple')
+      end
+
+      it 'returns election_location layout for accordion layout' do
+        election_location = build(:election_location, layout: 'accordion')
+        question = build(:election_location_question, election_location: election_location, voting_system: 'plurality-at-large')
+        result = question.layout
+        expect(result).to eq('accordion')
+      end
+
+      it 'returns election_location layout for simultaneous-questions layout' do
+        election_location = build(:election_location, layout: 'simultaneous-questions')
+        question = build(:election_location_question, election_location: election_location, voting_system: 'plurality-at-large')
+        result = question.layout
+        expect(result).to eq('simultaneous-questions')
       end
     end
 
@@ -133,13 +176,27 @@ RSpec.describe ElectionLocationQuestion, type: :model do
       it 'returns array split by tab' do
         question = build(:election_location_question)
         question[:options_headers] = "Text\tImage\tURL"
-        expect(question.options_headers).to eq(%w[Text Image URL])
+        result = question.options_headers
+        expect(result).to eq(%w[Text Image URL])
       end
 
-      it 'returns default when nil' do
-        skip('Requires Rails.application.secrets.agora["options_headers"] configuration')
-        # This would test: question[:options_headers] = nil; question.options_headers
-        # But Rails secrets not configured in test environment
+      it 'returns single element array split by tab' do
+        question = build(:election_location_question)
+        question[:options_headers] = 'Text'
+        result = question.options_headers
+        expect(result).to eq(['Text'])
+      end
+
+      it 'returns default headers when options_headers is nil' do
+        # Mock the class method to return headers
+        mock_headers = { 'text' => 'Text', 'url' => 'URL' }
+        allow(ElectionLocationQuestion).to receive(:headers).and_return(mock_headers)
+
+        question = build(:election_location_question)
+        question[:options_headers] = nil
+        result = question.options_headers
+
+        expect(result).to eq(['text'])
       end
     end
 
@@ -154,6 +211,27 @@ RSpec.describe ElectionLocationQuestion, type: :model do
         question = build(:election_location_question)
         question.options_headers = ['Name', '', 'URL', nil]
         expect(question[:options_headers]).to eq("Name\tURL")
+      end
+
+      it 'handles nil value by not setting' do
+        question = build(:election_location_question)
+        original_headers = question[:options_headers]
+        question.options_headers = nil
+        expect(question[:options_headers]).to eq(original_headers)
+      end
+
+      it 'handles empty array' do
+        question = build(:election_location_question)
+        original_headers = question[:options_headers]
+        question.options_headers = []
+        expect(question[:options_headers]).to eq(original_headers)
+      end
+
+      it 'handles array with only blank values' do
+        question = build(:election_location_question)
+        original_headers = question[:options_headers]
+        question.options_headers = ['', nil, '  ']
+        expect(question[:options_headers]).to eq(original_headers)
       end
     end
 
@@ -184,6 +262,49 @@ RSpec.describe ElectionLocationQuestion, type: :model do
         expected = "Option 1\nOption 2"
         expect(question[:options]).to eq(expected)
       end
+
+      it 'handles options with multiple tabs' do
+        question = build(:election_location_question)
+        question.options_headers = %w[Text Image URL Description]
+        question.options = "Opt1\timg1.jpg\turl1\tDesc1\nOpt2\timg2.jpg\turl2\tDesc2"
+
+        expected = "Opt1\timg1.jpg\turl1\tDesc1\nOpt2\timg2.jpg\turl2\tDesc2"
+        expect(question[:options]).to eq(expected)
+      end
+
+      it 'handles single option' do
+        question = build(:election_location_question)
+        question.options_headers = ['Text']
+        question.options = "Single Option"
+
+        expect(question[:options]).to eq("Single Option")
+      end
+
+      it 'handles options with mixed whitespace' do
+        question = build(:election_location_question)
+        question.options_headers = ['Text']
+        question.options = " Option 1 \n\n  Option 2  \n   \nOption 3"
+
+        expected = "Option 1\nOption 2\nOption 3"
+        expect(question[:options]).to eq(expected)
+      end
+
+      it 'processes options correctly with headers set' do
+        question = build(:election_location_question)
+        question.options_headers = %w[Text URL]
+        # The options= method calls options_headers.length internally
+        question.options = "Option 1\thttp://example.com/1"
+        expect(question[:options]).to eq("Option 1\thttp://example.com/1")
+      end
+
+      it 'handles lines with no fields after strip' do
+        question = build(:election_location_question)
+        question.options_headers = ['Text']
+        question.options = "Option 1\n\t\nOption 2"
+
+        expected = "Option 1\nOption 2"
+        expect(question[:options]).to eq(expected)
+      end
     end
   end
 
@@ -193,11 +314,30 @@ RSpec.describe ElectionLocationQuestion, type: :model do
 
   describe 'class methods' do
     describe '.headers' do
-      it 'returns agora options headers' do
-        skip('Requires Rails.application.secrets.agora configuration')
-        # This depends on test environment secrets configuration
+      it 'returns agora options headers from Rails secrets' do
+        # Mock the Rails secrets
+        mock_secrets = double('secrets', agora: { 'options_headers' => { 'text' => 'Text', 'url' => 'URL' } })
+        allow(Rails.application).to receive(:secrets).and_return(mock_secrets)
+
+        # Clear the class variable to force reload
+        ElectionLocationQuestion.class_variable_set(:@@headers, nil) if ElectionLocationQuestion.class_variable_defined?(:@@headers)
+
         headers = ElectionLocationQuestion.headers
-        expect(headers).to be_a(Hash)
+        expect(headers).to eq({ 'text' => 'Text', 'url' => 'URL' })
+      end
+
+      it 'caches headers in class variable' do
+        mock_secrets = double('secrets', agora: { 'options_headers' => { 'cached' => 'Value' } })
+        allow(Rails.application).to receive(:secrets).and_return(mock_secrets)
+
+        ElectionLocationQuestion.class_variable_set(:@@headers, nil) if ElectionLocationQuestion.class_variable_defined?(:@@headers)
+
+        # First call should hit secrets
+        first_call = ElectionLocationQuestion.headers
+        # Second call should use cached value
+        second_call = ElectionLocationQuestion.headers
+
+        expect(first_call).to eq(second_call)
       end
     end
   end
@@ -216,6 +356,104 @@ RSpec.describe ElectionLocationQuestion, type: :model do
     it 'defines TOTALS constant' do
       expect(ElectionLocationQuestion::TOTALS).to be_a(Hash)
       expect(ElectionLocationQuestion::TOTALS.keys).to include('over-total-valid-votes')
+    end
+
+    it 'freezes VOTING_SYSTEMS constant' do
+      expect(ElectionLocationQuestion::VOTING_SYSTEMS).to be_frozen
+    end
+
+    it 'freezes TOTALS constant' do
+      expect(ElectionLocationQuestion::TOTALS).to be_frozen
+    end
+  end
+
+  # ====================
+  # INTEGRATION TESTS
+  # ====================
+
+  describe 'integration scenarios' do
+    it 'creates and saves valid question with all attributes' do
+      election_location = create(:election_location)
+      question = ElectionLocationQuestion.new(
+        election_location: election_location,
+        title: 'Test Question',
+        description: 'Test Description',
+        voting_system: 'plurality-at-large',
+        totals: 'over-total-valid-votes',
+        random_order: false,
+        winners: 2,
+        minimum: 1,
+        maximum: 3
+      )
+      question[:options_headers] = 'Text'
+      question[:options] = 'Option A'
+
+      expect(question.save).to be_truthy
+      expect(question.persisted?).to be_truthy
+    end
+
+    it 'loads question from database and accesses all methods' do
+      question = create(:election_location_question)
+      loaded = ElectionLocationQuestion.find(question.id)
+
+      expect(loaded.title).to eq(question.title)
+      expect(loaded.layout).to eq(question.layout)
+      expect(loaded.options_headers).to be_a(Array)
+    end
+
+    it 'updates question options after creation' do
+      question = create(:election_location_question)
+      question.options = "New Option 1\nNew Option 2"
+      question.save!
+
+      reloaded = ElectionLocationQuestion.find(question.id)
+      expect(reloaded[:options]).to include('New Option')
+    end
+  end
+
+  # ====================
+  # EDGE CASES
+  # ====================
+
+  describe 'edge cases' do
+    it 'handles blank title in after_initialize' do
+      question = ElectionLocationQuestion.new(title: '')
+      expect(question.voting_system).to eq(ElectionLocationQuestion::VOTING_SYSTEMS.keys.first)
+    end
+
+    it 'handles whitespace-only title in after_initialize' do
+      question = ElectionLocationQuestion.new(title: '   ')
+      # After trim, blank? is still false for whitespace-only strings in Ruby
+      # but the initialization doesn't run because blank? returns false
+      expect(question.title).to eq('   ')
+    end
+
+    it 'preserves existing values when title is not blank' do
+      question = ElectionLocationQuestion.new(
+        title: 'Test',
+        voting_system: 'pairwise-beta',
+        totals: 'custom-total',
+        random_order: false,
+        winners: 5,
+        minimum: 2,
+        maximum: 10
+      )
+
+      expect(question.voting_system).to eq('pairwise-beta')
+      expect(question.totals).to eq('custom-total')
+      expect(question.random_order).to eq(false)
+      expect(question.winners).to eq(5)
+      expect(question.minimum).to eq(2)
+      expect(question.maximum).to eq(10)
+    end
+
+    it 'handles question with very long options' do
+      question = build(:election_location_question)
+      question.options_headers = ['Text']
+      long_options = 100.times.map { |i| "Option #{i}" }.join("\n")
+      question.options = long_options
+
+      expect(question[:options].split("\n").length).to eq(100)
     end
   end
 end

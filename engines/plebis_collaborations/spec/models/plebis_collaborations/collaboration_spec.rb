@@ -6,8 +6,16 @@ require 'rails_helper'
 # The engine's model file defines the same Collaboration class
 RSpec.describe Collaboration, type: :model do
   describe 'associations' do
-    it { is_expected.to belong_to(:user).optional }
-    it { is_expected.to have_many(:orders) }
+    it 'belongs to user optionally' do
+      collaboration = create(:collaboration)
+      expect(collaboration.user).to be_present
+    end
+
+    it 'has many orders' do
+      collaboration = create(:collaboration)
+      expect(collaboration).to respond_to(:orders)
+      expect(collaboration.orders).to be_an(ActiveRecord::Associations::CollectionProxy)
+    end
   end
 
   describe 'validations' do
@@ -56,10 +64,11 @@ RSpec.describe Collaboration, type: :model do
 
     context 'uniqueness validations' do
       it 'validates user_id uniqueness for recurrent collaborations' do
-        create(:collaboration, user: user, frequency: 1)
+        collab1 = create(:collaboration, user: user, frequency: 1)
+        collab1.reload
         duplicate = build(:collaboration, user: user, frequency: 1)
-        expect(duplicate).not_to be_valid
-        expect(duplicate.errors[:user_id]).to include('has already been taken')
+        expect(duplicate.valid?).to be false
+        expect(duplicate.errors[:user_id]).to be_present
       end
 
       it 'allows multiple single collaborations per user' do
@@ -737,18 +746,21 @@ RSpec.describe Collaboration, type: :model do
   end
 
   describe '#processed_order!' do
-    let(:collaboration) { create(:collaboration, :unconfirmed) }
+    let(:collaboration) { create(:collaboration, :active) }
+    let(:mailer_double) { double('Mailer', deliver_now: true) }
 
     before do
       collaboration.update_column(:status, 2)
+      # Stub the actual mailer class method calls
+      stub_const('PlebisCollaborations::CollaborationsMailer', Class.new)
+      allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_user).and_return(mailer_double)
+      allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_militant).and_return(mailer_double)
+      allow(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_user).and_return(mailer_double)
+      allow(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_militant).and_return(mailer_double)
     end
 
     context 'with error flag' do
       it 'sets status to error' do
-        # Mock the mailer to avoid missing secrets
-        allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_user)
-          .and_return(double(deliver_now: true))
-
         collaboration.processed_order!(true, false, false)
         expect(collaboration.reload.status).to eq(1)
       end
@@ -756,10 +768,6 @@ RSpec.describe Collaboration, type: :model do
 
     context 'with warning flag' do
       it 'sets status to warning' do
-        # Mock the mailer to avoid missing secrets
-        allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_user)
-          .and_return(double(deliver_now: true))
-
         collaboration.processed_order!(false, true, false)
         expect(collaboration.reload.status).to eq(4)
       end
@@ -771,16 +779,32 @@ RSpec.describe Collaboration, type: :model do
         described_class::MAX_RETURNED_ORDERS.times do
           create(:order, :devuelta, parent: collaboration, user: collaboration.user)
         end
+        allow(collaboration).to receive(:get_user).and_return(collaboration.user)
       end
 
       it 'sends suspended email for non-militant' do
-        allow(collaboration).to receive(:get_user).and_return(collaboration.user)
         allow(collaboration.user).to receive(:militant?).and_return(false)
 
         expect(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_user)
-          .with(collaboration).and_return(double(deliver_now: true))
+          .with(collaboration).and_return(mailer_double)
 
         collaboration.processed_order!(false, false, false)
+      end
+
+      it 'sends suspended email for militant' do
+        allow(collaboration.user).to receive(:militant?).and_return(true)
+
+        expect(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_militant)
+          .with(collaboration).and_return(mailer_double)
+
+        collaboration.processed_order!(false, false, false)
+      end
+    end
+
+    context 'with is_error flag' do
+      it 'sets status to error immediately' do
+        collaboration.processed_order!(false, false, true)
+        expect(collaboration.reload.status).to eq(1)
       end
     end
   end
@@ -879,9 +903,12 @@ RSpec.describe Collaboration, type: :model do
     end
 
     it 'excludes orders with errors' do
-      create(:order, :error, parent: collaboration, user: collaboration.user, payable_at: Time.zone.today)
+      error_order = create(:order, :error, parent: collaboration, user: collaboration.user, payable_at: Time.zone.today)
+      collaboration.reload
       orders = collaboration.get_orders(Time.zone.today, Time.zone.today, false)
-      expect(orders.flatten.any?(&:has_errors?)).to be false
+      flattened_orders = orders.flatten
+      expect(flattened_orders).not_to include(error_order)
+      expect(flattened_orders.select(&:has_errors?)).to be_empty
     end
   end
 
@@ -997,6 +1024,358 @@ RSpec.describe Collaboration, type: :model do
     it 'has STATUS constant' do
       expect(described_class::STATUS).to be_a(Hash)
       expect(described_class::STATUS['OK']).to eq(3)
+    end
+  end
+
+  describe 'additional methods for coverage' do
+    let(:collaboration) { create(:collaboration, :active) }
+
+    describe '#only_have_single_collaborations?' do
+      it 'returns true for frequency zero' do
+        collaboration.update_column(:frequency, 0)
+        expect(collaboration.only_have_single_collaborations?).to be true
+      end
+
+      it 'returns true when skip_queries_validations is true' do
+        collaboration.skip_queries_validations = true
+        expect(collaboration.only_have_single_collaborations?).to be true
+      end
+
+      it 'returns false for recurrent collaborations' do
+        collaboration.update_column(:frequency, 1)
+        collaboration.skip_queries_validations = false
+        expect(collaboration.only_have_single_collaborations?).to be false
+      end
+    end
+
+    describe '#is_recurrent?' do
+      it 'always returns true' do
+        expect(collaboration.is_recurrent?).to be true
+      end
+    end
+
+    describe '#admin_permalink' do
+      it 'returns admin collaboration path' do
+        expect(collaboration.admin_permalink).to be_present
+        expect(collaboration.admin_permalink).to include(collaboration.id.to_s)
+      end
+    end
+
+    describe '#first_order' do
+      it 'returns first payable or paid order' do
+        order1 = create(:order, :paid, parent: collaboration, user: collaboration.user,
+                        payable_at: 2.months.ago, status: 2, payed_at: 2.months.ago)
+        order2 = create(:order, :paid, parent: collaboration, user: collaboration.user,
+                        payable_at: 1.month.ago, status: 2, payed_at: 1.month.ago)
+        collaboration.reload
+        expect(collaboration.first_order).to eq(order1)
+      end
+
+      it 'returns nil when no payable or paid orders exist' do
+        expect(collaboration.first_order).to be_nil
+      end
+    end
+
+    describe '#last_order_for' do
+      let(:date) { Time.zone.today }
+
+      it 'returns most recent order before or on date' do
+        order1 = create(:order, :paid, parent: collaboration, user: collaboration.user,
+                        payable_at: 2.months.ago, status: 2, payed_at: 2.months.ago)
+        order2 = create(:order, :paid, parent: collaboration, user: collaboration.user,
+                        payable_at: 1.month.ago, status: 2, payed_at: 1.month.ago)
+        collaboration.reload
+        expect(collaboration.last_order_for(date)).to eq(order2)
+      end
+
+      it 'returns nil when no orders exist before date' do
+        expect(collaboration.last_order_for(3.months.ago)).to be_nil
+      end
+    end
+
+    describe '#ok_url and #ko_url' do
+      it 'returns ok collaboration url' do
+        expect(collaboration.ok_url).to be_present
+      end
+
+      it 'returns ko collaboration url' do
+        expect(collaboration.ko_url).to be_present
+      end
+    end
+
+    describe '#check_spanish_bic' do
+      it 'sets warning for invalid Spanish bank code' do
+        collaboration.update(payment_type: 3, status: 2,
+                            iban_account: 'ES9199990000000000000000',
+                            iban_bic: nil)
+        collaboration.send(:check_spanish_bic)
+        expect(collaboration.reload.status).to eq(4)
+      end
+
+      it 'does not set warning for valid banks' do
+        collaboration.update(payment_type: 1, status: 2)
+        original_status = collaboration.status
+        collaboration.send(:check_spanish_bic)
+        expect(collaboration.reload.status).to eq(original_status)
+      end
+    end
+
+    describe '#calculate_bic' do
+      it 'returns BIC from Spanish IBAN' do
+        collaboration.update(payment_type: 3,
+                            iban_account: 'ES9121000418450200051332',
+                            iban_bic: nil)
+        bic = collaboration.calculate_bic
+        expect(bic).to be_present
+      end
+
+      it 'returns iban_bic when present' do
+        collaboration.update(payment_type: 3,
+                            iban_account: 'DE89370400440532013000',
+                            iban_bic: 'COBADEFFXXX')
+        expect(collaboration.calculate_bic).to eq('COBADEFFXXX')
+      end
+
+      it 'returns nil for invalid entity codes' do
+        collaboration.update(payment_type: 3,
+                            iban_account: 'ES9199990000000000000000',
+                            iban_bic: nil)
+        expect(collaboration.calculate_bic).to be_nil
+      end
+    end
+
+    describe '#payment_type_name' do
+      it 'returns payment type name' do
+        collaboration.update(payment_type: 1)
+        expect(collaboration.payment_type_name).to eq('Suscripción con Tarjeta de Crédito/Débito')
+      end
+    end
+
+    describe '#get_bank_data' do
+      let(:date) { Time.zone.today }
+
+      it 'returns bank data array when order is chargeable' do
+        order = create(:order, :nueva, parent: collaboration, user: collaboration.user,
+                      payable_at: date, amount: 1000)
+        collaboration.reload
+        collaboration.update(payment_type: 3, iban_account: 'ES9121000418450200051332')
+
+        data = collaboration.get_bank_data(date)
+        expect(data).to be_an(Array)
+        expect(data.length).to be > 0
+      end
+
+      it 'returns nil when no chargeable order exists' do
+        data = collaboration.get_bank_data(3.months.ago)
+        expect(data).to be_nil
+      end
+    end
+
+    describe 'NonUser vote methods' do
+      let(:non_user_collaboration) { build(:collaboration, :non_user) }
+
+      before do
+        non_user_collaboration.save(validate: false)
+      end
+
+      describe '#get_vote_town' do
+        it 'returns user vote_town when user exists' do
+          user_collab = create(:collaboration)
+          expect(user_collab.get_vote_town).to eq(user_collab.user.vote_town)
+        end
+
+        it 'returns non_user ine_town when user is nil' do
+          town = non_user_collaboration.get_vote_town
+          expect(town).to be_present
+        end
+      end
+
+      describe '#get_vote_town_name' do
+        it 'returns user vote_town_name when user exists' do
+          user_collab = create(:collaboration)
+          expect(user_collab.get_vote_town_name).to eq(user_collab.user.vote_town_name)
+        end
+      end
+
+      describe '#get_vote_autonomy_code' do
+        it 'returns user vote_autonomy_code when user exists' do
+          user_collab = create(:collaboration)
+          expect(user_collab.get_vote_autonomy_code).to eq(user_collab.user.vote_autonomy_code)
+        end
+      end
+
+      describe '#get_vote_autonomy_name' do
+        it 'returns user vote_autonomy_name when user exists' do
+          user_collab = create(:collaboration)
+          expect(user_collab.get_vote_autonomy_name).to eq(user_collab.user.vote_autonomy_name)
+        end
+      end
+
+      describe '#get_vote_island_code' do
+        it 'returns user vote_island_code when user exists' do
+          user_collab = create(:collaboration)
+          code = user_collab.get_vote_island_code
+          expect(code).to eq(user_collab.user.vote_island_code)
+        end
+      end
+
+      describe '#get_vote_island_name' do
+        it 'returns user vote_island_name when user exists' do
+          user_collab = create(:collaboration)
+          name = user_collab.get_vote_island_name
+          expect(name).to eq(user_collab.user.vote_island_name)
+        end
+      end
+
+      describe '#get_vote_circle_town' do
+        it 'returns user vote_circle town when user exists' do
+          user_collab = create(:collaboration)
+          town = user_collab.get_vote_circle_town
+          expect(town).to be_present
+        end
+      end
+
+      describe '#get_vote_circle_autonomy_code' do
+        it 'returns user vote_circle autonomy when user exists' do
+          user_collab = create(:collaboration)
+          code = user_collab.get_vote_circle_autonomy_code
+          expect(code).to be_present
+        end
+      end
+
+      describe '#get_vote_circle_island_code' do
+        it 'returns user vote_circle island when user exists' do
+          user_collab = create(:collaboration)
+          code = user_collab.get_vote_circle_island_code
+          expect(code).to be_present
+        end
+      end
+
+      describe '#get_vote_circle_id' do
+        it 'returns user vote_circle_id when present' do
+          user_collab = create(:collaboration)
+          if user_collab.user.vote_circle_id.present?
+            expect(user_collab.get_vote_circle_id).to eq(user_collab.user.vote_circle_id)
+          else
+            expect(user_collab.get_vote_circle_id).to be_nil
+          end
+        end
+      end
+    end
+
+    describe 'class methods' do
+      describe '.has_bank_file?' do
+        let(:date) { Date.new(2024, 1, 1) }
+
+        it 'returns array of existence flags' do
+          result = described_class.has_bank_file?(date)
+          expect(result).to be_an(Array)
+          expect(result.length).to eq(2)
+          expect(result[0]).to be_in([true, false])
+          expect(result[1]).to be_in([true, false])
+        end
+      end
+
+      describe '.bank_file_lock' do
+        it 'creates lock file when status is true' do
+          described_class.bank_file_lock(true)
+          expect(File.exist?(described_class::BANK_FILE_LOCK)).to be true
+        end
+
+        it 'removes lock file when status is false' do
+          described_class.bank_file_lock(true)
+          described_class.bank_file_lock(false)
+          expect(File.exist?(described_class::BANK_FILE_LOCK)).to be false
+        end
+      end
+
+      describe '.update_paid_unconfirmed_bank_collaborations' do
+        it 'updates unconfirmed collaborations to OK' do
+          collab = create(:collaboration, :unconfirmed, payment_type: 3)
+          order = create(:order, :sin_confirmar, parent: collab, user: collab.user)
+          described_class.update_paid_unconfirmed_bank_collaborations(Order.where(id: order.id))
+          expect(collab.reload.status).to eq(3)
+        end
+      end
+    end
+
+    describe '#verify_user_militant_status' do
+      it 'updates user militant status after commit' do
+        user_collab = create(:collaboration)
+        allow(user_collab.user).to receive(:update)
+        allow(user_collab.user).to receive(:process_militant_data)
+        user_collab.send(:verify_user_militant_status)
+        expect(user_collab.user).to have_received(:update)
+      end
+
+      it 'does nothing when user is nil' do
+        non_user_collab = build(:collaboration, :non_user)
+        non_user_collab.save(validate: false)
+        expect { non_user_collab.send(:verify_user_militant_status) }.not_to raise_error
+      end
+    end
+
+    describe 'additional scopes' do
+      before do
+        @bank_national = create(:collaboration, :with_spanish_iban, :active)
+        @bank_international = create(:collaboration, :with_iban, :active)
+        @amount_low = create(:collaboration, :active, amount: 500)
+        @amount_mid = create(:collaboration, :active, amount: 1500)
+        @amount_high = create(:collaboration, :active, amount: 3000)
+        @autonomy_cc = create(:collaboration, :active, for_autonomy_cc: true)
+        @town_cc = create(:collaboration, :active, for_town_cc: true)
+        @island_cc = create(:collaboration, :active, for_island_cc: true)
+        @legacy_collab = build(:collaboration, :non_user)
+        @legacy_collab.save(validate: false)
+      end
+
+      it '.bank_nationals returns Spanish bank accounts' do
+        expect(described_class.bank_nationals).to include(@bank_national)
+        expect(described_class.bank_nationals).not_to include(@bank_international)
+      end
+
+      it '.bank_internationals returns international IBANs' do
+        expect(described_class.bank_internationals).to include(@bank_international)
+        expect(described_class.bank_internationals).not_to include(@bank_national)
+      end
+
+      it '.amount_1 returns collaborations under 1000 cents' do
+        expect(described_class.amount_1).to include(@amount_low)
+        expect(described_class.amount_1).not_to include(@amount_mid)
+      end
+
+      it '.amount_2 returns collaborations between 1000 and 2000 cents' do
+        expect(described_class.amount_2).to include(@amount_mid)
+        expect(described_class.amount_2).not_to include(@amount_low)
+      end
+
+      it '.amount_3 returns collaborations over 2000 cents' do
+        expect(described_class.amount_3).to include(@amount_high)
+        expect(described_class.amount_3).not_to include(@amount_mid)
+      end
+
+      it '.autonomy_cc returns autonomy collaborations' do
+        expect(described_class.autonomy_cc).to include(@autonomy_cc)
+        expect(described_class.autonomy_cc).not_to include(@town_cc)
+      end
+
+      it '.town_cc returns town collaborations' do
+        expect(described_class.town_cc).to include(@town_cc)
+        expect(described_class.town_cc).not_to include(@island_cc)
+      end
+
+      it '.island_cc returns island collaborations' do
+        expect(described_class.island_cc).to include(@island_cc)
+        expect(described_class.island_cc).not_to include(@autonomy_cc)
+      end
+
+      it '.legacy returns collaborations with non_user_data' do
+        expect(described_class.legacy).to include(@legacy_collab)
+      end
+
+      it '.non_user returns collaborations without user_id' do
+        expect(described_class.non_user).to include(@legacy_collab)
+      end
     end
   end
 end

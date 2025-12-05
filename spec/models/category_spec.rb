@@ -434,4 +434,37 @@ RSpec.describe Category, type: :model do
       end
     end
   end
+
+  # ====================
+  # ALIAS CLASS TESTS (for coverage)
+  # ====================
+
+  describe 'Category alias' do
+    it 'is an alias for PlebisCms::Category' do
+      expect(Category).to eq(PlebisCms::Category)
+    end
+
+    it 'creates instances through the alias' do
+      category = Category.new(name: 'Alias Test Category')
+      expect(category).to be_a(Category)
+      expect(category).to be_a(PlebisCms::Category)
+    end
+
+    it 'saves instances through the alias' do
+      category = Category.create!(name: 'Alias Saved Category')
+      expect(category).to be_persisted
+      expect(Category.find(category.id)).to eq(category)
+    end
+
+    it 'queries through the alias' do
+      category = Category.create!(name: 'Alias Query Category')
+      found = Category.where(name: 'Alias Query Category').first
+      expect(found).to eq(category)
+    end
+
+    it 'uses scopes through the alias' do
+      active_category = create(:category, :with_posts)
+      expect(Category.active).to include(active_category)
+    end
+  end
 end
