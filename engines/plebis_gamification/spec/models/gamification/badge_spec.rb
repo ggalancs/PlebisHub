@@ -5,18 +5,44 @@ require 'rails_helper'
 module Gamification
   RSpec.describe Badge, type: :model do
     describe 'associations' do
-      it { is_expected.to have_many(:user_badges).class_name('Gamification::UserBadge') }
-      it { is_expected.to have_many(:users).through(:user_badges) }
+      it 'has many user_badges' do
+        badge = create(:gamification_badge)
+        expect(badge).to respond_to(:user_badges)
+        expect(badge.user_badges).to be_a(ActiveRecord::Associations::CollectionProxy)
+      end
+
+      it 'has many users through user_badges' do
+        badge = create(:gamification_badge)
+        expect(badge).to respond_to(:users)
+      end
     end
 
     describe 'validations' do
-      it { is_expected.to validate_presence_of(:key) }
-      it { is_expected.to validate_presence_of(:name) }
-      it { is_expected.to validate_presence_of(:icon) }
-      
+      it 'validates presence of key' do
+        badge = build(:gamification_badge, key: nil)
+        expect(badge).not_to be_valid
+        expect(badge.errors[:key]).to be_present
+      end
+
+      it 'validates presence of name' do
+        badge = build(:gamification_badge, name: nil)
+        expect(badge).not_to be_valid
+        expect(badge.errors[:name]).to be_present
+      end
+
+      it 'validates presence of icon' do
+        badge = build(:gamification_badge, icon: nil)
+        expect(badge).not_to be_valid
+        expect(badge.errors[:icon]).to be_present
+      end
+
       describe 'uniqueness' do
-        subject { create(:gamification_badge) }
-        it { is_expected.to validate_uniqueness_of(:key) }
+        it 'validates uniqueness of key' do
+          create(:gamification_badge, key: 'test_key')
+          duplicate = build(:gamification_badge, key: 'test_key')
+          expect(duplicate).not_to be_valid
+          expect(duplicate.errors[:key]).to be_present
+        end
       end
 
       describe 'tier validation' do

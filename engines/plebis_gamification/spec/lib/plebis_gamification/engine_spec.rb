@@ -9,7 +9,7 @@ RSpec.describe PlebisGamification::Engine, type: :rails_engine do
     end
 
     it 'does not isolate the namespace' do
-      expect(described_class.isolated?).to be false
+      expect(described_class.isolated?).to be_nil
     end
   end
 
@@ -111,57 +111,57 @@ RSpec.describe PlebisGamification::Engine, type: :rails_engine do
       listener_class = Class.new do
         def self.register!; end
       end
-      stub_const('Gamification::Listeners::UserListener', listener_class)
+      stub_const('Gamification::UserListener', listener_class)
 
       expect(listener_class).to receive(:register!)
 
-      Gamification::Listeners::UserListener.register! if defined?(Gamification::Listeners::UserListener)
+      Gamification::UserListener.register! if defined?(Gamification::UserListener)
     end
 
     it 'handles ProposalListener when defined' do
       listener_class = Class.new do
         def self.register!; end
       end
-      stub_const('Gamification::Listeners::ProposalListener', listener_class)
+      stub_const('Gamification::ProposalListener', listener_class)
 
       expect(listener_class).to receive(:register!)
 
-      Gamification::Listeners::ProposalListener.register! if defined?(Gamification::Listeners::ProposalListener)
+      Gamification::ProposalListener.register! if defined?(Gamification::ProposalListener)
     end
 
     it 'handles VoteListener when defined' do
       listener_class = Class.new do
         def self.register!; end
       end
-      stub_const('Gamification::Listeners::VoteListener', listener_class)
+      stub_const('Gamification::VoteListener', listener_class)
 
       expect(listener_class).to receive(:register!)
 
-      Gamification::Listeners::VoteListener.register! if defined?(Gamification::Listeners::VoteListener)
+      Gamification::VoteListener.register! if defined?(Gamification::VoteListener)
     end
 
     it 'handles LoginListener when defined' do
       listener_class = Class.new do
         def self.register!; end
       end
-      stub_const('Gamification::Listeners::LoginListener', listener_class)
+      stub_const('Gamification::LoginListener', listener_class)
 
       expect(listener_class).to receive(:register!)
 
-      Gamification::Listeners::LoginListener.register! if defined?(Gamification::Listeners::LoginListener)
+      Gamification::LoginListener.register! if defined?(Gamification::LoginListener)
     end
 
     it 'handles missing listeners gracefully' do
-      hide_const('Gamification::Listeners::UserListener')
-      hide_const('Gamification::Listeners::ProposalListener')
-      hide_const('Gamification::Listeners::VoteListener')
-      hide_const('Gamification::Listeners::LoginListener')
+      hide_const('Gamification::UserListener')
+      hide_const('Gamification::ProposalListener')
+      hide_const('Gamification::VoteListener')
+      hide_const('Gamification::LoginListener')
 
       expect do
-        Gamification::Listeners::UserListener.register! if defined?(Gamification::Listeners::UserListener)
-        Gamification::Listeners::ProposalListener.register! if defined?(Gamification::Listeners::ProposalListener)
-        Gamification::Listeners::VoteListener.register! if defined?(Gamification::Listeners::VoteListener)
-        Gamification::Listeners::LoginListener.register! if defined?(Gamification::Listeners::LoginListener)
+        Gamification::UserListener.register! if defined?(Gamification::UserListener)
+        Gamification::ProposalListener.register! if defined?(Gamification::ProposalListener)
+        Gamification::VoteListener.register! if defined?(Gamification::VoteListener)
+        Gamification::LoginListener.register! if defined?(Gamification::LoginListener)
       end.not_to raise_error
     end
   end

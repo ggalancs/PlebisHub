@@ -40,10 +40,10 @@ module PlebisGamification
       next unless ::EngineActivation.enabled?('plebis_gamification') rescue true
 
       Rails.application.config.after_initialize do
-        Gamification::Listeners::UserListener.register! if defined?(Gamification::Listeners::UserListener)
-        Gamification::Listeners::ProposalListener.register! if defined?(Gamification::Listeners::ProposalListener)
-        Gamification::Listeners::VoteListener.register! if defined?(Gamification::Listeners::VoteListener)
-        Gamification::Listeners::LoginListener.register! if defined?(Gamification::Listeners::LoginListener)
+        Gamification::UserListener.register! if defined?(Gamification::UserListener)
+        Gamification::ProposalListener.register! if defined?(Gamification::ProposalListener)
+        Gamification::VoteListener.register! if defined?(Gamification::VoteListener)
+        Gamification::LoginListener.register! if defined?(Gamification::LoginListener)
       end
     end
   end

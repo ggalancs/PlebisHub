@@ -46,5 +46,11 @@ FactoryBot.define do
       wants_card { true }
       born_at { 25.years.ago }
     end
+
+    trait :not_sended do
+      wants_card { true }
+      born_at { nil }
+      status { :accepted }
+    end
   end
 end

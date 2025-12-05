@@ -18,7 +18,7 @@ Rails.application.config.after_initialize do
   if EngineActivation.enabled?('plebis_gamification')
     require_dependency Rails.root.join('engines/plebis_gamification/app/listeners/gamification/proposal_listener')
 
-    Gamification::Listeners::ProposalListener.register!
+    Gamification::ProposalListener.register!
     Rails.logger.info "[EventBus] Registered Gamification listeners"
   end
 

@@ -123,6 +123,7 @@ end
 # PlebisHub Engines
 gem 'plebis_cms', path: 'engines/plebis_cms'
 gem 'plebis_collaborations', path: 'engines/plebis_collaborations'
+gem 'plebis_gamification', path: 'engines/plebis_gamification'
 gem 'plebis_impulsa', path: 'engines/plebis_impulsa'
 gem 'plebis_microcredit', path: 'engines/plebis_microcredit'
 gem 'plebis_participation', path: 'engines/plebis_participation'

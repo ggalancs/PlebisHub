@@ -337,52 +337,52 @@ RSpec.describe 'BrandSettings Admin', type: :request do
   # ========================================
   describe 'GET /admin/brand_settings/new' do
     it 'displays the new form' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response).to have_http_status(:success)
     end
 
     it 'has basic information section' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to match(/Basic Information/i)
     end
 
     it 'has name field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[name]')
     end
 
     it 'has description field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[description]')
     end
 
     it 'has scope & organization section' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to match(/Scope.*Organization/i)
     end
 
     it 'has scope select field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[scope]')
     end
 
     it 'has organization select field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[organization_id]')
     end
 
     it 'has theme selection section' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to match(/Theme Selection/i)
     end
 
     it 'has theme_id select field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[theme_id]')
     end
 
     it 'shows all predefined themes in select' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('PlebisHub Default')
       expect(response.body).to include('Ocean Blue')
       expect(response.body).to include('Forest Green')
@@ -391,57 +391,57 @@ RSpec.describe 'BrandSettings Admin', type: :request do
     end
 
     it 'has theme_name field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[theme_name]')
     end
 
     it 'has custom colors section' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to match(/Custom Colors.*Optional/i)
     end
 
     it 'has primary_color field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[primary_color]')
     end
 
     it 'has primary_light_color field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[primary_light_color]')
     end
 
     it 'has primary_dark_color field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[primary_dark_color]')
     end
 
     it 'has secondary_color field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[secondary_color]')
     end
 
     it 'has secondary_light_color field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[secondary_light_color]')
     end
 
     it 'has secondary_dark_color field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[secondary_dark_color]')
     end
 
     it 'has settings section' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to match(/Settings/i)
     end
 
     it 'has active field' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to include('brand_setting[active]')
     end
 
     it 'has form actions' do
-      get new_admin_brand_settings_path
+      get new_admin_brand_setting_path
       expect(response.body).to match(/Submit|Create/i)
     end
   end

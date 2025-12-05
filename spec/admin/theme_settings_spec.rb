@@ -213,48 +213,48 @@ RSpec.describe 'ThemeSettings Admin', type: :request do
   # ========================================
   describe 'GET /admin/theme_settings/new' do
     it 'displays the new form' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response).to have_http_status(:success)
     end
 
     it 'has basic information section' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to match(/Información Básica/i)
     end
 
     it 'has name field' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('theme_setting[name]')
     end
 
     it 'has is_active field' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('theme_setting[is_active]')
     end
 
     it 'has colors section' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to match(/Colores de Marca/i)
     end
 
     it 'has primary_color field with color input' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('theme_setting[primary_color]')
       expect(response.body).to include('type="color"')
     end
 
     it 'has secondary_color field with color input' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('theme_setting[secondary_color]')
     end
 
     it 'has accent_color field with color input' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('theme_setting[accent_color]')
     end
 
     it 'has color preview container' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('Vista Previa de Colores')
       expect(response.body).to include('primary-preview')
       expect(response.body).to include('secondary-preview')
@@ -262,12 +262,12 @@ RSpec.describe 'ThemeSettings Admin', type: :request do
     end
 
     it 'has typography section' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to match(/Tipografía/i)
     end
 
     it 'has font_primary select with options' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('theme_setting[font_primary]')
       expect(response.body).to include('Inter')
       expect(response.body).to include('Roboto')
@@ -275,44 +275,44 @@ RSpec.describe 'ThemeSettings Admin', type: :request do
     end
 
     it 'has font_display select with options' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('theme_setting[font_display]')
       expect(response.body).to include('Montserrat')
       expect(response.body).to include('Playfair Display')
     end
 
     it 'has assets section' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to match(/Assets/i)
     end
 
     it 'has logo_url field' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('theme_setting[logo_url]')
     end
 
     it 'has favicon_url field' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('theme_setting[favicon_url]')
     end
 
     it 'has custom CSS section' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to match(/CSS Personalizado/i)
     end
 
     it 'has custom_css textarea' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to include('theme_setting[custom_css]')
     end
 
     it 'has form actions' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to match(/Guardar Tema/i)
     end
 
     it 'has cancel action' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response.body).to match(/cancel/i)
     end
   end
@@ -986,18 +986,18 @@ RSpec.describe 'ThemeSettings Admin', type: :request do
   # ========================================
   describe 'after_build callback' do
     it 'sets default primary_color when nil' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       # The after_build sets defaults in the form
       expect(response).to have_http_status(:success)
     end
 
     it 'sets default secondary_color when nil' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response).to have_http_status(:success)
     end
 
     it 'sets default accent_color when nil' do
-      get new_admin_theme_settings_path
+      get new_admin_theme_setting_path
       expect(response).to have_http_status(:success)
     end
 
