@@ -7,6 +7,19 @@ module PlebisImpulsa
     describe 'associations' do
       it { is_expected.to belong_to(:impulsa_project).class_name('PlebisImpulsa::ImpulsaProject') }
       it { is_expected.to belong_to(:impulsa_edition_topic).class_name('PlebisImpulsa::ImpulsaEditionTopic') }
+
+      it 'has working impulsa_project association' do
+        project = create(:impulsa_project)
+        topic = create(:impulsa_edition_topic)
+        project_topic = create(:impulsa_project_topic, impulsa_project: project, impulsa_edition_topic: topic)
+        expect(project_topic.impulsa_project).to eq(project)
+      end
+
+      it 'has working impulsa_edition_topic association' do
+        topic = create(:impulsa_edition_topic)
+        project_topic = create(:impulsa_project_topic, impulsa_edition_topic: topic)
+        expect(project_topic.impulsa_edition_topic).to eq(topic)
+      end
     end
 
     describe '#slug' do

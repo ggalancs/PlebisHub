@@ -75,6 +75,10 @@ RSpec.describe ImpulsaProjectStates, type: :model do
   # ====================
 
   describe '.exportable scope' do
+    it 'defines scope with validated and winner states' do
+      expect(ImpulsaProject.exportable.to_sql).to include('validated', 'winner')
+    end
+
     it 'includes validated projects' do
       validated = create(:impulsa_project, impulsa_edition_category: category_active, state: 'validated')
       expect(ImpulsaProject.exportable).to include(validated)
@@ -348,6 +352,13 @@ RSpec.describe ImpulsaProjectStates, type: :model do
         project = build(:impulsa_project, impulsa_edition_category: category_active)
         expect(project.editable?).to be true
       end
+
+      it 'checks both persisted and edition allow_edition conditions' do
+        project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'new')
+        expect(project.persisted?).to be true
+        expect(project.impulsa_edition.allow_edition?).to be true
+        expect(project.editable?).to be true
+      end
     end
 
     context 'in review state' do
@@ -408,6 +419,14 @@ RSpec.describe ImpulsaProjectStates, type: :model do
       it 'returns false for resigned' do
         project = create(:impulsa_project, impulsa_edition_category: category_active, state: 'resigned')
         expect(project.editable?).to be false
+      end
+
+      it 'state blocks define editable? method for non-editable states' do
+        %w[fixes review_fixes validable validated invalidated winner resigned].each do |state|
+          project = create(:impulsa_project, impulsa_edition_category: category_active, state: state)
+          expect(project).to respond_to(:editable?)
+          expect(project.editable?).to be false
+        end
       end
     end
   end

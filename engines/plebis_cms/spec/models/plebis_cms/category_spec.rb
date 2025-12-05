@@ -19,6 +19,10 @@ module PlebisCms
     end
 
     describe 'FriendlyId' do
+      it 'extends FriendlyId module' do
+        expect(Category.singleton_class.ancestors).to include(FriendlyId)
+      end
+
       it 'generates slug from name' do
         category = create(:category, name: 'Test Category')
         expect(category.slug).to eq('test-category')
@@ -28,6 +32,18 @@ module PlebisCms
         category = create(:category, name: 'Findable Category')
         found = Category.friendly.find('findable-category')
         expect(found).to eq(category)
+      end
+
+      it 'can be found by id' do
+        category = create(:category, name: 'Test Category')
+        found = Category.friendly.find(category.id)
+        expect(found).to eq(category)
+      end
+
+      it 'uses finders module' do
+        category = create(:category, name: 'Finder Test')
+        expect(Category.respond_to?(:friendly)).to be true
+        expect(Category.friendly.find(category.slug)).to eq(category)
       end
 
       it 'regenerates slug when name changes' do
@@ -131,6 +147,21 @@ module PlebisCms
         it 'returns 0 when category has no posts' do
           category = create(:category)
           expect(category.posts_count).to eq(0)
+        end
+
+        it 'delegates to posts.count' do
+          category = create(:category, :with_one_post)
+          expect(category.posts_count).to eq(category.posts.count)
+        end
+
+        it 'updates when posts are added' do
+          category = create(:category)
+          expect(category.posts_count).to eq(0)
+
+          post = create(:post)
+          category.posts << post
+
+          expect(category.posts_count).to eq(1)
         end
       end
 

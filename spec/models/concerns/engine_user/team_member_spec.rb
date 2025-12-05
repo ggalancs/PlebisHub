@@ -58,6 +58,13 @@ RSpec.describe EngineUser::TeamMember, type: :model do
       expect(user.participation_teams).to be_an(ActiveRecord::Relation)
     end
 
+    it 'defines association with correct class_name' do
+      reflection = user.class.reflect_on_association(:participation_teams)
+      expect(reflection).not_to be_nil
+      expect(reflection.macro).to eq(:has_and_belongs_to_many)
+      expect(reflection.options[:class_name]).to eq('PlebisParticipation::ParticipationTeam')
+    end
+
     it 'allows adding teams' do
       user.participation_teams << team1
       expect(user.participation_teams).to include(team1)

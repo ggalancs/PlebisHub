@@ -25,10 +25,22 @@ module PlebisCms
         expect(found).to eq(post)
       end
 
+      it 'can be found by id' do
+        post = create(:post, title: 'Test Post')
+        found = Post.friendly.find(post.id)
+        expect(found).to eq(post)
+      end
+
       it 'handles slug conflicts with year' do
         create(:post, title: 'Duplicate Title')
         post = create(:post, title: 'Duplicate Title')
         expect(post.slug).to include('duplicate-title')
+      end
+
+      it 'uses finders module' do
+        post = create(:post, title: 'Finder Test')
+        expect(Post.respond_to?(:friendly)).to be true
+        expect(Post.friendly.find(post.slug)).to eq(post)
       end
     end
 

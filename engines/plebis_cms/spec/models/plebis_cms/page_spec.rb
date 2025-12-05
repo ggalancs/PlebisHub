@@ -267,6 +267,12 @@ module PlebisCms
         page = PlebisCms::Page.new(title: 'Test', slug: 'test-13', id_form: 13, link: 'not-a-url')
         expect(page.external_plebisbrand_link?).to be false
       end
+
+      it 'correctly matches regex pattern for plebisbrand.info subdomains' do
+        page = PlebisCms::Page.new(title: 'Test', slug: 'test-14', id_form: 14, link: 'https://subdomain.plebisbrand.info/path')
+        expect(page.link).to match(%r{https://[^/]*\.plebisbrand.info/.*})
+        expect(page.external_plebisbrand_link?).to be true
+      end
     end
 
     describe 'table name' do

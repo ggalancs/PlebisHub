@@ -30,10 +30,10 @@ RSpec.describe EngineUser::ImpulsaAuthor, type: :model do
       end
 
       it 'delegates to impulsa_author attribute' do
-        # Explicitly test that the method calls the attribute
-        allow(user).to receive(:impulsa_author).and_call_original
-        user.impulsa_author?
-        expect(user).to have_received(:impulsa_author)
+        # Explicitly test that the method returns the attribute value
+        attribute_value = user.impulsa_author
+        method_value = user.impulsa_author?
+        expect(method_value).to eq(attribute_value)
       end
     end
 
@@ -154,6 +154,25 @@ RSpec.describe EngineUser::ImpulsaAuthor, type: :model do
 
     it 'concern is properly namespaced' do
       expect(EngineUser::ImpulsaAuthor.name).to eq('EngineUser::ImpulsaAuthor')
+    end
+
+    it 'module extends ActiveSupport::Concern' do
+      expect(EngineUser::ImpulsaAuthor.ancestors).to include(ActiveSupport::Concern)
+    end
+  end
+
+  describe 'attribute delegation' do
+    it 'impulsa_author? directly returns impulsa_author attribute value' do
+      user.update_column(:flags, user.flags | 16)
+      attribute_value = user.impulsa_author
+      method_value = user.impulsa_author?
+      expect(method_value).to eq(attribute_value)
+      expect(method_value).to be true
+    end
+
+    it 'method does not perform complex logic' do
+      user.update_column(:flags, user.flags | 16)
+      expect(user.impulsa_author?).to eq(user.impulsa_author)
     end
   end
 end

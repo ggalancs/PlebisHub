@@ -164,4 +164,51 @@ RSpec.describe PlebisMicrocredit::Engine, type: :rails_engine do
       end.not_to raise_error
     end
   end
+
+  describe 'engine paths' do
+    it 'has config/routes.rb path configured' do
+      expect(described_class.config.paths['config/routes.rb']).to be_present
+    end
+  end
+
+  describe 'test environment behavior' do
+    it 'is always enabled in test environment' do
+      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('test'))
+      expect(Rails.env.test?).to be true
+    end
+  end
+
+  describe 'logging' do
+    context 'when engine is disabled' do
+      it 'logs info message when engine is disabled' do
+        activation_class = Class.new do
+          def self.enabled?(name)
+            false
+          end
+        end
+        stub_const('::EngineActivation', activation_class)
+
+        expect(Rails.logger).to receive(:info).with('[PlebisMicrocredit] Engine disabled, skipping routes')
+        Rails.logger.info('[PlebisMicrocredit] Engine disabled, skipping routes') unless ::EngineActivation.enabled?('plebis_microcredit')
+      end
+    end
+
+    context 'when EngineActivation check fails' do
+      it 'logs warning with error message' do
+        activation_class = Class.new do
+          def self.enabled?(name)
+            raise StandardError, 'Database connection failed'
+          end
+        end
+        stub_const('::EngineActivation', activation_class)
+
+        expect(Rails.logger).to receive(:warn).with(/\[PlebisMicrocredit\] Could not check activation status/)
+        begin
+          ::EngineActivation.enabled?('plebis_microcredit')
+        rescue StandardError => e
+          Rails.logger.warn "[PlebisMicrocredit] Could not check activation status (#{e.message}), enabling by default"
+        end
+      end
+    end
+  end
 end

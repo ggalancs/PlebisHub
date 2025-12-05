@@ -163,4 +163,46 @@ RSpec.describe EngineUser::Proposer, type: :model do
       expect { 3.times { user.has_supported?(proposal) } }.not_to raise_error
     end
   end
+
+  describe 'edge cases' do
+    describe '#proposals with nil id' do
+      it 'handles query with nil id' do
+        empty_relation = Proposal.none
+        allow(Proposal).to receive(:where).and_return(empty_relation)
+        expect { user.proposals }.not_to raise_error
+      end
+    end
+
+    describe '#has_supported? with edge cases' do
+      it 'handles nil proposal gracefully' do
+        expect { user.has_supported?(nil) }.to raise_error(NoMethodError)
+      end
+    end
+
+    describe 'response_to checks' do
+      it 'responds to proposals' do
+        expect(user).to respond_to(:proposals)
+      end
+
+      it 'responds to has_supported?' do
+        expect(user).to respond_to(:has_supported?)
+      end
+    end
+  end
+
+  describe 'included behavior' do
+    it 'defines supports association in User model' do
+      expect(user.class.reflect_on_association(:supports)).to be_present
+    end
+
+    it 'supports association has dependent: :destroy' do
+      association = user.class.reflect_on_association(:supports)
+      expect(association.options[:dependent]).to eq(:destroy)
+    end
+
+    it 'supports association macro is has_many' do
+      association = user.class.reflect_on_association(:supports)
+      expect(association.macro).to eq(:has_many)
+    end
+  end
 end

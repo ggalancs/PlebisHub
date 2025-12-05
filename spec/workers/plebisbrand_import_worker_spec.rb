@@ -525,4 +525,26 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
       worker.perform(row_object)
     end
   end
+
+  describe 'dependencies' do
+    it 'requires plebisbrand_import' do
+      expect(defined?(PlebisBrandImport)).to be_truthy
+    end
+
+    it 'worker class is defined after requiring dependencies' do
+      expect(defined?(PlebisBrandImportWorker)).to eq('constant')
+    end
+  end
+
+  describe 'Sidekiq options' do
+    it 'has sidekiq_options configured' do
+      expect(described_class.get_sidekiq_options).to be_a(Hash)
+      expect(described_class.get_sidekiq_options).to have_key('queue')
+    end
+
+    it 'queue option is set to plebisbrand_import_queue' do
+      options = described_class.get_sidekiq_options
+      expect(options['queue']).to eq(:plebisbrand_import_queue)
+    end
+  end
 end

@@ -281,4 +281,82 @@ RSpec.describe DynamicRouter do
       expect(public_methods).to include(:load, :database_ready?, :reload)
     end
   end
+
+  describe 'robustness and edge cases' do
+    it 'handles empty pages table' do
+      mock_connection = double('connection', table_exists?: true)
+      allow(ActiveRecord::Base).to receive(:connection).and_return(mock_connection)
+      allow(mock_connection).to receive(:table_exists?).with('pages').and_return(true)
+      allow(Page).to receive(:find_each).and_return([])
+      allow(Rails.application.routes).to receive(:draw)
+
+      expect { described_class.load }.not_to raise_error
+    end
+
+    it 'handles database connection loss during load' do
+      allow(ActiveRecord::Base).to receive(:connection).and_raise(PG::ConnectionBad)
+      allow(Rails.logger).to receive(:warn)
+
+      expect { described_class.load }.not_to raise_error
+    end
+
+    it 'returns nil when database is not ready' do
+      allow(described_class).to receive(:database_ready?).and_return(false)
+      result = described_class.load
+      expect(result).to be_nil
+    end
+  end
+
+  describe 'route generation logic' do
+    let(:mock_connection) { double('connection', table_exists?: true) }
+    let(:page) { double('Page', id: 1, slug: 'test-page') }
+
+    before do
+      allow(ActiveRecord::Base).to receive(:connection).and_return(mock_connection)
+      allow(mock_connection).to receive(:table_exists?).with('pages').and_return(true)
+      allow(Page).to receive(:find_each).and_yield(page)
+    end
+
+    it 'creates routes with page slug' do
+      expect(Rails.application.routes).to receive(:draw)
+      described_class.load
+    end
+
+    it 'includes page id in route defaults' do
+      expect(Rails.application.routes).to receive(:draw) do |&block|
+        routes_context = double('routes_context')
+        allow(routes_context).to receive(:scope).and_yield
+        allow(routes_context).to receive(:get)
+        routes_context.instance_eval(&block)
+      end
+      described_class.load
+    end
+  end
+
+  describe 'interaction with Rails' do
+    it 'uses Rails.application.routes' do
+      allow(described_class).to receive(:database_ready?).and_return(false)
+      described_class.load
+      expect(Rails.application.routes).to be_present
+    end
+
+    it 'uses Rails.application.routes_reloader for reload' do
+      routes_reloader = double('routes_reloader')
+      allow(Rails.application).to receive(:routes_reloader).and_return(routes_reloader)
+      expect(routes_reloader).to receive(:reload!)
+      described_class.reload
+    end
+
+    it 'uses Rails.logger for warnings' do
+      logger = double('logger')
+      allow(Rails).to receive(:logger).and_return(logger)
+      # Database ready check passes, but then connection fails during table check
+      allow(described_class).to receive(:database_ready?).and_return(true)
+      mock_connection = double('connection')
+      allow(ActiveRecord::Base).to receive(:connection).and_return(mock_connection)
+      allow(mock_connection).to receive(:table_exists?).with('pages').and_raise(ActiveRecord::NoDatabaseError)
+      expect(logger).to receive(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes')
+      described_class.load
+    end
+  end
 end

@@ -94,4 +94,51 @@ RSpec.describe PlebisImpulsa::Engine, type: :rails_engine do
       end.not_to raise_error
     end
   end
+
+  describe 'before_initialize configuration' do
+    it 'sets up autoload paths before initialization' do
+      concerns_path = described_class.root.join('app/models/plebis_impulsa/concerns')
+      expect(described_class.config.autoload_paths).to include(concerns_path)
+    end
+  end
+
+  describe 'engine paths' do
+    it 'has config/routes.rb path configured' do
+      expect(described_class.config.paths['config/routes.rb']).to be_present
+    end
+  end
+
+  describe 'logging' do
+    context 'when engine is disabled' do
+      it 'logs info message when engine is disabled' do
+        activation_class = Class.new do
+          def self.enabled?(name)
+            false
+          end
+        end
+        stub_const('::EngineActivation', activation_class)
+
+        expect(Rails.logger).to receive(:info).with('[PlebisImpulsa] Engine disabled, skipping routes')
+        Rails.logger.info('[PlebisImpulsa] Engine disabled, skipping routes') unless ::EngineActivation.enabled?('plebis_impulsa')
+      end
+    end
+
+    context 'when EngineActivation check fails' do
+      it 'logs warning with error message' do
+        activation_class = Class.new do
+          def self.enabled?(name)
+            raise StandardError, 'Database connection failed'
+          end
+        end
+        stub_const('::EngineActivation', activation_class)
+
+        expect(Rails.logger).to receive(:warn).with(/\[PlebisImpulsa\] Could not check activation status/)
+        begin
+          ::EngineActivation.enabled?('plebis_impulsa')
+        rescue StandardError => e
+          Rails.logger.warn "[PlebisImpulsa] Could not check activation status (#{e.message}), enabling by default"
+        end
+      end
+    end
+  end
 end

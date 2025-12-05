@@ -472,4 +472,59 @@ RSpec.describe Gamifiable, type: :model do
       expect(user2.reload.total_points).to eq(200)
     end
   end
+
+  describe 'edge cases and robustness' do
+    it 'gamification_stats returns same instance when called multiple times' do
+      stats1 = user.gamification_stats
+      stats2 = user.gamification_stats
+      expect(stats1.object_id).to eq(stats2.object_id)
+    end
+
+    it 'badges returns empty relation for user with no badges' do
+      expect(user.badges).to be_empty
+    end
+
+    it 'badges_by_category returns empty hash for user with no badges' do
+      expect(user.badges_by_category).to eq({})
+    end
+
+    it 'has_badge? returns false for non-existent badge key' do
+      expect(user.has_badge?('nonexistent_badge')).to be false
+    end
+
+    it 'handles concurrent badge assignments' do
+      badge1 = create(:gamification_badge, key: 'badge1')
+      badge2 = create(:gamification_badge, key: 'badge2')
+      create(:gamification_user_badge, user: user, badge: badge1)
+      create(:gamification_user_badge, user: user, badge: badge2)
+      expect(user.badges_count).to eq(2)
+    end
+  end
+
+  describe 'association reflection' do
+    it 'has correct association for gamification_user_stats' do
+      association = user.class.reflect_on_association(:gamification_user_stats)
+      expect(association).to be_present
+      expect(association.macro).to eq(:has_one)
+    end
+
+    it 'has correct association for gamification_points' do
+      association = user.class.reflect_on_association(:gamification_points)
+      expect(association).to be_present
+      expect(association.macro).to eq(:has_many)
+    end
+
+    it 'has correct association for gamification_user_badges' do
+      association = user.class.reflect_on_association(:gamification_user_badges)
+      expect(association).to be_present
+      expect(association.macro).to eq(:has_many)
+    end
+
+    it 'has correct association for gamification_badges' do
+      association = user.class.reflect_on_association(:gamification_badges)
+      expect(association).to be_present
+      expect(association.macro).to eq(:has_many)
+      expect(association.options[:through]).to eq(:gamification_user_badges)
+    end
+  end
 end
