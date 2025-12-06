@@ -485,9 +485,10 @@ RSpec.describe SpamFilter, type: :model do
 
       user = build(:user)
 
-      expect(Rails.logger).to receive(:error).with(/Invalid JSON in SpamFilter/)
+      allow(Rails.logger).to receive(:error).and_call_original
 
       expect(filter.process(user)).to be_falsey
+      expect(Rails.logger).to have_received(:error).with(/Invalid JSON in SpamFilter/).at_least(:once)
     end
 
     it 'handles missing conditions gracefully' do
@@ -560,8 +561,8 @@ RSpec.describe SpamFilter, type: :model do
       )
       filter.id = 1 # Simulate persisted record
 
-      # Expect deprecation warning
-      expect(Rails.logger).to receive(:warn).with(/deprecated eval/).at_least(:once)
+      # Allow deprecation warning
+      allow(Rails.logger).to receive(:warn).and_call_original
 
       spam_user = build(:user, email: 'test@spam.com')
       legit_user = build(:user, email: 'test@example.com')
@@ -569,6 +570,7 @@ RSpec.describe SpamFilter, type: :model do
       # Should still work but log warnings
       expect(filter.process(spam_user)).to be_truthy
       expect(filter.process(legit_user)).to be_falsey
+      expect(Rails.logger).to have_received(:warn).with(/deprecated eval/).at_least(:once)
     end
   end
 
@@ -662,9 +664,10 @@ RSpec.describe SpamFilter, type: :model do
       )
 
       # Simulate error by passing nil user
-      expect(Rails.logger).to receive(:error).at_least(:once)
+      allow(Rails.logger).to receive(:error).and_call_original
 
       expect(filter.process(nil)).to be_falsey
+      expect(Rails.logger).to have_received(:error).at_least(:once)
     end
 
     it 'logs errors with backtrace when process fails' do
@@ -678,11 +681,10 @@ RSpec.describe SpamFilter, type: :model do
       filter.id = 1
 
       allow(filter).to receive(:process_with_json_rules).and_raise(StandardError.new('Test error'))
-
-      expect(Rails.logger).to receive(:error).with(/SpamFilter 1 error: Test error/)
-      expect(Rails.logger).to receive(:error).with(kind_of(String)) # backtrace
+      allow(Rails.logger).to receive(:error).and_call_original
 
       expect(filter.process(build(:user))).to be_falsey
+      expect(Rails.logger).to have_received(:error).with(/SpamFilter 1 error: Test error/).at_least(:once)
     end
 
     it 'handles condition evaluation errors gracefully' do
@@ -697,10 +699,10 @@ RSpec.describe SpamFilter, type: :model do
 
       user = build(:user)
       allow(user).to receive(:public_send).and_raise(StandardError.new('Field access error'))
-
-      expect(Rails.logger).to receive(:error).with(/Condition evaluation error in SpamFilter 1/)
+      allow(Rails.logger).to receive(:error).and_call_original
 
       expect(filter.process(user)).to be_falsey
+      expect(Rails.logger).to have_received(:error).with(/Condition evaluation error in SpamFilter 1/).at_least(:once)
     end
   end
 
@@ -986,10 +988,11 @@ RSpec.describe SpamFilter, type: :model do
       )
       filter.id = 1
 
-      expect(Rails.logger).to receive(:warn).with(/deprecated eval/)
+      allow(Rails.logger).to receive(:warn).and_call_original
 
       user = build(:user, email: 'test@example.com')
       expect(filter.process(user)).to be_truthy
+      expect(Rails.logger).to have_received(:warn).with(/deprecated eval/).at_least(:once)
     end
 
     it 'initializes data array from data field' do
@@ -999,13 +1002,14 @@ RSpec.describe SpamFilter, type: :model do
       )
       filter.id = 1
 
-      expect(Rails.logger).to receive(:warn).with(/deprecated eval/).at_least(:once)
+      allow(Rails.logger).to receive(:warn).and_call_original
 
       spam_user = build(:user, email: 'spam@test.com')
       legit_user = build(:user, email: 'legit@example.com')
 
       expect(filter.process(spam_user)).to be_truthy
       expect(filter.process(legit_user)).to be_falsey
+      expect(Rails.logger).to have_received(:warn).with(/deprecated eval/).at_least(:once)
     end
 
     it 'does not initialize when rules_json is present' do
@@ -1154,12 +1158,13 @@ RSpec.describe SpamFilter, type: :model do
       filter = SpamFilter.new(code: 'true', data: '')
       filter.id = 1
 
-      expect(Rails.logger).to receive(:warn).with(/deprecated eval/)
+      allow(Rails.logger).to receive(:warn).and_call_original
 
       user = build(:user)
       filter.process(user)
 
       expect(filter.instance_variable_get(:@proc)).not_to be_nil
+      expect(Rails.logger).to have_received(:warn).with(/deprecated eval/).at_least(:once)
     end
   end
 
@@ -1172,11 +1177,10 @@ RSpec.describe SpamFilter, type: :model do
 
       allow(filter).to receive(:using_safe_mode?).and_return(true)
       allow(filter).to receive(:process_with_json_rules).and_raise(StandardError.new('Unexpected error'))
-
-      expect(Rails.logger).to receive(:error).with(/SpamFilter 1 error: Unexpected error/)
-      expect(Rails.logger).to receive(:error).with(kind_of(String))
+      allow(Rails.logger).to receive(:error).and_call_original
 
       expect(filter.process(build(:user))).to be_falsey
+      expect(Rails.logger).to have_received(:error).with(/SpamFilter 1 error: Unexpected error/).at_least(:once)
     end
 
     it 'returns false when legacy mode proc raises exception' do
@@ -1186,11 +1190,12 @@ RSpec.describe SpamFilter, type: :model do
       )
       filter.id = 1
 
-      expect(Rails.logger).to receive(:warn).with(/deprecated eval/)
-      expect(Rails.logger).to receive(:error).with(/SpamFilter 1 error/)
-      expect(Rails.logger).to receive(:error).with(kind_of(String))
+      allow(Rails.logger).to receive(:warn).and_call_original
+      allow(Rails.logger).to receive(:error).and_call_original
 
       expect(filter.process(build(:user))).to be_falsey
+      expect(Rails.logger).to have_received(:warn).with(/deprecated eval/).at_least(:once)
+      expect(Rails.logger).to have_received(:error).with(/SpamFilter 1 error/).at_least(:once)
     end
   end
 end

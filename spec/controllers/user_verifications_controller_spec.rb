@@ -70,7 +70,7 @@ RSpec.describe UserVerificationsController, type: :controller do
     describe 'create action' do
       context 'when user not logged in' do
         it 'redirects to sign in page' do
-          post :create, params: { user_verification: { terms_of_service: true } }
+          post :create, params: { user_verification: { terms_of_service: "1" } }
           expect(response).to redirect_to(%r{/users/sign_in})
         end
       end
@@ -192,7 +192,7 @@ RSpec.describe UserVerificationsController, type: :controller do
 
         post :create, params: {
           user_verification: {
-            terms_of_service: true,
+            terms_of_service: "1",
             wants_card: true,
             procesed_at: Time.current
           }
@@ -209,7 +209,7 @@ RSpec.describe UserVerificationsController, type: :controller do
         expect do
           post :create, params: {
             user_verification: {
-              terms_of_service: true,
+              terms_of_service: "1",
               status: :accepted, # Should be filtered
               malicious_param: 'value' # Should be filtered
             }

@@ -118,13 +118,15 @@ RSpec.describe EngineActivation, type: :model do
       end
 
       it 'returns false for safety' do
-        expect(Rails.logger).to receive(:error).with(/Error checking if/)
+        allow(Rails.logger).to receive(:error).and_call_original
         expect(described_class.enabled?('test')).to be false
+        expect(Rails.logger).to have_received(:error).with(/Error checking if/).at_least(:once)
       end
 
       it 'logs the error' do
-        expect(Rails.logger).to receive(:error).with(/Error checking if test is enabled/)
+        allow(Rails.logger).to receive(:error).and_call_original
         described_class.enabled?('test')
+        expect(Rails.logger).to have_received(:error).with(/Error checking if test is enabled/).at_least(:once)
       end
     end
   end
@@ -233,8 +235,9 @@ RSpec.describe EngineActivation, type: :model do
       end
 
       it 'logs error and does not raise' do
-        expect(Rails.logger).to receive(:error).with(/Error clearing cache/)
+        allow(Rails.logger).to receive(:error).and_call_original
         expect { described_class.clear_cache('test') }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/Error clearing cache/).at_least(:once)
       end
     end
   end
@@ -247,8 +250,9 @@ RSpec.describe EngineActivation, type: :model do
 
     it 'logs success message' do
       allow(Rails.application).to receive(:reload_routes!)
-      expect(Rails.logger).to receive(:info).with('[EngineActivation] Routes reloaded')
+      allow(Rails.logger).to receive(:info).and_call_original
       described_class.reload_routes!
+      expect(Rails.logger).to have_received(:info).with('[EngineActivation] Routes reloaded').at_least(:once)
     end
 
     context 'when error occurs' do
@@ -257,12 +261,13 @@ RSpec.describe EngineActivation, type: :model do
       end
 
       it 'logs error' do
-        expect(Rails.logger).to receive(:error).with(/Failed to reload routes/)
+        allow(Rails.logger).to receive(:error).and_call_original
         described_class.reload_routes!
+        expect(Rails.logger).to have_received(:error).with(/Failed to reload routes/).at_least(:once)
       end
 
       it 'does not raise error' do
-        allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:error).and_call_original
         expect { described_class.reload_routes! }.not_to raise_error
       end
     end
@@ -375,8 +380,9 @@ RSpec.describe EngineActivation, type: :model do
       end
 
       it 'logs error and does not raise' do
-        expect(Rails.logger).to receive(:error).with(/Error seeding engines/)
+        allow(Rails.logger).to receive(:error).and_call_original
         expect { described_class.seed_all }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/Error seeding engines/).at_least(:once)
       end
     end
   end

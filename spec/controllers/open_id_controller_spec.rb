@@ -63,15 +63,17 @@ RSpec.describe OpenIdController, type: :controller do
 
     it 'handles errors gracefully' do
       allow(controller).to receive(:render_xrds).and_raise(StandardError.new('XML error'))
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/openid_discover_error/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :discover
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/openid_discover_error/)).at_least(:once)
       expect(response).to have_http_status(:internal_server_error)
     end
 
     it 'logs security event on error' do
       allow(controller).to receive(:render_xrds).and_raise(StandardError.new('Error'))
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/openid_discover_error/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :discover
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/openid_discover_error/)).at_least(:once)
     end
   end
 
@@ -107,8 +109,9 @@ RSpec.describe OpenIdController, type: :controller do
 
     it 'handles errors gracefully' do
       allow(controller).to receive(:render_xrds).and_raise(StandardError.new('Error'))
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/openid_xrds_error/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :xrds
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/openid_xrds_error/)).at_least(:once)
       expect(response).to have_http_status(:internal_server_error)
     end
   end
@@ -162,8 +165,9 @@ RSpec.describe OpenIdController, type: :controller do
     context 'error handling' do
       it 'handles errors gracefully' do
         allow(controller).to receive(:open_id_xrds_url).and_raise(StandardError.new('Error'))
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/openid_user_error/))
+        allow(Rails.logger).to receive(:error).and_call_original
         get :user
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/openid_user_error/)).at_least(:once)
         expect(response).to have_http_status(:internal_server_error)
       end
     end
@@ -229,8 +233,9 @@ RSpec.describe OpenIdController, type: :controller do
       end
 
       it 'logs authentication approval' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/openid_authentication_approved/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/openid_authentication_approved/)).at_least(:once)
       end
 
       it 'checks identity authorization' do
@@ -268,8 +273,9 @@ RSpec.describe OpenIdController, type: :controller do
       end
 
       it 'denies immediate requests' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/openid_immediate_request_denied/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/openid_immediate_request_denied/)).at_least(:once)
       end
     end
 
@@ -281,8 +287,9 @@ RSpec.describe OpenIdController, type: :controller do
       end
 
       it 'redirects to login' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/openid_unauthenticated_request/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/openid_unauthenticated_request/)).at_least(:once)
         expect(response).to be_redirect
       end
     end
@@ -299,8 +306,9 @@ RSpec.describe OpenIdController, type: :controller do
       end
 
       it 'denies authentication' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/openid_authentication_denied/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/openid_authentication_denied/)).at_least(:once)
       end
     end
 
@@ -310,8 +318,9 @@ RSpec.describe OpenIdController, type: :controller do
       end
 
       it 'handles protocol errors' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/openid_protocol_error/))
+        allow(Rails.logger).to receive(:error).and_call_original
         post :create
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/openid_protocol_error/)).at_least(:once)
         expect(response).to have_http_status(:internal_server_error)
       end
 
@@ -328,8 +337,9 @@ RSpec.describe OpenIdController, type: :controller do
       end
 
       it 'handles general errors' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/openid_create_error/))
+        allow(Rails.logger).to receive(:error).and_call_original
         post :create
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/openid_create_error/)).at_least(:once)
         expect(response).to have_http_status(:internal_server_error)
       end
 
@@ -368,14 +378,16 @@ RSpec.describe OpenIdController, type: :controller do
 
     it 'handles protocol errors' do
       allow(openid_server).to receive(:decode_request).and_raise(OpenID::Server::ProtocolError.new('Error'))
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/openid_protocol_error/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :index
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/openid_protocol_error/)).at_least(:once)
     end
 
     it 'handles general errors' do
       allow(openid_server).to receive(:decode_request).and_raise(StandardError.new('Error'))
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/openid_index_error/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :index
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/openid_index_error/)).at_least(:once)
     end
   end
 
@@ -503,8 +515,9 @@ RSpec.describe OpenIdController, type: :controller do
     end
 
     it 'logs PII disclosure' do
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/openid_pii_disclosure/))
+      allow(Rails.logger).to receive(:warn).and_call_original
       post :create
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/openid_pii_disclosure/)).at_least(:once)
     end
 
     it 'only provides requested fields' do
@@ -573,42 +586,49 @@ RSpec.describe OpenIdController, type: :controller do
 
   describe 'security logging' do
     it 'logs IP address in security events' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"ip_address":/))
+      allow(Rails.logger).to receive(:info).and_call_original
       get :discover
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address":/)).at_least(:once)
     end
 
     it 'logs user agent in security events' do
       request.env['HTTP_USER_AGENT'] = 'Test Browser'
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_agent":"Test Browser"/))
+      allow(Rails.logger).to receive(:info).and_call_original
       get :discover
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_agent":"Test Browser"/)).at_least(:once)
     end
 
     it 'logs timestamp in ISO8601 format' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/))
+      allow(Rails.logger).to receive(:info).and_call_original
       get :discover
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)).at_least(:once)
     end
 
     it 'logs controller name' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"controller":"open_id"/))
+      allow(Rails.logger).to receive(:info).and_call_original
       get :discover
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"controller":"open_id"/)).at_least(:once)
     end
 
     it 'logs error class in error events' do
       allow(controller).to receive(:render_xrds).and_raise(StandardError.new('Test error'))
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_class":"StandardError"/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :discover
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_class":"StandardError"/)).at_least(:once)
     end
 
     it 'logs error message in error events' do
       allow(controller).to receive(:render_xrds).and_raise(StandardError.new('Test error'))
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_message":"Test error"/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :discover
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_message":"Test error"/)).at_least(:once)
     end
 
     it 'logs backtrace in error events' do
       allow(controller).to receive(:render_xrds).and_raise(StandardError.new('Error'))
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/"backtrace":\[/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :discover
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/"backtrace":\[/)).at_least(:once)
     end
   end
 

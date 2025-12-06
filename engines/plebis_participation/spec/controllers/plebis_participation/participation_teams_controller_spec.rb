@@ -89,7 +89,7 @@ module PlebisParticipation
             it 'does not add user again' do
               expect do
                 post :join, params: { team_id: team.id }
-              end.not_to change { user.participation_teams.count }
+              end.not_to(change { user.participation_teams.count })
             end
 
             it 'sets alert message' do

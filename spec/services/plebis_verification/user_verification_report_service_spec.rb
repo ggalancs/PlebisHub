@@ -38,16 +38,18 @@ RSpec.describe PlebisVerification::UserVerificationReportService, type: :service
 
     it 'logs error and sets nil for invalid configuration' do
       allow(Rails.application).to receive_message_chain(:secrets, :[]).with(:user_verifications).and_return(nil)
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/user_verification_report_init_failed/))
+      allow(Rails.logger).to receive(:error).and_call_original
       service = described_class.new(report_code)
       expect(service.instance_variable_get(:@aacc_code)).to be_nil
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/user_verification_report_init_failed/)).at_least(:once)
     end
 
     it 'handles missing report code gracefully' do
       allow(Rails.application).to receive_message_chain(:secrets, :[]).with(:user_verifications).and_raise(StandardError.new('Missing config'))
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/user_verification_report_init_failed/))
+      allow(Rails.logger).to receive(:error).and_call_original
       service = described_class.new('missing_code')
       expect(service.instance_variable_get(:@aacc_code)).to be_nil
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/user_verification_report_init_failed/)).at_least(:once)
     end
   end
 
@@ -99,12 +101,13 @@ RSpec.describe PlebisVerification::UserVerificationReportService, type: :service
     context 'when error occurs during generation' do
       before do
         allow_any_instance_of(User::ActiveRecord_Relation).to receive(:joins).and_raise(StandardError.new('DB error'))
+        allow(Rails.logger).to receive(:error).and_call_original
       end
 
       it 'logs error and returns empty report' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/user_verification_report_generation_failed/))
         report = service.generate
         expect(report).to eq({ provincias: {}, autonomias: {} })
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/user_verification_report_generation_failed/)).at_least(:once)
       end
     end
 
@@ -278,11 +281,12 @@ RSpec.describe PlebisVerification::UserVerificationReportService, type: :service
         allow(Rails.application).to receive_message_chain(:secrets, :[]).with(:users).and_return(
           { 'active_census_range' => 'invalid' }
         )
+        allow(Rails.logger).to receive(:error).and_call_original
       end
 
       it 'returns default value 30' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/invalid_active_census_range/))
         expect(service.send(:parse_active_census_range)).to eq(30)
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/invalid_active_census_range/)).at_least(:once)
       end
     end
 
@@ -291,11 +295,12 @@ RSpec.describe PlebisVerification::UserVerificationReportService, type: :service
         allow(Rails.application).to receive_message_chain(:secrets, :[]).with(:users).and_return(
           { 'active_census_range' => nil }
         )
+        allow(Rails.logger).to receive(:error).and_call_original
       end
 
       it 'returns default value 30' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/invalid_active_census_range/))
         expect(service.send(:parse_active_census_range)).to eq(30)
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/invalid_active_census_range/)).at_least(:once)
       end
     end
 
@@ -304,11 +309,12 @@ RSpec.describe PlebisVerification::UserVerificationReportService, type: :service
         allow(Rails.application).to receive_message_chain(:secrets, :[]).with(:users).and_return(
           { 'active_census_range' => 'bad_value' }
         )
+        allow(Rails.logger).to receive(:error).and_call_original
       end
 
       it 'logs error and returns default' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/invalid_active_census_range/))
         expect(service.send(:parse_active_census_range)).to eq(30)
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/invalid_active_census_range/)).at_least(:once)
       end
     end
 
@@ -317,11 +323,12 @@ RSpec.describe PlebisVerification::UserVerificationReportService, type: :service
         allow(Rails.application).to receive_message_chain(:secrets, :[]).with(:users).and_return(
           { 'active_census_range' => Object.new }
         )
+        allow(Rails.logger).to receive(:error).and_call_original
       end
 
       it 'logs error and returns default' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/invalid_active_census_range/))
         expect(service.send(:parse_active_census_range)).to eq(30)
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/invalid_active_census_range/)).at_least(:once)
       end
     end
   end
@@ -449,40 +456,52 @@ RSpec.describe PlebisVerification::UserVerificationReportService, type: :service
   describe 'structured logging' do
     it 'logs init errors with structured format' do
       allow(Rails.application).to receive_message_chain(:secrets, :[]).with(:user_verifications).and_raise(StandardError.new('Test error'))
-      expect(Rails.logger).to receive(:error) do |json_str|
-        log = JSON.parse(json_str)
-        expect(log['event']).to eq('user_verification_report_init_failed')
-        expect(log['report_code']).to eq(report_code)
-        expect(log['error_class']).to eq('StandardError')
-        expect(log['timestamp']).to be_present
-      end
+      logged_messages = []
+      allow(Rails.logger).to receive(:error) { |msg| logged_messages << msg }
+
       described_class.new(report_code)
+
+      json_log = logged_messages.find { |m| m.include?('user_verification_report_init_failed') }
+      expect(json_log).to be_present
+      log = JSON.parse(json_log)
+      expect(log['event']).to eq('user_verification_report_init_failed')
+      expect(log['report_code']).to eq(report_code)
+      expect(log['error_class']).to eq('StandardError')
+      expect(log['timestamp']).to be_present
     end
 
     it 'logs generation errors with structured format' do
       allow_any_instance_of(User::ActiveRecord_Relation).to receive(:joins).and_raise(StandardError.new('Generation error'))
-      expect(Rails.logger).to receive(:error) do |json_str|
-        log = JSON.parse(json_str)
-        expect(log['event']).to eq('user_verification_report_generation_failed')
-        expect(log['aacc_code']).to eq(aacc_code)
-        expect(log['error_class']).to eq('StandardError')
-        expect(log['backtrace']).to be_an(Array)
-        expect(log['timestamp']).to be_present
-      end
+      logged_messages = []
+      allow(Rails.logger).to receive(:error) { |msg| logged_messages << msg }
+
       service.generate
+
+      json_log = logged_messages.find { |m| m.include?('user_verification_report_generation_failed') }
+      expect(json_log).to be_present
+      log = JSON.parse(json_log)
+      expect(log['event']).to eq('user_verification_report_generation_failed')
+      expect(log['aacc_code']).to eq(aacc_code)
+      expect(log['error_class']).to eq('StandardError')
+      expect(log['backtrace']).to be_an(Array)
+      expect(log['timestamp']).to be_present
     end
 
     it 'logs active_census_range errors with structured format' do
       allow(Rails.application).to receive_message_chain(:secrets, :[]).with(:users).and_return(
         { 'active_census_range' => 'invalid_value' }
       )
-      expect(Rails.logger).to receive(:error) do |json_str|
-        log = JSON.parse(json_str)
-        expect(log['event']).to eq('invalid_active_census_range')
-        expect(log['value']).to eq('invalid_value')
-        expect(log['timestamp']).to be_present
-      end
+      logged_messages = []
+      allow(Rails.logger).to receive(:error) { |msg| logged_messages << msg }
+
       service.send(:parse_active_census_range)
+
+      json_log = logged_messages.find { |m| m.include?('invalid_active_census_range') }
+      expect(json_log).to be_present
+      log = JSON.parse(json_log)
+      expect(log['event']).to eq('invalid_active_census_range')
+      expect(log['value']).to eq('invalid_value')
+      expect(log['timestamp']).to be_present
     end
   end
 

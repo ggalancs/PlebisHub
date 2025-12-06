@@ -71,9 +71,9 @@ RSpec.describe Api::V1Controller, type: :controller do
       end
 
       it 'logs authentication failure' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_api_token_attempt/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         post :gcm_register, params: { v1: { registration_id: valid_registration_id } }, format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_api_token_attempt/)).at_least(:once)
       end
     end
 
@@ -89,9 +89,9 @@ RSpec.describe Api::V1Controller, type: :controller do
       end
 
       it 'logs invalid token attempt' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_api_token_attempt/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         post :gcm_register, params: { v1: { registration_id: valid_registration_id } }, format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_api_token_attempt/)).at_least(:once)
       end
     end
 
@@ -121,9 +121,9 @@ RSpec.describe Api::V1Controller, type: :controller do
       end
 
       it 'logs missing registration_id' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/missing_registration_id/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         post :gcm_register, params: { v1: {} }, format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/missing_registration_id/)).at_least(:once)
       end
     end
 
@@ -153,10 +153,9 @@ RSpec.describe Api::V1Controller, type: :controller do
 
       it 'logs overly long registration_id' do
         long_token = 'a' * 4097
-
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/registration_id_too_long/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         post :gcm_register, params: { v1: { registration_id: long_token } }, format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/registration_id_too_long/)).at_least(:once)
       end
     end
 
@@ -193,9 +192,9 @@ RSpec.describe Api::V1Controller, type: :controller do
       end
 
       it 'logs invalid format attempts' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_registration_id_format/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         post :gcm_register, params: { v1: { registration_id: 'token with spaces' } }, format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_registration_id_format/)).at_least(:once)
       end
     end
 
@@ -285,9 +284,9 @@ RSpec.describe Api::V1Controller, type: :controller do
       end
 
       it 'logs validation error' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/gcm_registration_failed/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         post :gcm_register, params: { v1: { registration_id: valid_registration_id } }, format: :json
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/gcm_registration_failed/)).at_least(:once)
       end
     end
 
@@ -311,9 +310,9 @@ RSpec.describe Api::V1Controller, type: :controller do
       end
 
       it 'logs error with backtrace' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/gcm_registration_error.*backtrace/m))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         post :gcm_register, params: { v1: { registration_id: valid_registration_id } }, format: :json
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/gcm_registration_error.*backtrace/m)).at_least(:once)
       end
     end
   end
@@ -414,10 +413,9 @@ RSpec.describe Api::V1Controller, type: :controller do
 
       it 'logs error' do
         create(:notice_registrar, registration_id: valid_registration_id)
-
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/gcm_unregister_error/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         delete :gcm_unregister, params: { v1: { registration_id: valid_registration_id } }, format: :json
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/gcm_unregister_error/)).at_least(:once)
       end
     end
   end

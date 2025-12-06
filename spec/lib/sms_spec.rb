@@ -68,11 +68,11 @@ RSpec.describe SMS::Sender do
       end
 
       it 'logs the activation code instead of sending SMS' do
-        expect(Rails.logger).to receive(:info).with(
-          "ACTIVATION CODE para #{phone_number} == #{activation_code}"
-        )
-
+        allow(Rails.logger).to receive(:info).and_call_original
         described_class.send_message(phone_number, activation_code)
+        expect(Rails.logger).to have_received(:info).with(
+          "ACTIVATION CODE para #{phone_number} == #{activation_code}"
+        ).at_least(:once)
       end
 
       it 'does not call Esendex in development' do
@@ -83,11 +83,11 @@ RSpec.describe SMS::Sender do
       end
 
       it 'logs with different phone numbers' do
-        expect(Rails.logger).to receive(:info).with(
-          'ACTIVATION CODE para +34611222333 == 789012'
-        )
-
+        allow(Rails.logger).to receive(:info).and_call_original
         described_class.send_message('+34611222333', '789012')
+        expect(Rails.logger).to have_received(:info).with(
+          'ACTIVATION CODE para +34611222333 == 789012'
+        ).at_least(:once)
       end
     end
 
@@ -97,11 +97,11 @@ RSpec.describe SMS::Sender do
       end
 
       it 'logs the activation code instead of sending SMS' do
-        expect(Rails.logger).to receive(:info).with(
-          "ACTIVATION CODE para #{phone_number} == #{activation_code}"
-        )
-
+        allow(Rails.logger).to receive(:info).and_call_original
         described_class.send_message(phone_number, activation_code)
+        expect(Rails.logger).to have_received(:info).with(
+          "ACTIVATION CODE para #{phone_number} == #{activation_code}"
+        ).at_least(:once)
       end
 
       it 'does not call Esendex in test' do
@@ -115,62 +115,56 @@ RSpec.describe SMS::Sender do
     context 'with different activation codes' do
       before do
         allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('test'))
-        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:info).and_call_original
       end
 
       it 'handles numeric codes' do
-        expect(Rails.logger).to receive(:info).with(
-          "ACTIVATION CODE para #{phone_number} == 123456"
-        )
-
         described_class.send_message(phone_number, '123456')
+        expect(Rails.logger).to have_received(:info).with(
+          "ACTIVATION CODE para #{phone_number} == 123456"
+        ).at_least(:once)
       end
 
       it 'handles alphanumeric codes' do
-        expect(Rails.logger).to receive(:info).with(
-          "ACTIVATION CODE para #{phone_number} == ABC123"
-        )
-
         described_class.send_message(phone_number, 'ABC123')
+        expect(Rails.logger).to have_received(:info).with(
+          "ACTIVATION CODE para #{phone_number} == ABC123"
+        ).at_least(:once)
       end
 
       it 'handles empty codes' do
-        expect(Rails.logger).to receive(:info).with(
-          "ACTIVATION CODE para #{phone_number} == "
-        )
-
         described_class.send_message(phone_number, '')
+        expect(Rails.logger).to have_received(:info).with(
+          "ACTIVATION CODE para #{phone_number} == "
+        ).at_least(:once)
       end
     end
 
     context 'with different phone number formats' do
       before do
         allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('test'))
-        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:info).and_call_original
       end
 
       it 'handles international format' do
-        expect(Rails.logger).to receive(:info).with(
-          'ACTIVATION CODE para +34600123456 == 123456'
-        )
-
         described_class.send_message('+34600123456', '123456')
+        expect(Rails.logger).to have_received(:info).with(
+          'ACTIVATION CODE para +34600123456 == 123456'
+        ).at_least(:once)
       end
 
       it 'handles national format' do
-        expect(Rails.logger).to receive(:info).with(
-          'ACTIVATION CODE para 600123456 == 123456'
-        )
-
         described_class.send_message('600123456', '123456')
+        expect(Rails.logger).to have_received(:info).with(
+          'ACTIVATION CODE para 600123456 == 123456'
+        ).at_least(:once)
       end
 
       it 'handles format with spaces' do
-        expect(Rails.logger).to receive(:info).with(
-          'ACTIVATION CODE para +34 600 123 456 == 123456'
-        )
-
         described_class.send_message('+34 600 123 456', '123456')
+        expect(Rails.logger).to have_received(:info).with(
+          'ACTIVATION CODE para +34 600 123 456 == 123456'
+        ).at_least(:once)
       end
     end
 
@@ -180,11 +174,11 @@ RSpec.describe SMS::Sender do
       end
 
       it 'logs the activation code for unknown environments' do
-        expect(Rails.logger).to receive(:info).with(
-          "ACTIVATION CODE para #{phone_number} == #{activation_code}"
-        )
-
+        allow(Rails.logger).to receive(:info).and_call_original
         described_class.send_message(phone_number, activation_code)
+        expect(Rails.logger).to have_received(:info).with(
+          "ACTIVATION CODE para #{phone_number} == #{activation_code}"
+        ).at_least(:once)
       end
 
       it 'does not call Esendex for unknown environments' do

@@ -380,11 +380,12 @@ RSpec.describe ReportGroup, type: :model do
 
       row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
-      expect(Rails.logger).to receive(:error).with(/Invalid JSON in ReportGroup/)
+      allow(Rails.logger).to receive(:error).and_call_original
 
       result = group.process(row)
 
       expect(result).to eq([%w[ERROR ERROR]])
+      expect(Rails.logger).to have_received(:error).with(/Invalid JSON in ReportGroup/).at_least(:once)
     end
 
     it 'handles missing source field gracefully' do
@@ -399,12 +400,13 @@ RSpec.describe ReportGroup, type: :model do
 
       row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
-      expect(Rails.logger).to receive(:error).with(/Failed to extract/)
+      allow(Rails.logger).to receive(:error).and_call_original
 
       result = group.process(row)
 
       # Should return nil for non-existent field
       expect(result[0]).to eq(['FIELD', ''])
+      expect(Rails.logger).to have_received(:error).with(/Failed to extract/).at_least(:once)
     end
   end
 
@@ -519,8 +521,8 @@ RSpec.describe ReportGroup, type: :model do
       )
       group.id = 1 # Simulate persisted
 
-      # Expect deprecation warning
-      expect(Rails.logger).to receive(:warn).with(/deprecated eval/).at_least(:once)
+      # Allow deprecation warning
+      allow(Rails.logger).to receive(:warn).and_call_original
 
       row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
@@ -528,6 +530,7 @@ RSpec.describe ReportGroup, type: :model do
       result = group.process(row)
 
       expect(result).to eq([['JOHN', 'john@test.com']])
+      expect(Rails.logger).to have_received(:warn).with(/deprecated eval/).at_least(:once)
     end
   end
 
@@ -711,9 +714,10 @@ RSpec.describe ReportGroup, type: :model do
         group = ReportGroup.new(proc: '[[row.name]]')
         group.id = 1
 
-        expect(Rails.logger).to receive(:warn).with(/deprecated eval/)
+        allow(Rails.logger).to receive(:warn).and_call_original
 
         group.get_proc
+        expect(Rails.logger).to have_received(:warn).with(/deprecated eval/).at_least(:once)
       end
 
       it 'memoizes proc' do
@@ -788,12 +792,13 @@ RSpec.describe ReportGroup, type: :model do
       group.id = 1
 
       # Passing nil row should log error and return empty string
-      expect(Rails.logger).to receive(:error).at_least(:once)
+      allow(Rails.logger).to receive(:error).and_call_original
 
       result = group.process(nil)
 
       # Returns empty string when field extraction fails on nil row
       expect(result).to eq([['NAME', '']])
+      expect(Rails.logger).to have_received(:error).at_least(:once)
     end
 
     it 'handles exception in legacy mode gracefully' do
@@ -805,12 +810,14 @@ RSpec.describe ReportGroup, type: :model do
 
       row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
-      expect(Rails.logger).to receive(:warn).with(/deprecated eval/).at_least(:once)
-      expect(Rails.logger).to receive(:error).with(/ReportGroup/)
+      allow(Rails.logger).to receive(:warn).and_call_original
+      allow(Rails.logger).to receive(:error).and_call_original
 
       result = group.process(row)
 
       expect(result).to eq([%w[ERROR ERROR]])
+      expect(Rails.logger).to have_received(:warn).with(/deprecated eval/).at_least(:once)
+      expect(Rails.logger).to have_received(:error).with(/ReportGroup/).at_least(:once)
     end
 
     it 'handles nested field extraction error gracefully' do
@@ -825,11 +832,12 @@ RSpec.describe ReportGroup, type: :model do
 
       row = MockRow.new(name: 'john', email: 'john@test.com', amount: 100, created_at: Time.zone.now)
 
-      expect(Rails.logger).to receive(:error).with(/Failed to extract/)
+      allow(Rails.logger).to receive(:error).and_call_original
 
       result = group.process(row)
 
       expect(result[0]).to eq(['ADDRESS', ''])
+      expect(Rails.logger).to have_received(:error).with(/Failed to extract/).at_least(:once)
     end
 
     it 'handles exception during field extraction' do
@@ -848,11 +856,12 @@ RSpec.describe ReportGroup, type: :model do
         width: 20
       )
 
-      expect(Rails.logger).to receive(:error).with(/Failed to extract/)
+      allow(Rails.logger).to receive(:error).and_call_original
 
       result = group.process(bad_row)
 
       expect(result[0]).to eq(['NAME', ''])
+      expect(Rails.logger).to have_received(:error).with(/Failed to extract/).at_least(:once)
     end
   end
 

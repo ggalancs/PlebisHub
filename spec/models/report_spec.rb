@@ -89,7 +89,7 @@ RSpec.describe Report, type: :model do
       report.batch_process(2) do |user|
         batches << user
       end
-      expect(batches.length).to be > 0
+      expect(batches.length).to be.positive?
     end
 
     it 'stops when no more results' do

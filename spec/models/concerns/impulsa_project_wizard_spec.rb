@@ -398,7 +398,7 @@ RSpec.describe ImpulsaProjectWizard, type: :model do
     it 'returns count of all errors across steps' do
       project.wizard_values = {}
       count = project.wizard_count_errors
-      expect(count).to be > 0
+      expect(count).to be.positive?
     end
   end
 

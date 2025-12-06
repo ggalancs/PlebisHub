@@ -117,38 +117,44 @@ RSpec.describe DynamicRouter do
       context 'when database errors occur' do
         it 'handles NoDatabaseError gracefully' do
           allow(ActiveRecord::Base).to receive(:connection).and_raise(ActiveRecord::NoDatabaseError)
-          expect(Rails.logger).to receive(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes')
+          allow(Rails.logger).to receive(:warn).and_call_original
           expect { described_class.load }.not_to raise_error
+          expect(Rails.logger).to have_received(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes').at_least(:once)
         end
 
         it 'handles ConnectionNotEstablished gracefully' do
           allow(ActiveRecord::Base).to receive(:connection).and_raise(ActiveRecord::ConnectionNotEstablished)
-          expect(Rails.logger).to receive(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes')
+          allow(Rails.logger).to receive(:warn).and_call_original
           expect { described_class.load }.not_to raise_error
+          expect(Rails.logger).to have_received(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes').at_least(:once)
         end
 
         it 'handles PG::ConnectionBad gracefully' do
           allow(ActiveRecord::Base).to receive(:connection).and_raise(PG::ConnectionBad)
-          expect(Rails.logger).to receive(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes')
+          allow(Rails.logger).to receive(:warn).and_call_original
           expect { described_class.load }.not_to raise_error
+          expect(Rails.logger).to have_received(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes').at_least(:once)
         end
 
         it 'handles NoDatabaseError during table_exists check' do
           allow(mock_connection).to receive(:table_exists?).and_raise(ActiveRecord::NoDatabaseError)
-          expect(Rails.logger).to receive(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes')
+          allow(Rails.logger).to receive(:warn).and_call_original
           expect { described_class.load }.not_to raise_error
+          expect(Rails.logger).to have_received(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes').at_least(:once)
         end
 
         it 'handles ConnectionNotEstablished during table_exists check' do
           allow(mock_connection).to receive(:table_exists?).and_raise(ActiveRecord::ConnectionNotEstablished)
-          expect(Rails.logger).to receive(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes')
+          allow(Rails.logger).to receive(:warn).and_call_original
           expect { described_class.load }.not_to raise_error
+          expect(Rails.logger).to have_received(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes').at_least(:once)
         end
 
         it 'handles PG::ConnectionBad during table_exists check' do
           allow(mock_connection).to receive(:table_exists?).and_raise(PG::ConnectionBad)
-          expect(Rails.logger).to receive(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes')
+          allow(Rails.logger).to receive(:warn).and_call_original
           expect { described_class.load }.not_to raise_error
+          expect(Rails.logger).to have_received(:warn).with('[DynamicRouter] Database not ready, skipping dynamic routes').at_least(:once)
         end
       end
     end

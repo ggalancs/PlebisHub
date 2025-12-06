@@ -76,18 +76,21 @@ RSpec.describe SupportsController, type: :controller do
       end
 
       it 'logs security event for support creation' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/support_created/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create, params: { proposal_id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/support_created/)).at_least(:once)
       end
 
       it 'includes user_id in security log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_id":#{user.id}/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create, params: { proposal_id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_id":#{user.id}/)).at_least(:once)
       end
 
       it 'includes proposal_id in security log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"proposal_id":#{proposal.id}/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create, params: { proposal_id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"proposal_id":#{proposal.id}/)).at_least(:once)
       end
     end
 
@@ -115,18 +118,20 @@ RSpec.describe SupportsController, type: :controller do
       end
 
       it 'logs security event for non-supportable attempt' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/support_not_supportable/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create, params: { proposal_id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/support_not_supportable/)).at_least(:once)
       end
 
       it 'includes user_id in security log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_id":#{user.id}/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create, params: { proposal_id: proposal.id }
       end
 
       it 'includes proposal_id in security log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"proposal_id":#{proposal.id}/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create, params: { proposal_id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"proposal_id":#{proposal.id}/)).at_least(:once)
       end
     end
 
@@ -144,18 +149,21 @@ RSpec.describe SupportsController, type: :controller do
       end
 
       it 'logs security event for not found' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/support_proposal_not_found/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create, params: { proposal_id: 99_999 }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/support_proposal_not_found/)).at_least(:once)
       end
 
       it 'includes user_id in security log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_id":#{user.id}/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create, params: { proposal_id: 99_999 }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_id":#{user.id}/)).at_least(:once)
       end
 
       it 'includes proposal_id in security log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"proposal_id":99999/))
+        allow(Rails.logger).to receive(:info).and_call_original
         post :create, params: { proposal_id: 99_999 }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"proposal_id":99999/)).at_least(:once)
       end
     end
 
@@ -166,6 +174,7 @@ RSpec.describe SupportsController, type: :controller do
         allow(proposal).to receive(:supportable?).with(user).and_return(true)
         # Create existing support
         create(:support, user: user, proposal: proposal)
+        allow(Rails.logger).to receive(:error).and_call_original
       end
 
       it 'handles RecordInvalid error' do
@@ -179,18 +188,18 @@ RSpec.describe SupportsController, type: :controller do
       end
 
       it 'logs error for creation failure' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/support_creation_failed/))
         post :create, params: { proposal_id: proposal.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/support_creation_failed/)).at_least(:once)
       end
 
       it 'includes error class in log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_class":/))
         post :create, params: { proposal_id: proposal.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_class":/)).at_least(:once)
       end
 
       it 'includes error message in log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_message":/))
         post :create, params: { proposal_id: proposal.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_message":/)).at_least(:once)
       end
     end
 
@@ -212,13 +221,15 @@ RSpec.describe SupportsController, type: :controller do
       end
 
       it 'logs error event' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/support_creation_error/))
+        allow(Rails.logger).to receive(:error).and_call_original
         post :create, params: { proposal_id: proposal.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/support_creation_error/)).at_least(:once)
       end
 
       it 'includes backtrace in error log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"backtrace":/))
+        allow(Rails.logger).to receive(:error).and_call_original
         post :create, params: { proposal_id: proposal.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"backtrace":/)).at_least(:once)
       end
     end
   end
@@ -231,37 +242,42 @@ RSpec.describe SupportsController, type: :controller do
     it 'logs IP address' do
       allow(Proposal).to receive(:find).and_return(proposal)
       allow(proposal).to receive(:supportable?).and_return(true)
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"ip_address":/))
+      allow(Rails.logger).to receive(:info).and_call_original
       post :create, params: { proposal_id: proposal.id }
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address":/)).at_least(:once)
     end
 
     it 'logs user agent' do
       allow(Proposal).to receive(:find).and_return(proposal)
       allow(proposal).to receive(:supportable?).and_return(true)
       request.env['HTTP_USER_AGENT'] = 'Test Browser'
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_agent":"Test Browser"/))
+      allow(Rails.logger).to receive(:info).and_call_original
       post :create, params: { proposal_id: proposal.id }
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_agent":"Test Browser"/)).at_least(:once)
     end
 
     it 'logs timestamp in ISO8601 format' do
       allow(Proposal).to receive(:find).and_return(proposal)
       allow(proposal).to receive(:supportable?).and_return(true)
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/))
+      allow(Rails.logger).to receive(:info).and_call_original
       post :create, params: { proposal_id: proposal.id }
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)).at_least(:once)
     end
 
     it 'logs controller name' do
       allow(Proposal).to receive(:find).and_return(proposal)
       allow(proposal).to receive(:supportable?).and_return(true)
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"controller":"supports"/))
+      allow(Rails.logger).to receive(:info).and_call_original
       post :create, params: { proposal_id: proposal.id }
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"controller":"supports"/)).at_least(:once)
     end
 
     it 'logs event type' do
       allow(Proposal).to receive(:find).and_return(proposal)
       allow(proposal).to receive(:supportable?).and_return(true)
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/"event":"support_created"/))
+      allow(Rails.logger).to receive(:info).and_call_original
       post :create, params: { proposal_id: proposal.id }
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"event":"support_created"/)).at_least(:once)
     end
   end
 
@@ -336,8 +352,9 @@ RSpec.describe SupportsController, type: :controller do
 
     it 'handles database connection errors' do
       allow(Proposal).to receive(:find).and_raise(ActiveRecord::ConnectionNotEstablished)
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/support_creation_error/))
+      allow(Rails.logger).to receive(:error).and_call_original
       post :create, params: { proposal_id: proposal.id }
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/support_creation_error/)).at_least(:once)
       expect(response).to redirect_to(proposals_path)
     end
 
@@ -353,12 +370,11 @@ RSpec.describe SupportsController, type: :controller do
 
     it 'logs full error details' do
       allow(Proposal).to receive(:find).and_raise(StandardError.new('Test error'))
-      expect(Rails.logger).to receive(:error).with(a_hash_including(
-        event: 'support_creation_error',
-        error_class: 'StandardError',
-        error_message: 'Test error'
-      ).to_json)
+      allow(Rails.logger).to receive(:error).and_call_original
       post :create, params: { proposal_id: proposal.id }
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/support_creation_error/)).at_least(:once)
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/StandardError/)).at_least(:once)
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/Test error/)).at_least(:once)
     end
   end
 

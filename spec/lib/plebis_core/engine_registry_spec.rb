@@ -257,7 +257,7 @@ RSpec.describe PlebisCore::EngineRegistry do
 
     it 'returns engines that depend on User' do
       dependents = described_class.dependents_of('User')
-      expect(dependents.length).to be > 0
+      expect(dependents.length).to be.positive?
     end
 
     it 'returns empty array for engine with no dependents' do

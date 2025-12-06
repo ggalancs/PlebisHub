@@ -72,8 +72,9 @@ RSpec.describe Api::V1::BrandSettingsController, type: :controller do
       end
 
       it 'logs the error' do
-        expect(Rails.logger).to receive(:error).with(/Brand settings fetch failed/)
+        allow(Rails.logger).to receive(:error).and_call_original
         get :current, format: :json
+        expect(Rails.logger).to have_received(:error).with(/Brand settings fetch failed/).at_least(:once)
       end
 
       it 'returns default brand colors in fallback' do

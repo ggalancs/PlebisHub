@@ -427,7 +427,7 @@ RSpec.describe ImpulsaProject, type: :model do
       it 'counts total errors across all steps' do
         project.wizard_values = {}
         count = project.wizard_count_errors
-        expect(count).to be > 0
+        expect(count).to be.positive?
       end
     end
 
@@ -436,7 +436,7 @@ RSpec.describe ImpulsaProject, type: :model do
         project.wizard_values = {}
         errors = project.wizard_all_errors
         expect(errors).to be_an(Array)
-        expect(errors.length).to be > 0
+        expect(errors.length).to be.positive?
       end
     end
 
@@ -779,7 +779,7 @@ RSpec.describe ImpulsaProject, type: :model do
       it 'counts errors for specific evaluator' do
         project.evaluator1_evaluation = {}
         count = project.evaluation_count_errors(1)
-        expect(count).to be > 0
+        expect(count).to be.positive?
       end
     end
 
@@ -793,7 +793,7 @@ RSpec.describe ImpulsaProject, type: :model do
       it 'returns errors for specific step and evaluator' do
         project.evaluator1_evaluation = {}
         errors = project.evaluation_step_errors(1, :criteria1)
-        expect(errors.length).to be > 0
+        expect(errors.length).to be.positive?
         expect(errors.first).to be_an(Array)
       end
     end

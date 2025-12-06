@@ -92,7 +92,7 @@ RSpec.describe PlebisBrandCollaborationWorker, type: :worker do
 
         expect(worker).to receive(:export_data) do |filename, query, options|
           results = query.to_a
-          expect(results.count).to be > 0
+          expect(results.count).to be.positive?
         end.and_yield(collab)
 
         allow(collab).to receive(:skip_queries_validations=)

@@ -43,17 +43,19 @@ RSpec.describe ExteriorVerificationReportService do
       end
 
       it 'logs error' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/exterior_verification_report_init_failed/))
+        allow(Rails.logger).to receive(:error).and_call_original
         described_class.new('c_99')
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/exterior_verification_report_init_failed/)).at_least(:once)
       end
     end
 
     it 'logs initialization errors with context' do
       allow(Rails.application).to receive(:secrets).and_raise(StandardError.new('Config error'))
-
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/report_code.*c_99/))
+      allow(Rails.logger).to receive(:error).and_call_original
 
       described_class.new('c_99')
+
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/report_code.*c_99/)).at_least(:once)
     end
   end
 
@@ -140,12 +142,12 @@ RSpec.describe ExteriorVerificationReportService do
 
       it 'logs error for invalid format' do
         allow(Rails.application.secrets.users).to receive(:[]).with('active_census_range').and_return('invalid')
+        allow(Rails.logger).to receive(:error).and_call_original
 
         service = described_class.new('c_99')
-
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/invalid_active_census_range/))
-
         service.send(:parse_active_census_range)
+
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/invalid_active_census_range/)).at_least(:once)
       end
     end
 
@@ -256,18 +258,20 @@ RSpec.describe ExteriorVerificationReportService do
 
       it 'logs error with context' do
         allow(service).to receive(:collect_data).and_raise(StandardError.new('Database error'))
-
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/exterior_verification_report_generation_failed/))
+        allow(Rails.logger).to receive(:error).and_call_original
 
         service.generate
+
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/exterior_verification_report_generation_failed/)).at_least(:once)
       end
 
       it 'includes backtrace in error log' do
         allow(service).to receive(:collect_data).and_raise(StandardError.new('Database error'))
-
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/backtrace/))
+        allow(Rails.logger).to receive(:error).and_call_original
 
         service.generate
+
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/backtrace/)).at_least(:once)
       end
     end
   end

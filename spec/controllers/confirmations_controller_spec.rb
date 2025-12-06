@@ -211,51 +211,51 @@ RSpec.describe ConfirmationsController, type: :controller do
         end
 
         it 'logs error event' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/confirmation_error/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :show, params: { confirmation_token: 'some_token' }
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/confirmation_error/)).at_least(:once)
         end
 
         it 'logs error class in error event' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/error_class/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :show, params: { confirmation_token: 'some_token' }
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/error_class/)).at_least(:once)
         end
 
         it 'logs error message in error event' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/error_message/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :show, params: { confirmation_token: 'some_token' }
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/error_message/)).at_least(:once)
         end
 
         it 'logs backtrace in error event' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/backtrace/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :show, params: { confirmation_token: 'some_token' }
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/backtrace/)).at_least(:once)
         end
 
         it 'logs IP address in error event' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/"ip_address"/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :show, params: { confirmation_token: 'some_token' }
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/"ip_address"/)).at_least(:once)
         end
 
         it 'logs controller name in error event' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/"controller":"confirmations"/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :show, params: { confirmation_token: 'some_token' }
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/"controller":"confirmations"/)).at_least(:once)
         end
 
         it 'logs timestamp in error event' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/"timestamp"/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :show, params: { confirmation_token: 'some_token' }
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/"timestamp"/)).at_least(:once)
         end
 
         it 'logs token presence in error event' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/token_present/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :show, params: { confirmation_token: 'some_token' }
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/token_present/)).at_least(:once)
         end
 
         it 'sets flash alert message' do
@@ -282,10 +282,9 @@ RSpec.describe ConfirmationsController, type: :controller do
         end
 
         it 'handles runtime error gracefully' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/confirmation_error/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :show, params: { confirmation_token: 'some_token' }
-
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/confirmation_error/)).at_least(:once)
           expect(response).to redirect_to(new_user_session_path)
         end
       end
@@ -296,10 +295,9 @@ RSpec.describe ConfirmationsController, type: :controller do
         end
 
         it 'handles ArgumentError gracefully' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/confirmation_error/))
-
+          allow(Rails.logger).to receive(:error).and_call_original
           get :show, params: { confirmation_token: 'some_token' }
-
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/confirmation_error/)).at_least(:once)
           expect(response).to redirect_to(new_user_session_path)
         end
       end
@@ -479,30 +477,30 @@ RSpec.describe ConfirmationsController, type: :controller do
 
       it 'logs error when exception occurs' do
         allow(controller).to receive(:find_message).and_raise(StandardError.new('I18n error'))
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/flash_message_error/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: user.confirmation_token }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/flash_message_error/)).at_least(:once)
       end
 
       it 'logs error class when exception occurs' do
         allow(controller).to receive(:find_message).and_raise(StandardError.new('I18n error'))
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/error_class/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: user.confirmation_token }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/error_class/)).at_least(:once)
       end
 
       it 'logs error message when exception occurs' do
         allow(controller).to receive(:find_message).and_raise(StandardError.new('I18n error'))
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/error_message/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: user.confirmation_token }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/error_message/)).at_least(:once)
       end
 
       it 'logs backtrace when exception occurs' do
         allow(controller).to receive(:find_message).and_raise(StandardError.new('I18n error'))
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/backtrace/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: user.confirmation_token }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/backtrace/)).at_least(:once)
       end
 
       it 'sets default message when custom logic fails' do
@@ -577,57 +575,57 @@ RSpec.describe ConfirmationsController, type: :controller do
       end
 
       it 'logs errors in JSON format' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/^\{.*\}$/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: 'test_token' }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/^\{.*\}$/)).at_least(:once)
       end
 
       it 'includes event type in error log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"event"/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: 'test_token' }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"event"/)).at_least(:once)
       end
 
       it 'includes error class in error log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_class":"StandardError"/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: 'test_token' }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_class":"StandardError"/)).at_least(:once)
       end
 
       it 'includes error message in error log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_message":"Test error"/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: 'test_token' }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_message":"Test error"/)).at_least(:once)
       end
 
       it 'includes backtrace (first 5 lines) in error log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"backtrace":\[/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: 'test_token' }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"backtrace":\[/)).at_least(:once)
       end
 
       it 'includes IP address in error log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"ip_address"/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: 'test_token' }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"ip_address"/)).at_least(:once)
       end
 
       it 'includes controller name in error log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"controller":"confirmations"/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: 'test_token' }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"controller":"confirmations"/)).at_least(:once)
       end
 
       it 'includes timestamp in error log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"timestamp"/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: 'test_token' }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"timestamp"/)).at_least(:once)
       end
 
       it 'includes additional details passed as parameters' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/token_present/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :show, params: { confirmation_token: 'test_token' }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/token_present/)).at_least(:once)
       end
     end
   end

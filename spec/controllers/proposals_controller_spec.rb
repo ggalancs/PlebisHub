@@ -121,46 +121,54 @@ RSpec.describe ProposalsController, type: :controller do
       end
 
       it 'logs error event' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/proposals_index_error/))
+        allow(Rails.logger).to receive(:error).and_call_original
         get :index
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/proposals_index_error/)).at_least(:once)
       end
 
       it 'includes filter in error log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"filter":"popular"/))
+        allow(Rails.logger).to receive(:error).and_call_original
         get :index
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"filter":"popular"/)).at_least(:once)
       end
     end
 
     context 'security logging' do
       it 'logs index view event' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/proposals_index_viewed/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :index
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/proposals_index_viewed/)).at_least(:once)
       end
 
       it 'includes filter in security log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"filter":"hot"/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :index, params: { filter: 'hot' }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"filter":"hot"/)).at_least(:once)
       end
 
       it 'includes IP address in log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"ip_address":/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :index
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address":/)).at_least(:once)
       end
 
       it 'includes user agent in log' do
         request.env['HTTP_USER_AGENT'] = 'Test Browser'
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_agent":"Test Browser"/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :index
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_agent":"Test Browser"/)).at_least(:once)
       end
 
       it 'includes timestamp in log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :index
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)).at_least(:once)
       end
 
       it 'includes controller name in log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"controller":"proposals"/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :index
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"controller":"proposals"/)).at_least(:once)
       end
     end
 
@@ -203,13 +211,15 @@ RSpec.describe ProposalsController, type: :controller do
       end
 
       it 'logs security event' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/proposal_viewed/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :show, params: { id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/proposal_viewed/)).at_least(:once)
       end
 
       it 'includes proposal_id in log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"proposal_id":#{proposal.id}/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :show, params: { id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"proposal_id":#{proposal.id}/)).at_least(:once)
       end
     end
 
@@ -225,19 +235,22 @@ RSpec.describe ProposalsController, type: :controller do
       end
 
       it 'logs not found event' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/proposal_not_found/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :show, params: { id: 99_999 }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/proposal_not_found/)).at_least(:once)
       end
 
       it 'includes proposal_id in log' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"proposal_id":99999/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :show, params: { id: 99_999 }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"proposal_id":99999/)).at_least(:once)
       end
     end
 
     context 'with general error' do
       before do
         allow(Proposal).to receive_message_chain(:reddit, :find).and_raise(StandardError.new('Database error'))
+        allow(Rails.logger).to receive(:error).and_call_original
       end
 
       it 'handles errors gracefully' do
@@ -251,23 +264,23 @@ RSpec.describe ProposalsController, type: :controller do
       end
 
       it 'logs error event' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/proposal_show_error/))
         get :show, params: { id: proposal.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/proposal_show_error/)).at_least(:once)
       end
 
       it 'includes error class in log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_class":"StandardError"/))
         get :show, params: { id: proposal.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_class":"StandardError"/)).at_least(:once)
       end
 
       it 'includes error message in log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_message":"Database error"/))
         get :show, params: { id: proposal.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_message":"Database error"/)).at_least(:once)
       end
 
       it 'includes backtrace in log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"backtrace":/))
         get :show, params: { id: proposal.id }
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"backtrace":/)).at_least(:once)
       end
     end
 
@@ -286,24 +299,28 @@ RSpec.describe ProposalsController, type: :controller do
 
     context 'security logging' do
       it 'logs IP address' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"ip_address":/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :show, params: { id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address":/)).at_least(:once)
       end
 
       it 'logs user agent' do
         request.env['HTTP_USER_AGENT'] = 'Test Browser'
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_agent":"Test Browser"/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :show, params: { id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_agent":"Test Browser"/)).at_least(:once)
       end
 
       it 'logs timestamp' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :show, params: { id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)).at_least(:once)
       end
 
       it 'logs controller name' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"controller":"proposals"/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :show, params: { id: proposal.id }
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"controller":"proposals"/)).at_least(:once)
       end
     end
   end
@@ -322,8 +339,9 @@ RSpec.describe ProposalsController, type: :controller do
     end
 
     it 'logs security event' do
-      expect(Rails.logger).to receive(:info).with(a_string_matching(/proposals_info_viewed/))
+      allow(Rails.logger).to receive(:info).and_call_original
       get :info
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/proposals_info_viewed/)).at_least(:once)
     end
 
     it 'allows unauthenticated access' do
@@ -340,6 +358,7 @@ RSpec.describe ProposalsController, type: :controller do
     context 'with error' do
       before do
         allow(controller).to receive(:render).and_raise(StandardError.new('Render error'))
+        allow(Rails.logger).to receive(:error).and_call_original
       end
 
       it 'handles errors gracefully' do
@@ -353,41 +372,45 @@ RSpec.describe ProposalsController, type: :controller do
       end
 
       it 'logs error event' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/proposals_info_error/))
         get :info
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/proposals_info_error/)).at_least(:once)
       end
 
       it 'includes error class in log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_class":"StandardError"/))
         get :info
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_class":"StandardError"/)).at_least(:once)
       end
 
       it 'includes error message in log' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_message":"Render error"/))
         get :info
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_message":"Render error"/)).at_least(:once)
       end
     end
 
     context 'security logging' do
       it 'logs IP address' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"ip_address":/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :info
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address":/)).at_least(:once)
       end
 
       it 'logs user agent' do
         request.env['HTTP_USER_AGENT'] = 'Mozilla/5.0'
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_agent":"Mozilla\/5.0"/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :info
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_agent":"Mozilla\/5.0"/)).at_least(:once)
       end
 
       it 'logs timestamp' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :info
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)).at_least(:once)
       end
 
       it 'logs controller name' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"controller":"proposals"/))
+        allow(Rails.logger).to receive(:info).and_call_original
         get :info
+        expect(Rails.logger).to have_received(:info).with(a_string_matching(/"controller":"proposals"/)).at_least(:once)
       end
     end
   end
@@ -485,35 +508,36 @@ RSpec.describe ProposalsController, type: :controller do
   describe 'error logging' do
     it 'logs error class and message' do
       allow(Proposal).to receive(:filter).and_raise(StandardError.new('Test error'))
-      expect(Rails.logger).to receive(:error).with(a_hash_including(
-        event: 'proposals_index_error',
-        error_class: 'StandardError',
-        error_message: 'Test error'
-      ).to_json)
+      allow(Rails.logger).to receive(:error).and_call_original
       get :index
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/proposals_index_error/)).at_least(:once)
     end
 
     it 'logs backtrace with first 5 lines' do
       allow(Proposal).to receive(:filter).and_raise(StandardError.new('Error'))
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/"backtrace":\[/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :index
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/"backtrace":\[/)).at_least(:once)
     end
 
     it 'logs IP address in errors' do
+      allow(Rails.logger).to receive(:info).and_call_original
       get :show, params: { id: 99_999 }
-      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address":/))
+      expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address":/)).at_least(:once)
     end
 
     it 'logs controller in errors' do
       allow(Proposal).to receive_message_chain(:reddit, :find).and_raise(StandardError)
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/"controller":"proposals"/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :show, params: { id: proposal.id }
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/"controller":"proposals"/)).at_least(:once)
     end
 
     it 'logs timestamp in errors' do
       allow(Proposal).to receive_message_chain(:reddit, :find).and_raise(StandardError)
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :show, params: { id: proposal.id }
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T/)).at_least(:once)
     end
   end
 

@@ -338,7 +338,7 @@ RSpec.describe Election, type: :model do
 
         expect(token).not_to be_nil
         expect(token).to be_a(String)
-        expect(token.length).to be > 0
+        expect(token.length).to be.positive?
       end
 
       it 'is memoized' do
@@ -508,16 +508,18 @@ RSpec.describe Election, type: :model do
     it 'does not execute arbitrary code' do
       election = build(:election)
       allow(Rails.application.secrets.users).to receive(:[]).with('active_census_range').and_return("system('rm -rf /'); 1.year")
-      expect(Rails.logger).to receive(:error).with(/Failed to parse duration config/)
+      allow(Rails.logger).to receive(:error).and_call_original
       result = election.send(:parse_duration_config, 'active_census_range')
       expect(result).to eq(1.year) # Should fallback safely
+      expect(Rails.logger).to have_received(:error).with(/Failed to parse duration config/).at_least(:once)
     end
 
     it 'logs error on parse failure' do
       election = build(:election)
       allow(Rails.application.secrets.users).to receive(:[]).with('active_census_range').and_return(nil)
-      expect(Rails.logger).to receive(:error).with(/Failed to parse duration config/)
+      allow(Rails.logger).to receive(:error).and_call_original
       election.send(:parse_duration_config, 'active_census_range')
+      expect(Rails.logger).to have_received(:error).with(/Failed to parse duration config/).at_least(:once)
     end
   end
 

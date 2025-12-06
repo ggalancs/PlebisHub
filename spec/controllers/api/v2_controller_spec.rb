@@ -89,10 +89,9 @@ RSpec.describe Api::V2Controller, type: :controller do
 
       it 'logs signature verification failure' do
         params_hash['signature'] = 'invalid_signature'
-
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/signature_verification_failed/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/signature_verification_failed/)).at_least(:once)
       end
     end
 
@@ -188,10 +187,9 @@ RSpec.describe Api::V2Controller, type: :controller do
       it 'logs invalid timestamp attempts' do
         old_timestamp = 2.hours.ago.to_i.to_s
         params_hash['timestamp'] = old_timestamp
-
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_timestamp/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_timestamp/)).at_least(:once)
       end
     end
   end
@@ -374,9 +372,9 @@ RSpec.describe Api::V2Controller, type: :controller do
       end
 
       it 'logs PII access' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/pii_access/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/pii_access/)).at_least(:once)
       end
 
       it 'includes user details in response' do
@@ -414,10 +412,9 @@ RSpec.describe Api::V2Controller, type: :controller do
         params_hash['email'] = 'nonexistent@example.com'
         signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
-
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/user_not_found/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/user_not_found/)).at_least(:once)
       end
     end
 
@@ -618,9 +615,9 @@ RSpec.describe Api::V2Controller, type: :controller do
       end
 
       it 'logs PII access' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/pii_access/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/pii_access/)).at_least(:once)
       end
     end
 
@@ -644,9 +641,9 @@ RSpec.describe Api::V2Controller, type: :controller do
         signature = generate_signature('/api/v2/get_data.json', params_list, params_hash)
         params_hash['signature'] = signature
 
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/vote_circle_not_found/))
-
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/vote_circle_not_found/)).at_least(:once)
       end
     end
 
@@ -737,10 +734,9 @@ RSpec.describe Api::V2Controller, type: :controller do
 
       it 'logs error with backtrace' do
         allow(User).to receive(:find_by).and_raise(StandardError.new('Database error'))
-
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/militants_from_territory_error.*backtrace/m))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/militants_from_territory_error.*backtrace/m)).at_least(:once)
       end
     end
 
@@ -776,10 +772,9 @@ RSpec.describe Api::V2Controller, type: :controller do
       it 'logs unexpected errors' do
         allow_any_instance_of(Api::V2Controller).to receive(:build_param_list)
           .and_raise(StandardError.new('Unexpected error'))
-
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/api_error.*Unexpected error/m))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/api_error.*Unexpected error/m)).at_least(:once)
       end
     end
 
@@ -809,10 +804,9 @@ RSpec.describe Api::V2Controller, type: :controller do
 
       it 'logs error' do
         allow(VoteCircle).to receive(:find_by).and_raise(StandardError.new('Database error'))
-
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/militants_from_vote_circle_territory_error/))
-
+        allow(Rails.logger).to receive(:error).and_call_original
         get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/militants_from_vote_circle_territory_error/)).at_least(:once)
       end
     end
   end
@@ -842,27 +836,27 @@ RSpec.describe Api::V2Controller, type: :controller do
     end
 
     it 'logs IP address' do
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/ip_address/))
-
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/ip_address/)).at_least(:once)
     end
 
     it 'logs user agent' do
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/user_agent/))
-
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/user_agent/)).at_least(:once)
     end
 
     it 'logs API version' do
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/api_version.*v2/))
-
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/api_version.*v2/)).at_least(:once)
     end
 
     it 'logs timestamp in ISO8601 format' do
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/timestamp.*\d{4}-\d{2}-\d{2}T/))
-
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :get_data, params: params_hash.transform_keys(&:to_sym), format: :json
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/timestamp.*\d{4}-\d{2}-\d{2}T/)).at_least(:once)
     end
   end
 

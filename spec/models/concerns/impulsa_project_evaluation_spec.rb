@@ -335,7 +335,7 @@ RSpec.describe ImpulsaProjectEvaluation, type: :model do
     it 'returns count of all errors for evaluator' do
       project.evaluator1_evaluation = {}
       count = project.evaluation_count_errors(1)
-      expect(count).to be > 0
+      expect(count).to be.positive?
     end
   end
 

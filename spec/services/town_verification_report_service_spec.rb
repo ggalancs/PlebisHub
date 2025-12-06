@@ -44,17 +44,19 @@ RSpec.describe TownVerificationReportService do
       end
 
       it 'logs error' do
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/town_verification_report_init_failed/))
+        allow(Rails.logger).to receive(:error).and_call_original
         described_class.new('c_00', 'm_01_001')
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/town_verification_report_init_failed/)).at_least(:once)
       end
     end
 
     it 'logs initialization errors with context' do
       allow(Rails.application).to receive(:secrets).and_raise(StandardError.new('Config error'))
-
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/report_code.*c_00/))
+      allow(Rails.logger).to receive(:error).and_call_original
 
       described_class.new('c_00', 'm_01_001')
+
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/report_code.*c_00/)).at_least(:once)
     end
 
     it 'stores town_code correctly' do
@@ -146,12 +148,12 @@ RSpec.describe TownVerificationReportService do
 
       it 'logs error for invalid format' do
         allow(Rails.application.secrets.users).to receive(:[]).with('active_census_range').and_return('invalid')
+        allow(Rails.logger).to receive(:error).and_call_original
 
         service = described_class.new('c_00', 'm_01_001')
-
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/invalid_active_census_range/))
-
         service.send(:parse_active_census_range)
+
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/invalid_active_census_range/)).at_least(:once)
       end
     end
 
@@ -265,18 +267,20 @@ RSpec.describe TownVerificationReportService do
 
       it 'logs error with context' do
         allow(service).to receive(:collect_data).and_raise(StandardError.new('Database error'))
-
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/town_verification_report_generation_failed/))
+        allow(Rails.logger).to receive(:error).and_call_original
 
         service.generate
+
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/town_verification_report_generation_failed/)).at_least(:once)
       end
 
       it 'includes backtrace in error log' do
         allow(service).to receive(:collect_data).and_raise(StandardError.new('Database error'))
-
-        expect(Rails.logger).to receive(:error).with(a_string_matching(/backtrace/))
+        allow(Rails.logger).to receive(:error).and_call_original
 
         service.generate
+
+        expect(Rails.logger).to have_received(:error).with(a_string_matching(/backtrace/)).at_least(:once)
       end
     end
   end
@@ -289,7 +293,7 @@ RSpec.describe TownVerificationReportService do
     it 'caches collected data' do
       base_query = double('base_query')
       allow(service).to receive(:base_query).and_return(base_query)
-      allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([['01001', 0, 1]])
+      allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([['accepted', 1]])
       pluck_result = double('pluck_result')
       allow(pluck_result).to receive(:each).and_return([])
       allow(base_query).to receive_message_chain(:group, :pluck).and_return(pluck_result)
@@ -298,8 +302,8 @@ RSpec.describe TownVerificationReportService do
       service.send(:collect_data)
       service.send(:collect_data)
 
-      # Should only query once (cached)
-      expect(service.instance_variable_get(:@data)).to be_present
+      # Should only query once (cached) - @collect_data is the memoization variable
+      expect(service.instance_variable_get(:@collect_data)).to be_present
     end
 
     it 'filters by town code' do
@@ -420,7 +424,8 @@ RSpec.describe TownVerificationReportService do
       service = described_class.new('c_00', 'm_01_001')
 
       base_query = double('base_query')
-      expect(User).to receive_message_chain(:confirmed, :where).with('vote_town = ?', 'm_01_001').and_return(base_query)
+      # Rails 7.2 uses hash syntax for where clauses
+      expect(User).to receive_message_chain(:confirmed, :where).with(vote_town: 'm_01_001').and_return(base_query)
       allow(base_query).to receive_message_chain(:joins, :group, :pluck).and_return([])
       pluck_result = double('pluck_result')
       allow(pluck_result).to receive(:each).and_return([])

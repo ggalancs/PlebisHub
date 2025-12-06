@@ -240,8 +240,9 @@ RSpec.describe Api::V1::ThemesController, type: :controller do
       end
 
       it 'logs the error' do
-        expect(Rails.logger).to receive(:error).with(/Theme activation failed/)
+        allow(Rails.logger).to receive(:error).and_call_original
         post :activate, params: { id: theme.id }, format: :json
+        expect(Rails.logger).to have_received(:error).with(/Theme activation failed/).at_least(:once)
       end
     end
   end

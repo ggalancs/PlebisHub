@@ -670,8 +670,9 @@ RSpec.describe 'ThemeSettings Admin', type: :request do
         end
 
         it 'logs the error' do
-          expect(Rails.logger).to receive(:error).with(/Theme activation failed/)
+          allow(Rails.logger).to receive(:error).and_call_original
           post activate_admin_theme_setting_path(theme_setting)
+          expect(Rails.logger).to have_received(:error).with(/Theme activation failed/).at_least(:once)
         end
       end
     end
@@ -801,8 +802,9 @@ RSpec.describe 'ThemeSettings Admin', type: :request do
         end
 
         it 'logs the error' do
-          expect(Rails.logger).to receive(:error).with(/Theme import failed/)
+          allow(Rails.logger).to receive(:error).and_call_original
           post import_admin_theme_settings_path, params: { theme_file: file }
+          expect(Rails.logger).to have_received(:error).with(/Theme import failed/).at_least(:once)
         end
       end
     end

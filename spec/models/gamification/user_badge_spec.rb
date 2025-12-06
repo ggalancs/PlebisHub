@@ -254,7 +254,7 @@ RSpec.describe Gamification::UserBadge, type: :model do
       json = user_badge.as_json_summary
       expect(json[:id]).to eq(user_badge.id)
       expect(json[:id]).to be_a(Integer)
-      expect(json[:id]).to be > 0
+      expect(json[:id]).to be.positive?
     end
 
     it 'includes badge details' do

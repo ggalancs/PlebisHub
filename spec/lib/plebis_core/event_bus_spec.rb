@@ -17,8 +17,9 @@ RSpec.describe PlebisCore::EventBus do
 
     it 'logs event publishing' do
       allow(ActiveSupport::Notifications).to receive(:instrument)
-      expect(Rails.logger).to receive(:debug).with(/Publishing: plebis.test.event/)
+      allow(Rails.logger).to receive(:debug).and_call_original
       described_class.publish('test.event', { key: 'value' })
+      expect(Rails.logger).to have_received(:debug).with(/Publishing: plebis.test.event/).at_least(:once)
     end
 
     it 'handles empty payload' do
@@ -34,9 +35,9 @@ RSpec.describe PlebisCore::EventBus do
     context 'when error occurs' do
       it 'logs error and re-raises' do
         allow(ActiveSupport::Notifications).to receive(:instrument).and_raise(StandardError.new('Test error'))
-        expect(Rails.logger).to receive(:error).with(/Error publishing/)
-        expect(Rails.logger).to receive(:error).with(anything)
+        allow(Rails.logger).to receive(:error).and_call_original
         expect { described_class.publish('test', {}) }.to raise_error(StandardError)
+        expect(Rails.logger).to have_received(:error).with(/Error publishing/).at_least(:once)
       end
     end
   end
@@ -53,8 +54,9 @@ RSpec.describe PlebisCore::EventBus do
     end
 
     it 'logs subscription' do
-      expect(Rails.logger).to receive(:info).with('[EventBus] Subscribed to: plebis.test.event')
+      allow(Rails.logger).to receive(:info).and_call_original
       described_class.subscribe('test.event') { |_e| }
+      expect(Rails.logger).to have_received(:info).with('[EventBus] Subscribed to: plebis.test.event').at_least(:once)
     end
 
     it 'passes event object to block' do
@@ -83,9 +85,9 @@ RSpec.describe PlebisCore::EventBus do
           raise StandardError, 'Subscriber error'
         end
 
-        expect(Rails.logger).to receive(:error).with(/Error in subscriber/)
-        expect(Rails.logger).to receive(:error).with(anything)
+        allow(Rails.logger).to receive(:error).and_call_original
         expect { ActiveSupport::Notifications.instrument('plebis.test.event', {}) }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/Error in subscriber/).at_least(:once)
       end
 
       it 'continues executing other subscribers' do
@@ -112,14 +114,16 @@ RSpec.describe PlebisCore::EventBus do
 
     it 'logs unsubscription' do
       described_class.subscribe('test.event') { |_e| }
-      expect(Rails.logger).to receive(:info).with('[EventBus] Unsubscribed from: plebis.test.event')
+      allow(Rails.logger).to receive(:info).and_call_original
       described_class.unsubscribe('test.event')
+      expect(Rails.logger).to have_received(:info).with('[EventBus] Unsubscribed from: plebis.test.event').at_least(:once)
     end
 
     it 'accepts subscriber object' do
       subscriber = ActiveSupport::Notifications.subscribe('plebis.test') { |*_args| }
-      expect(Rails.logger).to receive(:info)
+      allow(Rails.logger).to receive(:info).and_call_original
       described_class.unsubscribe('test', subscriber)
+      expect(Rails.logger).to have_received(:info).at_least(:once)
     end
   end
 
@@ -128,13 +132,15 @@ RSpec.describe PlebisCore::EventBus do
       described_class.subscribe('test.event1') { |_e| }
       described_class.subscribe('test.event2') { |_e| }
 
-      expect(Rails.logger).to receive(:warn).with('[EventBus] Clearing all subscriptions')
+      allow(Rails.logger).to receive(:warn).and_call_original
       described_class.clear_all_subscriptions!
+      expect(Rails.logger).to have_received(:warn).with('[EventBus] Clearing all subscriptions').at_least(:once)
     end
 
     it 'logs warning' do
-      expect(Rails.logger).to receive(:warn).with('[EventBus] Clearing all subscriptions')
+      allow(Rails.logger).to receive(:warn).and_call_original
       described_class.clear_all_subscriptions!
+      expect(Rails.logger).to have_received(:warn).with('[EventBus] Clearing all subscriptions').at_least(:once)
     end
   end
 

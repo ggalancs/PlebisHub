@@ -38,15 +38,16 @@ RSpec.describe EventBus do
     end
 
     it 'logs event publishing' do
-      allow(Rails.logger).to receive(:info)
-      expect(Rails.logger).to receive(:info).with(/Publishing: test.event/)
+      allow(Rails.logger).to receive(:info).and_call_original
       instance.publish('test.event', {})
+      expect(Rails.logger).to have_received(:info).with(/Publishing: test.event/).at_least(:once)
     end
 
     it 'handles subscriber errors gracefully' do
+      allow(Rails.logger).to receive(:error).and_call_original
       instance.subscribe('test.event') { |_e| raise StandardError, 'Test error' }
-      expect(Rails.logger).to receive(:error).at_least(:once)
       expect { instance.publish('test.event', {}) }.not_to raise_error
+      expect(Rails.logger).to have_received(:error).at_least(:once)
     end
   end
 
@@ -72,8 +73,9 @@ RSpec.describe EventBus do
     end
 
     it 'logs subscription' do
-      expect(Rails.logger).to receive(:info).with(/Subscribed to: test.event/)
+      allow(Rails.logger).to receive(:info).and_call_original
       instance.subscribe('test.event') { |_e| }
+      expect(Rails.logger).to have_received(:info).with(/Subscribed to: test.event/).at_least(:once)
     end
   end
 
@@ -96,8 +98,9 @@ RSpec.describe EventBus do
     end
 
     it 'logs async subscription' do
-      expect(Rails.logger).to receive(:info).with(/Async subscribed to: test.event/)
+      allow(Rails.logger).to receive(:info).and_call_original
       instance.subscribe_async('test.event', listener_class)
+      expect(Rails.logger).to have_received(:info).with(/Async subscribed to: test.event/).at_least(:once)
     end
   end
 
@@ -213,8 +216,9 @@ RSpec.describe EventBus do
       worker = described_class.new
       event_hash = { 'name' => 'test', 'payload' => {} }
       allow(TestListener).to receive(:call).and_raise(StandardError, 'Test error')
-      expect(Rails.logger).to receive(:error).at_least(:once)
+      allow(Rails.logger).to receive(:error).and_call_original
       expect { worker.perform('TestListener', event_hash) }.to raise_error(StandardError)
+      expect(Rails.logger).to have_received(:error).at_least(:once)
     end
   end
 

@@ -109,8 +109,9 @@ RSpec.describe PlebisMicrocredit::MicrocreditController, type: :controller do
       end
 
       it 'logs security event for invalid microcredit_id' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_microcredit_id/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :new_loan, params: { id: 'invalid' }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_microcredit_id/)).at_least(:once)
       end
     end
 
@@ -126,15 +127,17 @@ RSpec.describe PlebisMicrocredit::MicrocreditController, type: :controller do
       end
 
       it 'rejects invalid country code and defaults to ES' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_country/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :provinces, params: { microcredit_loan_country: 'INVALID' }
         expect(response).to have_http_status(:success)
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_country/)).at_least(:once)
       end
 
       it 'handles SQL injection attempts in country parameter' do
-        expect(Rails.logger).to receive(:warn)
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :provinces, params: { microcredit_loan_country: "'; DROP TABLE users;--" }
         expect(response).to have_http_status(:success)
+        expect(Rails.logger).to have_received(:warn).at_least(:once)
       end
     end
 
@@ -146,15 +149,17 @@ RSpec.describe PlebisMicrocredit::MicrocreditController, type: :controller do
       end
 
       it 'falls back to default brand for invalid brand' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_brand/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :index, params: { brand: 'nonexistent' }
         expect(response).to have_http_status(:success)
         expect(assigns(:brand)).to eq('default')
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_brand/)).at_least(:once)
       end
 
       it 'logs security event for invalid brand access' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_brand/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :index, params: { brand: 'hacker_brand' }
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_brand/)).at_least(:once)
       end
     end
   end
@@ -175,8 +180,9 @@ RSpec.describe PlebisMicrocredit::MicrocreditController, type: :controller do
       end
 
       it 'logs security event for missing configuration' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/missing_configuration/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :index
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/missing_configuration/)).at_least(:once)
       end
     end
 
@@ -312,8 +318,9 @@ RSpec.describe PlebisMicrocredit::MicrocreditController, type: :controller do
         end
 
         it 'logs not_found error' do
-          expect(Rails.logger).to receive(:error).with(a_string_matching(/microcredit_not_found/))
+          allow(Rails.logger).to receive(:error).and_call_original
           get :new_loan, params: { id: 99_999 }
+          expect(Rails.logger).to have_received(:error).with(a_string_matching(/microcredit_not_found/)).at_least(:once)
         end
       end
     end
@@ -589,14 +596,16 @@ RSpec.describe PlebisMicrocredit::MicrocreditController, type: :controller do
         end
 
         it 'sets renewable to false with invalid hash' do
-          expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_renewal_hash/))
+          allow(Rails.logger).to receive(:warn).and_call_original
           get :renewal, params: { loan_id: renewable_loan.id, hash: 'wrong_hash' }
           expect(assigns(:renewable)).to be false
+          expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_renewal_hash/)).at_least(:once)
         end
 
         it 'logs security event for invalid hash' do
-          expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_renewal_hash/))
+          allow(Rails.logger).to receive(:warn).and_call_original
           get :renewal, params: { loan_id: renewable_loan.id, hash: 'invalid' }
+          expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_renewal_hash/)).at_least(:once)
         end
       end
 
@@ -892,15 +901,17 @@ RSpec.describe PlebisMicrocredit::MicrocreditController, type: :controller do
       end
 
       it 'rejects renewal with invalid hash' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_renewal_hash/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :renewal, params: { loan_id: renewable_loan.id, hash: 'invalid_hash' }
         expect(assigns(:renewable)).to be false
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_renewal_hash/)).at_least(:once)
       end
 
       it 'rejects renewal with missing hash' do
-        expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_renewal_hash/))
+        allow(Rails.logger).to receive(:warn).and_call_original
         get :renewal, params: { loan_id: renewable_loan.id }
         expect(assigns(:renewable)).to be false
+        expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_renewal_hash/)).at_least(:once)
       end
     end
   end
@@ -935,35 +946,41 @@ RSpec.describe PlebisMicrocredit::MicrocreditController, type: :controller do
     end
 
     it 'logs errors with error class and message' do
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/"error_class":/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :new_loan, params: { id: 99_999 }
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/"error_class":/)).at_least(:once)
     end
 
     it 'logs errors with backtrace' do
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/"backtrace":/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :new_loan, params: { id: 99_999 }
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/"backtrace":/)).at_least(:once)
     end
 
     it 'logs security events with IP address' do
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/"ip_address":/))
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :new_loan, params: { id: 'invalid' }
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/"ip_address":/)).at_least(:once)
     end
 
     it 'logs security events with user agent' do
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/"user_agent":/))
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :new_loan, params: { id: 'invalid' }
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/"user_agent":/)).at_least(:once)
     end
 
     it 'logs invalid brand access attempts' do
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/invalid_brand/))
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :index, params: { brand: 'nonexistent' }
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/invalid_brand/)).at_least(:once)
     end
 
     it 'logs configuration errors' do
       # RAILS 7.2 FIX: Add microcredit_loans config for check_user_limits validation
       allow(Rails.application).to receive(:secrets).and_return(double(microcredits: nil, microcredit_loans: microcredit_loans_config))
-      expect(Rails.logger).to receive(:warn).with(a_string_matching(/missing_configuration/))
+      allow(Rails.logger).to receive(:warn).and_call_original
       get :index
+      expect(Rails.logger).to have_received(:warn).with(a_string_matching(/missing_configuration/)).at_least(:once)
     end
   end
 
@@ -987,16 +1004,18 @@ RSpec.describe PlebisMicrocredit::MicrocreditController, type: :controller do
 
     it 'handles errors in provinces rendering' do
       allow(controller).to receive(:render).and_raise(StandardError)
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/provinces_render_failed/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :provinces
       expect(response).to have_http_status(:internal_server_error)
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/provinces_render_failed/)).at_least(:once)
     end
 
     it 'handles errors in towns rendering' do
       allow(controller).to receive(:render).and_raise(StandardError)
-      expect(Rails.logger).to receive(:error).with(a_string_matching(/towns_render_failed/))
+      allow(Rails.logger).to receive(:error).and_call_original
       get :towns
       expect(response).to have_http_status(:internal_server_error)
+      expect(Rails.logger).to have_received(:error).with(a_string_matching(/towns_render_failed/)).at_least(:once)
     end
 
     it 'handles errors in show_options' do

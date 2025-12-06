@@ -876,7 +876,7 @@ RSpec.describe Order, type: :model do
       it 'generates signature for request' do
         signature = order.redsys_merchant_request_signature
         expect(signature).to be_a(String)
-        expect(signature.length).to be > 0
+        expect(signature.length).to be.positive?
       end
     end
 
@@ -1173,7 +1173,7 @@ RSpec.describe Order, type: :model do
         signature = order.redsys_merchant_response_signature
 
         expect(signature).to be_a(String)
-        expect(signature.length).to be > 0
+        expect(signature.length).to be.positive?
       end
 
       it 'handles xml without Request tag' do

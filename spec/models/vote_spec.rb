@@ -85,7 +85,7 @@ RSpec.describe Vote, type: :model do
 
       expect(vote.save).to be_truthy
       expect(vote.voter_id).not_to be_nil
-      expect(vote.voter_id.length).to be > 0
+      expect(vote.voter_id.length).to be.positive?
     end
 
     it 'generates agora_id on create' do
@@ -333,7 +333,7 @@ RSpec.describe Vote, type: :model do
       vote = create(:vote, election: election)
 
       expect(vote.voter_id).not_to be_nil
-      expect(vote.voter_id.length).to be > 0
+      expect(vote.voter_id.length).to be.positive?
     end
 
     it 'generates different voter_ids for different users' do
