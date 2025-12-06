@@ -3,11 +3,11 @@
     {
       "warning_type": "Dangerous Eval",
       "warning_code": 13,
-      "fingerprint": "040806ac535ac42b0350c3e438f90faac91118a5c68b367b12694cae83da9298",
+      "fingerprint": "3e3134157fac8032e5af61bf3060dc3343cb41ece5e1044c0a6bd1841b950f67",
       "check_name": "Evaluation",
       "message": "Dynamic string evaluated as code",
       "file": "app/models/concerns/impulsa_project_evaluation.rb",
-      "line": 166,
+      "line": 184,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_eval/",
       "code": "self.instance_eval(...)",
       "render_path": null,
@@ -23,11 +23,11 @@
     {
       "warning_type": "Dangerous Eval",
       "warning_code": 13,
-      "fingerprint": "980d984563bec07f98523ef018d59068462e2267fe497a9087ff45af80a4b713",
+      "fingerprint": "a6e55ebdbb6332acf1a245abfafe3f3fe79f5ecbd851ce2507e6525558007a3f",
       "check_name": "Evaluation",
       "message": "Dynamic string evaluated as code",
       "file": "engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb",
-      "line": 169,
+      "line": 185,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_eval/",
       "code": "self.instance_eval(...)",
       "render_path": null,
@@ -235,6 +235,6 @@
       "note": "URL comes from admin-controlled database field for legal agreement PDFs. Rails link_to helper properly escapes URLs. Agreement links are validated on model save."
     }
   ],
-  "updated": "2025-11-30 09:57:00 +0100",
+  "updated": "2025-12-06 10:30:00 +0100",
   "brakeman_version": "7.1.1"
 }
