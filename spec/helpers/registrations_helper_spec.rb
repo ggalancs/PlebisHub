@@ -21,7 +21,7 @@ RSpec.describe RegistrationsHelper, type: :helper do
       comparer = described_class.region_comparer
       result = comparer.call(region1, region2)
 
-      expect(result).to be.negative? # Álava comes before Zamora
+      expect(result).to be_negative # Álava comes before Zamora
     end
 
     it 'handles equal names' do
@@ -41,7 +41,7 @@ RSpec.describe RegistrationsHelper, type: :helper do
       comparer = described_class.region_comparer
       result = comparer.call(region1, region2)
 
-      expect(result).to be.positive? # Ñ comes after M in Spanish
+      expect(result).to be_positive # Ñ comes after M in Spanish
     end
   end
 
@@ -62,7 +62,7 @@ RSpec.describe RegistrationsHelper, type: :helper do
       country_names = countries.map(&:name)
 
       expect(country_names).to be_an(Array)
-      expect(country_names.length).to be.positive?
+      expect(country_names.length).to be_positive
     end
 
     it 'includes Spain in the list' do
@@ -105,7 +105,7 @@ RSpec.describe RegistrationsHelper, type: :helper do
         province_names = provinces.map(&:name)
 
         expect(province_names).to be_an(Array)
-        expect(province_names.length).to be.positive?
+        expect(province_names.length).to be_positive
       end
 
       it 'includes Madrid in Spanish provinces' do
@@ -191,7 +191,7 @@ RSpec.describe RegistrationsHelper, type: :helper do
         towns = helper.get_towns('ES', 'M')
 
         expect(towns).to be_an(Array)
-        expect(towns.length).to be.positive?
+        expect(towns.length).to be_positive
       end
 
       it 'returns towns for Barcelona province' do
