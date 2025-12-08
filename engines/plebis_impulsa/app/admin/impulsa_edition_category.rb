@@ -3,7 +3,7 @@
 ActiveAdmin.register PlebisImpulsa::ImpulsaEditionCategory, as: 'ImpulsaEditionCategory' do
   menu false
   belongs_to :impulsa_edition
-  navigation_menu :default
+  # Don't use navigation_menu :default - it causes URL generation errors when rendering other admin pages
 
   permit_params :impulsa_edition_id, :name, :has_votings, :category_type, :winners, :prize, :only_authors,
                 :coofficial_language, :wizard_raw, :evaluation_raw, territories: []

@@ -172,7 +172,8 @@ class User < ApplicationRecord
   scope :has_collaboration_credit_card, -> { joins(:collaborations).where('collaborations.payment_type' => 1) }
   scope :has_collaboration_bank_national, -> { joins(:collaborations).where('collaborations.payment_type' => 2) }
   scope :has_collaboration_bank_international, -> { joins(:collaborations).where('collaborations.payment_type' => 3) }
-  scope :participation_team, -> { includes(:participation_team).where.not(participation_team_at: nil) }
+  # Rails 7.2: Use correct plural association name for HABTM
+  scope :participation_team, -> { includes(:participation_teams).where.not(participation_team_at: nil) }
   scope :has_vote_circle, -> { where.not(vote_circle_id: nil) }
   scope :wants_information_by_sms, -> { where(wants_information_by_sms: true) }
   scope :militant_and_exempt_from_payment, -> { created.militant.exempt_from_payment }
@@ -319,10 +320,24 @@ class User < ApplicationRecord
       self.militant = still_militant?
       if vote_circle_id_changed?
         self.vote_circle_changed_at = Time.zone.now
-        process_militant_data
+        # RAILS 7.2 FIX: Defer process_militant_data to after_commit to avoid
+        # recursive save when MilitantRecord's belongs_to :user triggers parent save
+        @should_process_militant_data = true
       end
       true
     end
+  end
+
+  # RAILS 7.2 FIX: Process militant data after user is saved to avoid recursive save
+  after_commit :process_militant_data_after_save, if: :should_process_militant_data?
+
+  def should_process_militant_data?
+    @should_process_militant_data
+  end
+
+  def process_militant_data_after_save
+    @should_process_militant_data = false
+    process_militant_data
   end
 
   def in_participation_team?(team_id)

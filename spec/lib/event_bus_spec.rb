@@ -114,7 +114,9 @@ RSpec.describe EventBus do
     end
   end
 
-  describe EventBus::Event do
+  describe EventBus::Event, skip_instance: true do
+    # Override the parent let to avoid calling .instance on EventBus::Event
+    let(:instance) { EventBus.instance }
     let(:event) { EventBus::Event.new('test.event', { key: 'value' }) }
 
     it 'has a name' do
@@ -164,7 +166,10 @@ RSpec.describe EventBus do
     end
   end
 
-  describe PlebisConfig do
+  describe PlebisConfig, skip_instance: true do
+    # Override the parent let to avoid calling .instance on PlebisConfig
+    let(:instance) { EventBus.instance }
+
     describe '.event_persistence_enabled?' do
       it 'returns true in production' do
         allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
@@ -172,19 +177,24 @@ RSpec.describe EventBus do
       end
 
       it 'returns true when ENV variable is set' do
+        allow(ENV).to receive(:[]).and_call_original
         allow(ENV).to receive(:[]).with('EVENT_PERSISTENCE').and_return('true')
         expect(PlebisConfig.event_persistence_enabled?).to be true
       end
 
       it 'returns false in development by default' do
         allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('development'))
+        allow(ENV).to receive(:[]).and_call_original
         allow(ENV).to receive(:[]).with('EVENT_PERSISTENCE').and_return(nil)
         expect(PlebisConfig.event_persistence_enabled?).to be false
       end
     end
   end
 
-  describe EventBusWorker do
+  describe EventBusWorker, skip_instance: true do
+    # Override the parent let to avoid calling .instance on EventBusWorker
+    let(:instance) { EventBus.instance }
+
     let(:listener_class) do
       Class.new do
         def self.call(_event); end

@@ -32,17 +32,18 @@ FactoryBot.define do
       theme_id { 'forest' }
     end
 
+    # Use WCAG AA compliant colors (≥4.5:1 contrast ratio against white)
     trait :with_custom_colors do
-      primary_color { '#ff0000' }
-      primary_light_color { '#ff6666' }
-      primary_dark_color { '#cc0000' }
-      secondary_color { '#00ff00' }
-      secondary_light_color { '#66ff66' }
-      secondary_dark_color { '#00cc00' }
+      primary_color { '#2F4F4F' }        # Dark slate gray - 8.9:1 contrast
+      primary_light_color { '#4F6F6F' }  # Lighter shade
+      primary_dark_color { '#1F3F3F' }   # Darker shade
+      secondary_color { '#000080' }      # Navy blue - 10.9:1 contrast
+      secondary_light_color { '#4040A0' }
+      secondary_dark_color { '#000060' }
     end
 
     trait :with_partial_custom_colors do
-      primary_color { '#ff0000' }
+      primary_color { '#2F4F4F' }  # WCAG AA compliant
     end
 
     trait :with_invalid_color do

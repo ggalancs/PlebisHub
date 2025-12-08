@@ -179,17 +179,19 @@ RSpec.describe PlebisCore::EngineRegistry do
 
     context 'when errors occur' do
       it 'returns false and logs error' do
+        # Use plebis_voting which has plebis_verification as dependency (not just User)
         allow(EngineActivation).to receive(:enabled?).and_raise(StandardError.new('Test error'))
         allow(Rails.logger).to receive(:error).and_call_original
-        result = described_class.can_enable?('plebis_cms')
+        result = described_class.can_enable?('plebis_voting')
         expect(result).to be false
         expect(Rails.logger).to have_received(:error).with(/Error checking if .* can be enabled/)
       end
 
       it 'handles missing EngineActivation gracefully' do
+        # Use plebis_voting which has plebis_verification as dependency (not just User)
         allow(EngineActivation).to receive(:enabled?).and_raise(NameError.new('Test error'))
         allow(Rails.logger).to receive(:error).and_call_original
-        result = described_class.can_enable?('plebis_cms')
+        result = described_class.can_enable?('plebis_voting')
         expect(result).to be false
         expect(Rails.logger).to have_received(:error)
       end
@@ -257,7 +259,7 @@ RSpec.describe PlebisCore::EngineRegistry do
 
     it 'returns engines that depend on User' do
       dependents = described_class.dependents_of('User')
-      expect(dependents.length).to be.positive?
+      expect(dependents.length).to be_positive
     end
 
     it 'returns empty array for engine with no dependents' do

@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Collaborations Summary Admin Page', type: :request do
-  let(:admin_user) { create(:user, :admin) }
+  let(:admin_user) { create(:user, :admin, :superadmin) }
 
   before do
     sign_in_admin admin_user

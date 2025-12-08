@@ -344,7 +344,7 @@ end
 ActiveAdmin.register PlebisMicrocredit::MicrocreditOption, as: 'MicrocreditOption' do
   menu false
   belongs_to :microcredit
-  navigation_menu :default
+  # Don't use navigation_menu :default - it causes URL generation errors when rendering other admin pages
 
   permit_params :microcredit_id, :name, :parent_id, :intern_code
 

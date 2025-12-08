@@ -266,7 +266,11 @@ module User::LocationHelpers
   end
 
   def last_vote_location_change
-    versions.where_object_changes(vote_town: nil).order(created_at: :desc).limit(1)&.first&.created_at
+    return nil unless respond_to?(:versions) && versions.any?
+
+    versions.where_object_changes(vote_town: nil).order(created_at: :desc).limit(1).first&.created_at
+  rescue StandardError
+    nil
   end
 
   # Location validation

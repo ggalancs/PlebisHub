@@ -45,7 +45,9 @@ module Plebis
         @engine_name = "plebis_#{name}"
         @engine_path = "engines/#{@engine_name}"
 
-        if File.directory?(@engine_path)
+        # Use destination_root for proper path resolution (works in tests and production)
+        full_engine_path = File.join(destination_root, @engine_path)
+        if File.directory?(full_engine_path)
           say "Error: Engine directory already exists: #{@engine_path}", :red
           raise Thor::Error, "Engine already exists: #{@engine_name}"
         end

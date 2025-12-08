@@ -218,7 +218,7 @@ end
 ActiveAdmin.register PlebisVotes::ElectionLocation, namespace: :admin do
   menu false
   belongs_to :election
-  navigation_menu :default
+  # Don't use navigation_menu :default - it causes URL generation errors when rendering other admin pages
 
   permit_params :election_id, :location, :agora_version, :new_agora_version, :override, :title, :layout, :description, :share_text, :theme, :has_voting_info,
                 election_location_questions_attributes: [:id, :_destroy, :title, :description, :voting_system, :layout, :winners, :minimum, :maximum, :random_order, :totals, :options, { options_headers: [] }]

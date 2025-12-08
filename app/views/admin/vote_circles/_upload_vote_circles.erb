@@ -1,5 +1,5 @@
-<%= semantic_form_with scope: :vote_circles, url: { action: "upload_vote_circles" } do |f| %>
-  <%= f.input :file, :as => :file, :label => false %>
+<%= form_with scope: :vote_circles, url: { action: "upload_vote_circles" }, local: true do |f| %>
+  <%= f.file_field :file %>
   <p style="margin-top:10px;">Debe:</p>
   <ul style="list-style-type: disc; margin-left: 15px;">
     <li>estar separado por tabuladores</li>
@@ -7,8 +7,6 @@
     <li>original_code | code | name | island_code | region_area_id | town | original_name</li>
   </ul>
   <div class="buttons">
-    <%= f.actions do %>
-      <%= f.action :submit, label: 'Importar fichero', :as => :button %>
-    <% end %>
+    <%= f.submit 'Importar fichero', class: 'button' %>
   </div>
 <% end %>

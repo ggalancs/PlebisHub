@@ -76,6 +76,41 @@ FactoryBot.define do
       end
     end
 
+    # Soft-deleted user trait
+    trait :deleted do
+      after(:create) do |user|
+        user.update_column(:deleted_at, 1.day.ago)
+      end
+    end
+
+    # Banned user trait
+    trait :banned do
+      after(:create) do |user|
+        user.update_flag!(:banned, true, true)
+      end
+    end
+
+    # Verified user trait
+    trait :verified do
+      after(:create) do |user|
+        user.update_flag!(:verified, true, true)
+      end
+    end
+
+    # Exempt from payment trait
+    trait :exempt_from_payment do
+      after(:create) do |user|
+        user.update_flag!(:exempt_from_payment, true, true)
+      end
+    end
+
+    # Militant trait
+    trait :militant do
+      after(:create) do |user|
+        user.update_flag!(:militant, true, true)
+      end
+    end
+
     trait :with_dni do
       document_type { 1 } # DNI
       sequence(:document_vatid) do |n|

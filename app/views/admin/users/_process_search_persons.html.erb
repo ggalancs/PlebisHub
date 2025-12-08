@@ -1,5 +1,5 @@
-<%= semantic_form_with scope: :process_search_persons, url: { action: "process_search_persons" } do |f| %>
-    <%= f.input :file, :as => :file, :label => false %>
+<%= form_with scope: :process_search_persons, url: { action: "process_search_persons" }, local: true do |f| %>
+    <%= f.file_field :file %>
     <p style="margin-top:10px;">Debe:</p>
     <ul style="list-style-type: disc; margin-left: 15px;">
       <li>estar separado por comas</li>
@@ -7,8 +7,6 @@
       <li>existir el primer campo para que coincida con el criterio de búsqueda, habitualmente <em>document_vatid</em>, <em>email</em> o <em>id</em></li>
     </ul>
     <div class="buttons">
-    <%= f.actions do %>
-        <%= f.action :submit, :as => :button %>
-    <% end %>
+      <%= f.submit 'Submit', class: 'button' %>
     </div>
-<% end %>  
+<% end %>

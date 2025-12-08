@@ -1,17 +1,12 @@
 # frozen_string_literal: true
 
-# Stub EngineActivation to enable all engines in tests
-# This file is loaded early (00_ prefix) so it happens before Rails loads engine routes
-
-# Only define the stub if EngineActivation hasn't been loaded yet
-unless defined?(EngineActivation)
-  class EngineActivation
-    def self.enabled?(_engine_name)
-      true
-    end
-
-    def self.active?(_engine_name)
-      true
-    end
-  end
-end
+# EngineActivation stub configuration for tests
+#
+# The actual stub class is defined in rails_helper.rb BEFORE Rails loads.
+# This is necessary because routes check EngineActivation.enabled? during initialization.
+#
+# After Rails loads, rails_helper.rb removes the stub and loads the real model.
+# Individual tests can stub EngineActivation.enabled? as needed.
+#
+# Note: We don't stub globally here because RSpec mocks don't work outside individual tests.
+# Tests that need EngineActivation to return specific values should stub in their before blocks.

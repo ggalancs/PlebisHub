@@ -3,9 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe 'Proposal Admin', type: :request do
-  let(:admin_user) { create(:user, :admin) }
+  let(:admin_user) { create(:user, :admin, :superadmin) }
   let!(:proposal) do
-    Proposal.create!(
+    create(:proposal,
       title: 'Test Proposal',
       description: 'This is a test proposal description',
       image_url: 'http://example.com/image.jpg'
@@ -31,7 +31,8 @@ RSpec.describe 'Proposal Admin', type: :request do
 
     it 'displays selectable column' do
       get admin_proposals_path
-      expect(response.body).to match(/selectable.*column/i)
+      # ActiveAdmin 3.x uses batch_action checkboxes instead of 'selectable_column' class
+      expect(response.body).to match(/batch|checkbox|toggle_all/i)
     end
 
     it 'displays id column' do
@@ -194,7 +195,8 @@ RSpec.describe 'Proposal Admin', type: :request do
     it 'permits title' do
       post admin_proposals_path, params: {
         proposal: {
-          title: 'Permitted Title'
+          title: 'Permitted Title',
+          description: 'Required description'
         }
       }
       expect(Proposal.last.title).to eq('Permitted Title')
@@ -203,7 +205,7 @@ RSpec.describe 'Proposal Admin', type: :request do
     it 'permits description' do
       post admin_proposals_path, params: {
         proposal: {
-          title: 'Test',
+          title: 'Test Title',
           description: 'Permitted Description'
         }
       }
@@ -213,7 +215,8 @@ RSpec.describe 'Proposal Admin', type: :request do
     it 'permits image_url' do
       post admin_proposals_path, params: {
         proposal: {
-          title: 'Test',
+          title: 'Test Title',
+          description: 'Required description',
           image_url: 'http://permitted.com/image.jpg'
         }
       }

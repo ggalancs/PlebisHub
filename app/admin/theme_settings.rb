@@ -48,7 +48,7 @@ ActiveAdmin.register ThemeSetting do
       end
     end
     column 'Activo', :is_active do |theme|
-      status_tag(theme.is_active ? 'Sí' : 'No', theme.is_active ? :ok : :no)
+      status_tag(theme.is_active ? 'Sí' : 'No', class: theme.is_active ? 'ok' : 'no')
     end
     column :created_at
     actions defaults: true do |theme|

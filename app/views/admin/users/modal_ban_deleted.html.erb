@@ -1,16 +1,14 @@
-<%= semantic_form_with scope: :users, url: { action: "ban_deleted" } do |f| %>
+<%= form_with scope: :users, url: { action: "ban_deleted" }, local: true do |f| %>
   <fieldset>
-    <%= label :manual_comment, class: "control-label", required: true do %>
+    <label for="users_manual_comment" class="control-label">
       <%= "Comentario"%>
-    <% end %>
+    </label>
     <div class="inputlabel-box">
-      <%= f.input :manual_comment,label:"", :as=> :text %>
+      <%= f.text_area :manual_comment %>
     </div>
   </fieldset>
   <div class="buttons">
-    <%= f.actions do %>
-      <%= f.action :submit, label: 'Confirmar', :as => :button %>
-      <%= link_to "Cancelar", action: "show"%>
-    <% end %>
+    <%= f.submit 'Confirmar', class: 'button' %>
+    <%= link_to "Cancelar", action: "show" %>
   </div>
 <% end %>

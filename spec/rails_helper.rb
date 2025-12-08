@@ -29,6 +29,7 @@ ENV['RAILS_ENV'] ||= 'test'
 
 # Stub EngineActivation to enable all engines in tests
 # This must happen BEFORE Rails loads (before requiring config/environment)
+# We define a minimal stub that routes can use during initialization
 class EngineActivation
   def self.enabled?(_engine_name)
     true
@@ -36,6 +37,12 @@ class EngineActivation
 end
 
 require_relative '../config/environment'
+
+# IMPORTANT: After Rails loads, remove the stub so the real model can be used
+# This allows tests to use the real EngineActivation ActiveRecord model
+Object.send(:remove_const, :EngineActivation) if defined?(EngineActivation) && !EngineActivation.ancestors.include?(ApplicationRecord)
+# Force reload of the real model
+require Rails.root.join('app/models/engine_activation')
 # Prevent database truncation if the environment is production
 abort('The Rails environment is running in production mode!') if Rails.env.production?
 require 'rspec/rails'

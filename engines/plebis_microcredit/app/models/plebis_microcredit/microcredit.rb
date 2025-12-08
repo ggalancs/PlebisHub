@@ -189,7 +189,8 @@ module PlebisMicrocredit
     end
 
     def phase_limit_amount
-      limits.map do |k, v|
+      # RAILS 7.2 FIX: Handle nil limits for new objects
+      (limits || {}).map do |k, v|
         k * v
       end.sum
     end

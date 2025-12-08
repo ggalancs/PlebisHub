@@ -32,22 +32,22 @@ ActiveAdmin.register Election do
     attributes_table do
       if election.requires_sms_check
         row :requires_sms_check do
-          status_tag('SMS CHECK', :ok)
+          status_tag('SMS CHECK', class: 'ok', label: 'SMS CHECK')
         end
       end
       if election.requires_vatid_check
         row :requires_vatid_check do
-          status_tag('DNI CHECK', :ok)
+          status_tag('DNI CHECK', class: 'ok', label: 'DNI CHECK')
         end
       end
       if election.show_on_index
         row :show_on_index do
-          status_tag('SHOW ON INDEX', :ok)
+          status_tag('SHOW ON INDEX', class: 'ok', label: 'SHOW ON INDEX')
         end
       end
       if election.ignore_multiple_territories
         row :ignore_multiple_territories do
-          status_tag('IGNORE MULTIPLE TERRITORIES', :ok)
+          status_tag('IGNORE MULTIPLE TERRITORIES', class: 'ok', label: 'IGNORE MULTIPLE TERRITORIES')
         end
       end
       row :title
@@ -71,9 +71,11 @@ ActiveAdmin.register Election do
       row :close_message do
         raw election.close_message
       end
-      row 'Crear Aviso' do
-        link_to 'Crear aviso para móviles para esta votación',
-                new_admin_notice_path(notice: { link: create_vote_url(election_id: election.id), title: 'PlebisBrand', body: "Nueva votación disponible: #{election.title}" }), class: 'button'
+      if respond_to?(:new_admin_notice_path)
+        row 'Crear Aviso' do
+          link_to 'Crear aviso para móviles para esta votación',
+                  new_admin_notice_path(notice: { link: create_vote_url(election_id: election.id), title: 'PlebisBrand', body: "Nueva votación disponible: #{election.title}" }), class: 'button'
+        end
       end
     end
 
@@ -109,7 +111,7 @@ ActiveAdmin.register Election do
               span link_to 'TSV',
                            download_voting_definition_admin_election_path(el)
             end
-            status_tag('VERSION NUEVA', :error) if el.new_version_pending
+            status_tag('VERSION NUEVA', class: 'error') if el.new_version_pending
           end
         end
       end
@@ -217,7 +219,7 @@ end
 ActiveAdmin.register ElectionLocation do
   menu false
   belongs_to :election
-  navigation_menu :default
+  # Don't use navigation_menu :default - it causes URL generation errors when rendering other admin pages
 
   permit_params :election_id, :location, :agora_version, :new_agora_version, :override, :title, :layout, :description, :share_text, :theme, :has_voting_info,
                 election_location_questions_attributes: [:id, :_destroy, :title, :description, :voting_system, :layout, :winners, :minimum, :maximum, :random_order, :totals, :options, { options_headers: [] }]

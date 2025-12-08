@@ -7,6 +7,11 @@ RSpec.describe PaperclipMigrationHelper do
   let(:migration_class) do
     Class.new(ActiveRecord::Migration[7.0]) do
       include PaperclipMigrationHelper
+
+      # Define stub methods for RSpec verification in Rails 7.2
+      # These would normally be delegated to the connection
+      def add_column(*args); end
+      def remove_column(*args); end
     end
   end
 

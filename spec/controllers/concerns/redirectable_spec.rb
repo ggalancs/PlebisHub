@@ -3,9 +3,20 @@
 require 'rails_helper'
 
 RSpec.describe Redirectable, type: :concern do
+  # Create a base class that simulates Devise's behavior with after_update_path_for
+  let(:base_controller_class) do
+    Class.new(ApplicationController) do
+      # Simulate Devise's default after_update_path_for method
+      def after_update_path_for(_resource)
+        '/default/path'
+      end
+    end
+  end
+
   # Create a dummy controller class for testing the concern
   let(:dummy_controller_class) do
-    Class.new(ApplicationController) do
+    base = base_controller_class
+    Class.new(base) do
       include Redirectable
 
       # Define a mock action for testing
@@ -15,11 +26,6 @@ RSpec.describe Redirectable, type: :concern do
 
       def create
         head :created
-      end
-
-      # Define a default after_update_path_for to prevent super errors
-      def self.superclass_after_update_path_for(resource)
-        '/default/path'
       end
     end
   end
@@ -182,10 +188,7 @@ RSpec.describe Redirectable, type: :concern do
 
     context 'when return_to is not set' do
       it 'calls super' do
-        # Mock the superclass method call
-        allow(ApplicationController).to receive(:instance_method).with(:after_update_path_for).and_return(
-          double(bind: double(call: '/default/path'))
-        )
+        # Super returns the default path from base class
         result = dummy_controller.send(:after_update_path_for, resource)
         expect(result).to eq('/default/path')
       end
@@ -197,10 +200,7 @@ RSpec.describe Redirectable, type: :concern do
       end
 
       it 'calls super because false is falsy' do
-        # Mock the superclass method call
-        allow(ApplicationController).to receive(:instance_method).with(:after_update_path_for).and_return(
-          double(bind: double(call: '/default/path'))
-        )
+        # false is falsy, so super is called and session is cleared
         dummy_controller.send(:after_update_path_for, resource)
         expect(session[:return_to]).to be_nil
       end
@@ -223,8 +223,8 @@ RSpec.describe Redirectable, type: :concern do
       callbacks = dummy_controller_class._process_action_callbacks
       store_location_callback = callbacks.find { |cb| cb.filter == :store_user_location! }
       expect(store_location_callback).to be_present
-      # Rails 7 changed callback API - check raw filter instead
-      expect(store_location_callback.raw_filter).to eq(:store_user_location!)
+      # Rails 7.2: The filter attribute already contains the callback method name
+      expect(store_location_callback.filter).to eq(:store_user_location!)
     end
 
     it 'only runs store_user_location! when storable_location? is true' do

@@ -31,27 +31,33 @@ ActiveAdmin.register_page 'Dashboard' do
         end
       end
       column do
-        div do
-          panel 'Avisos' do
-            ul do
-              Notice.limit(5).map do |notice|
-                li link_to(notice.title, admin_notice_path(notice)) + "- #{notice.created_at}"
+        # Notice panel - only show if Notice admin resource is available
+        if respond_to?(:admin_notice_path) || respond_to?(:new_admin_notice_path)
+          div do
+            panel 'Avisos' do
+              ul do
+                Notice.limit(5).map do |notice|
+                  li link_to(notice.title, admin_notice_path(notice)) + "- #{notice.created_at}"
+                end
               end
-            end
-            div do
-              link_to('Enviar aviso a todos', new_admin_notice_path, class: 'button')
+              div do
+                link_to('Enviar aviso a todos', new_admin_notice_path, class: 'button')
+              end
             end
           end
         end
-        div do
-          panel 'Elecciones' do
-            ul do
-              Election.limit(5).map do |election|
-                li link_to(election.title, admin_election_path(election)) + "- #{election.created_at}"
+        # Election panel - only show if Election admin resource is available
+        if respond_to?(:admin_election_path) || respond_to?(:new_admin_election_path)
+          div do
+            panel 'Elecciones' do
+              ul do
+                Election.limit(5).map do |election|
+                  li link_to(election.title, admin_election_path(election)) + "- #{election.created_at}"
+                end
               end
-            end
-            div do
-              link_to('Dar de alta nueva elección', new_admin_election_path, class: 'button')
+              div do
+                link_to('Dar de alta nueva elección', new_admin_election_path, class: 'button')
+              end
             end
           end
           # panel "Cambios" do

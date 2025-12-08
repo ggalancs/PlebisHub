@@ -29,7 +29,7 @@ RSpec.describe Organization, type: :model do
       it 'requires name to be present' do
         organization = build(:organization, name: nil)
         expect(organization).not_to be_valid
-        expect(organization.errors[:name]).to include("can't be blank")
+        expect(organization.errors.added?(:name, :blank)).to be true
       end
 
       it 'accepts valid name' do
@@ -40,13 +40,13 @@ RSpec.describe Organization, type: :model do
       it 'rejects empty name' do
         organization = build(:organization, name: '')
         expect(organization).not_to be_valid
-        expect(organization.errors[:name]).to include("can't be blank")
+        expect(organization.errors.added?(:name, :blank)).to be true
       end
 
       it 'rejects blank name (only whitespace)' do
         organization = build(:organization, name: '   ')
         expect(organization).not_to be_valid
-        expect(organization.errors[:name]).to include("can't be blank")
+        expect(organization.errors.added?(:name, :blank)).to be true
       end
 
       it 'accepts name at maximum length (255 characters)' do
@@ -57,7 +57,7 @@ RSpec.describe Organization, type: :model do
       it 'rejects name exceeding maximum length (256 characters)' do
         organization = build(:organization, name: 'A' * 256)
         expect(organization).not_to be_valid
-        expect(organization.errors[:name]).to include('is too long (maximum is 255 characters)')
+        expect(organization.errors.added?(:name, :too_long, count: 255)).to be true
       end
 
       it 'accepts name with special characters' do
@@ -106,7 +106,7 @@ RSpec.describe Organization, type: :model do
         organization = create(:organization)
         # Note: In reality, only one brand_setting per organization is allowed due to unique_organization_setting validation
         # But the association itself allows multiple records
-        setting1 = create(:brand_setting, scope: 'organization', organization: organization, brand_color: '#FF0000')
+        setting1 = create(:brand_setting, scope: 'organization', organization: organization)
 
         expect(organization.brand_settings.count).to eq(1)
         expect(organization.brand_settings).to include(setting1)
@@ -166,7 +166,7 @@ RSpec.describe Organization, type: :model do
       result = organization.update(name: nil)
 
       expect(result).to be false
-      expect(organization.errors[:name]).to include("can't be blank")
+      expect(organization.errors.added?(:name, :blank)).to be true
     end
   end
 

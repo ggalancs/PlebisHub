@@ -2,7 +2,11 @@
 
 require 'rails_helper'
 
-RSpec.describe ProposalsController, type: :controller do
+# NOTE: Skipped because the routes for ProposalsController are commented out in routes.rb
+# The proposals functionality has been moved to the PlebisProposals engine.
+# See: config/routes.rb lines 100-102 (commented out)
+# The engine's ProposalsController (PlebisProposals::ProposalsController) handles all proposal routes
+RSpec.describe ProposalsController, type: :controller, skip: 'Routes disabled - proposals handled by PlebisProposals engine' do
   include Devise::Test::ControllerHelpers
 
   let(:user) { create(:user, :with_dni) }

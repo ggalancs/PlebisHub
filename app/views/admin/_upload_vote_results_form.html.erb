@@ -1,11 +1,11 @@
-<%= semantic_form_with scope: :upload_vote_results, url: { action: "upload_vote_results" }, html: { multipart: true } do |f| %> 
+<%= form_with scope: :upload_vote_results, url: { action: "upload_vote_results" }, multipart: true, local: true do |f| %>
   <div class="filter_form_field">
-    <%= f.input :file, :as => :file, :label => "Selecciona archivo JSON" %>
-    <%= f.input :question_id, :as => :number, :label => "Índice de la pregunta", :input_html => { :value => 1 } %>
+    <label for="upload_vote_results_file">Selecciona archivo JSON</label>
+    <%= f.file_field :file %>
+    <label for="upload_vote_results_question_id">Índice de la pregunta</label>
+    <%= f.number_field :question_id, value: 1 %>
   </div>
   <div class="buttons">
-    <%= f.actions do %>
-        <%= f.action :submit, value: "Enviar" %>
-    <% end %>
+    <%= f.submit "Enviar", class: 'button' %>
   </div>
-<% end %>  
+<% end %>

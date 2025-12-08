@@ -96,7 +96,7 @@ module PlebisProposals
     end
 
     def finishes_at
-      created_at + 3.months
+      (created_at || Time.current) + 3.months
     end
 
     def supported?(user)
@@ -120,6 +120,8 @@ module PlebisProposals
     end
 
     def days_since_created
+      return 0 unless created_at
+
       ((Time.zone.now - created_at) / 60 / 60 / 24).to_i
     end
 

@@ -1,7 +1,5 @@
-<%= semantic_form_with scope: :vote_circles, url: { action: "people_in_tiny_vote_circles" } do |f| %>
+<%= form_with scope: :vote_circles, url: { action: "people_in_tiny_vote_circles" }, local: true do |f| %>
   <div class="buttons">
-    <%= f.actions do %>
-      <%= f.action :submit, label: 'Descargar fichero', :as => :button %>
-    <% end %>
+    <%= f.submit 'Descargar fichero', class: 'button' %>
   </div>
 <% end %>

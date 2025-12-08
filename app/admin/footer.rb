@@ -3,14 +3,20 @@
 module ActiveAdmin
   module Views
     class Footer < Component
-      def build
-        super(id: 'footer')
-        super(style: 'text-align: right;')
+      # ActiveAdmin 3.x: Accept optional argument from ActiveAdmin framework
+      def build(*args)
+        super(id: 'footer', style: 'text-align: right;')
 
-        div do
-          small do
-            link_to 'Manual de uso de datos de carácter personal',
-                    '/pdf/PLEBISBRAND_LOPD_-_MANUAL_DE_USUARIO_DE_BASES_DE_DATOS_DE_PLEBISBRAND_v.2014.09.10.pdf', target: '_blank', rel: 'noopener'
+        within(self) do
+          div do
+            small do
+              # Use Arbre's 'a' method instead of link_to for compatibility
+              a href: '/pdf/PLEBISBRAND_LOPD_-_MANUAL_DE_USUARIO_DE_BASES_DE_DATOS_DE_PLEBISBRAND_v.2014.09.10.pdf',
+                target: '_blank',
+                rel: 'noopener' do
+                text_node 'Manual de uso de datos de carácter personal'
+              end
+            end
           end
         end
       end

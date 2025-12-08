@@ -115,16 +115,16 @@ ActiveAdmin.register Collaboration do
       status_tag('Cci') if collaboration.for_island_cc
     end
     column :info do |collaboration|
-      status_tag('BIC', :error) if collaboration.is_bank? && collaboration.calculate_bic.nil?
-      status_tag('Activo', :ok) if collaboration.is_active?
-      status_tag('Alertas', :warn) if collaboration.has_warnings?
-      status_tag('Errores', :error) if collaboration.has_errors?
-      collaboration.deleted? ? status_tag('Borrado', :error) : ''
+      status_tag('BIC', class: 'error') if collaboration.is_bank? && collaboration.calculate_bic.nil?
+      status_tag('Activo', class: 'ok') if collaboration.is_active?
+      status_tag('Alertas', class: 'warn') if collaboration.has_warnings?
+      status_tag('Errores', class: 'error') if collaboration.has_errors?
+      collaboration.deleted? ? status_tag('Borrado', class: 'error') : ''
       if collaboration.redsys_expiration
         if collaboration.redsys_expiration < Time.zone.today
-          status_tag('Caducada', :error)
+          status_tag('Caducada', class: 'error')
         elsif collaboration.redsys_expiration < Time.zone.today + 1.month
-          status_tag('Caducará', :warn)
+          status_tag('Caducará', class: 'warn')
         end
       end
     end
@@ -136,27 +136,27 @@ ActiveAdmin.register Collaboration do
 
     h4 'Pagos con tarjeta'
     ul do
-      li link_to 'Cobrar tarjetas', params.merge(action: :charge),
+      li link_to 'Cobrar tarjetas', params.to_unsafe_h.merge(action: :charge),
                  data: { confirm: 'Se enviarán los datos de todas las órdenes para que estas sean cobradas. ¿Deseas continuar?' }
     end
 
     h4 'Recibos'
     ul do
-      li link_to 'Crear órdenes de este mes', params.merge(action: :generate_orders),
+      li link_to 'Crear órdenes de este mes', params.to_unsafe_h.merge(action: :generate_orders),
                  data: { confirm: 'Este carga el sistema, por lo que debe ser lanzado lo menos posible, idealmente una vez al mes. ¿Deseas continuar?' }
-      li link_to('Generar fichero para el banco', params.merge(action: :generate_csv))
+      li link_to('Generar fichero para el banco', params.to_unsafe_h.merge(action: :generate_csv))
       if status[1]
         active = status[0] ? ' (en progreso)' : ''
-        li link_to("Descargar fichero para el banco#{active}", params.merge(action: :download_csv))
+        li link_to("Descargar fichero para el banco#{active}", params.to_unsafe_h.merge(action: :download_csv))
       end
       li do
         this_month = Order.banks.by_date(Time.zone.today, Time.zone.today).to_be_charged.count
         prev_month = Order.banks.by_date(Time.zone.today - 1.month, Time.zone.today - 1.month).to_be_charged.count
         "Marcar como enviadas:
         #{link_to Time.zone.today.strftime("%b (#{this_month})").downcase,
-                  params.merge(action: :mark_as_charged, date: Time.zone.today), data: { confirm: 'Esta acción no se puede deshacer. ¿Deseas continuar?' }}
+                  params.to_unsafe_h.merge(action: :mark_as_charged, date: Time.zone.today), data: { confirm: 'Esta acción no se puede deshacer. ¿Deseas continuar?' }}
         #{link_to (Time.zone.today - 1.month).strftime("%b (#{prev_month})").downcase,
-                  params.merge(action: :mark_as_charged, date: Time.zone.today - 1.month), data: { confirm: 'Esta acción no se puede deshacer. ¿Deseas continuar?' }}
+                  params.to_unsafe_h.merge(action: :mark_as_charged, date: Time.zone.today - 1.month), data: { confirm: 'Esta acción no se puede deshacer. ¿Deseas continuar?' }}
         ".html_safe
       end
       li do
@@ -164,9 +164,9 @@ ActiveAdmin.register Collaboration do
         prev_month = Order.banks.by_date(Time.zone.today - 1.month, Time.zone.today - 1.month).charging.count
         "Marcar como pagadas:
         #{link_to Time.zone.today.strftime("%b (#{this_month})").downcase,
-                  params.merge(action: :mark_as_paid, date: Time.zone.today), data: { confirm: 'Esta acción no se puede deshacer. ¿Deseas continuar?' }}
+                  params.to_unsafe_h.merge(action: :mark_as_paid, date: Time.zone.today), data: { confirm: 'Esta acción no se puede deshacer. ¿Deseas continuar?' }}
         #{link_to (Time.zone.today - 1.month).strftime("%b (#{prev_month})").downcase,
-                  params.merge(action: :mark_as_paid, date: Time.zone.today - 1.month), data: { confirm: 'Esta acción no se puede deshacer. ¿Deseas continuar?' }}
+                  params.to_unsafe_h.merge(action: :mark_as_paid, date: Time.zone.today - 1.month), data: { confirm: 'Esta acción no se puede deshacer. ¿Deseas continuar?' }}
         ".html_safe
       end
     end
@@ -175,20 +175,20 @@ ActiveAdmin.register Collaboration do
     # ul do
     #   li do
     #     """Autonómica:
-    #     #{link_to Date.today.strftime("%b").downcase, params.merge(action: :download_for_autonomy, date: Date.today) }
-    #     #{link_to (Date.today-1.month).strftime("%b").downcase, params.merge(action: :download_for_autonomy, date: Date.today-1.month) }
+    #     #{link_to Date.today.strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_autonomy, date: Date.today) }
+    #     #{link_to (Date.today-1.month).strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_autonomy, date: Date.today-1.month) }
     #     """.html_safe
     #   end
     #   li do
     #     """Municipal:
-    #     #{link_to Date.today.strftime("%b").downcase, params.merge(action: :download_for_town, date: Date.today) }
-    #     #{link_to (Date.today-1.month).strftime("%b").downcase, params.merge(action: :download_for_town, date: Date.today-1.month) }
+    #     #{link_to Date.today.strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_town, date: Date.today) }
+    #     #{link_to (Date.today-1.month).strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_town, date: Date.today-1.month) }
     #     """.html_safe
     #   end
     #   li do
     #     """Insular:
-    #     #{link_to Date.today.strftime("%b").downcase, params.merge(action: :download_for_island, date: Date.today) }
-    #     #{link_to (Date.today-1.month).strftime("%b").downcase, params.merge(action: :download_for_island, date: Date.today-1.month) }
+    #     #{link_to Date.today.strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_island, date: Date.today) }
+    #     #{link_to (Date.today-1.month).strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_island, date: Date.today-1.month) }
     #     """.html_safe
     #   end
     # end
@@ -198,25 +198,25 @@ ActiveAdmin.register Collaboration do
       li do
         "Autonómica:
         #{link_to Time.zone.today.strftime('%b').downcase,
-                  params.merge(action: :download_for_vote_circle_autonomy, date: Time.zone.today)}
+                  params.to_unsafe_h.merge(action: :download_for_vote_circle_autonomy, date: Time.zone.today)}
         #{link_to (Time.zone.today - 1.month).strftime('%b').downcase,
-                  params.merge(action: :download_for_vote_circle_autonomy, date: Time.zone.today - 1.month)}
+                  params.to_unsafe_h.merge(action: :download_for_vote_circle_autonomy, date: Time.zone.today - 1.month)}
         ".html_safe
       end
       li do
         "Municipal:
         #{link_to Time.zone.today.strftime('%b').downcase,
-                  params.merge(action: :download_for_vote_circle_town, date: Time.zone.today)}
+                  params.to_unsafe_h.merge(action: :download_for_vote_circle_town, date: Time.zone.today)}
         #{link_to (Time.zone.today - 1.month).strftime('%b').downcase,
-                  params.merge(action: :download_for_vote_circle_town, date: Time.zone.today - 1.month)}
+                  params.to_unsafe_h.merge(action: :download_for_vote_circle_town, date: Time.zone.today - 1.month)}
         ".html_safe
       end
       li do
         "Insular:
         #{link_to Time.zone.today.strftime('%b').downcase,
-                  params.merge(action: :download_for_vote_circle_island, date: Time.zone.today)}
+                  params.to_unsafe_h.merge(action: :download_for_vote_circle_island, date: Time.zone.today)}
         #{link_to (Time.zone.today - 1.month).strftime('%b').downcase,
-                  params.merge(action: :download_for_vote_circle_island, date: Time.zone.today - 1.month)}
+                  params.to_unsafe_h.merge(action: :download_for_vote_circle_island, date: Time.zone.today - 1.month)}
         ".html_safe
       end
     end
@@ -225,49 +225,49 @@ ActiveAdmin.register Collaboration do
     ul do
       # li do
       #   """por Código Postal:
-      #   #{link_to Date.today.strftime("%b").downcase, params.merge(action: :download_for_cp, date: Date.today) }
-      #   #{link_to (Date.today-1.month).strftime("%b").downcase, params.merge(action: :download_for_cp, date: Date.today-1.month) }
+      #   #{link_to Date.today.strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_cp, date: Date.today) }
+      #   #{link_to (Date.today-1.month).strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_cp, date: Date.today-1.month) }
       #   """.html_safe
       # end
       #
       # li do
       #   """por Círculo:
-      #   #{link_to Date.today.strftime("%b").downcase, params.merge(action: :download_for_circle, date: Date.today) }
-      #   #{link_to (Date.today-1.month).strftime("%b").downcase, params.merge(action: :download_for_circle, date: Date.today-1.month) }
+      #   #{link_to Date.today.strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_circle, date: Date.today) }
+      #   #{link_to (Date.today-1.month).strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_circle, date: Date.today-1.month) }
       #   """.html_safe
       # end
       #
       # li do
       #   """por Círculo y Código Postal:
-      #   #{link_to Date.today.strftime("%b").downcase, params.merge(action: :download_for_circle_and_cp, date: Date.today) }
-      #   #{link_to (Date.today-1.month).strftime("%b").downcase, params.merge(action: :download_for_circle_and_cp, date: Date.today-1.month) }
+      #   #{link_to Date.today.strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_circle_and_cp, date: Date.today) }
+      #   #{link_to (Date.today-1.month).strftime("%b").downcase, params.to_unsafe_h.merge(action: :download_for_circle_and_cp, date: Date.today-1.month) }
       #   """.html_safe
       # end
 
       li do
         "Asignación autonómica:
         #{link_to Time.zone.today.strftime('%b').downcase,
-                  params.merge(action: :download_for_circle_and_cp_autonomy, date: Time.zone.today)}
+                  params.to_unsafe_h.merge(action: :download_for_circle_and_cp_autonomy, date: Time.zone.today)}
         #{link_to (Time.zone.today - 1.month).strftime('%b').downcase,
-                  params.merge(action: :download_for_circle_and_cp_autonomy, date: Time.zone.today - 1.month)}
+                  params.to_unsafe_h.merge(action: :download_for_circle_and_cp_autonomy, date: Time.zone.today - 1.month)}
         ".html_safe
       end
 
       li do
         "Asignación municipal:
         #{link_to Time.zone.today.strftime('%b').downcase,
-                  params.merge(action: :download_for_circle_and_cp_town, date: Time.zone.today)}
+                  params.to_unsafe_h.merge(action: :download_for_circle_and_cp_town, date: Time.zone.today)}
         #{link_to (Time.zone.today - 1.month).strftime('%b').downcase,
-                  params.merge(action: :download_for_circle_and_cp_town, date: Time.zone.today - 1.month)}
+                  params.to_unsafe_h.merge(action: :download_for_circle_and_cp_town, date: Time.zone.today - 1.month)}
         ".html_safe
       end
 
       li do
         "Asignación estatal:
         #{link_to Time.zone.today.strftime('%b').downcase,
-                  params.merge(action: :download_for_circle_and_cp_country, date: Time.zone.today)}
+                  params.to_unsafe_h.merge(action: :download_for_circle_and_cp_country, date: Time.zone.today)}
         #{link_to (Time.zone.today - 1.month).strftime('%b').downcase,
-                  params.merge(action: :download_for_circle_and_cp_country, date: Time.zone.today - 1.month)}
+                  params.to_unsafe_h.merge(action: :download_for_circle_and_cp_country, date: Time.zone.today - 1.month)}
         ".html_safe
       end
     end
@@ -335,7 +335,7 @@ ActiveAdmin.register Collaboration do
         if collaboration.has_iban_account?
           row :iban_account
           row :iban_bic do
-            status_tag(t('active_admin.empty'), :error) if collaboration.calculate_bic.nil?
+            status_tag(t('active_admin.empty'), class: 'error') if collaboration.calculate_bic.nil?
             collaboration.calculate_bic
           end
         else
@@ -349,18 +349,18 @@ ActiveAdmin.register Collaboration do
         end
       end
       row :info do
-        status_tag('Cc autonómico', :ok) if collaboration.for_autonomy_cc
-        status_tag('Cc municipal', :ok) if collaboration.for_town_cc
-        status_tag('Cc insular', :ok) if collaboration.for_island_cc
-        status_tag('Activo', :ok) if collaboration.is_active?
-        status_tag('Alertas', :warn) if collaboration.has_warnings?
-        status_tag('Errores', :error) if collaboration.has_errors?
-        collaboration.deleted? ? status_tag('Borrado', :error) : ''
+        status_tag('Cc autonómico', class: 'ok') if collaboration.for_autonomy_cc
+        status_tag('Cc municipal', class: 'ok') if collaboration.for_town_cc
+        status_tag('Cc insular', class: 'ok') if collaboration.for_island_cc
+        status_tag('Activo', class: 'ok') if collaboration.is_active?
+        status_tag('Alertas', class: 'warn') if collaboration.has_warnings?
+        status_tag('Errores', class: 'error') if collaboration.has_errors?
+        collaboration.deleted? ? status_tag('Borrado', class: 'error') : ''
         if collaboration.redsys_expiration
           if collaboration.redsys_expiration < Time.zone.today
-            status_tag('Caducada', :error)
+            status_tag('Caducada', class: 'error')
           elsif collaboration.redsys_expiration < Time.zone.today + 1.month
-            status_tag('Caducará', :warn)
+            status_tag('Caducará', class: 'warn')
           end
         end
       end

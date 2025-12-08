@@ -1,8 +1,6 @@
-<%= semantic_form_with scope: :process_bank_history, url: { action: "process_bank_history" } do |f| %> 
-    <%= f.input :file, :as => :file, :label => false %>
+<%= form_with scope: :process_bank_history, url: { action: "process_bank_history" }, local: true do |f| %>
+    <%= f.file_field :file %>
     <div class="buttons">
-    <%= f.actions do %>
-        <%= f.action :submit, :as => :button %>
-    <% end %>
+      <%= f.submit 'Submit', class: 'button' %>
     </div>
-<% end %>  
+<% end %>

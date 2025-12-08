@@ -1,13 +1,11 @@
-<%= semantic_form_with scope: :process_collaborations_on_paper, url: { action: "process_collaborations_on_paper" } do |f| %>
-  <%= f.input :file, :as => :file, :label => false %>
+<%= form_with scope: :process_collaborations_on_paper, url: { action: "process_collaborations_on_paper" }, local: true do |f| %>
+  <%= f.file_field :file %>
   <p style="margin-top:10px;">Debe:</p>
   <ul style="list-style-type: disc; margin-left: 15px;">
     <li>estar separado por tabuladores</li>
     <li>tener en la primera línea los nombres de los campos</li>
   </ul>
   <div class="buttons">
-    <%= f.actions do %>
-      <%= f.action :submit, :as => :button %>
-    <% end %>
+    <%= f.submit 'Submit', class: 'button' %>
   </div>
 <% end %>

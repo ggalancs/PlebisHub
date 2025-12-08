@@ -18,6 +18,61 @@ module RequestSpecHelpers
   end
 end
 
+# Define custom route helpers in a module to avoid redefinition warnings
+# This module is included as a helper once during test setup
+module TestRouteHelpers
+  # Devise route helpers
+  def edit_user_registration_path
+    "/#{I18n.locale}/users/edit"
+  end
+
+  def new_user_session_path
+    "/#{I18n.locale}/users/sign_in"
+  end
+
+  def destroy_user_session_path
+    "/#{I18n.locale}/users/sign_out"
+  end
+
+  # Main app route helpers
+  def root_path
+    "/#{I18n.locale}"
+  end
+
+  def qr_code_path
+    "/#{I18n.locale}/qr"
+  end
+
+  def new_collaboration_path(*_args)
+    "/#{I18n.locale}/colabora"
+  end
+
+  def microcredit_path
+    "/#{I18n.locale}/microcreditos"
+  end
+
+  # CMS engine route helpers
+  def funding_path
+    "/#{I18n.locale}/financiacion"
+  end
+
+  def faq_path
+    "/#{I18n.locale}/preguntas-frecuentes"
+  end
+
+  def guarantees_path
+    "/#{I18n.locale}/comision-de-garantias-democraticas"
+  end
+
+  def blog_path
+    "/#{I18n.locale}/brujula"
+  end
+
+  def notices_path
+    "/#{I18n.locale}/notices"
+  end
+end
+
 RSpec.configure do |config|
   # Include asset helpers for request specs
   config.include RequestSpecHelpers, type: :request
@@ -29,68 +84,22 @@ RSpec.configure do |config|
     @routes = Rails.application.routes
   end
 
+  # Include the TestRouteHelpers once before all request specs
+  config.before(:suite) do
+    # Add the route helpers module as a helper to ApplicationController
+    # This prevents method redefinition warnings by only including once
+    # Use _helpers which returns the actual module, not the instance
+    unless ApplicationController._helpers.included_modules.include?(TestRouteHelpers)
+      ApplicationController.helper TestRouteHelpers
+    end
+  end
+
   # For request specs, stub out problematic ApplicationController before_actions
   # This prevents redirects caused by user validation issues
   config.before(:each, type: :request) do
     # Set default URL options to include locale
     # This ensures all route helpers generate URLs with the correct locale
     Rails.application.routes.default_url_options[:locale] = I18n.locale
-
-    # Add route helpers as proper helpers in the view context
-    # These must come LAST to override any problematic engine routes
-    # This prevents "does not implement" errors from RSpec strict mode
-    ApplicationController.helper do
-      # Devise route helpers
-      def edit_user_registration_path
-        "/#{I18n.locale}/users/edit"
-      end
-
-      def new_user_session_path
-        "/#{I18n.locale}/users/sign_in"
-      end
-
-      def destroy_user_session_path
-        "/#{I18n.locale}/users/sign_out"
-      end
-
-      # Main app route helpers
-      def root_path
-        "/#{I18n.locale}"
-      end
-
-      def qr_code_path
-        "/#{I18n.locale}/qr"
-      end
-
-      def new_collaboration_path(*_args)
-        "/#{I18n.locale}/colabora"
-      end
-
-      def microcredit_path
-        "/#{I18n.locale}/microcreditos"
-      end
-
-      # CMS engine route helpers
-      def funding_path
-        "/#{I18n.locale}/financiacion"
-      end
-
-      def faq_path
-        "/#{I18n.locale}/preguntas-frecuentes"
-      end
-
-      def guarantees_path
-        "/#{I18n.locale}/comision-de-garantias-democraticas"
-      end
-
-      def blog_path
-        "/#{I18n.locale}/brujula"
-      end
-
-      def notices_path
-        "/#{I18n.locale}/notices"
-      end
-    end
 
     # Stub the problematic before_actions to prevent redirects
     allow_any_instance_of(ApplicationController).to receive(:unresolved_issues).and_return(nil)

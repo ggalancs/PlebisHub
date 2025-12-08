@@ -1,0 +1,52 @@
+<%= content_for :title do %>
+  Importar Tema
+<% end %>
+
+<div class="panel">
+  <h3>Importar Tema desde JSON</h3>
+  <div class="panel_contents">
+    <%= form_tag import_admin_theme_settings_path, multipart: true, method: :post, class: 'filter_form' do %>
+      <div class="inputs">
+        <fieldset class="inputs">
+          <ol>
+            <li class="file input optional">
+              <label for="theme_file">Archivo JSON del Tema</label>
+              <%= file_field_tag :theme_file, accept: '.json,application/json' %>
+              <p class="inline-hints">Selecciona un archivo JSON exportado previamente</p>
+            </li>
+          </ol>
+        </fieldset>
+      </div>
+      <div class="buttons">
+        <%= submit_tag 'Importar Tema', class: 'button' %>
+        <%= link_to 'Cancelar', admin_theme_settings_path, class: 'button' %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="panel" style="margin-top: 20px;">
+  <h3>Formato del archivo JSON</h3>
+  <div class="panel_contents">
+    <p>El archivo JSON debe tener la siguiente estructura:</p>
+    <pre style="background: #f5f5f5; padding: 15px; border-radius: 4px; overflow-x: auto;">
+{
+  "name": "Nombre del Tema",
+  "colors": {
+    "primary": "#612d62",
+    "secondary": "#269283",
+    "accent": "#954e99"
+  },
+  "typography": {
+    "fontPrimary": "Inter",
+    "fontDisplay": "Montserrat"
+  },
+  "assets": {
+    "logo": "https://example.com/logo.png",
+    "favicon": "https://example.com/favicon.ico"
+  },
+  "customCSS": ".custom { color: red; }"
+}
+    </pre>
+  </div>
+</div>

@@ -48,14 +48,14 @@ ActiveAdmin.register User do
     end
     column :created_at
     column :validations do |user|
-      status_tag('Verificado', :ok) + br if user.verified?
-      status_tag('Baneado', :error) + br if user.banned?
-      status_tag('Militante', :ok) + br if user.militant?
-      status_tag('Exento de pago', :ok) + br if user.exempt_from_payment?
-      user.confirmed_at? ? status_tag('Email', :ok) : status_tag('Email', :error)
-      user.sms_confirmed_at? ? status_tag('Tel', :ok) : status_tag('Tel', :error)
-      user.valid? ? status_tag('Val', :ok) : status_tag('Val', :error)
-      user.deleted? ? status_tag('Borrado', :error) : ''
+      status_tag('Verificado', class: 'ok') + br if user.verified?
+      status_tag('Baneado', class: 'error') + br if user.banned?
+      status_tag('Militante', class: 'ok') + br if user.militant?
+      status_tag('Exento de pago', class: 'ok') + br if user.exempt_from_payment?
+      user.confirmed_at? ? status_tag('Email', class: 'ok') : status_tag('Email', class: 'error')
+      user.sms_confirmed_at? ? status_tag('Tel', class: 'ok') : status_tag('Tel', class: 'error')
+      user.valid? ? status_tag('Val', class: 'ok') : status_tag('Val', class: 'error')
+      user.deleted? ? status_tag('Borrado', class: 'error') : ''
     end
     actions
   end
@@ -65,18 +65,18 @@ ActiveAdmin.register User do
     attributes_table do
       row :id
       row :status do
-        status_tag('Verificado', :ok) if user.verified?
-        status_tag('Baneado', :error) if user.banned?
-        user.deleted? ? status_tag('¡Atención! este usuario está borrado, no podrá iniciar sesión', :error) : ''
+        status_tag('Verificado', class: 'ok') if user.verified?
+        status_tag('Baneado', class: 'error') if user.banned?
+        user.deleted? ? status_tag('¡Atención! este usuario está borrado, no podrá iniciar sesión', class: 'error') : ''
         if user.confirmed_at?
-          status_tag('El usuario ha confirmado por email', :ok)
+          status_tag('El usuario ha confirmado por email', class: 'ok')
         else
-          status_tag('El usuario NO ha confirmado por email', :error)
+          status_tag('El usuario NO ha confirmado por email', class: 'error')
         end
         if user.sms_confirmed_at?
-          status_tag('El usuario ha confirmado por SMS', :ok)
+          status_tag('El usuario ha confirmado por SMS', class: 'ok')
         else
-          status_tag('El usuario NO ha confirmado por SMS', :error)
+          status_tag('El usuario NO ha confirmado por SMS', class: 'error')
         end
         if user.errors.any? # If there are errors, do something
           user.errors.each do |attribute, message|
@@ -101,9 +101,9 @@ ActiveAdmin.register User do
       end
       row :validations_status do
         if user.valid?
-          status_tag('El usuario supera todas las validaciones', :ok)
+          status_tag('El usuario supera todas las validaciones', class: 'ok')
         else
-          status_tag('El usuario no supera alguna validación', :error)
+          status_tag('El usuario no supera alguna validación', class: 'error')
           ul
           user.errors.full_messages.each do |mes|
             li mes
@@ -124,10 +124,10 @@ ActiveAdmin.register User do
       row :email
       row :militant do
         if user.militant?
-          status_tag('El usuario cumple todas las condiciones para ser militante', :ok)
+          status_tag('El usuario cumple todas las condiciones para ser militante', class: 'ok')
         else
           status_tag(
-            "El usuario no cumple las siguientes condiciones para ser militante: #{user.get_not_militant_detail}", :no
+            "El usuario no cumple las siguientes condiciones para ser militante: #{user.get_not_militant_detail}", class: 'no'
           )
         end
       end
@@ -152,7 +152,7 @@ ActiveAdmin.register User do
         if user.in_spanish_island?
           user.island_name
         else
-          status_tag('NO', :error)
+          status_tag('NO', class: 'error')
         end
       end
       row :vote_place do
@@ -163,7 +163,7 @@ ActiveAdmin.register User do
         if user.vote_in_spanish_island?
           user.vote_island_name
         else
-          status_tag('NO', :error)
+          status_tag('NO', class: 'error')
         end
       end
       row :admin
@@ -285,7 +285,8 @@ ActiveAdmin.register User do
   filter :sms_confirmed_at
   filter :sign_in_count
   filter :wants_participation
-  filter :participation_team_id, as: :select, collection: -> { ParticipationTeam.all }
+  # Rails 7.2/Ransack: Use plural association name for HABTM filters
+  filter :participation_teams_id, as: :select, collection: -> { ParticipationTeam.all }
   filter :votes_election_id, as: :select, collection: -> { Election.all }
   filter :user_vote_circle_autonomy_id_in, as: :select, collection: PlebisBrand::GeoExtra::AUTONOMIES.values.uniq.map(&:reverse).map { |c|
     [c[0], "__#{c[1][2, 2]}%"]

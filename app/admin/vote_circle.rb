@@ -37,7 +37,7 @@ ActiveAdmin.register VoteCircle do
     f.inputs 'Details' do
       input :kind, as: :select, collection: VoteCircle.kinds.map { |k, v|
         [k.capitalize, VoteCircle.kinds.key(v)]
-      }, selected: resource.kind, include_blank: false, label: 'tipo de círculo'
+      }, selected: resource.kind, prompt: 'Select type', label: 'tipo de círculo'
       input :original_name
       label 'Dejar en blanco el código para que se calcule automáticamente'
       input :original_code

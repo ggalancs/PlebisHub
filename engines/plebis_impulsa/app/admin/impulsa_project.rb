@@ -3,7 +3,7 @@
 ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: 'ImpulsaProject' do
   menu false
   belongs_to :impulsa_edition
-  navigation_menu :default
+  # Don't use navigation_menu :default - it causes URL generation errors when rendering other admin pages
 
   permit_params do
     ps = %i[review validable name impulsa_edition_category_id evaluation_result]

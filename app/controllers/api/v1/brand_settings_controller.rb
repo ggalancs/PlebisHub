@@ -11,7 +11,8 @@ module Api
       # Returns the active brand setting for the current user's organization
       # Falls back to global brand setting if no organization-specific setting exists
       def current
-        organization_id = current_user&.organization_id || params[:organization_id]
+        # Use try to safely call organization_id - method may not exist on User model
+        organization_id = current_user.try(:organization_id) || params[:organization_id]
 
         @brand_setting = BrandSetting.current_for_organization(organization_id)
 

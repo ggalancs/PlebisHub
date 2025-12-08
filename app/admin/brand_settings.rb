@@ -183,7 +183,7 @@ ActiveAdmin.register BrandSetting do
       f.input :scope,
               as: :select,
               collection: BrandSetting::VALID_SCOPES,
-              include_blank: false,
+              prompt: 'Select scope',
               hint: scope_hint.html_safe
       f.input :organization,
               as: :select,
@@ -198,7 +198,7 @@ ActiveAdmin.register BrandSetting do
               collection: BrandSetting::PREDEFINED_THEMES.map { |id, theme|
                 ["#{theme[:name]} - #{theme[:description]}", id]
               },
-              include_blank: false,
+              prompt: 'Select theme',
               hint: 'Select a predefined theme. You can override individual colors below.'
       f.input :theme_name,
               hint: 'Optional: Custom display name for this theme'

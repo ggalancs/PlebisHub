@@ -13,14 +13,14 @@ ActiveAdmin.register EngineActivation do
       strong ea.engine_name
     end
     column :enabled do |ea|
-      status_tag(ea.enabled ? 'Active' : 'Inactive', ea.enabled ? :ok : :warning)
+      status_tag(ea.enabled ? 'Active' : 'Inactive', class: ea.enabled ? 'ok' : 'warning')
     end
     column :description do |ea|
       truncate(ea.description, length: 100)
     end
     column :load_priority
     column :updated_at
-    actions defaults: true do |ea|
+    actions do |ea|
       if ea.enabled
         link_to 'Disable', disable_admin_engine_activation_path(ea),
                 method: :post, class: 'button', data: { confirm: 'Are you sure?' }
@@ -47,7 +47,7 @@ ActiveAdmin.register EngineActivation do
         strong ea.engine_name
       end
       row :enabled do |ea|
-        status_tag(ea.enabled ? 'Active' : 'Inactive', ea.enabled ? :ok : :warning)
+        status_tag(ea.enabled ? 'Active' : 'Inactive', class: ea.enabled ? 'ok' : 'warning')
       end
       row :description
       row :load_priority
@@ -77,9 +77,9 @@ ActiveAdmin.register EngineActivation do
             else
               deps.map do |dep|
                 if dep == 'User' || enabled_engines.include?(dep)
-                  status_tag(dep, :ok)
+                  status_tag(dep, class: 'ok')
                 else
-                  status_tag(dep, :error)
+                  status_tag(dep, class: 'error')
                 end
               end.join(' ').html_safe
             end
@@ -102,7 +102,7 @@ ActiveAdmin.register EngineActivation do
         if defined?(PlebisCore::EngineRegistry)
           f.input :engine_name, as: :select,
                                 collection: PlebisCore::EngineRegistry.available_engines,
-                                include_blank: false,
+                                prompt: 'Select an engine',
                                 hint: 'Select the engine to activate'
         else
           f.input :engine_name, hint: 'Enter the engine name'

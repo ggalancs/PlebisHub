@@ -15,7 +15,7 @@ RSpec.describe ActiveAdmin::Views::Footer, type: :view do
     end
 
     it 'has right-aligned text style' do
-      expect(footer.attributes['style']).to include('text-align: right')
+      expect(footer.attributes[:style]).to include('text-align: right')
     end
 
     it 'contains a link to the privacy manual' do
@@ -51,11 +51,11 @@ RSpec.describe ActiveAdmin::Views::Footer, type: :view do
 
   describe 'rendering in admin layout' do
     it 'is part of ActiveAdmin::Views module' do
-      expect(ActiveAdmin::Views::Footer).to be < ActiveAdmin::Views::Component
+      expect(ActiveAdmin::Views::Footer).to be < ActiveAdmin::Component
     end
 
     it 'inherits from Component' do
-      expect(ActiveAdmin::Views::Footer.superclass).to eq(ActiveAdmin::Views::Component)
+      expect(ActiveAdmin::Views::Footer.superclass).to eq(ActiveAdmin::Component)
     end
   end
 
@@ -86,7 +86,7 @@ RSpec.describe ActiveAdmin::Views::Footer, type: :view do
 
     it 'has both id and style attributes' do
       expect(footer.id).to eq('footer')
-      expect(footer.attributes['style']).to be_present
+      expect(footer.attributes[:style]).to be_present
     end
 
     it 'contains a div wrapper' do
@@ -98,9 +98,10 @@ RSpec.describe ActiveAdmin::Views::Footer, type: :view do
       expect(html).to match(/<small>.*<a.*<\/a>.*<\/small>/m)
     end
 
-    it 'has complete structure: footer > div > small > a' do
+    it 'has complete structure: div.footer > div > small > a' do
       html = footer.to_s
-      expect(html).to match(/<footer[^>]*id="footer"[^>]*>.*<div[^>]*>.*<small[^>]*>.*<a[^>]*>.*<\/a>.*<\/small>.*<\/div>.*<\/footer>/m)
+      # Component renders as <div class="footer" id="footer">
+      expect(html).to match(/<div[^>]*class="footer"[^>]*id="footer"[^>]*>.*<div[^>]*>.*<small[^>]*>.*<a[^>]*>.*<\/a>.*<\/small>.*<\/div>.*<\/div>/m)
     end
 
     it 'link points to PDF document' do
@@ -124,11 +125,11 @@ RSpec.describe ActiveAdmin::Views::Footer, type: :view do
     end
 
     it 'style attribute contains text-align' do
-      expect(footer.attributes['style']).to include('text-align')
+      expect(footer.attributes[:style]).to include('text-align')
     end
 
     it 'style attribute contains right alignment' do
-      expect(footer.attributes['style']).to include('right')
+      expect(footer.attributes[:style]).to include('right')
     end
   end
 
@@ -145,15 +146,10 @@ RSpec.describe ActiveAdmin::Views::Footer, type: :view do
       expect(footer.to_s).not_to be_empty
     end
 
-    it 'calls super with id parameter' do
-      expect(footer).to receive(:super).with(id: 'footer').and_call_original
+    it 'passes id and style to super' do
       footer.build
-    end
-
-    it 'calls super with style parameter' do
-      allow(footer).to receive(:super).with(id: 'footer').and_call_original
-      expect(footer).to receive(:super).with(style: 'text-align: right;')
-      footer.build
+      expect(footer.id).to eq('footer')
+      expect(footer.attributes[:style]).to include('text-align: right')
     end
   end
 
@@ -200,8 +196,9 @@ RSpec.describe ActiveAdmin::Views::Footer, type: :view do
 
     it 'produces valid HTML tags' do
       html = footer.to_s
-      expect(html).to match(/<footer[^>]*>/)
-      expect(html).to match(/<\/footer>/)
+      # Component renders as <div class="footer" ...>
+      expect(html).to match(/<div[^>]*class="footer"[^>]*>/)
+      expect(html).to match(/<\/div>/)
     end
 
     it 'div tags are properly closed' do
