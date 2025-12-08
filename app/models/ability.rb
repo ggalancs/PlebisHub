@@ -33,6 +33,10 @@ class Ability
 
     # Guest users
     define_guest_abilities
+
+    # SECURITY FIX SEC-007: Apply restrictive rules LAST to ensure they can't be overridden
+    # by define_user_abilities
+    apply_security_restrictions(user)
   end
 
   private
@@ -140,5 +144,27 @@ class Ability
     can :show, Notice
     can :read, Page, public: true if defined?(Page)
     can :read, Post, status: 'published' if defined?(Post)
+  end
+
+  # SECURITY FIX SEC-007: Apply security restrictions that should NEVER be overridden
+  # These rules are applied LAST to ensure they take precedence over all other rules
+  def apply_security_restrictions(user)
+    return if user.is_admin? && user.superadmin? # Superadmins bypass all restrictions
+
+    # Regular admins: restrict sensitive operations
+    if user.is_admin? && !user.superadmin?
+      cannot :destroy, User
+      cannot :manage, Election
+      can :read, Election # Preserve read-only access to elections
+      cannot :manage, ReportGroup
+      cannot :manage, SpamFilter
+      cannot %i[destroy update], Vote if defined?(Vote)
+    end
+
+    # Finances admins: preserve financial records
+    if user.finances_admin?
+      cannot :destroy, Order if defined?(Order)
+      cannot :destroy, Collaboration if defined?(Collaboration)
+    end
   end
 end

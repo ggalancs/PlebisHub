@@ -91,7 +91,8 @@ RSpec.describe Gamification::Badge, type: :model do
       it 'rejects invalid tiers' do
         badge = build(:gamification_badge, tier: 'invalid')
         expect(badge).not_to be_valid
-        expect(badge.errors[:tier]).to include('is not included in the list')
+        # Error message can be in English or Spanish depending on locale
+        expect(badge.errors[:tier].first).to match(/not included|no está incluido/i)
       end
     end
   end
@@ -105,26 +106,25 @@ RSpec.describe Gamification::Badge, type: :model do
     let!(:stats) { Gamification::UserStats.for_user(user) }
 
     # Stub user associations to return 0 by default
+    # User model may not have proposals, votes, comments associations - define them dynamically
     before do
-      allow(user).to receive(:respond_to?).and_call_original
-      allow(user).to receive(:respond_to?).with(:proposals).and_return(true)
-      allow(user).to receive(:respond_to?).with(:votes).and_return(true)
-      allow(user).to receive(:respond_to?).with(:comments).and_return(true)
-      allow(user).to receive(:proposals).and_return(double('proposals', count: 0))
-      allow(user).to receive(:votes).and_return(double('votes', count: 0))
-      allow(user).to receive(:comments).and_return(double('comments', count: 0))
+      # Define methods on the singleton class using OpenStruct (not double)
+      # because the block evaluates in User instance context, not RSpec context
+      user.define_singleton_method(:proposals) { OpenStruct.new(count: 0) }
+      user.define_singleton_method(:votes) { OpenStruct.new(count: 0) }
+      user.define_singleton_method(:comments) { OpenStruct.new(count: 0) }
     end
 
     context 'with proposals_created criteria' do
       let(:badge) { create(:gamification_badge, criteria: { proposals_created: { gte: 5 } }) }
 
       it 'returns true when user has enough proposals' do
-        allow(user).to receive(:proposals).and_return(double('proposals', count: 5))
+        user.define_singleton_method(:proposals) { OpenStruct.new(count: 5) }
         expect(badge.criteria_met?(user)).to be true
       end
 
       it 'returns false when user does not have enough proposals' do
-        allow(user).to receive(:proposals).and_return(double('proposals', count: 3))
+        user.define_singleton_method(:proposals) { OpenStruct.new(count: 3) }
         expect(badge.criteria_met?(user)).to be false
       end
     end
@@ -133,12 +133,12 @@ RSpec.describe Gamification::Badge, type: :model do
       let(:badge) { create(:gamification_badge, criteria: { votes_cast: { gte: 10 } }) }
 
       it 'returns true when user has cast enough votes' do
-        allow(user).to receive(:votes).and_return(double('votes', count: 15))
+        user.define_singleton_method(:votes) { OpenStruct.new(count: 15) }
         expect(badge.criteria_met?(user)).to be true
       end
 
       it 'returns false when user has not cast enough votes' do
-        allow(user).to receive(:votes).and_return(double('votes', count: 5))
+        user.define_singleton_method(:votes) { OpenStruct.new(count: 5) }
         expect(badge.criteria_met?(user)).to be false
       end
     end
@@ -147,12 +147,12 @@ RSpec.describe Gamification::Badge, type: :model do
       let(:badge) { create(:gamification_badge, criteria: { comments_posted: { gte: 50 } }) }
 
       it 'returns true when user has posted enough comments' do
-        allow(user).to receive(:comments).and_return(double('comments', count: 60))
+        user.define_singleton_method(:comments) { OpenStruct.new(count: 60) }
         expect(badge.criteria_met?(user)).to be true
       end
 
       it 'returns false when user has not posted enough comments' do
-        allow(user).to receive(:comments).and_return(double('comments', count: 30))
+        user.define_singleton_method(:comments) { OpenStruct.new(count: 30) }
         expect(badge.criteria_met?(user)).to be false
       end
     end
@@ -208,20 +208,20 @@ RSpec.describe Gamification::Badge, type: :model do
       end
 
       it 'returns true when all criteria are met' do
-        allow(user).to receive(:proposals).and_return(double('proposals', count: 5))
-        allow(user).to receive(:votes).and_return(double('votes', count: 10))
+        user.define_singleton_method(:proposals) { OpenStruct.new(count: 5) }
+        user.define_singleton_method(:votes) { OpenStruct.new(count: 10) }
         expect(badge.criteria_met?(user)).to be true
       end
 
       it 'returns false when only some criteria are met' do
-        allow(user).to receive(:proposals).and_return(double('proposals', count: 5))
-        allow(user).to receive(:votes).and_return(double('votes', count: 5))
+        user.define_singleton_method(:proposals) { OpenStruct.new(count: 5) }
+        user.define_singleton_method(:votes) { OpenStruct.new(count: 5) }
         expect(badge.criteria_met?(user)).to be false
       end
 
       it 'returns false when no criteria are met' do
-        allow(user).to receive(:proposals).and_return(double('proposals', count: 1))
-        allow(user).to receive(:votes).and_return(double('votes', count: 1))
+        user.define_singleton_method(:proposals) { OpenStruct.new(count: 1) }
+        user.define_singleton_method(:votes) { OpenStruct.new(count: 1) }
         expect(badge.criteria_met?(user)).to be false
       end
     end

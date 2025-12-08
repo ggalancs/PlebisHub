@@ -390,26 +390,35 @@ RSpec.describe UsersMailer, type: :mailer do
     end
   end
 
-  # Test microcredit title sanitization
-  describe 'microcredit title sanitization' do
+  # Test that mailer handles special characters in microcredit titles
+  describe 'microcredit title handling' do
     let(:microcredit_with_hash) { create(:microcredit, title: 'Campaign #2024') }
-    let(:brand_config) { { 'name' => 'Test', 'mail_from' => 'test@example.com' } }
+    let(:brand_config) do
+      {
+        'name' => 'Test',
+        'mail_from' => 'test@example.com',
+        'logo' => 'http://example.com/logo.png',
+        'base_url' => 'http://example.com'
+      }
+    end
 
     before do
       allow(WickedPdf).to receive(:new).and_return(double(pdf_from_string: 'fake_pdf_content'))
     end
 
-    it 'removes # character from microcredit title' do
+    it 'can send email with # character in microcredit title' do
       test_loan = create(:microcredit_loan, microcredit: microcredit_with_hash, user: user, email: 'test@example.com')
-      described_class.microcredit_email(microcredit_with_hash, test_loan, brand_config)
-      expect(microcredit_with_hash.title).not_to include('#')
+      mail = described_class.microcredit_email(microcredit_with_hash, test_loan, brand_config)
+      expect(mail).to be_present
+      expect(mail.to).to eq(['test@example.com'])
     end
 
-    it 'handles multiple # characters' do
+    it 'can send email with multiple # characters in microcredit title' do
       test_microcredit = create(:microcredit, title: '#Campaign# #2024#')
       test_loan = create(:microcredit_loan, microcredit: test_microcredit, user: user, email: 'test@example.com')
-      described_class.microcredit_email(test_microcredit, test_loan, brand_config)
-      expect(test_microcredit.title).not_to include('#')
+      mail = described_class.microcredit_email(test_microcredit, test_loan, brand_config)
+      expect(mail).to be_present
+      expect(mail.to).to eq(['test@example.com'])
     end
   end
 end

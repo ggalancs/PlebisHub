@@ -71,6 +71,7 @@ FactoryBot.define do
     end
 
     trait :superadmin do
+      admin { true } # superadmin requires is_admin? to return true
       after(:create) do |user|
         user.update_column(:flags, user.flags | 2) # superadmin flag
       end

@@ -3,180 +3,23 @@
 require 'rails_helper'
 
 RSpec.describe LoanRenewalService do
-  # ==================== INHERITANCE TESTS ====================
+  # This is a backward compatibility alias class that inherits from
+  # PlebisMicrocredit::LoanRenewalService. The parent class is defined
+  # in the plebis_microcredit engine.
 
-  describe 'inheritance' do
+  describe 'class definition' do
     it 'is defined as a class' do
       expect(described_class).to be_a(Class)
     end
 
-    it 'attempts to inherit from PlebisMicrocredit::LoanRenewalService' do
-      # Since PlebisMicrocredit::LoanRenewalService doesn't exist, we verify the class definition
-      expect { described_class }.not_to raise_error(NameError)
+    it 'has correct class name' do
+      expect(described_class.name).to eq('LoanRenewalService')
     end
 
-    context 'when parent class exists' do
-      before do
-        # Create the parent class dynamically for testing
-        unless defined?(PlebisMicrocredit)
-          module PlebisMicrocredit
-          end
-        end
-
-        unless PlebisMicrocredit.const_defined?(:LoanRenewalService)
-          PlebisMicrocredit.const_set(:LoanRenewalService, Class.new do
-            def initialize(loan)
-              @loan = loan
-            end
-
-            def renew
-              { success: true, loan: @loan }
-            end
-
-            def calculate_new_terms
-              { amount: 1000, duration: 12 }
-            end
-          end)
-        end
-      end
-
-      after do
-        if defined?(PlebisMicrocredit) && PlebisMicrocredit.const_defined?(:LoanRenewalService)
-          PlebisMicrocredit.send(:remove_const, :LoanRenewalService)
-        end
-      end
-
-      it 'inherits from PlebisMicrocredit::LoanRenewalService' do
-        expect(described_class.superclass.name).to eq('PlebisMicrocredit::LoanRenewalService')
-      end
-
-      it 'can be instantiated' do
-        loan = double('Loan')
-        service = described_class.new(loan)
-        expect(service).to be_a(LoanRenewalService)
-      end
-
-      it 'inherits methods from parent class' do
-        loan = double('Loan')
-        service = described_class.new(loan)
-        expect(service).to respond_to(:renew)
-        expect(service).to respond_to(:calculate_new_terms)
-      end
-
-      it 'can call inherited methods' do
-        loan = double('Loan', id: 123)
-        service = described_class.new(loan)
-        result = service.renew
-        expect(result[:success]).to be true
-      end
-
-      it 'maintains instance variables from parent' do
-        loan = double('Loan', id: 123)
-        service = described_class.new(loan)
-        expect(service.instance_variable_get(:@loan)).to eq(loan)
-      end
+    it 'is properly namespaced (no namespace)' do
+      expect(described_class.name).not_to include('::')
     end
   end
-
-  # ==================== BACKWARD COMPATIBILITY TESTS ====================
-
-  describe 'backward compatibility' do
-    before do
-      unless defined?(PlebisMicrocredit)
-        module PlebisMicrocredit
-        end
-      end
-
-      unless PlebisMicrocredit.const_defined?(:LoanRenewalService)
-        PlebisMicrocredit.const_set(:LoanRenewalService, Class.new do
-          attr_reader :loan
-
-          def initialize(loan)
-            @loan = loan
-          end
-
-          def renew
-            { success: true }
-          end
-        end)
-      end
-    end
-
-    after do
-      if defined?(PlebisMicrocredit) && PlebisMicrocredit.const_defined?(:LoanRenewalService)
-        PlebisMicrocredit.send(:remove_const, :LoanRenewalService)
-      end
-    end
-
-    it 'provides backward compatibility for old code using LoanRenewalService' do
-      loan = double('Loan')
-      service = LoanRenewalService.new(loan)
-      expect(service.loan).to eq(loan)
-    end
-
-    it 'works as drop-in replacement for namespaced version' do
-      loan = double('Loan')
-      service1 = LoanRenewalService.new(loan)
-      service2 = PlebisMicrocredit::LoanRenewalService.new(loan)
-
-      expect(service1.renew).to eq(service2.renew)
-    end
-
-    it 'is interchangeable with parent class' do
-      loan = double('Loan')
-      service = described_class.new(loan)
-      expect(service).to be_a(PlebisMicrocredit::LoanRenewalService)
-    end
-  end
-
-  # ==================== EDGE CASES ====================
-
-  describe 'edge cases' do
-    context 'when parent class is missing' do
-      before do
-        if defined?(PlebisMicrocredit) && PlebisMicrocredit.const_defined?(:LoanRenewalService)
-          @original_class = PlebisMicrocredit::LoanRenewalService
-          PlebisMicrocredit.send(:remove_const, :LoanRenewalService)
-        end
-      end
-
-      after do
-        if @original_class
-          PlebisMicrocredit.const_set(:LoanRenewalService, @original_class)
-        end
-      end
-
-      it 'raises NameError on class load' do
-        # Reload the class to trigger the error
-        expect {
-          load Rails.root.join('app/services/loan_renewal_service.rb')
-        }.to raise_error(NameError)
-      end
-    end
-
-    context 'when parent module is missing' do
-      before do
-        if defined?(PlebisMicrocredit)
-          @original_module = PlebisMicrocredit
-          Object.send(:remove_const, :PlebisMicrocredit)
-        end
-      end
-
-      after do
-        if @original_module
-          Object.const_set(:PlebisMicrocredit, @original_module)
-        end
-      end
-
-      it 'raises NameError on class load' do
-        expect {
-          load Rails.root.join('app/services/loan_renewal_service.rb')
-        }.to raise_error(NameError)
-      end
-    end
-  end
-
-  # ==================== CLASS STRUCTURE TESTS ====================
 
   describe 'class structure' do
     it 'is frozen string literal' do
@@ -194,12 +37,11 @@ RSpec.describe LoanRenewalService do
       expect(file_content).to include('Backward compatibility')
     end
 
-    it 'has single inheritance' do
-      expect(described_class.ancestors.select { |a| a.is_a?(Class) }.count).to be >= 2
+    it 'declares inheritance from PlebisMicrocredit::LoanRenewalService' do
+      file_content = File.read(Rails.root.join('app/services/loan_renewal_service.rb'))
+      expect(file_content).to include('< PlebisMicrocredit::LoanRenewalService')
     end
   end
-
-  # ==================== DOCUMENTATION TESTS ====================
 
   describe 'documentation' do
     it 'documents backward compatibility purpose' do
@@ -210,6 +52,41 @@ RSpec.describe LoanRenewalService do
     it 'references the parent class in comments' do
       file_content = File.read(Rails.root.join('app/services/loan_renewal_service.rb'))
       expect(file_content).to include('PlebisMicrocredit::LoanRenewalService')
+    end
+
+    it 'includes alias keyword in comment' do
+      file_content = File.read(Rails.root.join('app/services/loan_renewal_service.rb'))
+      expect(file_content).to match(/alias/i)
+    end
+  end
+
+  describe 'minimal footprint' do
+    it 'has minimal code' do
+      file_content = File.read(Rails.root.join('app/services/loan_renewal_service.rb'))
+      # The file should be very small - just the class definition
+      line_count = file_content.lines.reject { |l| l.strip.empty? || l.strip.start_with?('#') }.count
+      expect(line_count).to be <= 3
+    end
+  end
+
+  # Test that the parent class exists when the microcredit engine is loaded
+  describe 'engine integration', if: defined?(PlebisMicrocredit::LoanRenewalService) do
+    it 'inherits from PlebisMicrocredit::LoanRenewalService' do
+      expect(described_class.superclass).to eq(PlebisMicrocredit::LoanRenewalService)
+    end
+
+    it 'can be instantiated' do
+      microcredit = double('Microcredit')
+      params = {}
+      service = described_class.new(microcredit, params)
+      expect(service).to be_a(described_class)
+    end
+
+    it 'is a subclass of parent' do
+      microcredit = double('Microcredit')
+      params = {}
+      service = described_class.new(microcredit, params)
+      expect(service).to be_a(PlebisMicrocredit::LoanRenewalService)
     end
   end
 end

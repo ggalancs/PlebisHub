@@ -6,7 +6,8 @@ namespace :plebisbrand do
   desc '[plebisbrand] Dump users emails with location information to create lists'
   task dump_emails: :environment do
     FileUtils.mkdir_p('tmp/sendy') unless File.directory?('tmp/sendy')
-    CSV.open('tmp/sendy/users.csv', 'w', { force_quotes: true }) do |writer|
+    # Ruby 3.4+ requires keyword arguments for CSV.open
+    CSV.open('tmp/sendy/users.csv', 'w', force_quotes: true) do |writer|
       User.confirmed.find_each do |user|
         row = [user.full_name, user.email]
         town = user.vote_town

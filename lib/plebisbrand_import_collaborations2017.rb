@@ -190,7 +190,8 @@ class PlebisBrandImportCollaborations2017
   end
 
   def self.init(csv_file)
-    CSV.foreach(csv_file, { headers: true, col_sep: "\t" }) do |row|
+    # Ruby 3.4+ requires keyword arguments for CSV.foreach
+    CSV.foreach(csv_file, headers: true, col_sep: "\t") do |row|
       process_row row
       # rescue
       # self.log_to_file "#{Rails.root}/log/collaboration/exception.txt", row

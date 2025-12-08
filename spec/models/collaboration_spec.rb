@@ -1184,21 +1184,20 @@ RSpec.describe Collaboration, type: :model do
       it 'handles force_single flag' do
         user = create(:user)
         user.save(validate: false)
-        # Note: The implementation has a bug - slice doesn't work on arrays the way it's called
-        # It raises TypeError instead
-        expect do
-          Collaboration.available_frequencies_for_user(user, force_single: true)
-        end.to raise_error(TypeError)
+        # force_single returns only single/puntual frequency
+        result = Collaboration.available_frequencies_for_user(user, force_single: true)
+        expect(result).to eq([['Puntual', 0]])
       end
 
       it 'handles only_recurrent flag' do
         user = create(:user)
         user.save(validate: false)
-        # Note: The implementation has a bug - except doesn't work on arrays
-        # It raises NoMethodError
-        expect do
-          Collaboration.available_frequencies_for_user(user, only_recurrent: true)
-        end.to raise_error(NoMethodError)
+        # only_recurrent returns all recurrent frequencies (excludes single)
+        result = Collaboration.available_frequencies_for_user(user, only_recurrent: true)
+        expect(result).to include(['Mensual', 1])
+        expect(result).to include(['Trimestral', 3])
+        expect(result).to include(['Anual', 12])
+        expect(result).not_to include(['Puntual', 0])
       end
     end
 

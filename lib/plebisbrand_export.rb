@@ -13,8 +13,9 @@ def export_data(filename, query, options = {})
   extension = col_sep == "\t" ? 'tsv' : 'csv'
 
   FileUtils.mkdir_p(folder) unless File.directory?(folder)
+  # Ruby 3.4+ requires keyword arguments for CSV.open
   CSV.open("#{folder}/#{filename}.#{extension}", 'w',
-           { col_sep: col_sep, encoding: 'utf-8', force_quotes: force_quotes }) do |writer|
+           col_sep: col_sep, encoding: 'utf-8', force_quotes: force_quotes) do |writer|
     writer << headers if headers
     query.find_each do |item|
       res = yield(item)
@@ -32,8 +33,9 @@ def export_raw_data(filename, data, options = {})
   extension = col_sep == "\t" ? 'tsv' : 'csv'
 
   FileUtils.mkdir_p(folder) unless File.directory?(folder)
+  # Ruby 3.4+ requires keyword arguments for CSV.open
   CSV.open("#{folder}/#{filename}.#{extension}", 'w',
-           { col_sep: col_sep, encoding: 'utf-8', force_quotes: force_quotes }) do |writer|
+           col_sep: col_sep, encoding: 'utf-8', force_quotes: force_quotes) do |writer|
     writer << headers if headers
     data.each do |item|
       res = yield(item)
@@ -63,8 +65,9 @@ def fill_data_file(filename, query, options = {})
       end
     end
   end
+  # Ruby 3.4+ requires keyword arguments for CSV.open
   CSV.open("#{filename}.filled.csv", 'w',
-           { col_sep: col_sep, encoding: 'utf-8', force_quotes: force_quotes }) do |writer|
+           col_sep: col_sep, encoding: 'utf-8', force_quotes: force_quotes) do |writer|
     writer << headers
     data.each do |key, item|
       writer << ([key] + headers[1..].map { |h| item[h] })
@@ -77,7 +80,8 @@ def fill_data(csvdata, query, options = {})
   data = {}
   headers = nil
   processed = []
-  CSV.parse(csvdata, { col_sep: col_sep, encoding: 'utf-8', headers: true }).each do |row|
+  # Ruby 3.4+ requires keyword arguments for CSV.parse
+  CSV.parse(csvdata, col_sep: col_sep, encoding: 'utf-8', headers: true).each do |row|
     headers = row.headers if headers.nil?
     data[row[0].upcase] = headers[1..].index_with { |h| row[h] } unless row[0].nil?
   end
