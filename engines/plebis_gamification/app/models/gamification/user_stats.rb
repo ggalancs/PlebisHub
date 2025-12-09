@@ -39,7 +39,8 @@ module Gamification
     }.freeze
 
     # Earn points
-    def earn_points!(amount, reason:, source: nil)
+    # @param skip_streak_update [Boolean] Skip streak update to prevent infinite recursion from bonus awards
+    def earn_points!(amount, reason:, source: nil, skip_streak_update: false)
       raise ArgumentError, 'Amount must be positive' if amount <= 0
 
       transaction do
@@ -51,15 +52,17 @@ module Gamification
           source: source
         )
 
-        # Update totals
-        self.total_points += amount
-        self.xp += amount
+        # Update totals using atomic SQL increment for concurrent safety
+        self.class.where(id: id).update_all(
+          "total_points = total_points + #{amount.to_i}, xp = xp + #{amount.to_i}"
+        )
+        reload # Refresh in-memory values after SQL update
 
         # Check for level up
         check_level_up!
 
-        # Update streak
-        update_streak!
+        # Update streak (skip if this is a bonus award to prevent infinite recursion)
+        update_streak! unless skip_streak_update
 
         save!
 
@@ -81,7 +84,8 @@ module Gamification
 
     # Get level name
     def level_name
-      LEVELS[level][:name] || "Nivel #{level}"
+      level_config = LEVELS[level]
+      level_config ? level_config[:name] : "Nivel #{level}"
     end
 
     # XP needed for next level
@@ -106,8 +110,10 @@ module Gamification
 
     # Check if user should level up
     def check_level_up!
-      while should_level_up?
-        self.level += 1
+      while (next_level = next_available_level)
+        break if xp < LEVELS[next_level][:xp]
+
+        self.level = next_level
         publish_event('gamification.level_up', {
                         user_id: user_id,
                         new_level: level,
@@ -117,10 +123,15 @@ module Gamification
     end
 
     def should_level_up?
-      next_level_config = LEVELS[level + 1]
-      return false unless next_level_config
+      next_level = next_available_level
+      return false unless next_level
 
-      xp >= next_level_config[:xp]
+      xp >= LEVELS[next_level][:xp]
+    end
+
+    # Find the next level that exists in the LEVELS hash
+    def next_available_level
+      LEVELS.keys.sort.find { |l| l > level }
     end
 
     # Update streak
@@ -139,8 +150,11 @@ module Gamification
         self.last_active_date = today
         self.longest_streak = [longest_streak, current_streak].max
 
-        # Streak milestone rewards
-        award_streak_bonus! if (current_streak % 7).zero?
+        # Streak milestone rewards - save first so bonus award doesn't clobber unsaved changes
+        if (current_streak % 7).zero?
+          save!
+          award_streak_bonus!
+        end
       else
         # Streak broken
         self.current_streak = 1
@@ -150,7 +164,8 @@ module Gamification
 
     def award_streak_bonus!
       bonus_points = current_streak / 7 * 50
-      earn_points!(bonus_points, reason: "Racha de #{current_streak} días")
+      # Skip streak update to prevent infinite recursion (bonus awards shouldn't trigger more bonuses)
+      earn_points!(bonus_points, reason: "Racha de #{current_streak} días", skip_streak_update: true)
     end
 
     # Leaderboard position
@@ -200,7 +215,7 @@ module Gamification
              .map.with_index(1) do |stats, index|
                {
                  rank: index,
-                 user: stats.user.as_json(only: %i[id first_name last_name]),
+                 user: stats.user.as_json(only: %i[id first_name last_name]).symbolize_keys,
                  stats: stats.summary
                }
              end
