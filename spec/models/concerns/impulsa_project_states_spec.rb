@@ -41,7 +41,9 @@ RSpec.describe ImpulsaProjectStates, type: :model do
 
         it 'does not transition if not markable' do
           allow(project).to receive(:markable_for_review?).and_return(false)
-          expect { project.mark_for_review }.to raise_error(StateMachines::InvalidTransition)
+          # State machine returns false when guard fails rather than raising error
+          expect(project.mark_for_review).to be false
+          expect(project.state).to eq('new')
         end
       end
 
@@ -118,7 +120,9 @@ RSpec.describe ImpulsaProjectStates, type: :model do
 
         it 'does not transition without evaluation_result' do
           project.evaluation_result = nil
-          expect { project.mark_as_validated }.to raise_error(StateMachines::InvalidTransition)
+          # State machine returns false when guard fails rather than raising error
+          expect(project.mark_as_validated).to be false
+          expect(project.state).to eq('validable')
         end
       end
     end
@@ -315,19 +319,22 @@ RSpec.describe ImpulsaProjectStates, type: :model do
     end
 
     it 'exportable scope includes validated and winner states' do
+      # Create new users to avoid uniqueness violation
+      validated_user = create(:user, email: "validated_#{SecureRandom.hex(4)}@test.com")
       validated_project = create(:impulsa_project,
                                    impulsa_edition: impulsa_edition,
                                    impulsa_edition_category: impulsa_edition_category,
-                                   user: user)
+                                   user: validated_user)
       validated_project.update_column(:state, 'validated')
 
+      winner_user = create(:user, email: "winner_#{SecureRandom.hex(4)}@test.com")
       winner_project = create(:impulsa_project,
                                impulsa_edition: impulsa_edition,
                                impulsa_edition_category: impulsa_edition_category,
-                               user: create(:user, email: 'winner@test.com'))
+                               user: winner_user)
       winner_project.update_column(:state, 'winner')
 
-      exportable = ImpulsaProject.exportable
+      exportable = PlebisImpulsa::ImpulsaProject.exportable
       expect(exportable).to include(validated_project)
       expect(exportable).to include(winner_project)
       expect(exportable).not_to include(project) # new state

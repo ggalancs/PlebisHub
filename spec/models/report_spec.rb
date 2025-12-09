@@ -50,7 +50,8 @@ RSpec.describe Report, type: :model do
     it 'accepts ReportGroup object' do
       group = ReportGroup.new(id: 1, title: 'Test')
       report.main_group = group
-      expect(report.main_group).to eq(group)
+      # Use same object identity check since setter stores the original object
+      expect(report.main_group).to be(group)
     end
 
     it 'accepts serialized string' do
@@ -63,7 +64,8 @@ RSpec.describe Report, type: :model do
     it 'accepts array of ReportGroup objects' do
       groups = [ReportGroup.new(id: 1), ReportGroup.new(id: 2)]
       report.groups = groups
-      expect(report.groups).to eq(groups)
+      # Use same object identity check since setter stores the original array
+      expect(report.groups).to be(groups)
     end
 
     it 'accepts serialized string' do
@@ -89,7 +91,7 @@ RSpec.describe Report, type: :model do
       report.batch_process(2) do |user|
         batches << user
       end
-      expect(batches.length).to be.positive?
+      expect(batches.length).to be_positive
     end
 
     it 'stops when no more results' do
@@ -153,12 +155,13 @@ RSpec.describe Report, type: :model do
       end
 
       it 'finds matching lines from file' do
-        results = report.send(:grep_pattern_from_file, raw_folder.to_s, 1, 3, 'group1', 'name1 ', 10)
+        # The function adds a trailing space to the pattern, so don't include it in group_name
+        results = report.send(:grep_pattern_from_file, raw_folder.to_s, 1, 3, 'group1', 'name1', 10)
         expect(results.length).to eq(2)
       end
 
       it 'limits results to max_lines' do
-        results = report.send(:grep_pattern_from_file, raw_folder.to_s, 1, 3, 'group1', 'name1 ', 1)
+        results = report.send(:grep_pattern_from_file, raw_folder.to_s, 1, 3, 'group1', 'name1', 1)
         expect(results.length).to eq(1)
       end
 

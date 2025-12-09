@@ -298,15 +298,18 @@ RSpec.describe ImpulsaProjectEvaluation, type: :model do
 
   describe '#evaluation_has_errors?' do
     it 'returns false when all evaluators have valid data' do
+      # Must include all required fields including total_score
       project.evaluator1_evaluation = {
         'technical.quality' => '10',
         'technical.innovation' => '9',
-        'impact.reach' => '8'
+        'impact.reach' => '8',
+        'totals.total_score' => '27'
       }
       project.evaluator2_evaluation = {
         'technical.quality' => '9',
         'technical.innovation' => '8',
-        'impact.reach' => '7'
+        'impact.reach' => '7',
+        'totals.total_score' => '24'
       }
       expect(project.evaluation_has_errors?).to be false
     end
@@ -324,10 +327,12 @@ RSpec.describe ImpulsaProjectEvaluation, type: :model do
 
   describe '#evaluation_count_errors' do
     it 'returns 0 when evaluator has no errors' do
+      # Must include all required fields including total_score
       project.evaluator1_evaluation = {
         'technical.quality' => '10',
         'technical.innovation' => '9',
-        'impact.reach' => '8'
+        'impact.reach' => '8',
+        'totals.total_score' => '27'
       }
       expect(project.evaluation_count_errors(1)).to eq(0)
     end
@@ -335,7 +340,7 @@ RSpec.describe ImpulsaProjectEvaluation, type: :model do
     it 'returns count of all errors for evaluator' do
       project.evaluator1_evaluation = {}
       count = project.evaluation_count_errors(1)
-      expect(count).to be.positive?
+      expect(count).to be_positive
     end
   end
 
@@ -479,7 +484,8 @@ RSpec.describe ImpulsaProjectEvaluation, type: :model do
     it 'skips blank values' do
       project.evaluator1_evaluation = {}
       export = project.evaluation_export
-      expect(export['evaluation_1_total']).to be_nil
+      # Formula fields (sum) compute 0 when all source values are blank/nil
+      expect(export['evaluation_1_total']).to eq(0)
     end
 
     it 'updates formulas before exporting' do

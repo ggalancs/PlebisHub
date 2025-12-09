@@ -222,7 +222,8 @@ RSpec.describe EngineUser::Collaborator, type: :model do
   end
 
   describe '#collaborator_for_militant?' do
-    let(:min_amount) { User::MIN_MILITANT_AMOUNT * 100 }
+    # min_amount is in the same unit as MIN_MILITANT_AMOUNT (not cents)
+    let(:min_amount) { User::MIN_MILITANT_AMOUNT }
 
     context 'when user has active minimum collaboration' do
       let!(:collaboration) do

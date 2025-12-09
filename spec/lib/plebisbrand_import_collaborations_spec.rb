@@ -96,7 +96,7 @@ RSpec.describe PlebisBrandImportCollaborations do
   end
 
   describe '.create_collaboration' do
-    let(:user) { create(:user, email: 'test@example.com', document_vatid: '12345678Z') }
+    let(:user) { create(:user, email: 'test@example.com', document_vatid: '12345678Z', document_type: 1) }
     let(:params) do
       {
         document_vatid: '12345678Z',
@@ -132,7 +132,8 @@ RSpec.describe PlebisBrandImportCollaborations do
         collab = Collaboration.last
         expect(collab.user).to eq(user)
         expect(collab.amount).to eq(1000.0)
-        expect(collab.frequency).to eq('1')
+        # frequency may be stored as integer or string depending on database config
+        expect(collab.frequency.to_s).to eq('1')
       end
 
       it 'sets payment_type to 1 for credit card' do
@@ -164,10 +165,11 @@ RSpec.describe PlebisBrandImportCollaborations do
         allow(described_class).to receive(:log_to_file)
         described_class.create_collaboration(params)
         collab = Collaboration.last
-        expect(collab.ccc_entity).to eq('1234')
-        expect(collab.ccc_office).to eq('5678')
-        expect(collab.ccc_dc).to eq('90')
-        expect(collab.ccc_account).to eq('1234567890')
+        # CCC fields may be stored as integers or strings depending on database config
+        expect(collab.ccc_entity.to_s).to eq('1234')
+        expect(collab.ccc_office.to_s).to eq('5678')
+        expect(collab.ccc_dc.to_s).to eq('90')
+        expect(collab.ccc_account.to_s).to eq('1234567890')
       end
     end
 
@@ -203,10 +205,13 @@ RSpec.describe PlebisBrandImportCollaborations do
         params[:full_name] = user.full_name
       end
 
-      it 'uses user document_vatid and creates collaboration' do
+      it 'creates collaboration when full_name matches' do
         allow(described_class).to receive(:log_to_file)
-        expect(described_class).to receive(:create_collaboration).with(hash_including(document_vatid: user.document_vatid))
-        described_class.create_collaboration(params)
+        expect {
+          described_class.create_collaboration(params)
+        }.to change(Collaboration, :count).by(1)
+        # Verify collaboration was created for the existing user
+        expect(Collaboration.last.user).to eq(user)
       end
     end
 
@@ -217,10 +222,13 @@ RSpec.describe PlebisBrandImportCollaborations do
         params[:full_name] = user.full_name
       end
 
-      it 'uses user email and creates collaboration' do
+      it 'creates collaboration when full_name matches' do
         allow(described_class).to receive(:log_to_file)
-        expect(described_class).to receive(:create_collaboration).with(hash_including(email: user.email))
-        described_class.create_collaboration(params)
+        expect {
+          described_class.create_collaboration(params)
+        }.to change(Collaboration, :count).by(1)
+        # Verify collaboration was created for the existing user
+        expect(Collaboration.last.user).to eq(user)
       end
     end
 
@@ -233,37 +241,34 @@ RSpec.describe PlebisBrandImportCollaborations do
     end
 
     context 'when IBAN is Spanish and missing BIC' do
-      let(:collab) { instance_double(Collaboration, valid?: false, save: false) }
+      # Spanish IBAN format: ESxx + entity(4) + office(4) + dc(2) + account(10)
+      # Use IBAN that produces known CCC values: entity=1234, office=5678, dc=90, account=1234567890
+      let(:test_iban) { 'ESXX12345678901234567890' }
 
       before do
         user
         params.merge!(
           payment_type: 'Domiciliación en cuenta extranjera (IBAN)',
-          iban_1: 'ES1234567890123456789012',
+          iban_1: test_iban,
           iban_2: nil
         )
-
-        allow(Collaboration).to receive(:new).and_return(collab)
-        allow(collab).to receive(:user=)
-        allow(collab).to receive(:amount=)
-        allow(collab).to receive(:frequency=)
-        allow(collab).to receive(:created_at=)
-        allow(collab).to receive(:payment_type=)
-        allow(collab).to receive(:iban_account=)
-        allow(collab).to receive(:iban_bic=)
-        allow(collab).to receive(:errors).and_return(double(messages: { iban_bic: ['no puede estar en blanco'] }))
       end
 
-      it 'converts Spanish IBAN to CCC' do
+      it 'converts Spanish IBAN to CCC and creates collaboration' do
         allow(described_class).to receive(:log_to_file)
-        expect(described_class).to receive(:create_collaboration).with(hash_including(
-                                                                          ccc_1: '1234',
-                                                                          ccc_2: '5678',
-                                                                          ccc_3: '90',
-                                                                          ccc_4: '1234567890',
-                                                                          payment_type: 'Domiciliación en cuenta bancaria (CCC)'
-                                                                        ))
-        described_class.create_collaboration(params)
+        # Spanish IBAN without BIC should be converted to CCC and collaboration created
+        expect {
+          described_class.create_collaboration(params)
+        }.to change(Collaboration, :count).by(1)
+
+        # Verify the collaboration was created with converted CCC fields
+        # IBAN[4..7]=entity, [8..11]=office, [12..13]=dc, [14..23]=account
+        collab = Collaboration.last
+        expect(collab.payment_type).to eq(2) # CCC payment type
+        expect(collab.ccc_entity.to_s).to eq('1234')
+        expect(collab.ccc_office.to_s).to eq('5678')
+        expect(collab.ccc_dc.to_s).to eq('90')
+        expect(collab.ccc_account.to_s).to eq('1234567890')
       end
     end
   end

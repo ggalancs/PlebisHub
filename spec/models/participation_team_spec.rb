@@ -402,7 +402,7 @@ RSpec.describe ParticipationTeam, type: :model do
 
       found = ParticipationTeam.find(team.id)
       expect(found.name).to eq(dangerous_name)
-      expect(ParticipationTeam.count).to be.positive?
+      expect(ParticipationTeam.count).to be_positive
     end
 
     it 'handles HTML in description' do

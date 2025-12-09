@@ -281,10 +281,17 @@ RSpec.describe PlebisCore::EngineRegistry do
   describe '.engines_by_status' do
     context 'when database is available' do
       before do
+        # Clean up first to avoid test pollution
+        EngineActivation.where(engine_name: %w[plebis_cms plebis_proposals plebis_voting]).destroy_all
         # Create actual engine activation records
         EngineActivation.find_or_create_by!(engine_name: 'plebis_cms', enabled: true)
         EngineActivation.find_or_create_by!(engine_name: 'plebis_proposals', enabled: true)
         EngineActivation.find_or_create_by!(engine_name: 'plebis_voting', enabled: false)
+      end
+
+      after do
+        # Clean up to prevent test pollution with other specs
+        EngineActivation.where(engine_name: %w[plebis_cms plebis_proposals plebis_voting]).destroy_all
       end
 
       it 'returns hash with enabled and disabled keys' do

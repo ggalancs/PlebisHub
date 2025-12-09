@@ -214,7 +214,7 @@ RSpec.describe UserVerification, type: :model do
         allow(verification).to receive(:front_vatid).and_return(front_attachment)
         allow(verification).to receive(:back_vatid).and_return(back_attachment)
         expect(verification.valid?).to be false
-        expect(verification.errors[:back_vatid].size).to be.positive?
+        expect(verification.errors[:back_vatid].size).to be_positive
       end
 
       it 'does not require back_vatid when require_back? is false' do
@@ -439,14 +439,18 @@ RSpec.describe UserVerification, type: :model do
       end
 
       it 'returns false when no Redis setup' do
-        verification = create(:user_verification)
-        # Don't set up Redis - it should default to false
+        # Ensure Redis is not set up for this test (avoid pollution from other tests)
+        original_redis = $redis
+        $redis = nil
         begin
+          verification = create(:user_verification)
           result = verification.active?
           expect([true, false]).to include(result)
         rescue StandardError
           # Method may raise if Redis not configured, that's acceptable
           expect(true).to be true
+        ensure
+          $redis = original_redis
         end
       end
     end
@@ -460,13 +464,18 @@ RSpec.describe UserVerification, type: :model do
       end
 
       it 'returns nil when no Redis setup' do
-        verification = create(:user_verification)
+        # Ensure Redis is not set up for this test (avoid pollution from other tests)
+        original_redis = $redis
+        $redis = nil
         begin
+          verification = create(:user_verification)
           result = verification.get_current_verifier
           expect(result).to be_nil
         rescue StandardError
           # Method may raise if Redis not configured, that's acceptable
           expect(true).to be true
+        ensure
+          $redis = original_redis
         end
       end
     end

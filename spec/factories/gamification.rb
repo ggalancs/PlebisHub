@@ -132,8 +132,16 @@ FactoryBot.define do
   end
 
   # Gamification UserStats Factory
+  # Note: Users automatically get gamification_user_stats via after_create callback in Gamifiable concern.
+  # When using this factory with an existing user, use user.reload.gamification_user_stats.tap { |s| s.update!(...) }
+  # or ensure the user is created without the factory triggering the callback.
   factory :gamification_user_stats, class: 'Gamification::UserStats' do
-    association :user
+    # Use transient user to avoid creating a new user when one is provided
+    transient do
+      for_user { nil }
+    end
+
+    user { for_user || association(:user) }
     total_points { 0 }
     level { 1 }
     xp { 0 }
@@ -141,6 +149,28 @@ FactoryBot.define do
     longest_streak { 0 }
     last_active_date { nil }
     stats { {} }
+
+    # Skip creation if stats already exist for this user (from after_create callback)
+    to_create do |instance|
+      existing = Gamification::UserStats.find_by(user_id: instance.user_id)
+      if existing
+        # Update existing record with factory attributes
+        existing.update!(
+          total_points: instance.total_points,
+          level: instance.level,
+          xp: instance.xp,
+          current_streak: instance.current_streak,
+          longest_streak: instance.longest_streak,
+          last_active_date: instance.last_active_date,
+          stats: instance.stats
+        )
+        # Return the existing record
+        instance.id = existing.id
+        instance.reload
+      else
+        instance.save!
+      end
+    end
 
     trait :with_points do
       total_points { 500 }

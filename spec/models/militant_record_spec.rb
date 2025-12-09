@@ -3,6 +3,11 @@
 require 'rails_helper'
 
 RSpec.describe MilitantRecord, type: :model do
+  # Prevent User's after_commit callback from creating extra militant_records
+  before do
+    allow_any_instance_of(User).to receive(:process_militant_data_after_save)
+  end
+
   # ====================
   # FACTORY TESTS
   # ====================

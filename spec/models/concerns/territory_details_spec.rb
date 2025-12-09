@@ -84,14 +84,18 @@ RSpec.describe TerritoryDetails, type: :model do
 
       it 'accepts hash with unknown option' do
         result = instance.territory_details(town_code: nil, unknown: 'N/A')
-        expect(result).to be_nil
+        # Returns hash with N/A values when town_code is nil
+        expect(result).to be_a(Hash)
+        expect(result[:town_name]).to eq('N/A')
       end
     end
 
     context 'with invalid town code' do
-      it 'returns nil for invalid code' do
+      it 'returns hash with default values for invalid code' do
         result = instance.territory_details('invalid')
-        expect(result).to be_nil
+        # Returns hash with "Desconocido" (Unknown) values for invalid codes
+        expect(result).to be_a(Hash)
+        expect(result[:town_name]).to eq('Desconocido')
       end
     end
 

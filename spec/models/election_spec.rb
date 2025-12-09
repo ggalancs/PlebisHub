@@ -338,7 +338,7 @@ RSpec.describe Election, type: :model do
 
         expect(token).not_to be_nil
         expect(token).to be_a(String)
-        expect(token.length).to be.positive?
+        expect(token.length).to be_positive
       end
 
       it 'is memoized' do

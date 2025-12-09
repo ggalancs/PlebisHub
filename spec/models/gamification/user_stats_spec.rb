@@ -207,7 +207,9 @@ RSpec.describe Gamification::UserStats, type: :model do
       stats.earn_points!(50, reason: 'Created proposal', source: proposal)
 
       point = Gamification::Point.last
-      expect(point.source).to eq(proposal)
+      # Compare by type and id since Proposal may be aliased to PlebisProposals::Proposal
+      expect(point.source_type).to eq(proposal.class.base_class.name)
+      expect(point.source_id).to eq(proposal.id)
     end
 
     it 'updates streak' do
@@ -230,6 +232,8 @@ RSpec.describe Gamification::UserStats, type: :model do
     end
 
     it 'publishes points_earned event' do
+      # Allow level_up events that may also be triggered when earning points
+      allow(stats).to receive(:publish_event).with('gamification.level_up', anything)
       expect(stats).to receive(:publish_event).with('gamification.points_earned', hash_including(
                                                       user_id: user.id,
                                                       amount: 100,
@@ -602,9 +606,11 @@ RSpec.describe Gamification::UserStats, type: :model do
     let!(:user1) { create(:user) }
     let!(:user2) { create(:user) }
     let!(:user3) { create(:user) }
-    let!(:stats1) { create(:gamification_user_stats, user: user1, total_points: 100, last_active_date: Time.zone.today) }
-    let!(:stats2) { create(:gamification_user_stats, user: user2, total_points: 500, last_active_date: Time.zone.today) }
-    let!(:stats3) { create(:gamification_user_stats, user: user3, total_points: 200, last_active_date: 10.days.ago) }
+    # Update existing stats (created automatically by User after_create callback) instead of creating new ones
+    # Need to reload to get the association that was created in the callback
+    let!(:stats1) { user1.reload.gamification_user_stats.tap { |s| s.update!(total_points: 100, last_active_date: Time.zone.today) } }
+    let!(:stats2) { user2.reload.gamification_user_stats.tap { |s| s.update!(total_points: 500, last_active_date: Time.zone.today) } }
+    let!(:stats3) { user3.reload.gamification_user_stats.tap { |s| s.update!(total_points: 200, last_active_date: 10.days.ago) } }
 
     it 'returns leaderboard array' do
       result = described_class.leaderboard

@@ -38,9 +38,8 @@ RSpec.describe EngineUser, type: :model do
       end
 
       it 'includes the concern in test mode' do
-        # Create a new test class
+        # Create a new test class that includes EngineUser
         test_class = Class.new do
-          extend ActiveSupport::Concern
           include EngineUser
         end
 
@@ -56,7 +55,6 @@ RSpec.describe EngineUser, type: :model do
 
       it 'does not check EngineActivation in test mode' do
         test_class = Class.new do
-          extend ActiveSupport::Concern
           include EngineUser
         end
 
@@ -78,7 +76,6 @@ RSpec.describe EngineUser, type: :model do
         it 'returns early without error' do
           stub_const('EngineActivation', nil)
           test_class = Class.new do
-            extend ActiveSupport::Concern
             include EngineUser
           end
 
@@ -91,7 +88,6 @@ RSpec.describe EngineUser, type: :model do
           allow(EngineActivation).to receive(:table_exists?).and_return(false)
 
           test_class = Class.new do
-            extend ActiveSupport::Concern
             include EngineUser
           end
 
@@ -105,14 +101,13 @@ RSpec.describe EngineUser, type: :model do
           allow(EngineActivation).to receive(:enabled?).with('test_engine').and_return(false)
 
           test_class = Class.new do
-            extend ActiveSupport::Concern
             include EngineUser
           end
 
           test_class.register_engine_concern('test_engine', test_concern)
 
           # Create instance and verify method doesn't exist
-          instance = Class.new.include(test_class).new
+          instance = test_class.new
           expect(instance).not_to respond_to(:test_method)
         end
       end
@@ -131,7 +126,6 @@ RSpec.describe EngineUser, type: :model do
             allow(EngineActivation).to receive(:enabled?).with('missing_engine').and_return(false)
 
             test_class = Class.new do
-              extend ActiveSupport::Concern
               include EngineUser
             end
 
@@ -147,7 +141,6 @@ RSpec.describe EngineUser, type: :model do
             allow(PlebisCore::EngineRegistry).to receive(:dependencies_for).with('test_engine').and_return(['User'])
 
             test_class = Class.new do
-              extend ActiveSupport::Concern
               include EngineUser
             end
 
@@ -161,7 +154,6 @@ RSpec.describe EngineUser, type: :model do
             allow(EngineActivation).to receive(:enabled?).with('other_engine').and_return(true)
 
             test_class = Class.new do
-              extend ActiveSupport::Concern
               include EngineUser
             end
 
@@ -177,7 +169,6 @@ RSpec.describe EngineUser, type: :model do
             stub_const('PlebisCore', Module.new) # Ensure PlebisCore exists but not EngineRegistry
 
             test_class = Class.new do
-              extend ActiveSupport::Concern
               include EngineUser
             end
 
@@ -194,7 +185,6 @@ RSpec.describe EngineUser, type: :model do
           allow(Rails.logger).to receive(:warn)
 
           test_class = Class.new do
-            extend ActiveSupport::Concern
             include EngineUser
           end
 
@@ -207,7 +197,6 @@ RSpec.describe EngineUser, type: :model do
           allow(Rails.logger).to receive(:warn)
 
           test_class = Class.new do
-            extend ActiveSupport::Concern
             include EngineUser
           end
 
@@ -318,7 +307,6 @@ RSpec.describe EngineUser, type: :model do
       allow(Rails.logger).to receive(:info)
 
       test_class = Class.new do
-        extend ActiveSupport::Concern
         include EngineUser
       end
 
@@ -330,7 +318,6 @@ RSpec.describe EngineUser, type: :model do
       allow(Rails.logger).to receive(:info)
 
       test_class = Class.new do
-        extend ActiveSupport::Concern
         include EngineUser
       end
 
@@ -342,7 +329,6 @@ RSpec.describe EngineUser, type: :model do
       allow(Rails.logger).to receive(:info)
 
       test_class = Class.new do
-        extend ActiveSupport::Concern
         include EngineUser
       end
 
