@@ -318,6 +318,23 @@ ActiveAdmin.register BrandSetting do
                 data: { color_source: 'primary' }
               },
               hint: 'Main brand color'
+
+      # Complementary color suggestion
+      li class: 'input', id: 'complementary_color_suggestion', style: 'margin: -10px 0 15px 20%; padding: 12px 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border: 1px solid #dee2e6;' do
+        div style: 'display: flex; align-items: center; gap: 15px;' do
+          div do
+            span 'Complementary color: ', style: 'font-weight: 500; color: #495057;'
+            span id: 'complementary_color_value', style: 'font-family: monospace; font-weight: 600;'
+          end
+          div id: 'complementary_color_preview', style: 'width: 40px; height: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 2px solid white;'
+          button 'Use as Secondary', type: 'button', id: 'apply_complementary_btn',
+                 style: 'padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s;',
+                 onmouseover: "this.style.background='#218838'",
+                 onmouseout: "this.style.background='#28a745'"
+        end
+        div 'The complementary color is opposite on the color wheel (180° hue shift)', style: 'color: #6c757d; font-size: 11px; margin-top: 8px;'
+      end
+
       f.input :primary_light_color,
               as: :string,
               input_html: {
@@ -441,6 +458,26 @@ ActiveAdmin.register BrandSetting do
               return hslToHex(hsl.h, hsl.s, newL);
             }
 
+            // Generate complementary color (180° hue shift)
+            function complementaryColor(hex) {
+              const hsl = hexToHSL(hex);
+              const newH = (hsl.h + 180) % 360;
+              return hslToHex(newH, hsl.s, hsl.l);
+            }
+
+            // Update complementary color preview
+            function updateComplementaryPreview(primaryHex) {
+              const complementary = complementaryColor(primaryHex);
+              const preview = document.getElementById('complementary_color_preview');
+              const value = document.getElementById('complementary_color_value');
+              if (preview && value) {
+                preview.style.backgroundColor = complementary;
+                value.textContent = complementary.toUpperCase();
+                value.style.color = complementary;
+              }
+              return complementary;
+            }
+
             // Setup event listeners
             document.addEventListener('DOMContentLoaded', function() {
               const autoGenCheckbox = document.getElementById('auto_generate_variants');
@@ -450,16 +487,46 @@ ActiveAdmin.register BrandSetting do
               const secondaryInput = document.getElementById('brand_setting_secondary_color');
               const secondaryLightInput = document.getElementById('brand_setting_secondary_light_color');
               const secondaryDarkInput = document.getElementById('brand_setting_secondary_dark_color');
+              const applyComplementaryBtn = document.getElementById('apply_complementary_btn');
 
               if (!autoGenCheckbox || !primaryInput) return;
 
+              // Initialize complementary color preview
+              updateComplementaryPreview(primaryInput.value);
+
               // Handle primary color change
               primaryInput.addEventListener('input', function() {
+                // Update complementary color preview
+                updateComplementaryPreview(this.value);
+
+                // Auto-generate variants if enabled
                 if (autoGenCheckbox.checked) {
                   primaryLightInput.value = lightenColor(this.value);
                   primaryDarkInput.value = darkenColor(this.value);
                 }
               });
+
+              // Handle "Use as Secondary" button click
+              if (applyComplementaryBtn) {
+                applyComplementaryBtn.addEventListener('click', function() {
+                  const complementary = complementaryColor(primaryInput.value);
+                  secondaryInput.value = complementary;
+
+                  // Also generate variants if auto-generate is enabled
+                  if (autoGenCheckbox.checked) {
+                    secondaryLightInput.value = lightenColor(complementary);
+                    secondaryDarkInput.value = darkenColor(complementary);
+                  }
+
+                  // Visual feedback
+                  this.textContent = 'Applied!';
+                  this.style.background = '#17a2b8';
+                  setTimeout(() => {
+                    this.textContent = 'Use as Secondary';
+                    this.style.background = '#28a745';
+                  }, 1500);
+                });
+              }
 
               // Handle secondary color change
               secondaryInput.addEventListener('input', function() {
