@@ -385,155 +385,105 @@ ActiveAdmin.register BrandSetting do
               hint: 'Darker variant of secondary color'
 
       # JavaScript for auto-generating color variants
-      text_node '<script>
+      color_script = <<~HEREDOC
+        <script>
         (function() {
-            // Convert hex to HSL
-            function hexToHSL(hex) {
-              hex = hex.replace('#', '');
-              const r = parseInt(hex.substring(0, 2), 16) / 255;
-              const g = parseInt(hex.substring(2, 4), 16) / 255;
-              const b = parseInt(hex.substring(4, 6), 16) / 255;
-
-              const max = Math.max(r, g, b);
-              const min = Math.min(r, g, b);
-              let h, s, l = (max + min) / 2;
-
-              if (max === min) {
-                h = s = 0;
-              } else {
-                const d = max - min;
-                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-                switch (max) {
-                  case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-                  case g: h = ((b - r) / d + 2) / 6; break;
-                  case b: h = ((r - g) / d + 4) / 6; break;
-                }
+          function hexToHSL(hex) {
+            hex = hex.replace('#', '');
+            var r = parseInt(hex.substring(0, 2), 16) / 255;
+            var g = parseInt(hex.substring(2, 4), 16) / 255;
+            var b = parseInt(hex.substring(4, 6), 16) / 255;
+            var max = Math.max(r, g, b);
+            var min = Math.min(r, g, b);
+            var h, s, l = (max + min) / 2;
+            if (max === min) { h = s = 0; }
+            else {
+              var d = max - min;
+              s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+              if (max === r) { h = ((g - b) / d + (g < b ? 6 : 0)) / 6; }
+              else if (max === g) { h = ((b - r) / d + 2) / 6; }
+              else { h = ((r - g) / d + 4) / 6; }
+            }
+            return { h: h * 360, s: s * 100, l: l * 100 };
+          }
+          function hslToHex(h, s, l) {
+            h /= 360; s /= 100; l /= 100;
+            var r, g, b;
+            if (s === 0) { r = g = b = l; }
+            else {
+              function hue2rgb(p, q, t) {
+                if (t < 0) t += 1; if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
               }
-              return { h: h * 360, s: s * 100, l: l * 100 };
+              var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+              var p = 2 * l - q;
+              r = hue2rgb(p, q, h + 1/3);
+              g = hue2rgb(p, q, h);
+              b = hue2rgb(p, q, h - 1/3);
             }
-
-            // Convert HSL to hex
-            function hslToHex(h, s, l) {
-              h /= 360; s /= 100; l /= 100;
-              let r, g, b;
-              if (s === 0) {
-                r = g = b = l;
-              } else {
-                const hue2rgb = (p, q, t) => {
-                  if (t < 0) t += 1;
-                  if (t > 1) t -= 1;
-                  if (t < 1/6) return p + (q - p) * 6 * t;
-                  if (t < 1/2) return q;
-                  if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-                  return p;
-                };
-                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-                const p = 2 * l - q;
-                r = hue2rgb(p, q, h + 1/3);
-                g = hue2rgb(p, q, h);
-                b = hue2rgb(p, q, h - 1/3);
+            function toHex(x) { var hex = Math.round(x * 255).toString(16); return hex.length === 1 ? '0' + hex : hex; }
+            return '#' + toHex(r) + toHex(g) + toHex(b);
+          }
+          function lightenColor(hex) { var hsl = hexToHSL(hex); return hslToHex(hsl.h, hsl.s, Math.min(hsl.l + 25, 95)); }
+          function darkenColor(hex) { var hsl = hexToHSL(hex); return hslToHex(hsl.h, hsl.s, Math.max(hsl.l - 20, 5)); }
+          function complementaryColor(hex) { var hsl = hexToHSL(hex); return hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l); }
+          function updateComplementaryPreview(primaryHex) {
+            var complementary = complementaryColor(primaryHex);
+            var preview = document.getElementById('complementary_color_preview');
+            var value = document.getElementById('complementary_color_value');
+            if (preview && value) {
+              preview.style.backgroundColor = complementary;
+              value.textContent = complementary.toUpperCase();
+              value.style.color = complementary;
+            }
+            return complementary;
+          }
+          document.addEventListener('DOMContentLoaded', function() {
+            var autoGenCheckbox = document.getElementById('auto_generate_variants');
+            var primaryInput = document.getElementById('brand_setting_primary_color');
+            var primaryLightInput = document.getElementById('brand_setting_primary_light_color');
+            var primaryDarkInput = document.getElementById('brand_setting_primary_dark_color');
+            var secondaryInput = document.getElementById('brand_setting_secondary_color');
+            var secondaryLightInput = document.getElementById('brand_setting_secondary_light_color');
+            var secondaryDarkInput = document.getElementById('brand_setting_secondary_dark_color');
+            var applyComplementaryBtn = document.getElementById('apply_complementary_btn');
+            if (!autoGenCheckbox || !primaryInput) return;
+            updateComplementaryPreview(primaryInput.value);
+            primaryInput.addEventListener('input', function() {
+              updateComplementaryPreview(this.value);
+              if (autoGenCheckbox.checked) {
+                primaryLightInput.value = lightenColor(this.value);
+                primaryDarkInput.value = darkenColor(this.value);
               }
-              const toHex = x => {
-                const hex = Math.round(x * 255).toString(16);
-                return hex.length === 1 ? '0' + hex : hex;
-              };
-              return '#' + toHex(r) + toHex(g) + toHex(b);
-            }
-
-            // Generate lighter variant (increase lightness by 25%)
-            function lightenColor(hex) {
-              const hsl = hexToHSL(hex);
-              const newL = Math.min(hsl.l + 25, 95);
-              return hslToHex(hsl.h, hsl.s, newL);
-            }
-
-            // Generate darker variant (decrease lightness by 20%)
-            function darkenColor(hex) {
-              const hsl = hexToHSL(hex);
-              const newL = Math.max(hsl.l - 20, 5);
-              return hslToHex(hsl.h, hsl.s, newL);
-            }
-
-            // Generate complementary color (180° hue shift)
-            function complementaryColor(hex) {
-              const hsl = hexToHSL(hex);
-              const newH = (hsl.h + 180) % 360;
-              return hslToHex(newH, hsl.s, hsl.l);
-            }
-
-            // Update complementary color preview
-            function updateComplementaryPreview(primaryHex) {
-              const complementary = complementaryColor(primaryHex);
-              const preview = document.getElementById('complementary_color_preview');
-              const value = document.getElementById('complementary_color_value');
-              if (preview && value) {
-                preview.style.backgroundColor = complementary;
-                value.textContent = complementary.toUpperCase();
-                value.style.color = complementary;
-              }
-              return complementary;
-            }
-
-            // Setup event listeners
-            document.addEventListener('DOMContentLoaded', function() {
-              const autoGenCheckbox = document.getElementById('auto_generate_variants');
-              const primaryInput = document.getElementById('brand_setting_primary_color');
-              const primaryLightInput = document.getElementById('brand_setting_primary_light_color');
-              const primaryDarkInput = document.getElementById('brand_setting_primary_dark_color');
-              const secondaryInput = document.getElementById('brand_setting_secondary_color');
-              const secondaryLightInput = document.getElementById('brand_setting_secondary_light_color');
-              const secondaryDarkInput = document.getElementById('brand_setting_secondary_dark_color');
-              const applyComplementaryBtn = document.getElementById('apply_complementary_btn');
-
-              if (!autoGenCheckbox || !primaryInput) return;
-
-              // Initialize complementary color preview
-              updateComplementaryPreview(primaryInput.value);
-
-              // Handle primary color change
-              primaryInput.addEventListener('input', function() {
-                // Update complementary color preview
-                updateComplementaryPreview(this.value);
-
-                // Auto-generate variants if enabled
-                if (autoGenCheckbox.checked) {
-                  primaryLightInput.value = lightenColor(this.value);
-                  primaryDarkInput.value = darkenColor(this.value);
-                }
-              });
-
-              // Handle "Use as Secondary" button click
-              if (applyComplementaryBtn) {
-                applyComplementaryBtn.addEventListener('click', function() {
-                  const complementary = complementaryColor(primaryInput.value);
-                  secondaryInput.value = complementary;
-
-                  // Also generate variants if auto-generate is enabled
-                  if (autoGenCheckbox.checked) {
-                    secondaryLightInput.value = lightenColor(complementary);
-                    secondaryDarkInput.value = darkenColor(complementary);
-                  }
-
-                  // Visual feedback
-                  this.textContent = 'Applied!';
-                  this.style.background = '#17a2b8';
-                  setTimeout(() => {
-                    this.textContent = 'Use as Secondary';
-                    this.style.background = '#28a745';
-                  }, 1500);
-                });
-              }
-
-              // Handle secondary color change
-              secondaryInput.addEventListener('input', function() {
-                if (autoGenCheckbox.checked) {
-                  secondaryLightInput.value = lightenColor(this.value);
-                  secondaryDarkInput.value = darkenColor(this.value);
-                }
-              });
             });
-          })();
-        </script>'.html_safe
+            if (applyComplementaryBtn) {
+              applyComplementaryBtn.addEventListener('click', function() {
+                var complementary = complementaryColor(primaryInput.value);
+                secondaryInput.value = complementary;
+                if (autoGenCheckbox.checked) {
+                  secondaryLightInput.value = lightenColor(complementary);
+                  secondaryDarkInput.value = darkenColor(complementary);
+                }
+                var btn = this;
+                btn.textContent = 'Applied!';
+                btn.style.background = '#17a2b8';
+                setTimeout(function() { btn.textContent = 'Use as Secondary'; btn.style.background = '#28a745'; }, 1500);
+              });
+            }
+            secondaryInput.addEventListener('input', function() {
+              if (autoGenCheckbox.checked) {
+                secondaryLightInput.value = lightenColor(this.value);
+                secondaryDarkInput.value = darkenColor(this.value);
+              }
+            });
+          });
+        })();
+        </script>
+      HEREDOC
+      text_node color_script.html_safe
     end
 
     f.inputs 'Typography' do
