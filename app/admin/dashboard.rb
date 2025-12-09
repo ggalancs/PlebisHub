@@ -6,6 +6,44 @@ ActiveAdmin.register_page 'Dashboard' do
   content title: proc { I18n.t('active_admin.dashboard') } do
     columns do
       column do
+        panel 'Theme Customization', class: 'theme-panel' do
+          active_setting = BrandSetting.find_by(active: true, scope: 'global')
+          if active_setting
+            div style: 'display: flex; align-items: center; gap: 20px; margin-bottom: 15px;' do
+              # Color preview
+              colors = active_setting.theme_colors
+              div style: 'display: flex; gap: 8px;' do
+                div style: "width: 40px; height: 40px; border-radius: 8px; background: #{colors[:primary]}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                div style: "width: 40px; height: 40px; border-radius: 8px; background: #{colors[:secondary]}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+              end
+              div do
+                div active_setting.name, style: 'font-weight: 600; font-size: 14px;'
+                div "Theme: #{active_setting.theme_name || active_setting.theme_id || 'Custom'}", style: 'color: #666; font-size: 12px;'
+              end
+            end
+            div style: 'display: flex; gap: 10px;' do
+              span do
+                link_to 'Edit Theme', edit_admin_brand_setting_path(active_setting), class: 'button'
+              end
+              span do
+                link_to 'Preview', preview_admin_brand_setting_path(active_setting), class: 'button', target: '_blank', rel: 'noopener'
+              end
+              span do
+                link_to 'All Themes', admin_brand_settings_path, class: 'button'
+              end
+            end
+          else
+            para 'No active theme configured.', style: 'color: #666;'
+            div do
+              link_to 'Create Theme', new_admin_brand_setting_path, class: 'button'
+            end
+          end
+        end
+      end
+    end
+
+    columns do
+      column do
         panel 'Información importante' do
           div 'Condiciones de uso y aviso legal'
           div 'Manual de uso de la aplicación'
