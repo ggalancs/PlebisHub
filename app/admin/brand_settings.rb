@@ -299,12 +299,23 @@ ActiveAdmin.register BrandSetting do
 
       para 'Colors are pre-filled from the current theme. Modify to customize.'
 
+      # Auto-generate toggle
+      li class: 'boolean input', style: 'margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;' do
+        label style: 'display: flex; align-items: center; gap: 10px; cursor: pointer;' do
+          input type: 'checkbox', id: 'auto_generate_variants', style: 'width: 18px; height: 18px;'
+          span 'Auto-generate light/dark variants when primary or secondary color changes', style: 'font-weight: 500;'
+        end
+        div 'Light variants are 25% lighter, dark variants are 20% darker', style: 'color: #666; font-size: 12px; margin-top: 5px; margin-left: 28px;'
+      end
+
       f.input :primary_color,
               as: :string,
               input_html: {
                 type: 'color',
                 style: 'height: 50px; width: 100%;',
-                value: f.object.primary_color.presence || colors[:primary] || '#612d62'
+                value: f.object.primary_color.presence || colors[:primary] || '#612d62',
+                id: 'brand_setting_primary_color',
+                data: { color_source: 'primary' }
               },
               hint: 'Main brand color'
       f.input :primary_light_color,
@@ -312,7 +323,9 @@ ActiveAdmin.register BrandSetting do
               input_html: {
                 type: 'color',
                 style: 'height: 50px; width: 100%;',
-                value: f.object.primary_light_color.presence || colors[:primaryLight] || '#8a4f98'
+                value: f.object.primary_light_color.presence || colors[:primaryLight] || '#8a4f98',
+                id: 'brand_setting_primary_light_color',
+                data: { color_variant: 'primary-light' }
               },
               hint: 'Lighter variant of primary color'
       f.input :primary_dark_color,
@@ -320,7 +333,9 @@ ActiveAdmin.register BrandSetting do
               input_html: {
                 type: 'color',
                 style: 'height: 50px; width: 100%;',
-                value: f.object.primary_dark_color.presence || colors[:primaryDark] || '#4c244a'
+                value: f.object.primary_dark_color.presence || colors[:primaryDark] || '#4c244a',
+                id: 'brand_setting_primary_dark_color',
+                data: { color_variant: 'primary-dark' }
               },
               hint: 'Darker variant of primary color'
 
@@ -329,7 +344,9 @@ ActiveAdmin.register BrandSetting do
               input_html: {
                 type: 'color',
                 style: 'height: 50px; width: 100%;',
-                value: f.object.secondary_color.presence || colors[:secondary] || '#269283'
+                value: f.object.secondary_color.presence || colors[:secondary] || '#269283',
+                id: 'brand_setting_secondary_color',
+                data: { color_source: 'secondary' }
               },
               hint: 'Accent/secondary brand color'
       f.input :secondary_light_color,
@@ -337,7 +354,9 @@ ActiveAdmin.register BrandSetting do
               input_html: {
                 type: 'color',
                 style: 'height: 50px; width: 100%;',
-                value: f.object.secondary_light_color.presence || colors[:secondaryLight] || '#14b8a6'
+                value: f.object.secondary_light_color.presence || colors[:secondaryLight] || '#14b8a6',
+                id: 'brand_setting_secondary_light_color',
+                data: { color_variant: 'secondary-light' }
               },
               hint: 'Lighter variant of secondary color'
       f.input :secondary_dark_color,
@@ -345,9 +364,114 @@ ActiveAdmin.register BrandSetting do
               input_html: {
                 type: 'color',
                 style: 'height: 50px; width: 100%;',
-                value: f.object.secondary_dark_color.presence || colors[:secondaryDark] || '#0f766e'
+                value: f.object.secondary_dark_color.presence || colors[:secondaryDark] || '#0f766e',
+                id: 'brand_setting_secondary_dark_color',
+                data: { color_variant: 'secondary-dark' }
               },
               hint: 'Darker variant of secondary color'
+
+      # JavaScript for auto-generating color variants
+      script do
+        raw <<~JS
+          (function() {
+            // Convert hex to HSL
+            function hexToHSL(hex) {
+              hex = hex.replace('#', '');
+              const r = parseInt(hex.substring(0, 2), 16) / 255;
+              const g = parseInt(hex.substring(2, 4), 16) / 255;
+              const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+              const max = Math.max(r, g, b);
+              const min = Math.min(r, g, b);
+              let h, s, l = (max + min) / 2;
+
+              if (max === min) {
+                h = s = 0;
+              } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                  case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                  case g: h = ((b - r) / d + 2) / 6; break;
+                  case b: h = ((r - g) / d + 4) / 6; break;
+                }
+              }
+              return { h: h * 360, s: s * 100, l: l * 100 };
+            }
+
+            // Convert HSL to hex
+            function hslToHex(h, s, l) {
+              h /= 360; s /= 100; l /= 100;
+              let r, g, b;
+              if (s === 0) {
+                r = g = b = l;
+              } else {
+                const hue2rgb = (p, q, t) => {
+                  if (t < 0) t += 1;
+                  if (t > 1) t -= 1;
+                  if (t < 1/6) return p + (q - p) * 6 * t;
+                  if (t < 1/2) return q;
+                  if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                  return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+              }
+              const toHex = x => {
+                const hex = Math.round(x * 255).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+              };
+              return '#' + toHex(r) + toHex(g) + toHex(b);
+            }
+
+            // Generate lighter variant (increase lightness by 25%)
+            function lightenColor(hex) {
+              const hsl = hexToHSL(hex);
+              const newL = Math.min(hsl.l + 25, 95);
+              return hslToHex(hsl.h, hsl.s, newL);
+            }
+
+            // Generate darker variant (decrease lightness by 20%)
+            function darkenColor(hex) {
+              const hsl = hexToHSL(hex);
+              const newL = Math.max(hsl.l - 20, 5);
+              return hslToHex(hsl.h, hsl.s, newL);
+            }
+
+            // Setup event listeners
+            document.addEventListener('DOMContentLoaded', function() {
+              const autoGenCheckbox = document.getElementById('auto_generate_variants');
+              const primaryInput = document.getElementById('brand_setting_primary_color');
+              const primaryLightInput = document.getElementById('brand_setting_primary_light_color');
+              const primaryDarkInput = document.getElementById('brand_setting_primary_dark_color');
+              const secondaryInput = document.getElementById('brand_setting_secondary_color');
+              const secondaryLightInput = document.getElementById('brand_setting_secondary_light_color');
+              const secondaryDarkInput = document.getElementById('brand_setting_secondary_dark_color');
+
+              if (!autoGenCheckbox || !primaryInput) return;
+
+              // Handle primary color change
+              primaryInput.addEventListener('input', function() {
+                if (autoGenCheckbox.checked) {
+                  primaryLightInput.value = lightenColor(this.value);
+                  primaryDarkInput.value = darkenColor(this.value);
+                }
+              });
+
+              // Handle secondary color change
+              secondaryInput.addEventListener('input', function() {
+                if (autoGenCheckbox.checked) {
+                  secondaryLightInput.value = lightenColor(this.value);
+                  secondaryDarkInput.value = darkenColor(this.value);
+                }
+              });
+            });
+          })();
+        JS
+      end
     end
 
     f.inputs 'Typography' do
