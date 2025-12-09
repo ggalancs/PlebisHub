@@ -1,0 +1,51 @@
+eu:
+  errors:
+    show:
+      "400":
+        title: "Eskaera okerra"
+        message_html: "Ezin izan da eskaera prozesatu. Mesedez, egiaztatu datuak eta saiatu berriro."
+      "401":
+        title: "Baimenik gabe"
+        message_html: "Saioa hasi behar duzu orri honetara sartzeko."
+      "403":
+        title: "Sarbidea ukatua"
+        message_html: "Ez duzu baimenik orri honetara sartzeko."
+      "404":
+        title: "Orria ez da aurkitu"
+        message_html: "Bilatzen duzun orria ez da existitzen edo lekuz aldatu da. <a href='/'>Hasierara itzuli</a>"
+      "405":
+        title: "Metodoa ez da onartzen"
+        message_html: "Eskaera-metodoa ez da onartzen orri honetarako."
+      "406":
+        title: "Ez da onargarria"
+        message_html: "Zerbitzariak ezin du erantzunik eman eskatutako formatuan."
+      "408":
+        title: "Denbora-muga gainditua"
+        message_html: "Eskaerak denbora gehiegi behar izan du. Mesedez, saiatu berriro."
+      "409":
+        title: "Gatazka"
+        message_html: "Ezin izan da eskaera burutu baliabidearen egungo egoerarekin gatazka dagoelako."
+      "410":
+        title: "Baliabidea ezabatua"
+        message_html: "Bilatzen duzun baliabidea ez dago eskuragarri."
+      "422":
+        title: "Entitate ez prozesagarria"
+        message_html: "Ezin izan da eskaera prozesatu bidalitako datuetan akatsak daudelako."
+      "429":
+        title: "Eskaera gehiegi"
+        message_html: "Eskaera gehiegi egin dituzu. Mesedez, itxaron pixka bat eta saiatu berriro."
+      "500":
+        title: "Zerbitzariaren errorea"
+        message_html: "Ustekabeko errore bat gertatu da. Gure taldea jakinarazi da. Mesedez, saiatu berriro geroago."
+      "501":
+        title: "Ez da inplementatu"
+        message_html: "Funtzionalitate hau ez dago eskuragarri momentu honetan."
+      "502":
+        title: "Pasabide-errorea"
+        message_html: "Zerbitzariak erantzun baliogabea jaso du. Mesedez, saiatu berriro geroago."
+      "503":
+        title: "Zerbitzua ez dago eskuragarri"
+        message_html: "Zerbitzua aldi baterako ez dago eskuragarri mantentze-lanengatik. Mesedez, saiatu berriro geroago."
+      "504":
+        title: "Pasabidearen denbora-muga"
+        message_html: "Zerbitzariak ez du garaiz erantzun. Mesedez, saiatu berriro geroago."

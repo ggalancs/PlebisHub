@@ -1,0 +1,51 @@
+ca:
+  errors:
+    show:
+      "400":
+        title: "Sol·licitud incorrecta"
+        message_html: "La sol·licitud no s'ha pogut processar. Si us plau, verifica les dades i torna-ho a provar."
+      "401":
+        title: "No autoritzat"
+        message_html: "Necessites iniciar sessió per accedir a aquesta pàgina."
+      "403":
+        title: "Accés denegat"
+        message_html: "No tens permís per accedir a aquesta pàgina."
+      "404":
+        title: "Pàgina no trobada"
+        message_html: "La pàgina que busques no existeix o s'ha mogut. <a href='/'>Tornar a l'inici</a>"
+      "405":
+        title: "Mètode no permès"
+        message_html: "El mètode de sol·licitud no està permès per a aquesta pàgina."
+      "406":
+        title: "No acceptable"
+        message_html: "El servidor no pot proporcionar una resposta en el format sol·licitat."
+      "408":
+        title: "Temps d'espera esgotat"
+        message_html: "La sol·licitud ha trigat massa temps. Si us plau, torna-ho a provar."
+      "409":
+        title: "Conflicte"
+        message_html: "La sol·licitud no s'ha pogut completar a causa d'un conflicte amb l'estat actual del recurs."
+      "410":
+        title: "Recurs eliminat"
+        message_html: "El recurs que busques ja no està disponible."
+      "422":
+        title: "Entitat no processable"
+        message_html: "La sol·licitud no s'ha pogut processar a causa d'errors en les dades enviades."
+      "429":
+        title: "Massa sol·licituds"
+        message_html: "Has fet massa sol·licituds. Si us plau, espera un moment i torna-ho a provar."
+      "500":
+        title: "Error del servidor"
+        message_html: "S'ha produït un error inesperat. El nostre equip ha estat notificat. Si us plau, torna-ho a provar més tard."
+      "501":
+        title: "No implementat"
+        message_html: "Aquesta funcionalitat no està disponible en aquest moment."
+      "502":
+        title: "Error de passarel·la"
+        message_html: "El servidor ha rebut una resposta invàlida. Si us plau, torna-ho a provar més tard."
+      "503":
+        title: "Servei no disponible"
+        message_html: "El servei està temporalment no disponible per manteniment. Si us plau, torna-ho a provar més tard."
+      "504":
+        title: "Temps d'espera de passarel·la"
+        message_html: "El servidor no ha respost a temps. Si us plau, torna-ho a provar més tard."

@@ -5,6 +5,20 @@ Rails.application.routes.draw do
   # Health check endpoint for Docker/Kubernetes/Load Balancers
   get 'health', to: 'health#show', as: :health_check
 
+  # RAILS 7.2 FIX: Catch double-locale URLs and redirect to single-locale version
+  # This handles edge cases where locale gets accidentally doubled (e.g., /es/es/users/edit)
+  # The regex captures the first locale and redirects to the path with single locale
+  get '/:locale1/:locale2/*path', to: redirect { |params, _request|
+    locale = params[:locale1]
+    path = params[:path]
+    "/#{locale}/#{path}"
+  }, constraints: { locale1: /es|ca|eu/, locale2: /es|ca|eu/ }
+
+  # Also handle double-locale at root (e.g., /es/es)
+  get '/:locale1/:locale2', to: redirect { |params, _request|
+    "/#{params[:locale1]}"
+  }, constraints: { locale1: /es|ca|eu/, locale2: /es|ca|eu/ }
+
   get '', to: redirect("/#{I18n.locale}")
 
   # redsys MerchantURL
@@ -215,4 +229,9 @@ Rails.application.routes.draw do
   # Exclude supported locales: es, ca, eu (configured in config/application.rb I18n.available_locales)
   get '/:unsupported_locale', to: redirect('/es'), constraints: { unsupported_locale: /(?!es|ca|eu)[a-z]{2}/ }
   get '/:unsupported_locale/*path', to: redirect { |params, _| "/es/#{params[:path]}" }, constraints: { unsupported_locale: /(?!es|ca|eu)[a-z]{2}/ }
+
+  # Catch-all route for non-existent pages - MUST be last
+  # This handles any request that doesn't match any defined route
+  # Routes to the errors controller which renders a proper 404 page
+  match '*path', to: 'errors#show', defaults: { code: '404' }, via: :all
 end

@@ -13,6 +13,9 @@
 # It prevents security issues like symbol table pollution and
 # I18n key injection by validating error codes against a whitelist.
 class ErrorsController < ApplicationController
+  # Override locale detection to extract from path for catch-all routes
+  before_action :set_locale_from_path
+
   # Whitelist of allowed HTTP error codes
   ALLOWED_ERROR_CODES = {
     # 4xx Client Errors
@@ -98,5 +101,15 @@ class ErrorsController < ApplicationController
       **details,
       timestamp: Time.current.iso8601
     }.to_json)
+  end
+
+  # Extract locale from request path for catch-all routes
+  # This handles cases where params[:locale] is not set (e.g., /es/nonexistent)
+  def set_locale_from_path
+    # Try to extract locale from the beginning of the path
+    path_locale = request.path.match(%r{^/(es|ca|eu)(/|$)})&.captures&.first
+    I18n.locale = path_locale || params[:locale] || :es
+  rescue StandardError
+    I18n.locale = :es
   end
 end

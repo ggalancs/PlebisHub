@@ -1,0 +1,51 @@
+es:
+  errors:
+    show:
+      "400":
+        title: "Solicitud incorrecta"
+        message_html: "La solicitud no pudo ser procesada. Por favor, verifica los datos e inténtalo de nuevo."
+      "401":
+        title: "No autorizado"
+        message_html: "Necesitas iniciar sesión para acceder a esta página."
+      "403":
+        title: "Acceso denegado"
+        message_html: "No tienes permiso para acceder a esta página."
+      "404":
+        title: "Página no encontrada"
+        message_html: "La página que buscas no existe o ha sido movida. <a href='/'>Volver al inicio</a>"
+      "405":
+        title: "Método no permitido"
+        message_html: "El método de solicitud no está permitido para esta página."
+      "406":
+        title: "No aceptable"
+        message_html: "El servidor no puede proporcionar una respuesta en el formato solicitado."
+      "408":
+        title: "Tiempo de espera agotado"
+        message_html: "La solicitud ha tardado demasiado tiempo. Por favor, inténtalo de nuevo."
+      "409":
+        title: "Conflicto"
+        message_html: "La solicitud no pudo completarse debido a un conflicto con el estado actual del recurso."
+      "410":
+        title: "Recurso eliminado"
+        message_html: "El recurso que buscas ya no está disponible."
+      "422":
+        title: "Entidad no procesable"
+        message_html: "La solicitud no pudo ser procesada debido a errores en los datos enviados."
+      "429":
+        title: "Demasiadas solicitudes"
+        message_html: "Has realizado demasiadas solicitudes. Por favor, espera un momento e inténtalo de nuevo."
+      "500":
+        title: "Error del servidor"
+        message_html: "Ha ocurrido un error inesperado. Nuestro equipo ha sido notificado. Por favor, inténtalo más tarde."
+      "501":
+        title: "No implementado"
+        message_html: "Esta funcionalidad no está disponible en este momento."
+      "502":
+        title: "Error de puerta de enlace"
+        message_html: "El servidor ha recibido una respuesta inválida. Por favor, inténtalo más tarde."
+      "503":
+        title: "Servicio no disponible"
+        message_html: "El servicio está temporalmente no disponible por mantenimiento. Por favor, inténtalo más tarde."
+      "504":
+        title: "Tiempo de espera de puerta de enlace"
+        message_html: "El servidor no ha respondido a tiempo. Por favor, inténtalo más tarde."
