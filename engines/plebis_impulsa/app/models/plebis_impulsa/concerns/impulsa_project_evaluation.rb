@@ -101,10 +101,10 @@ module PlebisImpulsa
       def evaluation_export
         evaluation_update_formulas
 
-        evaluation.map do |_sname, step|
-          step[:groups].map do |gname, group|
-            group[:fields].map do |fname, field|
-              next unless field[:export]
+        evaluation.flat_map do |_sname, step|
+          step[:groups].flat_map do |gname, group|
+            group[:fields].flat_map do |fname, field|
+              next [] unless field[:export]
 
               evaluators.map do |i|
                 value = evaluation_values(i)["#{gname}.#{fname}"]
@@ -117,9 +117,9 @@ module PlebisImpulsa
                 end
                 ["evaluation_#{i}_#{field[:export]}", value]
               end.compact
-            end.compact
-          end.flatten(1)
-        end.flatten(1).to_h
+            end
+          end
+        end.to_h
       end
 
       def evaluation_step_errors(evaluator, step, options = {})
@@ -161,6 +161,7 @@ module PlebisImpulsa
         sname = evaluation.map do |sname, step|
           step[:groups][gname] && step[:groups][gname][:fields][fname] && sname
         end.compact.first
+        return :wrong_field unless sname
         field = evaluation[sname][:groups][gname][:fields][fname]
         if field && field[:sum].blank?
           evaluation_values(evaluator)["#{gname}.#{fname}"] = value
@@ -213,11 +214,12 @@ module PlebisImpulsa
         evaluation.each do |sname, step|
           step[:groups].each do |gname, group|
             group[:fields].each do |fname, field|
-              unless field[:sum] && evaluation[field[:sum]] && (updated_step.nil? || field[:sum] == updated_step.to_s)
+              sum_step = field[:sum].respond_to?(:to_sym) ? field[:sum].to_sym : field[:sum]
+              unless field[:sum] && evaluation[sum_step] && (updated_step.nil? || field[:sum].to_s == updated_step.to_s)
                 next
               end
 
-              value = evaluation[field[:sum]][:groups].sum do |gname, group|
+              value = evaluation[sum_step][:groups].sum do |gname, group|
                 group[:fields].sum do |fname, field|
                   (evaluation_values(evaluator)["#{gname}.#{fname}"].to_i if field[:type] == 'number') || 0
                 end
