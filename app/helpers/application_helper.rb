@@ -98,7 +98,11 @@ module ApplicationHelper
 
   # Check if Vite assets are available (for hybrid legacy/modern setup)
   def vite_asset_available?
-    defined?(ViteRails) && ViteRails.instance.config.present?
+    return false unless defined?(ViteRuby)
+
+    # Check if the Vite manifest exists
+    manifest_path = Rails.root.join('public', ViteRuby.config.public_output_dir, '.vite', 'manifest.json')
+    File.exist?(manifest_path)
   rescue StandardError
     false
   end

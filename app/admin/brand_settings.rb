@@ -48,7 +48,7 @@ ActiveAdmin.register BrandSetting do
       end
     end
     column :active do |setting|
-      status_tag setting.active ? 'Active' : 'Inactive', setting.active ? 'yes' : 'no'
+      status_tag setting.active ? 'Active' : 'Inactive', class: setting.active ? 'yes' : 'no'
     end
     column 'Fonts' do |setting|
       "#{setting.font_primary || 'Inter'} / #{setting.font_display || 'Montserrat'}"
@@ -83,7 +83,7 @@ ActiveAdmin.register BrandSetting do
       row :theme_id
       row :theme_name
       row :active do |setting|
-        status_tag setting.active ? 'Active' : 'Inactive', setting.active ? 'yes' : 'no'
+        status_tag setting.active ? 'Active' : 'Inactive', class: setting.active ? 'yes' : 'no'
       end
       row :version
       row :created_at
@@ -405,8 +405,239 @@ ActiveAdmin.register BrandSetting do
               },
               hint: 'Darker variant of secondary color'
 
-      # JavaScript is loaded from app/assets/javascripts/admin/brand_color_tools.js
-      # via ActiveAdmin config.register_javascript
+      # Inline JavaScript for color tools - more reliable than external file
+      text_node %(<script type="text/javascript">
+(function() {
+  'use strict';
+
+  // Color conversion utilities
+  function hexToHSL(hex) {
+    if (!hex || typeof hex !== 'string') return { h: 0, s: 0, l: 50 };
+    hex = hex.replace('#', '');
+    if (hex.length !== 6) return { h: 0, s: 0, l: 50 };
+
+    var r = parseInt(hex.substring(0, 2), 16) / 255;
+    var g = parseInt(hex.substring(2, 4), 16) / 255;
+    var b = parseInt(hex.substring(4, 6), 16) / 255;
+
+    var max = Math.max(r, g, b);
+    var min = Math.min(r, g, b);
+    var h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+      var d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if (max === r) {
+        h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+      } else if (max === g) {
+        h = ((b - r) / d + 2) / 6;
+      } else {
+        h = ((r - g) / d + 4) / 6;
+      }
+    }
+    return { h: h * 360, s: s * 100, l: l * 100 };
+  }
+
+  function hue2rgb(p, q, t) {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  }
+
+  function hslToHex(h, s, l) {
+    h = ((h % 360) + 360) % 360;
+    h /= 360;
+    s /= 100;
+    l /= 100;
+    var r, g, b;
+    if (s === 0) {
+      r = g = b = l;
+    } else {
+      var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      var p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1 / 3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1 / 3);
+    }
+    var toHex = function(x) {
+      var hx = Math.round(x * 255).toString(16);
+      return hx.length === 1 ? '0' + hx : hx;
+    };
+    return '#' + toHex(r) + toHex(g) + toHex(b);
+  }
+
+  function lightenColor(hex) {
+    var hsl = hexToHSL(hex);
+    return hslToHex(hsl.h, hsl.s, Math.min(hsl.l + 25, 95));
+  }
+
+  function darkenColor(hex) {
+    var hsl = hexToHSL(hex);
+    return hslToHex(hsl.h, hsl.s, Math.max(hsl.l - 20, 5));
+  }
+
+  function complementaryColor(hex) {
+    var hsl = hexToHSL(hex);
+    return hslToHex(hsl.h + 180, hsl.s, hsl.l);
+  }
+
+  function isValidHex(hex) {
+    return /^#[0-9A-Fa-f]{6}$/.test(hex);
+  }
+
+  function initBrandColorTools() {
+    console.log('[BrandColorTools] Initializing...');
+
+    var primaryInput = document.getElementById('brand_setting_primary_color');
+    var primaryTextInput = document.getElementById('brand_setting_primary_color_text');
+    var autoGenCheckbox = document.getElementById('auto_generate_variants');
+    var primaryLightInput = document.getElementById('brand_setting_primary_light_color');
+    var primaryDarkInput = document.getElementById('brand_setting_primary_dark_color');
+    var secondaryInput = document.getElementById('brand_setting_secondary_color');
+    var secondaryLightInput = document.getElementById('brand_setting_secondary_light_color');
+    var secondaryDarkInput = document.getElementById('brand_setting_secondary_dark_color');
+    var applyComplementaryBtn = document.getElementById('apply_complementary_btn');
+    var complementaryPreview = document.getElementById('complementary_color_preview');
+    var complementaryValue = document.getElementById('complementary_color_value');
+
+    if (!primaryInput) {
+      console.log('[BrandColorTools] Primary input not found');
+      return;
+    }
+
+    console.log('[BrandColorTools] Found primary input:', primaryInput.value);
+
+    var lastPrimaryValue = primaryInput.value;
+
+    // Update complementary color preview
+    function updateComplementary(hex) {
+      if (!isValidHex(hex)) return;
+      var comp = complementaryColor(hex);
+      console.log('[BrandColorTools] Complementary:', hex, '->', comp);
+      if (complementaryPreview) {
+        complementaryPreview.style.backgroundColor = comp;
+      }
+      if (complementaryValue) {
+        complementaryValue.textContent = comp.toUpperCase();
+        complementaryValue.style.color = comp;
+      }
+      return comp;
+    }
+
+    // Handle primary color change
+    function handlePrimaryChange(newValue, source) {
+      console.log('[BrandColorTools] Primary changed:', newValue, 'from', source);
+      if (!isValidHex(newValue)) return;
+
+      lastPrimaryValue = newValue;
+      updateComplementary(newValue);
+
+      // Sync picker and text
+      if (source === 'picker' && primaryTextInput) {
+        primaryTextInput.value = newValue.toUpperCase();
+      } else if (source === 'text' && primaryInput) {
+        primaryInput.value = newValue.toLowerCase();
+      }
+
+      // Auto-generate variants
+      if (autoGenCheckbox && autoGenCheckbox.checked) {
+        var light = lightenColor(newValue);
+        var dark = darkenColor(newValue);
+        console.log('[BrandColorTools] Auto-generating primary variants:', light, dark);
+        if (primaryLightInput) primaryLightInput.value = light;
+        if (primaryDarkInput) primaryDarkInput.value = dark;
+      }
+    }
+
+    // Handle secondary color change
+    function handleSecondaryChange() {
+      if (!secondaryInput || !autoGenCheckbox || !autoGenCheckbox.checked) return;
+      var light = lightenColor(secondaryInput.value);
+      var dark = darkenColor(secondaryInput.value);
+      console.log('[BrandColorTools] Auto-generating secondary variants:', light, dark);
+      if (secondaryLightInput) secondaryLightInput.value = light;
+      if (secondaryDarkInput) secondaryDarkInput.value = dark;
+    }
+
+    // Primary color picker events
+    primaryInput.addEventListener('input', function() {
+      handlePrimaryChange(this.value, 'picker');
+    });
+    primaryInput.addEventListener('change', function() {
+      handlePrimaryChange(this.value, 'picker');
+    });
+
+    // Primary text input events
+    if (primaryTextInput) {
+      primaryTextInput.addEventListener('input', function() {
+        var val = this.value.trim();
+        if (val && val[0] !== '#') val = '#' + val;
+        if (isValidHex(val)) handlePrimaryChange(val, 'text');
+      });
+      primaryTextInput.addEventListener('change', function() {
+        var val = this.value.trim();
+        if (val && val[0] !== '#') {
+          val = '#' + val;
+          this.value = val.toUpperCase();
+        }
+        if (isValidHex(val)) handlePrimaryChange(val, 'text');
+      });
+    }
+
+    // Secondary color events
+    if (secondaryInput) {
+      secondaryInput.addEventListener('input', handleSecondaryChange);
+      secondaryInput.addEventListener('change', handleSecondaryChange);
+    }
+
+    // Apply complementary button
+    if (applyComplementaryBtn) {
+      applyComplementaryBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var comp = complementaryColor(primaryInput.value);
+        console.log('[BrandColorTools] Applying complementary:', comp);
+        if (secondaryInput) {
+          secondaryInput.value = comp;
+          // Trigger change event for auto-generate
+          secondaryInput.dispatchEvent(new Event('change'));
+        }
+        this.textContent = 'Applied!';
+        this.style.background = '#17a2b8';
+        var btn = this;
+        setTimeout(function() {
+          btn.textContent = 'Use as Secondary';
+          btn.style.background = '#28a745';
+        }, 1500);
+      });
+    }
+
+    // Polling fallback for color picker
+    setInterval(function() {
+      if (primaryInput && primaryInput.value !== lastPrimaryValue) {
+        console.log('[BrandColorTools] Polling detected change');
+        handlePrimaryChange(primaryInput.value, 'picker');
+      }
+    }, 100);
+
+    // Initial update
+    updateComplementary(primaryInput.value);
+    console.log('[BrandColorTools] Initialization complete');
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBrandColorTools);
+  } else {
+    initBrandColorTools();
+  }
+
+  // Also try after a delay for Turbolinks
+  setTimeout(initBrandColorTools, 500);
+})();
+</script>).html_safe
     end
 
     f.inputs 'Typography' do
