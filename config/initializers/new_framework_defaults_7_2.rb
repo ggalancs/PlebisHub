@@ -16,9 +16,16 @@
 # This prevents jobs from being enqueued before the transaction commits.
 Rails.application.config.active_job.enqueue_after_transaction_commit = :default
 
-# Adds image/webp to the list of content types Active Storage considers as an image.
-# Prevents automatic conversion to a fallback PNG for WebP images.
-Rails.application.config.active_storage.web_image_content_types = %w[image/png image/jpeg image/gif image/webp]
+# Adds image/webp and image/svg+xml to the list of content types Active Storage considers as an image.
+# Prevents automatic conversion to a fallback PNG for WebP and SVG images.
+Rails.application.config.active_storage.web_image_content_types = %w[image/png image/jpeg image/gif image/webp image/svg+xml]
+
+# Allow SVG images to be served inline with their correct content-type.
+# By default, Rails serves SVG as application/octet-stream for security (XSS prevention).
+# Since our SVGs are admin-uploaded brand assets (not user-uploaded), this is safe.
+# We also remove SVG from content_types_to_serve_as_binary to prevent forced binary download.
+Rails.application.config.active_storage.content_types_allowed_inline += %w[image/svg+xml]
+Rails.application.config.active_storage.content_types_to_serve_as_binary -= %w[image/svg+xml]
 
 # Enable validation of migration timestamps to prevent forward-dating of migration files.
 Rails.application.config.active_record.validate_migration_timestamps = true

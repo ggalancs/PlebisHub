@@ -1,0 +1,22 @@
+<!-- PlebisHub Logo Type - Solo texto -->
+<svg width="180" height="48" viewBox="0 0 180 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .logo-text {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+      }
+    </style>
+  </defs>
+
+  <!-- PlebisHub text with modern styling -->
+  <text x="0" y="34" class="logo-text" font-size="32" fill="#612d62">
+    Plebis
+  </text>
+  <text x="98" y="34" class="logo-text" font-size="32" fill="#269283">
+    Hub
+  </text>
+
+  <!-- Subtle accent line -->
+  <line x1="0" y1="42" x2="180" y2="42" stroke="#612d62" stroke-width="3" opacity="0.2"/>
+</svg>

@@ -233,5 +233,7 @@ Rails.application.routes.draw do
   # Catch-all route for non-existent pages - MUST be last
   # This handles any request that doesn't match any defined route
   # Routes to the errors controller which renders a proper 404 page
-  match '*path', to: 'errors#show', defaults: { code: '404' }, via: :all
+  # Note: Exclude /rails/active_storage paths to allow ActiveStorage to handle them
+  match '*path', to: 'errors#show', defaults: { code: '404' }, via: :all,
+        constraints: ->(req) { !req.path.start_with?('/rails/active_storage') }
 end

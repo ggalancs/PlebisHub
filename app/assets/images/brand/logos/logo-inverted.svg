@@ -1,0 +1,60 @@
+<!-- PlebisHub Logo Inverted - Para fondos oscuros -->
+<svg width="260" height="64" viewBox="0 0 260 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="primaryGradientLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c491cd;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a96bb6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="secondaryGradientLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5eead4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2dd4bf;stop-opacity:1" />
+    </linearGradient>
+    <style>
+      .logo-text {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+      }
+    </style>
+  </defs>
+
+  <!-- Logo Mark with lighter colors for dark backgrounds -->
+  <g id="mark">
+    <!-- Círculo central -->
+    <circle cx="32" cy="32" r="12" fill="url(#primaryGradientLight)"/>
+
+    <!-- Elementos orbitales -->
+    <circle cx="32" cy="8" r="4" fill="url(#secondaryGradientLight)"/>
+    <path d="M32 12 L32 20" stroke="#5eead4" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="49" cy="15" r="4" fill="url(#secondaryGradientLight)"/>
+    <path d="M47 17 L40 26" stroke="#5eead4" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="56" cy="32" r="4" fill="url(#secondaryGradientLight)"/>
+    <path d="M52 32 L44 32" stroke="#5eead4" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="49" cy="49" r="4" fill="url(#secondaryGradientLight)"/>
+    <path d="M47 47 L40 38" stroke="#5eead4" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="32" cy="56" r="4" fill="url(#secondaryGradientLight)"/>
+    <path d="M32 52 L32 44" stroke="#5eead4" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="15" cy="49" r="4" fill="url(#secondaryGradientLight)"/>
+    <path d="M17 47 L24 38" stroke="#5eead4" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="8" cy="32" r="4" fill="url(#secondaryGradientLight)"/>
+    <path d="M12 32 L20 32" stroke="#5eead4" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="15" cy="15" r="4" fill="url(#secondaryGradientLight)"/>
+    <path d="M17 17 L24 26" stroke="#5eead4" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Logo Type with light colors -->
+  <g id="type" transform="translate(80, 0)">
+    <text x="0" y="40" class="logo-text" font-size="36" fill="#c491cd">
+      Plebis
+    </text>
+    <text x="110" y="40" class="logo-text" font-size="36" fill="#5eead4">
+      Hub
+    </text>
+  </g>
+</svg>
