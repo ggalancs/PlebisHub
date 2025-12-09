@@ -56,6 +56,7 @@ class Ability
 
     # Brand/Theme customization
     can :manage, BrandSetting
+    can :manage, BrandImage
 
     # User management (limited - no destroy to prevent accidental deletions)
     can :admin, User

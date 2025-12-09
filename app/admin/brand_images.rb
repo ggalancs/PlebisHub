@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register BrandImage do
-  menu parent: 'Branding', priority: 2, label: 'Brand Images'
+  menu priority: 3, label: 'Brand Images'
 
   permit_params :name, :key, :category, :description, :alt_text,
                 :brand_setting_id, :organization_id, :active, :position, :image
@@ -407,14 +407,9 @@ ActiveAdmin.register BrandImage do
     redirect_to collection_path, notice: "#{ids.count} images deactivated!"
   end
 
-  # ========================================
-  # HELPER METHODS
-  # ========================================
-  controller do
-    helper_method :category_tag_class
-  end
 end
 
+# Helper method for category tag styling
 def category_tag_class(category)
   case category
   when 'logo' then 'blue'
