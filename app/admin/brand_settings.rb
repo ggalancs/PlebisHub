@@ -294,32 +294,59 @@ ActiveAdmin.register BrandSetting do
     end
 
     f.inputs 'Custom Colors (Optional)', id: 'custom_colors' do
-      para 'Leave empty to use predefined theme colors. Set individual colors to override.'
+      # Get current theme colors (custom or from predefined theme)
+      colors = f.object.theme_colors
+
+      para 'Colors are pre-filled from the current theme. Modify to customize.'
 
       f.input :primary_color,
               as: :string,
-              input_html: { type: 'color', style: 'height: 50px; width: 100%;' },
-              hint: 'Main brand color. Leave empty to use theme default.'
+              input_html: {
+                type: 'color',
+                style: 'height: 50px; width: 100%;',
+                value: f.object.primary_color.presence || colors[:primary] || '#612d62'
+              },
+              hint: 'Main brand color'
       f.input :primary_light_color,
               as: :string,
-              input_html: { type: 'color', style: 'height: 50px; width: 100%;' },
+              input_html: {
+                type: 'color',
+                style: 'height: 50px; width: 100%;',
+                value: f.object.primary_light_color.presence || colors[:primaryLight] || '#8a4f98'
+              },
               hint: 'Lighter variant of primary color'
       f.input :primary_dark_color,
               as: :string,
-              input_html: { type: 'color', style: 'height: 50px; width: 100%;' },
+              input_html: {
+                type: 'color',
+                style: 'height: 50px; width: 100%;',
+                value: f.object.primary_dark_color.presence || colors[:primaryDark] || '#4c244a'
+              },
               hint: 'Darker variant of primary color'
 
       f.input :secondary_color,
               as: :string,
-              input_html: { type: 'color', style: 'height: 50px; width: 100%;' },
-              hint: 'Accent/secondary brand color. Leave empty to use theme default.'
+              input_html: {
+                type: 'color',
+                style: 'height: 50px; width: 100%;',
+                value: f.object.secondary_color.presence || colors[:secondary] || '#269283'
+              },
+              hint: 'Accent/secondary brand color'
       f.input :secondary_light_color,
               as: :string,
-              input_html: { type: 'color', style: 'height: 50px; width: 100%;' },
+              input_html: {
+                type: 'color',
+                style: 'height: 50px; width: 100%;',
+                value: f.object.secondary_light_color.presence || colors[:secondaryLight] || '#14b8a6'
+              },
               hint: 'Lighter variant of secondary color'
       f.input :secondary_dark_color,
               as: :string,
-              input_html: { type: 'color', style: 'height: 50px; width: 100%;' },
+              input_html: {
+                type: 'color',
+                style: 'height: 50px; width: 100%;',
+                value: f.object.secondary_dark_color.presence || colors[:secondaryDark] || '#0f766e'
+              },
               hint: 'Darker variant of secondary color'
     end
 
@@ -416,10 +443,11 @@ ActiveAdmin.register BrandSetting do
     end
   end
 
-  action_item :duplicate, only: :show do
-    link_to 'Duplicate', duplicate_admin_brand_setting_path(brand_setting),
+  action_item :duplicate, only: %i[show edit] do
+    link_to 'Clone Theme', duplicate_admin_brand_setting_path(brand_setting),
             method: :post,
-            data: { confirm: 'Create a copy of this brand setting?' }
+            data: { confirm: 'Create a copy of this theme?' },
+            class: 'button'
   end
 
   action_item :preview_api, only: :show do
