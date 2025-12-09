@@ -143,10 +143,13 @@ class BrandSetting < ApplicationRecord
   validates :favicon_url, length: { maximum: 2048 }, allow_blank: true
   validates :custom_css, length: { maximum: 50_000 }, allow_blank: true
 
+  # Virtual attribute to skip WCAG validation
+  attr_accessor :skip_wcag_validation
+
   # Custom validations
   validate :unique_organization_setting
   validate :at_least_one_active_global
-  validate :wcag_contrast_validation, if: :has_custom_colors?
+  validate :wcag_contrast_validation, if: :should_validate_wcag?
 
   # Scopes
   scope :active, -> { where(active: true) }
@@ -276,6 +279,22 @@ class BrandSetting < ApplicationRecord
       secondary_color_changed? ||
       secondary_light_color_changed? ||
       secondary_dark_color_changed?
+  end
+
+  # Check if WCAG validation should run
+  def should_validate_wcag?
+    has_custom_colors? && !skip_wcag_validation_enabled?
+  end
+
+  def skip_wcag_validation_enabled?
+    ActiveModel::Type::Boolean.new.cast(skip_wcag_validation)
+  end
+
+  # Public method to get contrast ratio (for display in admin)
+  def contrast_ratio_for(color)
+    return nil unless color.present? && color.match?(HEX_COLOR_REGEX)
+
+    calculate_contrast_ratio(color, '#ffffff')
   end
 
   def global_scope?

@@ -9,7 +9,7 @@ ActiveAdmin.register BrandSetting do
                 :secondary_color, :secondary_light_color, :secondary_dark_color,
                 :font_primary, :font_display,
                 :logo_url, :logo_dark_url, :favicon_url,
-                :custom_css,
+                :custom_css, :skip_wcag_validation,
                 metadata: {}
 
   # ========================================
@@ -306,6 +306,19 @@ ActiveAdmin.register BrandSetting do
           <span style="font-weight: 500;">Auto-generate light/dark variants when primary or secondary color changes</span>
         </label>
         <div style="color: #666; font-size: 12px; margin-top: 5px; margin-left: 28px;">Light variants are 25% lighter, dark variants are 20% darker</div>
+      </div>'.html_safe
+
+      # Skip WCAG validation option
+      text_node '<div class="boolean input" style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="checkbox" name="brand_setting[skip_wcag_validation]" value="1" id="skip_wcag_validation" style="width: 18px; height: 18px;">
+          <span style="font-weight: 500; color: #856404;">Skip WCAG contrast validation</span>
+        </label>
+        <div style="color: #856404; font-size: 12px; margin-top: 5px; margin-left: 28px;">
+          WCAG AA requires 4.5:1 contrast ratio for text readability.
+          Check this to allow bright colors like yellow that have low contrast with white.
+          <strong>Warning:</strong> This may affect accessibility for visually impaired users.
+        </div>
       </div>'.html_safe
 
       # Calculate initial complementary color for display
