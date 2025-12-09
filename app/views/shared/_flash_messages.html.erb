@@ -5,13 +5,13 @@
   falling back to Bootstrap-style alerts for legacy pages.
 
   Usage:
-    <%= render 'shared/flash_messages' %>
+    render 'shared/flash_messages'
 
   Options:
     position: 'top-right' (default), 'top-left', 'bottom-right', 'bottom-left', 'top-center', 'bottom-center'
 
   Example with options:
-    <%= render 'shared/flash_messages', position: 'top-center' %>
+    render 'shared/flash_messages', position: 'top-center'
 %>
 
 <% position ||= 'top-right' %>
