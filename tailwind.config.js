@@ -1,5 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 import plugin from 'tailwindcss/plugin'
+import forms from '@tailwindcss/forms'
+import typography from '@tailwindcss/typography'
+import containerQueries from '@tailwindcss/container-queries'
 
 export default {
   content: [
@@ -140,33 +143,33 @@ export default {
       // SPACING
       // ============================================
       spacing: {
-        '4.5': '1.125rem', // 18px
-        '5.5': '1.375rem', // 22px
-        '13': '3.25rem', // 52px
-        '15': '3.75rem', // 60px
-        '17': '4.25rem', // 68px
-        '18': '4.5rem', // 72px
-        '19': '4.75rem', // 76px
-        '21': '5.25rem', // 84px
-        '22': '5.5rem', // 88px
-        '26': '6.5rem', // 104px
-        '30': '7.5rem', // 120px
-        '34': '8.5rem', // 136px
-        '38': '9.5rem', // 152px
-        '42': '10.5rem', // 168px
-        '46': '11.5rem', // 184px
-        '50': '12.5rem', // 200px
-        '54': '13.5rem', // 216px
-        '58': '14.5rem', // 232px
-        '62': '15.5rem', // 248px
-        '66': '16.5rem', // 264px
-        '70': '17.5rem', // 280px
-        '74': '18.5rem', // 296px
-        '78': '19.5rem', // 312px
-        '82': '20.5rem', // 328px
-        '86': '21.5rem', // 344px
-        '90': '22.5rem', // 360px
-        '94': '23.5rem', // 376px
+        4.5: '1.125rem', // 18px
+        5.5: '1.375rem', // 22px
+        13: '3.25rem', // 52px
+        15: '3.75rem', // 60px
+        17: '4.25rem', // 68px
+        18: '4.5rem', // 72px
+        19: '4.75rem', // 76px
+        21: '5.25rem', // 84px
+        22: '5.5rem', // 88px
+        26: '6.5rem', // 104px
+        30: '7.5rem', // 120px
+        34: '8.5rem', // 136px
+        38: '9.5rem', // 152px
+        42: '10.5rem', // 168px
+        46: '11.5rem', // 184px
+        50: '12.5rem', // 200px
+        54: '13.5rem', // 216px
+        58: '14.5rem', // 232px
+        62: '15.5rem', // 248px
+        66: '16.5rem', // 264px
+        70: '17.5rem', // 280px
+        74: '18.5rem', // 296px
+        78: '19.5rem', // 312px
+        82: '20.5rem', // 328px
+        86: '21.5rem', // 344px
+        90: '22.5rem', // 360px
+        94: '23.5rem', // 376px
       },
 
       // ============================================
@@ -377,9 +380,11 @@ export default {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'gradient-primary': 'linear-gradient(135deg, var(--color-primary-600), var(--color-primary-800))',
-        'gradient-secondary': 'linear-gradient(135deg, var(--color-secondary-500), var(--color-secondary-700))',
-        'shimmer': 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+        'gradient-primary':
+          'linear-gradient(135deg, var(--color-primary-600), var(--color-primary-800))',
+        'gradient-secondary':
+          'linear-gradient(135deg, var(--color-secondary-500), var(--color-secondary-700))',
+        shimmer: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
       },
 
       // Ring customizations for focus states
@@ -479,22 +484,22 @@ export default {
   // ============================================
   plugins: [
     // Forms plugin for better form styling
-    require('@tailwindcss/forms')({
+    forms({
       strategy: 'class', // Use class strategy to avoid conflicts
     }),
 
     // Typography plugin for prose content
-    require('@tailwindcss/typography'),
+    typography,
 
     // Container queries plugin
-    require('@tailwindcss/container-queries'),
+    containerQueries,
 
     // Custom plugin for additional utilities
-    plugin(function({ addUtilities, addComponents, addBase, theme }) {
+    plugin(({ addUtilities, addComponents, addBase, theme }) => {
       // Base layer additions
       addBase({
         // Smooth scrolling
-        'html': {
+        html: {
           scrollBehavior: 'smooth',
         },
         // Better focus handling
@@ -603,7 +608,8 @@ export default {
         // Skeleton loading
         '.skeleton': {
           backgroundColor: theme('colors.gray.200'),
-          backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+          backgroundImage:
+            'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
           backgroundSize: '200% 100%',
           animation: 'shimmer 2s linear infinite',
         },
@@ -681,7 +687,10 @@ export default {
   safelist: [
     // Dynamic color classes that might be generated
     { pattern: /^(bg|text|border|ring)-(primary|secondary|success|warning|error|info)/ },
-    { pattern: /^(bg|text|border|ring)-(primary|secondary)-(50|100|200|300|400|500|600|700|800|900|950)/ },
+    {
+      pattern:
+        /^(bg|text|border|ring)-(primary|secondary)-(50|100|200|300|400|500|600|700|800|900|950)/,
+    },
     // Animation classes
     { pattern: /^animate-/ },
     // Grid columns
