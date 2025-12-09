@@ -299,14 +299,14 @@ ActiveAdmin.register BrandSetting do
 
       para 'Colors are pre-filled from the current theme. Modify to customize.'
 
-      # Auto-generate toggle
-      li class: 'boolean input', style: 'margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;' do
-        label style: 'display: flex; align-items: center; gap: 10px; cursor: pointer;' do
-          input type: 'checkbox', id: 'auto_generate_variants', style: 'width: 18px; height: 18px;'
-          span 'Auto-generate light/dark variants when primary or secondary color changes', style: 'font-weight: 500;'
-        end
-        div 'Light variants are 25% lighter, dark variants are 20% darker', style: 'color: #666; font-size: 12px; margin-top: 5px; margin-left: 28px;'
-      end
+      # Auto-generate toggle (using raw HTML for proper rendering)
+      text_node '<div class="boolean input" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="checkbox" id="auto_generate_variants" style="width: 18px; height: 18px;">
+          <span style="font-weight: 500;">Auto-generate light/dark variants when primary or secondary color changes</span>
+        </label>
+        <div style="color: #666; font-size: 12px; margin-top: 5px; margin-left: 28px;">Light variants are 25% lighter, dark variants are 20% darker</div>
+      </div>'.html_safe
 
       f.input :primary_color,
               as: :string,
@@ -319,21 +319,18 @@ ActiveAdmin.register BrandSetting do
               },
               hint: 'Main brand color'
 
-      # Complementary color suggestion
-      li class: 'input', id: 'complementary_color_suggestion', style: 'margin: -10px 0 15px 20%; padding: 12px 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border: 1px solid #dee2e6;' do
-        div style: 'display: flex; align-items: center; gap: 15px;' do
-          div do
-            span 'Complementary color: ', style: 'font-weight: 500; color: #495057;'
-            span id: 'complementary_color_value', style: 'font-family: monospace; font-weight: 600;'
-          end
-          div id: 'complementary_color_preview', style: 'width: 40px; height: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 2px solid white;'
-          button 'Use as Secondary', type: 'button', id: 'apply_complementary_btn',
-                 style: 'padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s;',
-                 onmouseover: "this.style.background='#218838'",
-                 onmouseout: "this.style.background='#28a745'"
-        end
-        div 'The complementary color is opposite on the color wheel (180° hue shift)', style: 'color: #6c757d; font-size: 11px; margin-top: 8px;'
-      end
+      # Complementary color suggestion (using raw HTML)
+      text_node '<div id="complementary_color_suggestion" style="margin: 10px 0 15px 20%; padding: 12px 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border: 1px solid #dee2e6;">
+        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+          <div>
+            <span style="font-weight: 500; color: #495057;">Complementary color: </span>
+            <span id="complementary_color_value" style="font-family: monospace; font-weight: 600;"></span>
+          </div>
+          <div id="complementary_color_preview" style="width: 40px; height: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 2px solid white;"></div>
+          <button type="button" id="apply_complementary_btn" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Use as Secondary</button>
+        </div>
+        <div style="color: #6c757d; font-size: 11px; margin-top: 8px;">The complementary color is opposite on the color wheel (180° hue shift)</div>
+      </div>'.html_safe
 
       f.input :primary_light_color,
               as: :string,
@@ -388,9 +385,8 @@ ActiveAdmin.register BrandSetting do
               hint: 'Darker variant of secondary color'
 
       # JavaScript for auto-generating color variants
-      script do
-        raw <<~JS
-          (function() {
+      text_node '<script>
+        (function() {
             // Convert hex to HSL
             function hexToHSL(hex) {
               hex = hex.replace('#', '');
@@ -537,8 +533,7 @@ ActiveAdmin.register BrandSetting do
               });
             });
           })();
-        JS
-      end
+        </script>'.html_safe
     end
 
     f.inputs 'Typography' do
