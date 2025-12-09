@@ -12,8 +12,8 @@
  * ) %>
  */
 
-import { ref, computed, onMounted } from 'vue'
-import { X, Cookie, Settings } from 'lucide-vue-next'
+import { ref, onMounted } from 'vue'
+import { Cookie, Settings } from 'lucide-vue-next'
 
 interface Props {
   privacyUrl?: string
@@ -21,7 +21,7 @@ interface Props {
   showSettings?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   privacyUrl: '/pages/privacy',
   cookiesUrl: '/pages/cookies',
   showSettings: true,

@@ -14,7 +14,7 @@
       :name="icon"
       :size="iconSize"
       class="flex-shrink-0"
-      :class="{ 'mr-1': $slots.default || label }"
+      :class="{ 'mr-1': !!$slots.default || !!label }"
     />
 
     <span v-if="$slots.default || label">

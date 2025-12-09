@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import type { Meta, StoryObj } from '@storybook/vue3'
 import { ref } from 'vue'
 import Pagination from './Pagination.vue'
 
@@ -238,7 +238,7 @@ export const EdgeCases: Story = {
 
 // Interactive example
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { Pagination },
     setup() {
       const currentPage = ref(args.currentPage)
@@ -408,7 +408,7 @@ export const FullFeatured: Story = {
 
 // Custom page sizes
 export const CustomPageSizes: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { Pagination },
     setup() {
       const currentPage = ref(args.currentPage)

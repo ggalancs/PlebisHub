@@ -10,11 +10,19 @@
  * See config/initializers/secure_headers.rb for active CSP configuration.
  */
 
-import type { IncomingMessage, ServerResponse } from 'http'
-import type { ViteDevServer } from 'vite'
+// Using inline types to avoid @types/node dependency
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type IncomingMessage = any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ServerResponse = any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ViteDevServer = any
 
 /** Middleware next function type */
 type NextFunction = () => void
+
+// Declare process for Node.js environment (Vite injects this)
+declare const process: { env: { NODE_ENV?: string } }
 
 // Use Node.js environment variables for portability (works in Vite, Node.js, and tests)
 const isDevelopment = process.env.NODE_ENV === 'development'
@@ -214,12 +222,8 @@ export function viteSecurityHeadersPlugin() {
   return {
     name: 'security-headers',
     configureServer(server: ViteDevServer) {
-      server.middlewares.use((req, res, next) => {
-        securityHeadersMiddleware(
-          req as IncomingMessage,
-          res as ServerResponse,
-          next as NextFunction
-        )
+      server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: NextFunction) => {
+        securityHeadersMiddleware(req, res, next)
       })
     },
   }

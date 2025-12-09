@@ -155,7 +155,7 @@ export const WithErrors: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MediaUploader },
     setup() {
       const files = ref<UploadFile[]>([])
@@ -223,7 +223,7 @@ export const Interactive: Story = {
 }
 
 export const ImageGallery: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MediaUploader },
     setup() {
       const images = ref<UploadFile[]>([
@@ -274,7 +274,7 @@ export const ImageGallery: Story = {
 }
 
 export const DocumentUpload: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MediaUploader },
     setup() {
       const documents = ref<UploadFile[]>([])
@@ -297,7 +297,7 @@ export const DocumentUpload: Story = {
 }
 
 export const AvatarUpload: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MediaUploader },
     setup() {
       const avatar = ref<UploadFile[]>([])

@@ -159,7 +159,7 @@ const handleItemClick = (item: VoteHistoryItem) => {
 
             <!-- Vote Type Badge -->
             <Badge
-              :variant="item.voteType === 'up' ? 'success' : 'error'"
+              :variant="item.voteType === 'up' ? 'success' : 'danger'"
               size="sm"
             >
               {{ item.voteType === 'up' ? 'A favor' : 'En contra' }}
@@ -186,14 +186,14 @@ const handleItemClick = (item: VoteHistoryItem) => {
       <div class="flex gap-2">
         <button
           class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
-          :disabled="!pagination.canGoToPrevPage.value"
+          :disabled="!pagination.hasPrevPage.value"
           @click="pagination.prevPage"
         >
           Anterior
         </button>
         <button
           class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
-          :disabled="!pagination.canGoToNextPage.value"
+          :disabled="!pagination.hasNextPage.value"
           @click="pagination.nextPage"
         >
           Siguiente

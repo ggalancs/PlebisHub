@@ -25,6 +25,7 @@ import '@/controllers'
 type ComponentLoader = () => Promise<{ default: Component }>
 
 // Async component loaders for code splitting
+// Only includes components that actually exist in the codebase
 const componentLoaders: Record<string, ComponentLoader> = {
   // Atoms
   Button: () => import('@/components/atoms/Button.vue'),
@@ -49,10 +50,10 @@ const componentLoaders: Record<string, ComponentLoader> = {
   Dropdown: () => import('@/components/molecules/Dropdown.vue'),
   Pagination: () => import('@/components/molecules/Pagination.vue'),
   FormField: () => import('@/components/molecules/FormField.vue'),
-  SearchInput: () => import('@/components/molecules/SearchInput.vue'),
+  SearchBar: () => import('@/components/molecules/SearchBar.vue'),
   FileUpload: () => import('@/components/molecules/FileUpload.vue'),
   DatePicker: () => import('@/components/molecules/DatePicker.vue'),
-  Select: () => import('@/components/molecules/Select.vue'),
+  Combobox: () => import('@/components/molecules/Combobox.vue'),
   Toast: () => import('@/components/molecules/Toast.vue'),
   Breadcrumb: () => import('@/components/molecules/Breadcrumb.vue'),
   EmptyState: () => import('@/components/molecules/EmptyState.vue'),
@@ -65,24 +66,14 @@ const componentLoaders: Record<string, ComponentLoader> = {
   MicrocreditForm: () => import('@/components/organisms/MicrocreditForm.vue'),
   ImpulsaProjectForm: () => import('@/components/organisms/ImpulsaProjectForm.vue'),
   ProposalForm: () => import('@/components/organisms/ProposalForm.vue'),
-  RegistrationForm: () => import('@/components/organisms/RegistrationForm.vue'),
-  LoginForm: () => import('@/components/organisms/LoginForm.vue'),
-  ProfileForm: () => import('@/components/organisms/ProfileForm.vue'),
-  VerificationForm: () => import('@/components/organisms/VerificationForm.vue'),
+  ParticipationForm: () => import('@/components/organisms/ParticipationForm.vue'),
 
   // Organisms - Display
   VotingWidget: () => import('@/components/organisms/VotingWidget.vue'),
   VerificationSteps: () => import('@/components/organisms/VerificationSteps.vue'),
-  ProjectGallery: () => import('@/components/organisms/ProjectGallery.vue'),
-  TeamList: () => import('@/components/organisms/TeamList.vue'),
-  StatsDashboard: () => import('@/components/organisms/StatsDashboard.vue'),
-  ActivityFeed: () => import('@/components/organisms/ActivityFeed.vue'),
-
-  // Organisms - Navigation
-  Header: () => import('@/components/organisms/Header.vue'),
-  Footer: () => import('@/components/organisms/Footer.vue'),
-  Sidebar: () => import('@/components/organisms/Sidebar.vue'),
-  MobileMenu: () => import('@/components/organisms/MobileMenu.vue'),
+  VerificationStatus: () => import('@/components/organisms/VerificationStatus.vue'),
+  SMSValidator: () => import('@/components/organisms/SMSValidator.vue'),
+  ThemeSwitcher: () => import('@/components/organisms/ThemeSwitcher.vue'),
 }
 
 // Store for synchronously registered components
@@ -177,7 +168,7 @@ export function mountComponent(
   app.use(getPinia())
 
   // Add global error handler
-  app.config.errorHandler = (err, instance, info) => {
+  app.config.errorHandler = (err, _instance, info) => {
     console.error(`[Vue Error] ${componentName}:`, err, info)
     // Dispatch event for error tracking
     window.dispatchEvent(
@@ -354,7 +345,7 @@ document.addEventListener('page:load', () => {
 
 // Cleanup on Turbo cache
 document.addEventListener('turbo:before-cache', () => {
-  mountedApps.forEach((app, el) => {
+  mountedApps.forEach((app, _el) => {
     app.unmount()
   })
   mountedApps.clear()

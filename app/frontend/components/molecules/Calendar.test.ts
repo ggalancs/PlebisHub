@@ -5,7 +5,8 @@ import Calendar, { type CalendarEvent } from './Calendar.vue'
 import Icon from '../atoms/Icon.vue'
 import Button from '../atoms/Button.vue'
 
-const mockEvents: CalendarEvent[] = [
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _mockEvents: CalendarEvent[] = [
   {
     id: '1',
     title: 'Team Meeting',

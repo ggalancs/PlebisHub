@@ -305,7 +305,7 @@ export const CustomValidation: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CommentsSection },
     setup() {
       const comments = ref<Comment[]>([
@@ -465,7 +465,7 @@ export const Interactive: Story = {
 }
 
 export const InteractiveUnauthenticated: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CommentsSection },
     setup() {
       const comments = ref<Comment[]>([
@@ -507,7 +507,7 @@ export const InteractiveUnauthenticated: Story = {
 }
 
 export const RealWorldExample: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CommentsSection },
     setup() {
       const comments = ref<Comment[]>([
@@ -584,7 +584,7 @@ export const RealWorldExample: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CommentsSection },
     setup() {
       return { comments: mockComments }

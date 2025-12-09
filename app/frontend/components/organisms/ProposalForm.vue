@@ -155,7 +155,7 @@ defineExpose({
     <!-- Error Alert -->
     <Alert
       v-if="error"
-      variant="error"
+      variant="danger"
       :dismissible="false"
       class="mb-6"
     >
@@ -165,7 +165,7 @@ defineExpose({
     <!-- Title Field -->
     <FormField
       :label="titleLabel"
-      :error="form.errors.value.title"
+      :error="form.errors.value.title ?? undefined"
       :required="true"
       class="mb-6"
     >
@@ -173,7 +173,7 @@ defineExpose({
         v-model="form.values.title"
         placeholder="Ej: Mejora del sistema de transporte público"
         :disabled="loading"
-        :error="!!form.errors.value.title"
+        :error="form.errors.value.title ?? undefined"
         size="lg"
         @blur="form.setFieldTouched('title')"
       />
@@ -192,7 +192,7 @@ defineExpose({
     <!-- Description Field -->
     <FormField
       :label="descriptionLabel"
-      :error="form.errors.value.description"
+      :error="form.errors.value.description ?? undefined"
       :required="true"
       class="mb-6"
     >

@@ -184,7 +184,7 @@ export const LongArticle: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ContentPreview },
     setup() {
       const content = ref(sampleMarkdown)
@@ -222,7 +222,7 @@ export const Interactive: Story = {
 }
 
 export const WithEditor: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ContentPreview },
     setup() {
       const content = ref('# Mi Documento\n\nEscribe algo aquí...')
@@ -259,7 +259,7 @@ export const WithEditor: Story = {
 }
 
 export const BlogPostPreview: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ContentPreview },
     setup() {
       const post = ref({
@@ -347,7 +347,7 @@ For more information, visit our [documentation portal](https://docs.example.com)
 }
 
 export const AllDeviceSizes: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ContentPreview },
     setup() {
       const content = ref('# Responsive Preview\n\nThis content adapts to different screen sizes.')

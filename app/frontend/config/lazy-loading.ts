@@ -91,7 +91,7 @@ export const LazyOrganisms = {
 
   // Participation components
   ParticipationForm: lazyLoad(() => import('@/components/organisms/ParticipationForm.vue')),
-  ParticipationCard: lazyLoad(() => import('@/components/organisms/ParticipationCard.vue')),
+  // ParticipationCard: lazyLoad(() => import('@/components/organisms/ParticipationCard.vue')), // TODO: Create component
 
   // Voting components
   VotingWidget: lazyLoad(() => import('@/components/organisms/VotingWidget.vue')),
@@ -103,7 +103,7 @@ export const LazyOrganisms = {
   CommentsSection: lazyLoad(() => import('@/components/organisms/CommentsSection.vue')),
 
   // User components
-  UserProfile: lazyLoad(() => import('@/components/organisms/UserProfile.vue')),
+  // UserProfile: lazyLoad(() => import('@/components/organisms/UserProfile.vue')), // TODO: Create component
 }
 
 /**
@@ -127,23 +127,24 @@ export function preloadComponents(loaders: Array<() => Promise<Component>>): voi
 /**
  * Route-based lazy loading helpers
  */
-export const LazyPages = {
-  // Dashboard and main pages
-  Dashboard: lazyLoad(() => import('@/pages/Dashboard.vue'), { delay: 0 }),
-  ProposalsPage: lazyLoad(() => import('@/pages/ProposalsPage.vue')),
-  MicrocreditPage: lazyLoad(() => import('@/pages/MicrocreditPage.vue')),
-  CollaborationsPage: lazyLoad(() => import('@/pages/CollaborationsPage.vue')),
-
-  // User pages
-  ProfilePage: lazyLoad(() => import('@/pages/ProfilePage.vue')),
-  SettingsPage: lazyLoad(() => import('@/pages/SettingsPage.vue')),
-  VerificationPage: lazyLoad(() => import('@/pages/VerificationPage.vue')),
-
-  // Admin pages
-  AdminDashboard: lazyLoad(() => import('@/pages/admin/Dashboard.vue')),
-  AdminUsers: lazyLoad(() => import('@/pages/admin/Users.vue')),
-  AdminReports: lazyLoad(() => import('@/pages/admin/Reports.vue')),
-}
+// TODO: Enable lazy pages once they are created
+// export const LazyPages = {
+//   // Dashboard and main pages
+//   Dashboard: lazyLoad(() => import('@/pages/Dashboard.vue'), { delay: 0 }),
+//   ProposalsPage: lazyLoad(() => import('@/pages/ProposalsPage.vue')),
+//   MicrocreditPage: lazyLoad(() => import('@/pages/MicrocreditPage.vue')),
+//   CollaborationsPage: lazyLoad(() => import('@/pages/CollaborationsPage.vue')),
+//
+//   // User pages
+//   ProfilePage: lazyLoad(() => import('@/pages/ProfilePage.vue')),
+//   SettingsPage: lazyLoad(() => import('@/pages/SettingsPage.vue')),
+//   VerificationPage: lazyLoad(() => import('@/pages/VerificationPage.vue')),
+//
+//   // Admin pages
+//   AdminDashboard: lazyLoad(() => import('@/pages/admin/Dashboard.vue')),
+//   AdminUsers: lazyLoad(() => import('@/pages/admin/Users.vue')),
+//   AdminReports: lazyLoad(() => import('@/pages/admin/Reports.vue')),
+// }
 
 /**
  * Usage example in router:

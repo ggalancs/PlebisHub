@@ -212,7 +212,7 @@ export const OnlyOptional: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationStatus },
     setup() {
       const level = ref<VerificationLevel>('basic')
@@ -296,7 +296,7 @@ export const Interactive: Story = {
 }
 
 export const AllLevels: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationStatus },
     setup() {
       const levels: Array<{ level: VerificationLevel; items: VerificationItem[] }> = [
@@ -322,7 +322,7 @@ export const AllLevels: Story = {
 }
 
 export const DifferentStatuses: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationStatus },
     setup() {
       const scenarios = [
@@ -366,7 +366,7 @@ export const DifferentStatuses: Story = {
 }
 
 export const ProgressionFlow: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationStatus },
     setup() {
       const currentStep = ref(0)
@@ -477,7 +477,7 @@ export const ProgressionFlow: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationStatus },
     setup() {
       return { mockItems }
@@ -495,7 +495,7 @@ export const MobileView: Story = {
 }
 
 export const CompactGrid: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationStatus },
     setup() {
       const levels: VerificationLevel[] = ['basic', 'standard', 'advanced', 'complete']

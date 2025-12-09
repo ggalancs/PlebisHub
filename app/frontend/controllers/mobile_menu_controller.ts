@@ -16,7 +16,7 @@
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller<HTMLElement> {
-  static targets = ['panel']
+  static override targets = ['panel']
 
   declare readonly panelTarget: HTMLElement
   declare readonly hasPanelTarget: boolean

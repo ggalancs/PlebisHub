@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import ProposalCard from './ProposalCard.vue'
 import type { Proposal } from './ProposalCard.vue'
 import SearchBar from '@/components/molecules/SearchBar.vue'
-import Dropdown from '@/components/molecules/Dropdown.vue'
+import Select from '@/components/atoms/Select.vue'
 import Pagination from '@/components/molecules/Pagination.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import Spinner from '@/components/atoms/Spinner.vue'
@@ -197,7 +197,7 @@ const paginatedProposals = computed(() => {
 })
 
 // Handle filter change
-const handleFilterChange = (filter: string) => {
+const handleFilterChange = (filter: string | number) => {
   selectedFilter.value = filter as FilterOption
   emit('filter', filter as FilterOption)
   if (props.paginationType === 'client') {
@@ -206,7 +206,7 @@ const handleFilterChange = (filter: string) => {
 }
 
 // Handle sort change
-const handleSortChange = (sort: string) => {
+const handleSortChange = (sort: string | number) => {
   selectedSort.value = sort as SortOption
   emit('sort', sort as SortOption)
   if (props.paginationType === 'client') {
@@ -260,7 +260,7 @@ const showEmptyState = computed(() => {
       <!-- Filters and Sort -->
       <div v-if="filterable || sortable" class="flex flex-col sm:flex-row gap-4">
         <!-- Filter -->
-        <Dropdown
+        <Select
           v-if="filterable"
           :options="filterOptions"
           :model-value="selectedFilter"
@@ -271,7 +271,7 @@ const showEmptyState = computed(() => {
         />
 
         <!-- Sort -->
-        <Dropdown
+        <Select
           v-if="sortable"
           :options="sortOptions"
           :model-value="selectedSort"
@@ -337,10 +337,9 @@ const showEmptyState = computed(() => {
     <div v-if="showPagination && pagination.isPaginationNeeded.value && !loading" class="mt-8">
       <Pagination
         :current-page="pagination.currentPage.value"
-        :total-pages="pagination.totalPages.value"
-        @page-change="handlePageChange"
-        @prev="pagination.prevPage"
-        @next="pagination.nextPage"
+        :total-items="totalItems"
+        :page-size="pagination.pageSize.value"
+        @change="handlePageChange"
       />
     </div>
   </div>

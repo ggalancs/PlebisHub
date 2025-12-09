@@ -92,7 +92,7 @@ describe('Radio', () => {
         props: { value: 'option1', modelValue: '' },
       })
 
-      await wrapper.find('input').setChecked()
+      await wrapper.find('input').setValue(true)
 
       expect(wrapper.emitted('update:modelValue')).toBeTruthy()
       expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['option1'])
@@ -103,7 +103,7 @@ describe('Radio', () => {
         props: { value: 'option1' },
       })
 
-      await wrapper.find('input').setChecked()
+      await wrapper.find('input').setValue(true)
 
       expect(wrapper.emitted('change')).toBeTruthy()
     })
@@ -121,7 +121,7 @@ describe('Radio', () => {
       const input = wrapper.find('input')
       expect((input.element as HTMLInputElement).checked).toBe(false)
 
-      await input.setChecked()
+      await input.setValue(true)
       await wrapper.vm.$nextTick()
 
       expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['option1'])
@@ -133,7 +133,7 @@ describe('Radio', () => {
       })
 
       const input = wrapper.find('input')
-      await input.setChecked()
+      await input.setValue(true)
 
       expect(wrapper.emitted('update:modelValue')).toBeTruthy()
     })
@@ -296,7 +296,7 @@ describe('Radio', () => {
       })
 
       // Select first radio
-      await wrapper1.find('input').setChecked()
+      await wrapper1.find('input').setValue(true)
       expect(wrapper1.emitted('update:modelValue')?.[0]).toEqual(['option1'])
 
       // Both radios should have same name attribute

@@ -31,10 +31,10 @@ const showExportModal = ref(false)
 const showImportModal = ref(false)
 const contrastWarning = ref('')
 
-// Toast/notification state
-const notification = ref<{ type: 'success' | 'error' | 'info'; message: string } | null>(null)
+// Toast/notification state (using Alert variant types)
+const notification = ref<{ type: 'success' | 'danger' | 'info'; message: string } | null>(null)
 
-const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
+const showNotification = (type: 'success' | 'danger' | 'info', message: string) => {
   notification.value = { type, message }
   setTimeout(() => {
     notification.value = null
@@ -80,7 +80,7 @@ const handleReset = () => {
 }
 
 const handleExport = () => {
-  exportedJson.value = exportBrandConfig()
+  exportedJson.value = exportBrandConfig() ?? ''
   showExportModal.value = true
 }
 
@@ -98,7 +98,7 @@ const handleImport = () => {
     customSecondary.value = brandColors.value.secondary
     showNotification('success', 'Brand configuration imported successfully!')
   } else {
-    showNotification('error', 'Invalid configuration format. Please check your JSON.')
+    showNotification('danger', 'Invalid configuration format. Please check your JSON.')
   }
 }
 </script>

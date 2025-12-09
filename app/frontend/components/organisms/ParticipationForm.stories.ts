@@ -223,7 +223,7 @@ export const NoImage: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationForm },
     setup() {
       const loading = ref(false)
@@ -308,7 +308,7 @@ export const Interactive: Story = {
 }
 
 export const EditWorkflow: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationForm },
     setup() {
       const mode = ref<'view' | 'edit'>('view')
@@ -382,7 +382,7 @@ export const EditWorkflow: Story = {
 }
 
 export const ValidationErrors: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationForm },
     setup() {
       return {}
@@ -401,7 +401,7 @@ export const ValidationErrors: Story = {
 }
 
 export const AllModes: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationForm },
     setup() {
       return { mockData }
@@ -426,7 +426,7 @@ export const AllModes: Story = {
 }
 
 export const DifferentStatuses: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationForm },
     setup() {
       const statuses: Array<'active' | 'recruiting' | 'full' | 'inactive'> = ['active', 'recruiting', 'full', 'inactive']
@@ -451,7 +451,7 @@ export const DifferentStatuses: Story = {
 }
 
 export const CharacterLimits: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationForm },
     setup() {
       const nearLimitData: Partial<ParticipationFormData> = {
@@ -474,7 +474,7 @@ export const CharacterLimits: Story = {
 }
 
 export const TagManagement: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationForm },
     setup() {
       return {}
@@ -493,7 +493,7 @@ export const TagManagement: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationForm },
     setup() {
       return {}
@@ -511,7 +511,7 @@ export const MobileView: Story = {
 }
 
 export const ProgressiveDisclosure: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationForm },
     setup() {
       const step = ref(1)
@@ -620,7 +620,7 @@ export const ProgressiveDisclosure: Story = {
 }
 
 export const WithRealTimeValidation: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationForm },
     setup() {
       const validationMessages = ref<string[]>([])

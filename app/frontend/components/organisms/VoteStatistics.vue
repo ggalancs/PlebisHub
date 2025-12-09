@@ -82,7 +82,7 @@ const trendVariant = computed(() => {
     case 'up':
       return 'success'
     case 'down':
-      return 'error'
+      return 'danger'
     default:
       return 'default'
   }
@@ -198,7 +198,7 @@ const formatNumber = (num: number): string => {
             {{ stats.abstentions }} ({{ abstentionPercentage }}%)
           </span>
         </div>
-        <ProgressBar :value="abstentionPercentage" variant="default" />
+        <ProgressBar :value="abstentionPercentage" variant="primary" />
       </div>
     </div>
 

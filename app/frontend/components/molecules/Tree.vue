@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, provide } from 'vue'
 import Icon from '../atoms/Icon.vue'
 
 export interface TreeNode {
@@ -142,6 +142,11 @@ const handleCheckboxChange = (node: TreeNode, checked: boolean) => {
 defineSlots<{
   node?: (props: { node: TreeNode; level: number }) => unknown
 }>()
+
+// Provide functions for nested components
+provide('isExpanded', isExpanded)
+provide('isSelected', isSelected)
+provide('isIndeterminate', isIndeterminate)
 </script>
 
 <template>
@@ -186,172 +191,10 @@ defineSlots<{
   </div>
 </template>
 
-<script setup lang="ts">
-// Tree Node Component (recursive)
-interface TreeNodeProps {
-  node: TreeNode
-  level: number
-  expanded: boolean
-  selected: boolean
-  indeterminate: boolean
-  showCheckboxes: boolean
-  disabled?: boolean
-}
-
-defineComponent({
-  name: 'TreeNodeComponent',
-  props: {
-    node: {
-      type: Object as PropType<TreeNode>,
-      required: true,
-    },
-    level: {
-      type: Number,
-      required: true,
-    },
-    expanded: {
-      type: Boolean,
-      required: true,
-    },
-    selected: {
-      type: Boolean,
-      required: true,
-    },
-    indeterminate: {
-      type: Boolean,
-      required: true,
-    },
-    showCheckboxes: {
-      type: Boolean,
-      required: true,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ['toggleExpand', 'nodeClick', 'checkboxChange'],
-  setup(props, { emit, slots }) {
-    const hasChildren = computed(() => props.node.children && props.node.children.length > 0)
-
-    const handleToggle = () => {
-      emit('toggleExpand', props.node)
-    }
-
-    const handleClick = () => {
-      emit('nodeClick', props.node)
-    }
-
-    const handleCheckboxChange = (event: Event) => {
-      const checked = (event.target as HTMLInputElement).checked
-      emit('checkboxChange', props.node, checked)
-    }
-
-    return () => {
-      const paddingLeft = `${props.level * 20 + 4}px`
-
-      return h('div', { class: 'tree-node' }, [
-        // Node content
-        h(
-          'div',
-          {
-            class: [
-              'flex items-center gap-2 rounded px-2 py-1.5 hover:bg-gray-50 transition-colors',
-              { 'bg-gray-50': props.selected && !props.showCheckboxes },
-              { 'cursor-not-allowed opacity-50': props.disabled },
-            ],
-            style: { paddingLeft },
-          },
-          [
-            // Expand/collapse button
-            hasChildren.value
-              ? h(
-                  'button',
-                  {
-                    type: 'button',
-                    class: 'flex-shrink-0 p-0.5 hover:bg-gray-200 rounded',
-                    onClick: handleToggle,
-                    disabled: props.disabled,
-                  },
-                  [
-                    h(Icon, {
-                      name: props.expanded ? 'chevron-down' : 'chevron-right',
-                      size: 16,
-                    }),
-                  ]
-                )
-              : h('span', { class: 'w-5' }),
-
-            // Checkbox
-            props.showCheckboxes
-              ? h('input', {
-                  type: 'checkbox',
-                  checked: props.selected,
-                  disabled: props.disabled,
-                  indeterminate: props.indeterminate,
-                  onChange: handleCheckboxChange,
-                  class: 'rounded border-gray-300 text-primary-600 focus:ring-primary-500',
-                })
-              : null,
-
-            // Icon
-            props.node.icon
-              ? h('div', { class: 'flex-shrink-0' }, [
-                  h(Icon, { name: props.node.icon, size: 18 }),
-                ])
-              : null,
-
-            // Label
-            slots.node
-              ? slots.node({ node: props.node, level: props.level })
-              : h(
-                  'span',
-                  {
-                    class: ['flex-1 text-sm cursor-pointer', { 'font-medium': props.selected }],
-                    onClick: handleClick,
-                  },
-                  props.node.label
-                ),
-          ]
-        ),
-
-        // Children (recursive)
-        hasChildren.value && props.expanded
-          ? h(
-              'div',
-              { class: 'tree-children' },
-              props.node.children!.map((child) =>
-                h(TreeNodeComponent, {
-                  key: child.id,
-                  node: child,
-                  level: props.level + 1,
-                  expanded: (inject('isExpanded') as (id: string | number) => boolean)(child.id),
-                  selected: (inject('isSelected') as (id: string | number) => boolean)(child.id),
-                  indeterminate: (inject('isIndeterminate') as (node: TreeNode) => boolean)(child),
-                  showCheckboxes: props.showCheckboxes,
-                  disabled: props.disabled || child.disabled,
-                  onToggleExpand: (node: TreeNode) => emit('toggleExpand', node),
-                  onNodeClick: (node: TreeNode) => emit('nodeClick', node),
-                  onCheckboxChange: (node: TreeNode, checked: boolean) =>
-                    emit('checkboxChange', node, checked),
-                })
-              )
-            )
-          : null,
-      ])
-    }
-  },
-})
-
-// Provide functions for nested components
-provide('isExpanded', isExpanded)
-provide('isSelected', isSelected)
-provide('isIndeterminate', isIndeterminate)
-</script>
-
 <script lang="ts">
-import { defineComponent, h, computed, inject, provide, type PropType } from 'vue'
-export const TreeNodeComponent = defineComponent({
+import { defineComponent, h, computed, inject, type PropType, type VNode, type DefineComponent } from 'vue'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const TreeNodeComponent: DefineComponent<any, any, any> = defineComponent({
   name: 'TreeNodeComponent',
   props: {
     node: {
@@ -403,7 +246,7 @@ export const TreeNodeComponent = defineComponent({
       emit('checkboxChange', props.node, checked)
     }
 
-    return () => {
+    return (): VNode => {
       const paddingLeft = `${props.level * 20 + 4}px`
 
       return h('div', { class: 'tree-node' }, [
@@ -461,7 +304,7 @@ export const TreeNodeComponent = defineComponent({
           ? h(
               'div',
               { class: 'tree-children' },
-              props.node.children!.map((child) =>
+              props.node.children!.map((child: TreeNode) =>
                 h(TreeNodeComponent, {
                   key: child.id,
                   node: child,

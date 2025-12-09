@@ -62,7 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
 })
 
-const emit = defineEmits<Emits>()
+defineEmits<Emits>()
 
 // Current time for countdown
 const now = ref(new Date())
@@ -284,7 +284,7 @@ const statsCards = computed(() => [
         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
           Tiempo Restante en Esta Fase:
         </span>
-        <span class="text-2xl font-bold text-primary">
+        <span class="text-2xl font-bold text-primary-700">
           {{ formattedCountdown }}
         </span>
       </div>
@@ -440,7 +440,7 @@ const statsCards = computed(() => [
 }
 
 .impulsa-edition-info__phase--active {
-  @apply text-primary;
+  @apply text-primary-700;
 }
 
 .impulsa-edition-info__phase--completed {

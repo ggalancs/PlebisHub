@@ -105,8 +105,9 @@ const rgbToHsl = (
   }
 }
 
-// Convert HSL to RGB
-const hslToRgb = (
+// Convert HSL to RGB (reserved for future use)
+// @ts-expect-error Function reserved for future use
+const _hslToRgb = (
   h: number,
   s: number,
   l: number

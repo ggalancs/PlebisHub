@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import type { Meta, StoryObj } from '@storybook/vue3'
 import { ref } from 'vue'
 import FileUpload from './FileUpload.vue'
 import type { FileItem } from './FileUpload.vue'

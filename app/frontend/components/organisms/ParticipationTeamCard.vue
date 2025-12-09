@@ -201,11 +201,11 @@ const handleContactLeader = () => {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-2">
             <h3 class="text-lg font-bold truncate">{{ team.name }}</h3>
-            <Badge v-if="isLeader" variant="purple" size="sm">
+            <Badge v-if="isLeader" variant="secondary" size="sm">
               <Icon name="star" class="w-3 h-3 mr-1" />
               Líder
             </Badge>
-            <Badge v-else-if="isMember" variant="blue" size="sm">
+            <Badge v-else-if="isMember" variant="info" size="sm">
               <Icon name="check" class="w-3 h-3 mr-1" />
               Miembro
             </Badge>
@@ -293,12 +293,12 @@ const handleContactLeader = () => {
           <Badge
             v-for="tag in team.tags.slice(0, 3)"
             :key="tag"
-            variant="gray"
+            variant="neutral"
             size="sm"
           >
             {{ tag }}
           </Badge>
-          <Badge v-if="team.tags.length > 3" variant="gray" size="sm">
+          <Badge v-if="team.tags.length > 3" variant="neutral" size="sm">
             +{{ team.tags.length - 3 }}
           </Badge>
         </div>

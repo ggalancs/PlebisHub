@@ -14,11 +14,11 @@ interface MockFileReader {
 }
 
 // Mock FileReader
-global.FileReader = class FileReader {
+;(globalThis as typeof globalThis & { FileReader: unknown }).FileReader = class FileReader {
   readAsDataURL = vi.fn(function (this: MockFileReader) {
     this.onload?.({ target: { result: 'data:image/png;base64,mock' } })
   })
-} as unknown as typeof global.FileReader
+}
 
 describe('FileUpload', () => {
   // Basic Rendering Tests

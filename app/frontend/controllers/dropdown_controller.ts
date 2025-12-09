@@ -16,19 +16,19 @@
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller<HTMLElement> {
-  static targets = ['menu']
+  static override targets = ['menu']
 
   declare readonly menuTarget: HTMLElement
   declare readonly hasMenuTarget: boolean
 
   private isOpen = false
-  private boundClickOutside: (event: MouseEvent) => void
+  private boundClickOutside!: (event: MouseEvent) => void
 
-  connect() {
+  override connect() {
     this.boundClickOutside = this.clickOutside.bind(this)
   }
 
-  disconnect() {
+  override disconnect() {
     document.removeEventListener('click', this.boundClickOutside)
   }
 

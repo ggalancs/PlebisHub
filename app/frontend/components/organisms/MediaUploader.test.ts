@@ -10,7 +10,7 @@ interface MockFileReader {
   readAsDataURL: (blob: Blob) => void
 }
 
-global.FileReader = class FileReader {
+;(globalThis as typeof globalThis & { FileReader: unknown }).FileReader = class FileReader {
   onload: ((event: { target: { result: string } }) => void) | null = null
 
   readAsDataURL = vi.fn(function(this: MockFileReader) {
@@ -20,7 +20,7 @@ global.FileReader = class FileReader {
       }
     }, 0)
   })
-} as unknown as typeof FileReader
+}
 
 describe('MediaUploader', () => {
   describe('rendering', () => {

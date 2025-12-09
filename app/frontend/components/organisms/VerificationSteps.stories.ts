@@ -171,7 +171,7 @@ export const NoProgress: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationSteps },
     setup() {
       const currentStep = ref<VerificationStep>('personal')
@@ -254,7 +254,7 @@ export const Interactive: Story = {
 }
 
 export const AllStepsView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationSteps },
     setup() {
       const steps: VerificationStep[] = ['personal', 'document', 'address', 'phone', 'review']
@@ -277,7 +277,7 @@ export const AllStepsView: Story = {
 }
 
 export const ValidationErrors: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationSteps },
     setup() {
       return {}
@@ -305,7 +305,7 @@ export const WithPartialData: Story = {
 }
 
 export const DifferentDocumentTypes: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationSteps },
     setup() {
       const documentTypes = ['dni', 'passport', 'nie', 'residence_card']
@@ -336,7 +336,7 @@ export const DifferentDocumentTypes: Story = {
 }
 
 export const ProgressComparison: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationSteps },
     setup() {
       const steps: VerificationStep[] = ['personal', 'document', 'address', 'phone', 'review']
@@ -361,7 +361,7 @@ export const ProgressComparison: Story = {
 }
 
 export const MultipleStatuses: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationSteps },
     setup() {
       const statuses: Array<'not_started' | 'in_progress' | 'pending_review' | 'verified' | 'rejected'> = [
@@ -393,7 +393,7 @@ export const MultipleStatuses: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationSteps },
     setup() {
       return {}
@@ -411,7 +411,7 @@ export const MobileView: Story = {
 }
 
 export const CompletionFlow: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VerificationSteps },
     setup() {
       const currentStep = ref<VerificationStep>('personal')

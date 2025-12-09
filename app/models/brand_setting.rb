@@ -20,6 +20,12 @@
 #  active                 :boolean          default(TRUE), not null
 #  version                :integer          default(1), not null
 #  metadata               :jsonb            default({}), not null
+#  font_primary           :string           default("Inter")
+#  font_display           :string           default("Montserrat")
+#  logo_url               :string
+#  logo_dark_url          :string
+#  favicon_url            :string
+#  custom_css             :text
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
 #
@@ -97,6 +103,20 @@ class BrandSetting < ApplicationRecord
   # Valid scopes
   VALID_SCOPES = %w[global organization].freeze
 
+  # Allowed fonts (Google Fonts whitelist for security)
+  ALLOWED_FONTS = [
+    'Inter',
+    'Montserrat',
+    'Roboto',
+    'Open Sans',
+    'Lato',
+    'Poppins',
+    'Source Sans Pro',
+    'Nunito',
+    'Raleway',
+    'Work Sans'
+  ].freeze
+
   # Validations - Basic
   validates :name, presence: true, length: { maximum: 255 }
   validates :scope, presence: true, inclusion: { in: VALID_SCOPES }
@@ -114,6 +134,14 @@ class BrandSetting < ApplicationRecord
   validates :secondary_color, format: { with: HEX_COLOR_REGEX }, allow_blank: true
   validates :secondary_light_color, format: { with: HEX_COLOR_REGEX }, allow_blank: true
   validates :secondary_dark_color, format: { with: HEX_COLOR_REGEX }, allow_blank: true
+
+  # Validations - Typography and assets
+  validates :font_primary, inclusion: { in: ALLOWED_FONTS }, allow_blank: true
+  validates :font_display, inclusion: { in: ALLOWED_FONTS }, allow_blank: true
+  validates :logo_url, length: { maximum: 2048 }, allow_blank: true
+  validates :logo_dark_url, length: { maximum: 2048 }, allow_blank: true
+  validates :favicon_url, length: { maximum: 2048 }, allow_blank: true
+  validates :custom_css, length: { maximum: 50_000 }, allow_blank: true
 
   # Custom validations
   validate :unique_organization_setting
@@ -234,6 +262,67 @@ class BrandSetting < ApplicationRecord
       createdAt: created_at&.iso8601,
       updatedAt: updated_at&.iso8601
     }
+  end
+
+  # Generate CSS custom properties for theme injection
+  def to_css_variables
+    colors = theme_colors
+    defaults = predefined_theme_colors
+
+    <<~CSS.squish
+      --color-primary: #{colors[:primary] || defaults[:primary]};
+      --color-primary-light: #{colors[:primaryLight] || defaults[:primaryLight]};
+      --color-primary-dark: #{colors[:primaryDark] || defaults[:primaryDark]};
+      --color-secondary: #{colors[:secondary] || defaults[:secondary]};
+      --color-secondary-light: #{colors[:secondaryLight] || defaults[:secondaryLight]};
+      --color-secondary-dark: #{colors[:secondaryDark] || defaults[:secondaryDark]};
+      --font-primary: '#{effective_font_primary}', sans-serif;
+      --font-display: '#{effective_font_display}', sans-serif;
+    CSS
+  end
+
+  # Generate complete style tag for layout injection
+  def to_style_tag
+    css = ":root { #{to_css_variables} }"
+    css += " #{sanitized_custom_css}" if custom_css.present?
+    "<style id=\"brand-theme\">#{css}</style>"
+  end
+
+  # Sanitize custom CSS to prevent XSS attacks
+  def sanitized_custom_css
+    return '' if custom_css.blank?
+
+    # Remove potentially dangerous CSS patterns
+    custom_css
+      .gsub(%r{url\s*\([^)]*\)}i, '') # Remove url() to prevent external resource loading
+      .gsub(/expression\s*\([^)]*\)/i, '') # Remove IE expression()
+      .gsub(/javascript:/i, '') # Remove javascript: protocol
+      .gsub(/@import/i, '') # Remove @import to prevent external stylesheet loading
+      .gsub(/behavior\s*:/i, '') # Remove IE behavior property
+      .gsub(/-moz-binding/i, '') # Remove Firefox XBL binding
+      .strip
+  end
+
+  # Get effective font with fallback
+  def effective_font_primary
+    font_primary.presence || 'Inter'
+  end
+
+  def effective_font_display
+    font_display.presence || 'Montserrat'
+  end
+
+  # Get effective logo URL with fallback
+  def effective_logo_url(dark_mode: false)
+    if dark_mode
+      logo_dark_url.presence || logo_url.presence
+    else
+      logo_url.presence
+    end
+  end
+
+  def effective_favicon_url
+    favicon_url.presence
   end
 
   private

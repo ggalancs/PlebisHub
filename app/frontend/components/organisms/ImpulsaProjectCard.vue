@@ -59,13 +59,13 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 // Status configuration
-const statusConfig: Record<ProjectStatus, { label: string; variant: 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info' }> = {
+const statusConfig: Record<ProjectStatus, { label: string; variant: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' }> = {
   draft: { label: 'Borrador', variant: 'default' },
   submitted: { label: 'Presentado', variant: 'info' },
   evaluation: { label: 'En Evaluación', variant: 'warning' },
   voting: { label: 'En Votación', variant: 'primary' },
   funded: { label: 'Financiado', variant: 'success' },
-  rejected: { label: 'No Financiado', variant: 'error' },
+  rejected: { label: 'No Financiado', variant: 'danger' },
   completed: { label: 'Completado', variant: 'success' },
 }
 

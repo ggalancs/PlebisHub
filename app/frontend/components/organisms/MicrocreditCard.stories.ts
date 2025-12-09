@@ -315,7 +315,7 @@ export const NoInvestButton: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditCard },
     setup() {
       const microcredit = ref<Microcredit>({ ...mockMicrocredit })
@@ -387,7 +387,7 @@ export const Interactive: Story = {
 }
 
 export const DifferentMicrocredits: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditCard },
     setup() {
       const microcredits: Microcredit[] = [
@@ -498,7 +498,7 @@ export const DifferentMicrocredits: Story = {
 }
 
 export const AllStatuses: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditCard },
     setup() {
       const statuses: Array<{ status: 'pending' | 'funding' | 'funded' | 'repaying' | 'completed' | 'defaulted'; amountFunded: number }> = [
@@ -529,7 +529,7 @@ export const AllStatuses: Story = {
 }
 
 export const AllRiskLevels: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditCard },
     setup() {
       const levels: Array<'low' | 'medium' | 'high'> = ['low', 'medium', 'high']
@@ -553,7 +553,7 @@ export const AllRiskLevels: Story = {
 }
 
 export const FundingProgress: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditCard },
     setup() {
       const progressLevels = [
@@ -583,7 +583,7 @@ export const FundingProgress: Story = {
 }
 
 export const CompactGrid: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditCard },
     setup() {
       const microcredits: Microcredit[] = Array(6).fill(null).map((_, i) => ({
@@ -612,7 +612,7 @@ export const CompactGrid: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditCard },
     setup() {
       return { mockMicrocredit }
@@ -630,7 +630,7 @@ export const MobileView: Story = {
 }
 
 export const InvestmentFlow: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditCard },
     setup() {
       const microcredit = ref<Microcredit>({

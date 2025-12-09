@@ -18,7 +18,7 @@ import ClipboardController from './clipboard_controller'
 const application = Application.start()
 
 // Configure Stimulus development experience
-application.debug = process.env.NODE_ENV === 'development'
+application.debug = import.meta.env.DEV
 
 // Register controllers
 application.register('dropdown', DropdownController)

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
+// import { nextTick } from 'vue'
 import ImpulsaProjectSteps from './ImpulsaProjectSteps.vue'
 import type { ProjectStep } from './ImpulsaProjectSteps.vue'
 

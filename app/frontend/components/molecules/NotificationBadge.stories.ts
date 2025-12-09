@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import type { Meta, StoryObj } from '@storybook/vue3'
 import NotificationBadge from './NotificationBadge.vue'
 import Button from '../atoms/Button.vue'
 import Icon from '../atoms/Icon.vue'

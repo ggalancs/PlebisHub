@@ -356,7 +356,7 @@ onUnmounted(() => {
           placeholder="Ej: Expansión de Panadería Local"
           :error="errors.title"
           :disabled="disabled"
-          maxlength="100"
+          :maxlength="100"
         />
         <div class="flex items-center justify-between mt-1">
           <p v-if="errors.title" class="text-xs text-red-600 dark:text-red-400">
@@ -377,10 +377,10 @@ onUnmounted(() => {
         <Textarea
           v-model="formData.description"
           placeholder="Describe detalladamente tu proyecto y cómo utilizarás los fondos..."
-          :error="errors.description"
+          :error="!!errors.description"
           :disabled="disabled"
           :rows="compact ? 4 : 6"
-          maxlength="1000"
+          :maxlength="1000"
         />
         <div class="flex items-center justify-between mt-1">
           <p v-if="errors.description" class="text-xs text-red-600 dark:text-red-400">
@@ -406,9 +406,9 @@ onUnmounted(() => {
             placeholder="5000"
             :error="errors.amountRequested"
             :disabled="disabled"
-            min="100"
-            max="100000"
-            step="100"
+            :min="100"
+            :max="100000"
+            :step="100"
           />
           <p v-if="errors.amountRequested" class="text-xs text-red-600 dark:text-red-400 mt-1">
             {{ errors.amountRequested }}
@@ -430,9 +430,9 @@ onUnmounted(() => {
             placeholder="5.5"
             :error="errors.interestRate"
             :disabled="disabled"
-            min="0.1"
-            max="30"
-            step="0.1"
+            :min="0.1"
+            :max="30"
+            :step="0.1"
           />
           <p v-if="errors.interestRate" class="text-xs text-red-600 dark:text-red-400 mt-1">
             {{ errors.interestRate }}
@@ -499,8 +499,8 @@ onUnmounted(() => {
             placeholder="100"
             :error="errors.minimumInvestment"
             :disabled="disabled"
-            min="10"
-            step="10"
+            :min="10"
+            :step="10"
           />
           <p v-if="errors.minimumInvestment" class="text-xs text-red-600 dark:text-red-400 mt-1">
             {{ errors.minimumInvestment }}

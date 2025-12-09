@@ -288,7 +288,7 @@ export const WithoutImplementation: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaEditionInfo },
     setup() {
       const edition = ref<ImpulsaEdition>({
@@ -382,7 +382,7 @@ export const Interactive: Story = {
 }
 
 export const RealTimeCountdown: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaEditionInfo },
     setup() {
       const edition = ref<ImpulsaEdition>({
@@ -408,7 +408,7 @@ export const RealTimeCountdown: Story = {
 }
 
 export const MultipleEditions: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaEditionInfo },
     setup() {
       const editions: ImpulsaEdition[] = [
@@ -468,7 +468,7 @@ export const MultipleEditions: Story = {
 }
 
 export const CompactGrid: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaEditionInfo },
     setup() {
       const editions: ImpulsaEdition[] = [
@@ -498,7 +498,7 @@ export const CompactGrid: Story = {
 }
 
 export const DashboardView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaEditionInfo },
     setup() {
       const currentEdition: ImpulsaEdition = {

@@ -85,7 +85,7 @@ describe('Checkbox', () => {
         props: { modelValue: false },
       })
 
-      await wrapper.find('input').setChecked(true)
+      await wrapper.find('input').setValue(true)
 
       expect(wrapper.emitted('update:modelValue')).toBeTruthy()
       expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([true])
@@ -110,7 +110,7 @@ describe('Checkbox', () => {
       const input = wrapper.find('input')
       expect((input.element as HTMLInputElement).checked).toBe(false)
 
-      await input.setChecked(true)
+      await input.setValue(true)
       await wrapper.vm.$nextTick()
 
       expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([true])
@@ -123,7 +123,7 @@ describe('Checkbox', () => {
 
       // Clicking label should check the associated checkbox
       const input = wrapper.find('input')
-      await input.setChecked(true)
+      await input.setValue(true)
 
       expect(wrapper.emitted('update:modelValue')).toBeTruthy()
     })

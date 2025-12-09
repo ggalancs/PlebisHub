@@ -120,7 +120,7 @@ export const PartialData: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectForm },
     setup() {
       const currentStep = ref(1)
@@ -227,7 +227,7 @@ export const Interactive: Story = {
 }
 
 export const MultiStepNavigation: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectForm },
     setup() {
       const currentStep = ref(1)
@@ -295,7 +295,7 @@ export const MultiStepNavigation: Story = {
 }
 
 export const WithValidationErrors: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectForm },
     setup() {
       const currentStep = ref(1)
@@ -316,7 +316,7 @@ export const WithValidationErrors: Story = {
 }
 
 export const AllStepsView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectForm },
     setup() {
       return {}

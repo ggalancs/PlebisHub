@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import DOMPurify from 'dompurify'
-import Button from '@/components/atoms/Button.vue'
 import Icon from '@/components/atoms/Icon.vue'
-import Tabs from '@/components/molecules/Tabs.vue'
-import { useForm, validators, useDebounce } from '@/composables'
+import { useDebounce } from '@/composables'
 
 export type EditorMode = 'rich' | 'markdown'
 export type EditorView = 'edit' | 'preview' | 'split'

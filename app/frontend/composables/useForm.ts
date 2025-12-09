@@ -1,4 +1,4 @@
-import { ref, computed, watch, reactive, type Ref, type ComputedRef, type UnwrapRef } from 'vue'
+import { ref, computed, watch, reactive, type Ref, type ComputedRef, type UnwrapRef, type Reactive } from 'vue'
 
 export type ValidationRule<T = any> = {
   validator: (value: T) => boolean | Promise<boolean>
@@ -32,16 +32,16 @@ export interface UseFormReturn<T extends Record<string, any>> {
   values: UnwrapRef<T>
 
   /** Form errors (reactive object) */
-  errors: ComputedRef<Record<keyof T, string | null>>
+  errors: ComputedRef<Reactive<Record<keyof T, string | null>>>
 
   /** Touched state for each field */
-  touched: Readonly<Record<keyof T, boolean>>
+  touched: Reactive<Record<keyof T, boolean>>
 
   /** Dirty state for each field */
-  dirty: Readonly<Record<keyof T, boolean>>
+  dirty: Reactive<Record<keyof T, boolean>>
 
   /** Validating state for each field */
-  validating: Readonly<Record<keyof T, boolean>>
+  validating: Reactive<Record<keyof T, boolean>>
 
   /** Whether form is currently validating */
   isValidating: ComputedRef<boolean>
@@ -142,10 +142,11 @@ export function useForm<T extends Record<string, any>>(
 
   // Initialize field states
   for (const key in initialValues) {
-    fieldErrors[key] = null
-    fieldTouched[key] = false
-    fieldDirty[key] = false
-    fieldValidating[key] = false
+    const typedKey = key as keyof T
+    ;(fieldErrors as Record<keyof T, string | null>)[typedKey] = null
+    ;(fieldTouched as Record<keyof T, boolean>)[typedKey] = false
+    ;(fieldDirty as Record<keyof T, boolean>)[typedKey] = false
+    ;(fieldValidating as Record<keyof T, boolean>)[typedKey] = false
   }
 
   // Computed: errors object
@@ -173,56 +174,58 @@ export function useForm<T extends Record<string, any>>(
 
   // Set field value
   const setFieldValue = <K extends keyof T>(field: K, value: T[K]) => {
-    ;(values as any)[field] = value
-    fieldDirty[field] = value !== initialValuesRef.value[field]
+    ;(values as Record<keyof T, T[K]>)[field] = value
+    ;(fieldDirty as Record<keyof T, boolean>)[field] = value !== initialValuesRef.value[field]
   }
 
   // Set field error
   const setFieldError = <K extends keyof T>(field: K, error: string | null) => {
-    fieldErrors[field] = error
+    ;(fieldErrors as Record<keyof T, string | null>)[field] = error
   }
 
   // Mark field as touched
   const setFieldTouched = <K extends keyof T>(field: K, touched = true) => {
-    fieldTouched[field] = touched
+    ;(fieldTouched as Record<keyof T, boolean>)[field] = touched
   }
 
   // Validate single field
   const validateField = async <K extends keyof T>(field: K): Promise<boolean> => {
     const fieldRules = rules[field]
+    const errors = fieldErrors as Record<keyof T, string | null>
+    const validating = fieldValidating as Record<keyof T, boolean>
+
     if (!fieldRules || fieldRules.length === 0) {
-      fieldErrors[field] = null
+      errors[field] = null
       return true
     }
 
-    fieldValidating[field] = true
-    const value = values[field]
+    validating[field] = true
+    const value = (values as Record<keyof T, T[K]>)[field]
 
     try {
       for (const rule of fieldRules) {
         const isValid = await rule.validator(value)
         if (!isValid) {
-          fieldErrors[field] = rule.message
-          fieldValidating[field] = false
+          errors[field] = rule.message
+          validating[field] = false
           return false
         }
       }
 
-      fieldErrors[field] = null
-      fieldValidating[field] = false
+      errors[field] = null
+      validating[field] = false
       return true
-    } catch (error) {
-      fieldErrors[field] = 'Validation error'
-      fieldValidating[field] = false
+    } catch {
+      errors[field] = 'Validation error'
+      validating[field] = false
       return false
     }
   }
 
   // Validate entire form
   const validateForm = async (): Promise<boolean> => {
-    const validationPromises = Object.keys(values).map((field) =>
-      validateField(field as keyof T)
-    )
+    const fields = Object.keys(values as object) as Array<Extract<keyof T, string>>
+    const validationPromises = fields.map((field) => validateField(field))
 
     const results = await Promise.all(validationPromises)
     return results.every((result) => result)
@@ -230,29 +233,36 @@ export function useForm<T extends Record<string, any>>(
 
   // Reset form
   const resetForm = () => {
+    const errors = fieldErrors as Record<keyof T, string | null>
+    const touched = fieldTouched as Record<keyof T, boolean>
+    const dirty = fieldDirty as Record<keyof T, boolean>
+    const validating = fieldValidating as Record<keyof T, boolean>
+
     for (const key in initialValues) {
-      ;(values as any)[key] = initialValuesRef.value[key]
-      fieldErrors[key] = null
-      fieldTouched[key] = false
-      fieldDirty[key] = false
-      fieldValidating[key] = false
+      const typedKey = key as keyof T
+      ;(values as Record<keyof T, T[keyof T]>)[typedKey] = initialValuesRef.value[typedKey]
+      errors[typedKey] = null
+      touched[typedKey] = false
+      dirty[typedKey] = false
+      validating[typedKey] = false
     }
     isSubmitting.value = false
   }
 
   // Reset single field
   const resetField = <K extends keyof T>(field: K) => {
-    ;(values as any)[field] = initialValuesRef.value[field]
-    fieldErrors[field] = null
-    fieldTouched[field] = false
-    fieldDirty[field] = false
-    fieldValidating[field] = false
+    ;(values as Record<keyof T, T[K]>)[field] = initialValuesRef.value[field]
+    ;(fieldErrors as Record<keyof T, string | null>)[field] = null
+    ;(fieldTouched as Record<keyof T, boolean>)[field] = false
+    ;(fieldDirty as Record<keyof T, boolean>)[field] = false
+    ;(fieldValidating as Record<keyof T, boolean>)[field] = false
   }
 
   // Clear all errors
   const clearErrors = () => {
-    for (const key in fieldErrors) {
-      fieldErrors[key] = null
+    const errors = fieldErrors as Record<keyof T, string | null>
+    for (const key in errors) {
+      errors[key as keyof T] = null
     }
   }
 
@@ -265,7 +275,7 @@ export function useForm<T extends Record<string, any>>(
 
       // Mark all fields as touched
       for (const key in values) {
-        fieldTouched[key as keyof T] = true
+        ;(fieldTouched as Record<keyof T, boolean>)[key as keyof T] = true
       }
 
       // Validate form
@@ -288,14 +298,15 @@ export function useForm<T extends Record<string, any>>(
 
   // Watch for value changes and validate on blur (when touched)
   for (const key in initialValues) {
+    const typedKey = key as Extract<keyof T, string>
     watch(
-      () => values[key],
+      () => (values as Record<keyof T, T[keyof T]>)[typedKey],
       async (newValue) => {
-        fieldDirty[key] = newValue !== initialValuesRef.value[key]
+        ;(fieldDirty as Record<keyof T, boolean>)[typedKey] = newValue !== initialValuesRef.value[typedKey]
 
         // Validate if field has been touched
-        if (fieldTouched[key]) {
-          await validateField(key)
+        if ((fieldTouched as Record<keyof T, boolean>)[typedKey]) {
+          await validateField(typedKey)
         }
       }
     )

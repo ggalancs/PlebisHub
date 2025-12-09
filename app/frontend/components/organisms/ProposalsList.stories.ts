@@ -155,7 +155,7 @@ export const MixedStates: Story = {
 }
 
 export const ServerSideMode: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ProposalsList },
     setup() {
       const currentPage = ref(1)
@@ -235,7 +235,7 @@ export const ServerSideMode: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ProposalsList },
     setup() {
       const proposals = ref(mockProposals)
@@ -341,7 +341,7 @@ export const OnlyFilters: Story = {
 }
 
 export const ResponsiveGrid: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ProposalsList },
     setup() {
       return { proposals: mockProposals.slice(0, 6) }

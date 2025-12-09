@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_11_29_134215) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_09_184046) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -107,6 +107,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_29_134215) do
     t.jsonb "metadata", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "font_primary", default: "Inter"
+    t.string "font_display", default: "Montserrat"
+    t.string "logo_url"
+    t.string "logo_dark_url"
+    t.string "favicon_url"
+    t.text "custom_css"
     t.index ["active"], name: "index_brand_settings_on_active"
     t.index ["created_at"], name: "index_brand_settings_on_created_at"
     t.index ["name"], name: "index_brand_settings_on_name"

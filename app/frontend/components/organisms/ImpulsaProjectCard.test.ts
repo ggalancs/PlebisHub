@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
+// import { nextTick } from 'vue'
 import ImpulsaProjectCard from './ImpulsaProjectCard.vue'
 import type { ImpulsaProject } from './ImpulsaProjectCard.vue'
 

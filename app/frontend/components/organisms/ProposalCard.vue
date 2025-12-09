@@ -68,7 +68,7 @@ const daysRemaining = computed(() => {
 
 // Status badge variant
 const statusVariant = computed(() => {
-  if (props.proposal.discarded) return 'error'
+  if (props.proposal.discarded) return 'danger'
   if (props.proposal.finished) return 'default'
   if (props.proposal.redditThreshold) return 'success'
   return 'info'
@@ -211,7 +211,7 @@ const truncatedDescription = computed(() => {
 
       <Button
         v-if="showSupportButton && !proposal.finished && !proposal.discarded"
-        :variant="proposal.supported ? 'default' : 'primary'"
+        :variant="proposal.supported ? 'secondary' : 'primary'"
         size="sm"
         :disabled="!isAuthenticated || proposal.supported || loadingSupport"
         :loading="loadingSupport"

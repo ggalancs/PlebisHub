@@ -259,7 +259,7 @@ const formatNumber = (num: number): string => {
             </div>
             <ProgressBar
               :value="Math.round((byRiskLevel.low / totalMicrocredits) * 100)"
-              variant="green"
+              variant="success"
               class="h-2"
             />
           </div>
@@ -270,7 +270,7 @@ const formatNumber = (num: number): string => {
             </div>
             <ProgressBar
               :value="Math.round((byRiskLevel.medium / totalMicrocredits) * 100)"
-              variant="yellow"
+              variant="warning"
               class="h-2"
             />
           </div>
@@ -281,7 +281,7 @@ const formatNumber = (num: number): string => {
             </div>
             <ProgressBar
               :value="Math.round((byRiskLevel.high / totalMicrocredits) * 100)"
-              variant="red"
+              variant="danger"
               class="h-2"
             />
           </div>

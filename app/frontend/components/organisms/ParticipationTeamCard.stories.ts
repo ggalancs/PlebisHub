@@ -267,7 +267,7 @@ export const NoButtons: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationTeamCard },
     setup() {
       const team = ref<ParticipationTeam>({ ...mockTeam })
@@ -333,7 +333,7 @@ export const Interactive: Story = {
 }
 
 export const DifferentTeams: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationTeamCard },
     setup() {
       const teams: ParticipationTeam[] = [
@@ -428,7 +428,7 @@ export const DifferentTeams: Story = {
 }
 
 export const AllStatuses: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationTeamCard },
     setup() {
       const statuses: Array<{ status: 'active' | 'recruiting' | 'full' | 'inactive'; memberCount: number }> = [
@@ -457,7 +457,7 @@ export const AllStatuses: Story = {
 }
 
 export const AllActivityLevels: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationTeamCard },
     setup() {
       const levels: Array<'high' | 'medium' | 'low'> = ['high', 'medium', 'low']
@@ -481,7 +481,7 @@ export const AllActivityLevels: Story = {
 }
 
 export const MembershipStates: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationTeamCard },
     setup() {
       const states = [
@@ -511,7 +511,7 @@ export const MembershipStates: Story = {
 }
 
 export const OccupancyLevels: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationTeamCard },
     setup() {
       const occupancies = [
@@ -544,7 +544,7 @@ export const OccupancyLevels: Story = {
 }
 
 export const CompactGrid: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationTeamCard },
     setup() {
       const teams: ParticipationTeam[] = Array(6).fill(null).map((_, i) => ({
@@ -573,7 +573,7 @@ export const CompactGrid: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationTeamCard },
     setup() {
       return { mockTeam }
@@ -591,7 +591,7 @@ export const MobileView: Story = {
 }
 
 export const TeamJoinFlow: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ParticipationTeamCard },
     setup() {
       const team = ref<ParticipationTeam>({ ...mockTeam, memberCount: 14, maxMembers: 15 })

@@ -7,6 +7,9 @@ ActiveAdmin.register BrandSetting do
                 :theme_id, :theme_name, :active,
                 :primary_color, :primary_light_color, :primary_dark_color,
                 :secondary_color, :secondary_light_color, :secondary_dark_color,
+                :font_primary, :font_display,
+                :logo_url, :logo_dark_url, :favicon_url,
+                :custom_css,
                 metadata: {}
 
   # ========================================
@@ -46,6 +49,9 @@ ActiveAdmin.register BrandSetting do
     end
     column :active do |setting|
       status_tag setting.active ? 'Active' : 'Inactive', setting.active ? 'yes' : 'no'
+    end
+    column 'Fonts' do |setting|
+      "#{setting.font_primary || 'Inter'} / #{setting.font_display || 'Montserrat'}"
     end
     column :version
     column :updated_at
@@ -155,6 +161,89 @@ ActiveAdmin.register BrandSetting do
       end
     end
 
+    panel 'Typography' do
+      div class: 'typography-preview', style: 'padding: 20px;' do
+        div style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 30px;' do
+          div do
+            h4 'Primary Font (Body)', style: 'margin-bottom: 10px; color: #555;'
+            font_name = brand_setting.font_primary || 'Inter'
+            div style: "font-family: '#{font_name}', sans-serif; font-size: 16px; line-height: 1.6;" do
+              div font_name, style: 'font-weight: 600; margin-bottom: 10px;'
+              para 'The quick brown fox jumps over the lazy dog. 0123456789'
+              para 'ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz'
+            end
+          end
+          div do
+            h4 'Display Font (Headings)', style: 'margin-bottom: 10px; color: #555;'
+            font_name = brand_setting.font_display || 'Montserrat'
+            div style: "font-family: '#{font_name}', sans-serif;" do
+              div font_name, style: 'font-weight: 600; margin-bottom: 10px;'
+              div style: 'font-size: 28px; font-weight: 700; margin-bottom: 8px;' do
+                text_node 'Heading Example'
+              end
+              div style: 'font-size: 20px; font-weight: 600;' do
+                text_node 'Subheading Example'
+              end
+            end
+          end
+        end
+      end
+    end
+
+    panel 'Logo & Assets' do
+      div class: 'assets-preview', style: 'padding: 20px;' do
+        div style: 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;' do
+          div do
+            h4 'Main Logo', style: 'margin-bottom: 10px; color: #555;'
+            if brand_setting.logo_url.present?
+              div style: 'background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center;' do
+                image_tag brand_setting.logo_url, style: 'max-height: 80px; max-width: 100%;'
+              end
+              div brand_setting.logo_url, style: 'font-size: 11px; color: #888; margin-top: 8px; word-break: break-all;'
+            else
+              div 'Not configured', style: 'color: #999; font-style: italic;'
+            end
+          end
+          div do
+            h4 'Dark Mode Logo', style: 'margin-bottom: 10px; color: #555;'
+            if brand_setting.logo_dark_url.present?
+              div style: 'background: #333; padding: 20px; border-radius: 8px; text-align: center;' do
+                image_tag brand_setting.logo_dark_url, style: 'max-height: 80px; max-width: 100%;'
+              end
+              div brand_setting.logo_dark_url, style: 'font-size: 11px; color: #888; margin-top: 8px; word-break: break-all;'
+            else
+              div 'Not configured', style: 'color: #999; font-style: italic;'
+            end
+          end
+          div do
+            h4 'Favicon', style: 'margin-bottom: 10px; color: #555;'
+            if brand_setting.favicon_url.present?
+              div style: 'background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center;' do
+                image_tag brand_setting.favicon_url, style: 'max-height: 32px;'
+              end
+              div brand_setting.favicon_url, style: 'font-size: 11px; color: #888; margin-top: 8px; word-break: break-all;'
+            else
+              div 'Not configured', style: 'color: #999; font-style: italic;'
+            end
+          end
+        end
+      end
+    end
+
+    if brand_setting.custom_css.present?
+      panel 'Custom CSS' do
+        pre brand_setting.custom_css, style: 'background: #f5f5f5; padding: 15px; border-radius: 4px; overflow-x: auto;'
+        div do
+          strong 'Sanitized Output:'
+        end
+        pre brand_setting.sanitized_custom_css, style: 'background: #e8f5e9; padding: 15px; border-radius: 4px; overflow-x: auto; margin-top: 10px;'
+      end
+    end
+
+    panel 'Generated CSS Variables' do
+      pre brand_setting.to_css_variables, style: 'background: #e3f2fd; padding: 15px; border-radius: 4px; font-family: monospace;'
+    end
+
     panel 'Metadata' do
       pre JSON.pretty_generate(brand_setting.metadata)
     end
@@ -234,6 +323,44 @@ ActiveAdmin.register BrandSetting do
               hint: 'Darker variant of secondary color'
     end
 
+    f.inputs 'Typography' do
+      f.input :font_primary,
+              as: :select,
+              collection: BrandSetting::ALLOWED_FONTS,
+              include_blank: 'Default (Inter)',
+              hint: 'Font for body text and general content'
+      f.input :font_display,
+              as: :select,
+              collection: BrandSetting::ALLOWED_FONTS,
+              include_blank: 'Default (Montserrat)',
+              hint: 'Font for headings and titles'
+    end
+
+    f.inputs 'Logo & Assets' do
+      f.input :logo_url,
+              hint: 'URL to main logo image (SVG or PNG recommended, max 2048 characters)'
+      f.input :logo_dark_url,
+              hint: 'Logo variant for dark backgrounds (optional)'
+      f.input :favicon_url,
+              hint: 'URL to favicon (32x32 PNG recommended)'
+
+      # Show previews if URLs exist
+      if f.object.logo_url.present?
+        div class: 'logo-preview', style: 'margin-top: 10px; padding: 15px; background: #f5f5f5; border-radius: 4px;' do
+          span 'Current Logo: ', style: 'font-weight: bold;'
+          image_tag f.object.logo_url, style: 'max-height: 50px; vertical-align: middle; margin-left: 10px;'
+        end
+      end
+    end
+
+    f.inputs 'Custom CSS (Advanced)' do
+      f.input :custom_css,
+              as: :text,
+              input_html: { rows: 12, style: 'font-family: monospace; font-size: 13px;' },
+              hint: 'Additional CSS rules (max 50KB). Security note: url(), @import, expression(), ' \
+                    'and javascript: are automatically stripped.'
+    end
+
     f.inputs 'Settings' do
       f.input :active,
               hint: 'Only active brand settings are applied. At least one global setting must be active.'
@@ -300,6 +427,18 @@ ActiveAdmin.register BrandSetting do
             api_v1_brand_setting_path(brand_setting, format: :json),
             target: '_blank',
             class: 'button', rel: 'noopener'
+  end
+
+  action_item :preview_theme, only: :show do
+    link_to 'Preview Theme',
+            preview_admin_brand_setting_path(brand_setting),
+            target: '_blank',
+            class: 'button', rel: 'noopener'
+  end
+
+  member_action :preview, method: :get do
+    @brand_setting = BrandSetting.find(params[:id])
+    render 'admin/brand_settings/preview', layout: false
   end
 
   # ========================================

@@ -306,7 +306,7 @@ export const LowSupport: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VotingWidget },
     setup() {
       const voteData = ref<VoteData>({ ...mockVoteData })
@@ -379,7 +379,7 @@ export const Interactive: Story = {
 }
 
 export const InteractiveUnauthenticated: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VotingWidget },
     setup() {
       const voteData = ref<VoteData>({ ...mockVoteData })
@@ -412,7 +412,7 @@ export const InteractiveUnauthenticated: Story = {
 }
 
 export const MultipleWidgets: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VotingWidget },
     setup() {
       const proposals = ref([
@@ -488,7 +488,7 @@ export const MultipleWidgets: Story = {
 }
 
 export const SidebarLayout: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VotingWidget },
     setup() {
       const voteData = ref<VoteData>({
@@ -533,7 +533,7 @@ export const SidebarLayout: Story = {
 }
 
 export const CompactGrid: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VotingWidget },
     setup() {
       const items = ref([

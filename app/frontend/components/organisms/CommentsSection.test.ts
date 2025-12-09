@@ -644,7 +644,7 @@ describe('CommentsSection', () => {
 
   describe('deleting comments', () => {
     beforeEach(() => {
-      global.confirm = vi.fn(() => true)
+      vi.stubGlobal('confirm', vi.fn(() => true))
     })
 
     it('should show delete button when canDelete is true', () => {
@@ -681,7 +681,7 @@ describe('CommentsSection', () => {
 
       await wrapper.vm.handleDelete(1)
 
-      expect(global.confirm).toHaveBeenCalledWith(
+      expect(vi.mocked(globalThis.confirm)).toHaveBeenCalledWith(
         '¿Estás seguro de que deseas eliminar este comentario?'
       )
     })
@@ -701,7 +701,7 @@ describe('CommentsSection', () => {
     })
 
     it('should not emit delete event when cancelled', async () => {
-      global.confirm = vi.fn(() => false)
+      vi.stubGlobal('confirm', vi.fn(() => false))
 
       const wrapper = mount(CommentsSection, {
         props: {

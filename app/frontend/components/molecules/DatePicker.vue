@@ -2,7 +2,6 @@
 import { ref, computed, watch } from 'vue'
 import Icon from '../atoms/Icon.vue'
 import Button from '../atoms/Button.vue'
-import Input from '../atoms/Input.vue'
 
 export interface Props {
   modelValue: Date | Date[] | null

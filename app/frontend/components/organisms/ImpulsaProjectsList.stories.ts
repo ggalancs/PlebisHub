@@ -318,7 +318,7 @@ export const ServerSidePagination: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectsList },
     setup() {
       const projects = ref(mockProjects)
@@ -410,7 +410,7 @@ export const Interactive: Story = {
 }
 
 export const FilteredByStatus: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectsList },
     setup() {
       return { mockProjects }
@@ -445,7 +445,7 @@ export const FilteredByStatus: Story = {
 }
 
 export const FilteredByCategory: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectsList },
     setup() {
       return { mockProjects }
@@ -480,7 +480,7 @@ export const FilteredByCategory: Story = {
 }
 
 export const WithRealTimeUpdates: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectsList },
     setup() {
       const projects = ref([...mockProjects])

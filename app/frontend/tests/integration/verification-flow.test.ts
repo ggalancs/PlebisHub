@@ -122,7 +122,7 @@ describe('SMS Validation Integration', () => {
       },
     })
 
-    wrapper.vm.$on('validate', onValidate)
+    // Note: Using emitted() to check for events in Vue 3
 
     // Enter SMS code
     const inputs = wrapper.findAll('input')
@@ -149,7 +149,7 @@ describe('SMS Validation Integration', () => {
       },
     })
 
-    wrapper.vm.$on('validate', onValidate)
+    // Note: Using emitted() to check for events in Vue 3
 
     // Fill code completely
     const inputs = wrapper.findAll('input')

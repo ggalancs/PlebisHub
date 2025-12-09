@@ -17,7 +17,7 @@
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller<HTMLElement> {
-  static values = {
+  static override values = {
     content: String,
     position: { type: String, default: 'top' },
   }
@@ -28,7 +28,7 @@ export default class extends Controller<HTMLElement> {
   private tooltip: HTMLElement | null = null
   private showTimeout: ReturnType<typeof setTimeout> | null = null
 
-  connect() {
+  override connect() {
     this.element.addEventListener('mouseenter', this.show.bind(this))
     this.element.addEventListener('mouseleave', this.hide.bind(this))
     this.element.addEventListener('focus', this.show.bind(this))
@@ -40,7 +40,7 @@ export default class extends Controller<HTMLElement> {
     this.element.setAttribute('aria-describedby', id)
   }
 
-  disconnect() {
+  override disconnect() {
     this.hide()
   }
 

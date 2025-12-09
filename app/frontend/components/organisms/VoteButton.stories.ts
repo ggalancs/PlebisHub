@@ -208,7 +208,7 @@ export const NegativeNumbers: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VoteButton },
     setup() {
       const count = ref(42)
@@ -268,7 +268,7 @@ export const Interactive: Story = {
 }
 
 export const AllVariants: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VoteButton },
     setup() {
       return {}
@@ -317,7 +317,7 @@ export const AllVariants: Story = {
 }
 
 export const AllSizes: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VoteButton },
     setup() {
       return {}
@@ -360,7 +360,7 @@ export const AllSizes: Story = {
 }
 
 export const Orientations: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VoteButton },
     setup() {
       return {}
@@ -391,7 +391,7 @@ export const Orientations: Story = {
 }
 
 export const InContext: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VoteButton },
     setup() {
       const items = ref([
@@ -433,7 +433,7 @@ export const InContext: Story = {
 }
 
 export const CommentVoting: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VoteButton },
     setup() {
       return {}

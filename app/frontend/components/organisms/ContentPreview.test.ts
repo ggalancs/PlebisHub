@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ContentPreview from './ContentPreview.vue'
 
-const sampleMarkdown = `# Heading 1
+const _sampleMarkdown = `# Heading 1
 
 ## Heading 2
 

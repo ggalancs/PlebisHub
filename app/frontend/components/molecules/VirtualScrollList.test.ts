@@ -17,18 +17,20 @@ describe('VirtualScrollList', () => {
 
   beforeEach(() => {
     // Mock IntersectionObserver if needed
-    global.IntersectionObserver = class IntersectionObserver {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    } as unknown as typeof IntersectionObserver
+    ;(globalThis as typeof globalThis & { IntersectionObserver: unknown }).IntersectionObserver =
+      class IntersectionObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      }
 
     // Mock ResizeObserver
-    global.ResizeObserver = class ResizeObserver {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    } as unknown as typeof ResizeObserver
+    ;(globalThis as typeof globalThis & { ResizeObserver: unknown }).ResizeObserver =
+      class ResizeObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      }
   })
 
   it('should render with items', () => {

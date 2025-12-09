@@ -328,7 +328,7 @@ export const FewInvestors: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditStats },
     setup() {
       const microcredits = ref<Microcredit[]>([...mockMicrocredits])
@@ -393,7 +393,7 @@ export const Interactive: Story = {
 }
 
 export const RealTimeDashboard: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditStats },
     setup() {
       const microcredits = ref<Microcredit[]>([...mockMicrocredits])
@@ -439,7 +439,7 @@ export const RealTimeDashboard: Story = {
 }
 
 export const ComparisonView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditStats },
     setup() {
       const thisMonth = ref<Microcredit[]>([...mockMicrocredits])
@@ -474,7 +474,7 @@ export const ComparisonView: Story = {
 }
 
 export const ProgressOverTime: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditStats },
     setup() {
       const microcredits = ref<Microcredit[]>([mockMicrocredits[0]])
@@ -539,7 +539,7 @@ export const ProgressOverTime: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditStats },
     setup() {
       return { mockMicrocredits }

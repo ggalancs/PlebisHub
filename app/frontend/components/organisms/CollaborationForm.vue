@@ -318,7 +318,7 @@ onUnmounted(() => {
           placeholder="Ej: Proyecto de Huerto Comunitario"
           :error="errors.title"
           :disabled="disabled"
-          maxlength="100"
+          :maxlength="100"
         />
         <div class="flex items-center justify-between mt-1">
           <p v-if="errors.title" class="text-xs text-red-600 dark:text-red-400">
@@ -339,10 +339,11 @@ onUnmounted(() => {
         <Textarea
           v-model="formData.description"
           placeholder="Describe la colaboración, objetivos y cómo pueden participar..."
-          :error="errors.description"
+          :error="!!errors.description"
+          :error-message="errors.description"
           :disabled="disabled"
           :rows="compact ? 4 : 6"
-          maxlength="1000"
+          :max-length="1000"
         />
         <div class="flex items-center justify-between mt-1">
           <p v-if="errors.description" class="text-xs text-red-600 dark:text-red-400">
@@ -378,7 +379,7 @@ onUnmounted(() => {
             placeholder="Ej: Madrid, España"
             :error="errors.location"
             :disabled="disabled"
-            maxlength="200"
+            :maxlength="200"
           />
           <p v-if="errors.location" class="text-xs text-red-600 dark:text-red-400 mt-1">
             {{ errors.location }}
@@ -437,8 +438,8 @@ onUnmounted(() => {
             placeholder="Ej: 3"
             :error="errors.minCollaborators"
             :disabled="disabled"
-            min="1"
-            max="100"
+            :min="1"
+            :max="100"
           />
           <p v-if="errors.minCollaborators" class="text-xs text-red-600 dark:text-red-400 mt-1">
             {{ errors.minCollaborators }}
@@ -457,8 +458,8 @@ onUnmounted(() => {
             placeholder="Ej: 10"
             :error="errors.maxCollaborators"
             :disabled="disabled"
-            min="1"
-            max="100"
+            :min="1"
+            :max="100"
           />
           <p v-if="errors.maxCollaborators" class="text-xs text-red-600 dark:text-red-400 mt-1">
             {{ errors.maxCollaborators }}

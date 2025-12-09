@@ -261,7 +261,7 @@ const formatNumber = (num: number): string => {
             </div>
             <ProgressBar
               :value="Math.round((count / totalCollaborations) * 100)"
-              variant="yellow"
+              variant="warning"
               class="h-2"
             />
           </div>

@@ -334,10 +334,18 @@ describe('Combobox', () => {
       const options = wrapper.findAll('[role="option"]')
       await options[0].trigger('click')
       await nextTick()
+
+      // First click should emit ['1']
+      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([['1']])
+
+      // Update the prop to simulate v-model behavior
+      await wrapper.setProps({ modelValue: ['1'] })
+      await nextTick()
+
       await options[1].trigger('click')
       await nextTick()
 
-      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([['1']])
+      // Second click should emit ['1', '2']
       expect(wrapper.emitted('update:modelValue')?.[1]).toEqual([['1', '2']])
     })
 

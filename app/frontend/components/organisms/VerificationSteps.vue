@@ -352,8 +352,8 @@ const handleCancel = () => {
   emit('cancel')
 }
 
-// Badge variant type
-type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info'
+// Badge variant type (matches Badge component variants)
+type BadgeVariant = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral'
 
 // Status badge
 const statusConfig: Record<VerificationStatus, { label: string; color: BadgeVariant }> = {
@@ -361,7 +361,7 @@ const statusConfig: Record<VerificationStatus, { label: string; color: BadgeVari
   in_progress: { label: 'En Progreso', color: 'info' },
   pending_review: { label: 'Pendiente de Revisión', color: 'warning' },
   verified: { label: 'Verificado', color: 'success' },
-  rejected: { label: 'Rechazado', color: 'error' },
+  rejected: { label: 'Rechazado', color: 'danger' },
 }
 
 const currentStatus = computed(() => statusConfig[props.verificationStatus])
@@ -478,7 +478,7 @@ const currentStatus = computed(() => statusConfig[props.verificationStatus])
             v-model="formData.document.documentType"
             label="Tipo de Documento"
             :options="documentTypes"
-            :error="errors.documentType"
+            :error="!!errors.documentType"
             :disabled="disabled || loading"
             required
           />
@@ -581,7 +581,7 @@ const currentStatus = computed(() => statusConfig[props.verificationStatus])
               v-model="formData.phone.countryCode"
               label="Código"
               :options="countryCodes"
-              :error="errors.countryCode"
+              :error="!!errors.countryCode"
               :disabled="disabled || loading"
               required
             />

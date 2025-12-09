@@ -23,8 +23,8 @@
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller<HTMLElement> {
-  static targets = ['source']
-  static values = {
+  static override targets = ['source']
+  static override values = {
     text: String,
     successMessage: { type: String, default: 'Copiado!' },
     successDuration: { type: Number, default: 2000 },

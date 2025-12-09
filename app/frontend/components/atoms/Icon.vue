@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import * as icons from 'lucide-vue-next'
 
+export type ClassValue = string | (string | false | undefined)[] | Record<string, boolean | string | undefined> | undefined
+
 export interface IconProps {
   /** Icon name from Lucide library */
   name: string
@@ -12,7 +14,7 @@ export interface IconProps {
   /** Stroke width */
   strokeWidth?: number
   /** Additional CSS classes */
-  class?: string
+  class?: ClassValue
   /** Aria label for accessibility */
   ariaLabel?: string
 }
@@ -76,6 +78,17 @@ const colorStyle = computed(() => {
   return undefined
 })
 
+const normalizeClass = (classValue: ClassValue): string => {
+  if (!classValue) return ''
+  if (typeof classValue === 'string') return classValue
+  if (Array.isArray(classValue)) return classValue.filter((v): v is string => typeof v === 'string' && Boolean(v)).join(' ')
+  // Handle object format { 'class-name': boolean }
+  return Object.entries(classValue)
+    .filter(([, value]) => value)
+    .map(([key]) => key)
+    .join(' ')
+}
+
 const combinedClass = computed(() => {
   const classes = ['inline-block flex-shrink-0']
 
@@ -83,8 +96,9 @@ const combinedClass = computed(() => {
     classes.push(sizeClass.value)
   }
 
-  if (props.class) {
-    classes.push(props.class)
+  const normalizedClass = normalizeClass(props.class)
+  if (normalizedClass) {
+    classes.push(normalizedClass)
   }
 
   return classes.join(' ')

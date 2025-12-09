@@ -2,7 +2,6 @@
 import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import Card from '@/components/molecules/Card.vue'
 import Button from '@/components/atoms/Button.vue'
-import Input from '@/components/atoms/Input.vue'
 import Icon from '@/components/atoms/Icon.vue'
 
 export type ValidationState = 'pending' | 'validating' | 'valid' | 'invalid' | 'expired'
@@ -100,12 +99,6 @@ watchEffect((onCleanup) => {
 const startCountdown = () => {
   countdown.value = props.resendTimeout
   isCountdownActive.value = true
-}
-
-// Stop countdown function
-const stopCountdown = () => {
-  isCountdownActive.value = false
-  countdown.value = 0
 }
 
 // Format countdown
@@ -267,7 +260,7 @@ const currentState = computed(() => stateConfig[props.validationState])
     <div class="sms-validator__inputs">
       <div class="flex items-center justify-center gap-2">
         <input
-          v-for="(digit, index) in codeInputs"
+          v-for="(_digit, index) in codeInputs"
           :key="index"
           :ref="(el) => { if (el) inputRefs[index] = el as HTMLInputElement }"
           v-model="codeInputs[index]"
@@ -359,7 +352,7 @@ const currentState = computed(() => stateConfig[props.validationState])
 
 .sms-validator__input {
   @apply w-12 h-14 text-center text-2xl font-bold border-2 rounded-lg transition-all duration-200;
-  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
   @apply disabled:opacity-50 disabled:cursor-not-allowed;
   @apply bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600;
 }

@@ -3,7 +3,7 @@ import { computed } from 'vue'
 
 export interface ButtonProps {
   /** Button variant */
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'outline'
   /** Button size */
   size?: 'sm' | 'md' | 'lg'
   /** Disabled state */
@@ -59,6 +59,8 @@ const buttonClasses = computed(() => {
       'bg-transparent text-primary-700 hover:bg-primary-50 active:bg-primary-100 focus:ring-primary-600 border border-primary-700',
     danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 focus:ring-red-600',
     success: 'bg-green-600 text-white hover:bg-green-700 active:bg-green-800 focus:ring-green-600',
+    outline:
+      'bg-transparent text-gray-700 hover:bg-gray-50 active:bg-gray-100 focus:ring-gray-300 border border-gray-300',
   }
   classes.push(variantClasses[props.variant])
 

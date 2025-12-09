@@ -47,7 +47,7 @@ const itemsRef = computed(() => props.items)
 
 const {
   visibleItems,
-  totalHeight,
+  totalHeight: _totalHeight,
   containerProps,
   wrapperProps,
   scrollToIndex,

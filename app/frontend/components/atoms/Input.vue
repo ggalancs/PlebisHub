@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 
 export interface InputProps {
   /** Input type */
-  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date'
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'color'
   /** Input value (v-model) */
   modelValue?: string | number
   /** Input placeholder */

@@ -141,7 +141,7 @@ export const NoAutofocus: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { SMSValidator },
     setup() {
       const phoneNumber = ref('+34 600123456')
@@ -212,7 +212,7 @@ export const Interactive: Story = {
 }
 
 export const DifferentPhoneNumbers: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { SMSValidator },
     setup() {
       const phones = [
@@ -237,7 +237,7 @@ export const DifferentPhoneNumbers: Story = {
 }
 
 export const AllStates: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { SMSValidator },
     setup() {
       const states: ValidationState[] = ['pending', 'validating', 'valid', 'invalid', 'expired']
@@ -260,7 +260,7 @@ export const AllStates: Story = {
 }
 
 export const DifferentCodeLengths: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { SMSValidator },
     setup() {
       const lengths = [4, 5, 6, 7, 8]
@@ -283,7 +283,7 @@ export const DifferentCodeLengths: Story = {
 }
 
 export const ResendFlow: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { SMSValidator },
     setup() {
       const resentCount = ref(0)
@@ -318,7 +318,7 @@ export const ResendFlow: Story = {
 }
 
 export const ValidationWorkflow: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { SMSValidator },
     setup() {
       const validationState = ref<ValidationState>('pending')
@@ -391,7 +391,7 @@ export const ValidationWorkflow: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { SMSValidator },
     setup() {
       return {}
@@ -409,7 +409,7 @@ export const MobileView: Story = {
 }
 
 export const WithCountdown: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { SMSValidator },
     setup() {
       return {}
@@ -431,7 +431,7 @@ export const WithCountdown: Story = {
 }
 
 export const ErrorRecovery: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { SMSValidator },
     setup() {
       const validationState = ref<ValidationState>('pending')

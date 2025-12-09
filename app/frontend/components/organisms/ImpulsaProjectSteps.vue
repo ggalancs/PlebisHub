@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Icon from '@/components/atoms/Icon.vue'
-import type { ProjectStatus } from './ImpulsaProjectCard.vue'
+// ProjectStatus type available for future use
+// import type { ProjectStatus } from './ImpulsaProjectCard.vue'
 
 export interface ProjectStep {
   id: string
@@ -60,7 +61,7 @@ const getStepClass = (step: ProjectStep): string => {
 }
 
 // Get connector class
-const getConnectorClass = (step: ProjectStep, index: number): string => {
+const getConnectorClass = (step: ProjectStep, _index: number): string => {
   const baseClass = 'impulsa-project-steps__connector'
 
   // If current or previous step is completed, connector is active
@@ -103,8 +104,9 @@ const getStepIcon = (step: ProjectStep): string => {
   }
 }
 
-// Current step index
-const currentStepIndex = computed(() => {
+// Current step index (available for future use)
+// @ts-expect-error Reserved for future use
+const _currentStepIndex = computed(() => {
   return props.steps.findIndex(s => s.id === props.currentStep)
 })
 </script>
@@ -196,7 +198,7 @@ const currentStepIndex = computed(() => {
 }
 
 .impulsa-project-steps--horizontal .impulsa-project-steps__connector--active {
-  @apply bg-primary;
+  @apply bg-primary-700;
 }
 
 /* Vertical Layout */
@@ -225,7 +227,7 @@ const currentStepIndex = computed(() => {
 }
 
 .impulsa-project-steps--vertical .impulsa-project-steps__connector--active {
-  @apply bg-primary;
+  @apply bg-primary-700;
 }
 
 /* Step Styles */
@@ -238,7 +240,7 @@ const currentStepIndex = computed(() => {
 }
 
 .impulsa-project-steps__step--current {
-  @apply text-primary font-semibold;
+  @apply text-primary-700 font-semibold;
 }
 
 .impulsa-project-steps__step--completed {
@@ -263,7 +265,7 @@ const currentStepIndex = computed(() => {
 }
 
 .impulsa-project-steps__step--current .impulsa-project-steps__circle {
-  @apply border-primary bg-primary shadow-lg ring-4 ring-primary ring-opacity-20;
+  @apply border-primary-500 bg-primary-700 shadow-lg ring-4 ring-primary-500 ring-opacity-20;
 }
 
 .impulsa-project-steps__step--completed .impulsa-project-steps__circle {

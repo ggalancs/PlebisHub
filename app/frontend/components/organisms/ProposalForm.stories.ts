@@ -122,7 +122,7 @@ export const WithInitialErrors: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ProposalForm },
     setup() {
       const loading = ref(false)
@@ -182,7 +182,7 @@ export const Interactive: Story = {
 }
 
 export const InteractiveEdit: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ProposalForm },
     setup() {
       const loading = ref(false)
@@ -246,7 +246,7 @@ export const InteractiveEdit: Story = {
 }
 
 export const ValidationShowcase: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ProposalForm },
     setup() {
       return {}
@@ -273,7 +273,7 @@ export const ValidationShowcase: Story = {
 }
 
 export const CharacterCounters: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ProposalForm },
     setup() {
       return {}
@@ -375,7 +375,7 @@ export const DesktopView: Story = {
 }
 
 export const QuickSuccessDemo: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ProposalForm },
     setup() {
       const loading = ref(false)

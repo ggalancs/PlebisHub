@@ -60,7 +60,7 @@ const renderMarkdown = (text: string): string => {
   let html = text
 
   // Code blocks
-  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_match, lang, code) => {
     return `<pre class="code-block"><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>`
   })
 
@@ -78,7 +78,7 @@ const renderMarkdown = (text: string): string => {
   // Links
   html = html.replace(
     /\[(.+?)\]\((.+?)\)/g,
-    '<a href="$2" class="text-primary hover:underline" target="_blank" rel="noopener">$1</a>'
+    '<a href="$2" class="text-primary-700 hover:underline" target="_blank" rel="noopener">$1</a>'
   )
 
   // Images
@@ -171,7 +171,7 @@ const handleViewModeChange = (mode: ViewMode) => {
             :class="[
               'px-3 py-1 text-xs rounded transition-colors flex items-center gap-1',
               currentViewMode === mode.id
-                ? 'bg-white dark:bg-gray-700 text-primary font-semibold'
+                ? 'bg-white dark:bg-gray-700 text-primary-700 font-semibold'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
             ]"
             @click="handleViewModeChange(mode.id as ViewMode)"
@@ -289,11 +289,11 @@ const handleViewModeChange = (mode: ViewMode) => {
 }
 
 :deep(.prose a) {
-  @apply text-primary no-underline hover:underline;
+  @apply text-primary-700 no-underline hover:underline;
 }
 
 :deep(.prose code) {
-  @apply text-primary;
+  @apply text-primary-700;
 }
 
 :deep(.code-block) {
@@ -305,7 +305,7 @@ const handleViewModeChange = (mode: ViewMode) => {
 }
 
 :deep(.inline-code) {
-  @apply bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono text-primary;
+  @apply bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono text-primary-700;
 }
 
 :deep(.list) {
@@ -317,7 +317,7 @@ const handleViewModeChange = (mode: ViewMode) => {
 }
 
 :deep(.blockquote) {
-  @apply border-l-4 border-primary pl-4 py-2 my-4 italic text-gray-600 dark:text-gray-400;
+  @apply border-l-4 border-primary-500 pl-4 py-2 my-4 italic text-gray-600 dark:text-gray-400;
 }
 
 :deep(.hr) {

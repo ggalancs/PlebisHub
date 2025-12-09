@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import Button from '@/components/atoms/Button.vue'
 import Icon from '@/components/atoms/Icon.vue'
 
 export type VoteType = 'up' | 'down' | 'neutral'

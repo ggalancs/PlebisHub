@@ -79,7 +79,7 @@ const hotnessLevel = computed(() => {
 const hotnessBadgeVariant = computed(() => {
   switch (hotnessLevel.value) {
     case 'very-hot':
-      return 'error'
+      return 'danger'
     case 'hot':
       return 'warning'
     case 'warm':

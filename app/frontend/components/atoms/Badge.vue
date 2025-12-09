@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 
 export interface BadgeProps {
-  /** Badge variant/color */
-  variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'neutral'
+  /** Badge variant/color (default is alias for neutral) */
+  variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'neutral' | 'default'
   /** Badge size */
   size?: 'sm' | 'md' | 'lg'
   /** Dot indicator */
@@ -47,7 +47,7 @@ const badgeClasses = computed(() => {
   }
 
   // Variant colors
-  const variantClasses = {
+  const variantClasses: Record<string, string> = {
     primary: 'bg-primary-100 text-primary-800',
     secondary: 'bg-secondary-100 text-secondary-800',
     success: 'bg-green-100 text-green-800',
@@ -55,8 +55,9 @@ const badgeClasses = computed(() => {
     warning: 'bg-yellow-100 text-yellow-800',
     info: 'bg-blue-100 text-blue-800',
     neutral: 'bg-gray-100 text-gray-800',
+    default: 'bg-gray-100 text-gray-800', // alias for neutral
   }
-  classes.push(variantClasses[props.variant])
+  classes.push(variantClasses[props.variant] || variantClasses.neutral)
 
   return classes.join(' ')
 })
@@ -73,7 +74,7 @@ const dotClasses = computed(() => {
   classes.push(sizeClasses[props.size])
 
   // Variant colors for dot
-  const variantClasses = {
+  const variantClasses: Record<string, string> = {
     primary: 'bg-primary-600',
     secondary: 'bg-secondary-600',
     success: 'bg-green-600',
@@ -81,8 +82,9 @@ const dotClasses = computed(() => {
     warning: 'bg-yellow-600',
     info: 'bg-blue-600',
     neutral: 'bg-gray-600',
+    default: 'bg-gray-600', // alias for neutral
   }
-  classes.push(variantClasses[props.variant])
+  classes.push(variantClasses[props.variant] || variantClasses.neutral)
 
   return classes.join(' ')
 })
@@ -103,7 +105,7 @@ const closeButtonClasses = computed(() => {
   classes.push(sizeClasses[props.size])
 
   // Focus ring color based on variant
-  const focusRingClasses = {
+  const focusRingClasses: Record<string, string> = {
     primary: 'focus:ring-primary-600',
     secondary: 'focus:ring-secondary-600',
     success: 'focus:ring-green-600',
@@ -111,8 +113,9 @@ const closeButtonClasses = computed(() => {
     warning: 'focus:ring-yellow-600',
     info: 'focus:ring-blue-600',
     neutral: 'focus:ring-gray-600',
+    default: 'focus:ring-gray-600', // alias for neutral
   }
-  classes.push(focusRingClasses[props.variant])
+  classes.push(focusRingClasses[props.variant] || focusRingClasses.neutral)
 
   return classes.join(' ')
 })

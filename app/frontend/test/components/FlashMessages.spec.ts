@@ -15,7 +15,7 @@ vi.mock('vue', async () => {
     ...actual,
     Teleport: {
       name: 'Teleport',
-      setup(_, { slots }: { slots: any }) {
+      setup(_: unknown, { slots }: { slots: { default?: () => unknown } }) {
         return () => slots.default?.()
       },
     },

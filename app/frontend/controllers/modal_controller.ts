@@ -19,15 +19,19 @@
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller<HTMLElement> {
-  static targets = ['backdrop', 'dialog']
+  static override targets = ['backdrop', 'dialog']
 
   declare readonly backdropTarget: HTMLElement
   declare readonly dialogTarget: HTMLElement
   declare readonly hasBackdropTarget: boolean
   declare readonly hasDialogTarget: boolean
 
-  private isOpen = false
+  private _isOpen = false
   private previousActiveElement: Element | null = null
+
+  get isOpen(): boolean {
+    return this._isOpen
+  }
 
   open(event?: Event) {
     event?.preventDefault()
@@ -37,7 +41,7 @@ export default class extends Controller<HTMLElement> {
     // Store current focus
     this.previousActiveElement = document.activeElement
 
-    this.isOpen = true
+    this._isOpen = true
     this.backdropTarget.classList.remove('hidden')
 
     // Prevent body scroll
@@ -60,7 +64,7 @@ export default class extends Controller<HTMLElement> {
 
     if (!this.hasBackdropTarget) return
 
-    this.isOpen = false
+    this._isOpen = false
     this.backdropTarget.classList.add('hidden')
 
     // Restore body scroll

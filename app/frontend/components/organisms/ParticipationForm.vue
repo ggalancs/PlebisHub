@@ -276,7 +276,7 @@ onUnmounted(() => {
           placeholder="Ej: Equipo de Medio Ambiente"
           :error="errors.name"
           :disabled="disabled"
-          maxlength="100"
+          :maxlength="100"
         />
         <div class="flex items-center justify-between mt-1">
           <p v-if="errors.name" class="text-xs text-red-600 dark:text-red-400">
@@ -297,10 +297,10 @@ onUnmounted(() => {
         <Textarea
           v-model="formData.description"
           placeholder="Describe los objetivos y actividades del equipo..."
-          :error="errors.description"
+          :error="!!errors.description"
           :disabled="disabled"
           :rows="compact ? 3 : 4"
-          maxlength="500"
+          :maxlength="500"
         />
         <div class="flex items-center justify-between mt-1">
           <p v-if="errors.description" class="text-xs text-red-600 dark:text-red-400">
@@ -333,8 +333,8 @@ onUnmounted(() => {
             placeholder="Ej: 15"
             :error="errors.maxMembers"
             :disabled="disabled"
-            min="2"
-            max="100"
+            :min="2"
+            :max="100"
           />
           <p v-if="errors.maxMembers" class="text-xs text-red-600 dark:text-red-400 mt-1">
             {{ errors.maxMembers }}
@@ -354,7 +354,7 @@ onUnmounted(() => {
           placeholder="Ej: Jueves 18:00"
           :error="errors.meetingSchedule"
           :disabled="disabled"
-          maxlength="100"
+          :maxlength="100"
         />
         <p v-if="errors.meetingSchedule" class="text-xs text-red-600 dark:text-red-400 mt-1">
           {{ errors.meetingSchedule }}

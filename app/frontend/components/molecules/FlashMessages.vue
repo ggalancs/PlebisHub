@@ -14,8 +14,8 @@
  * </div>
  */
 
-import { computed, onMounted, onUnmounted } from 'vue'
-import { useFlash, type FlashMessage, type FlashType } from '@/composables/useFlash'
+import { computed, onMounted } from 'vue'
+import { useFlash, type FlashType } from '@/composables/useFlash'
 import { X, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-vue-next'
 
 // Props for initial messages from Rails

@@ -8,7 +8,7 @@ describe('useTheme', () => {
   beforeEach(() => {
     // Mock localStorage
     localStorageMock = {}
-    global.localStorage = {
+    vi.stubGlobal('localStorage', {
       getItem: vi.fn((key: string) => localStorageMock[key] || null),
       setItem: vi.fn((key: string, value: string) => {
         localStorageMock[key] = value
@@ -21,21 +21,24 @@ describe('useTheme', () => {
       }),
       key: vi.fn(),
       length: 0,
-    }
+    })
 
     // Mock document.documentElement
-    global.document.documentElement = {
-      style: {
-        setProperty: vi.fn(),
+    Object.defineProperty(document, 'documentElement', {
+      value: {
+        style: {
+          setProperty: vi.fn(),
+        },
+        classList: {
+          add: vi.fn(),
+          remove: vi.fn(),
+        },
       },
-      classList: {
-        add: vi.fn(),
-        remove: vi.fn(),
-      },
-    } as any
+      configurable: true,
+    })
 
     // Mock matchMedia
-    global.matchMedia = vi.fn(() => ({
+    vi.stubGlobal('matchMedia', vi.fn(() => ({
       matches: false,
       media: '',
       onchange: null,
@@ -44,7 +47,7 @@ describe('useTheme', () => {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
       dispatchEvent: vi.fn(),
-    })) as any
+    })))
   })
 
   afterEach(() => {

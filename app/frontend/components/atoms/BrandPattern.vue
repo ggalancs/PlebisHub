@@ -9,7 +9,7 @@ interface Props {
   scale?: number
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   variant: 'network',
   opacity: 0.1,
   primaryColor: '#612d62',

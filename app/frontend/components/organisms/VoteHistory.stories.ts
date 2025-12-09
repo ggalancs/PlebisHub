@@ -113,7 +113,7 @@ export const SmallPageSize: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { VoteHistory },
     setup() {
       const handleItemClick = (item: VoteHistoryItem) => {

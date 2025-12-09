@@ -80,7 +80,7 @@ describe('useFlash', () => {
       const flash = useFlash()
       flash.add('success', 'Message 1')
 
-      flash.remove('non-existent-id')
+      flash.remove(999999) // non-existent ID
 
       expect(flash.messages.value).toHaveLength(1)
     })

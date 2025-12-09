@@ -183,20 +183,25 @@ const sortedProjects = computed(() => {
 })
 
 // Pagination
-const {
-  paginatedItems: paginatedProjects,
-  currentPage,
-  totalPages,
-  goToPage,
-} = usePagination(sortedProjects, props.perPage)
+const pagination = usePagination({
+  pageSize: props.perPage,
+  total: sortedProjects.value.length,
+})
+const { currentPage, goToPage, paginateArray } = pagination
+
+// Paginated projects
+const paginatedProjects = computed(() => paginateArray(sortedProjects.value))
 
 // Use external pagination if provided
 const effectiveCurrentPage = computed(() => props.currentPage || currentPage.value)
-const effectiveTotalPages = computed(() => {
+const effectiveTotalItems = computed(() => {
   if (props.total !== undefined) {
-    return Math.ceil(props.total / props.perPage)
+    return props.total
   }
-  return totalPages.value
+  return sortedProjects.value.length
+})
+const effectiveTotalPages = computed(() => {
+  return Math.ceil(effectiveTotalItems.value / props.perPage)
 })
 
 // Display projects
@@ -404,7 +409,8 @@ const resultsCount = computed(() => {
     <div v-if="pagination && effectiveTotalPages > 1" class="mt-8 flex justify-center">
       <Pagination
         :current-page="effectiveCurrentPage"
-        :total-pages="effectiveTotalPages"
+        :total-items="effectiveTotalItems"
+        :page-size="props.perPage"
         @change="handlePageChange"
       />
     </div>

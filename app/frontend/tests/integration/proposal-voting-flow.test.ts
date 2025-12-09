@@ -22,14 +22,11 @@ describe('Proposal Creation and Voting Flow', () => {
   })
 
   it('should create proposal with complete validation', async () => {
-    const onSubmit = vi.fn()
     const wrapper = mount(ProposalForm, {
       props: {
         mode: 'create',
       },
     })
-
-    wrapper.vm.$on('submit', onSubmit)
 
     // Fill title (min 10 chars)
     const titleInput = wrapper.findAll('input').find(i =>
@@ -73,14 +70,11 @@ describe('Proposal Creation and Voting Flow', () => {
   })
 
   it('should prevent submission with invalid data', async () => {
-    const onSubmit = vi.fn()
     const wrapper = mount(ProposalForm, {
       props: {
         mode: 'create',
       },
     })
-
-    wrapper.vm.$on('submit', onSubmit)
 
     // Try to submit with short title (< 10 chars)
     const titleInput = wrapper.findAll('input').find(i =>
@@ -102,17 +96,22 @@ describe('Proposal Creation and Voting Flow', () => {
 
 describe('Voting Integration', () => {
   it('should handle upvote/downvote correctly', async () => {
-    const onVote = vi.fn()
     const wrapper = mount(VotingWidget, {
       props: {
-        proposalId: 1,
-        initialVotes: { upvotes: 10, downvotes: 5, totalVotes: 15 },
-        userVote: null,
+        itemId: 1,
+        voteData: {
+          votes: 10,
+          supportsCount: 5,
+          hotness: 1000,
+          hasVoted: false,
+          hasSupported: false,
+          closed: false,
+        },
         isAuthenticated: true,
       },
     })
 
-    wrapper.vm.$on('vote', onVote)
+    // Note: Using emitted() to check for events in Vue 3
 
     // Click upvote
     const upvoteButton = wrapper.findAll('button').find(b =>
@@ -127,17 +126,22 @@ describe('Voting Integration', () => {
   })
 
   it('should require authentication for voting', async () => {
-    const onLoginRequired = vi.fn()
     const wrapper = mount(VotingWidget, {
       props: {
-        proposalId: 1,
-        initialVotes: { upvotes: 10, downvotes: 5, totalVotes: 15 },
-        userVote: null,
+        itemId: 1,
+        voteData: {
+          votes: 10,
+          supportsCount: 5,
+          hotness: 1000,
+          hasVoted: false,
+          hasSupported: false,
+          closed: false,
+        },
         isAuthenticated: false,
       },
     })
 
-    wrapper.vm.$on('login-required', onLoginRequired)
+    // Note: Using emitted() to check for events in Vue 3
 
     // Try to vote when not authenticated
     const upvoteButton = wrapper.findAll('button').find(b =>
@@ -173,7 +177,10 @@ describe('Comment Sanitization (XSS Prevention)', () => {
         content: '<img src=x onerror="alert(1)">Safe text',
         author: { id: '1', name: 'User', avatar: '' },
         createdAt: new Date().toISOString(),
-        likes: 0,
+        votes: 0,
+        hasVoted: false,
+        replyCount: 0,
+        isEdited: false,
         canEdit: false,
         canDelete: false,
       },
@@ -206,7 +213,7 @@ describe('Comment Sanitization (XSS Prevention)', () => {
       },
     })
 
-    wrapper.vm.$on('submit', onSubmit)
+    // Note: Using emitted() to check for events in Vue 3
 
     // Try to submit comment with XSS payload
     const textarea = wrapper.find('textarea')
@@ -255,9 +262,15 @@ describe('End-to-End Proposal Flow', () => {
     // 2. Vote on Proposal
     const votingWrapper = mount(VotingWidget, {
       props: {
-        proposalId: 1,
-        initialVotes: { upvotes: 0, downvotes: 0, totalVotes: 0 },
-        userVote: null,
+        itemId: 1,
+        voteData: {
+          votes: 0,
+          supportsCount: 0,
+          hotness: 0,
+          hasVoted: false,
+          hasSupported: false,
+          closed: false,
+        },
         isAuthenticated: true,
       },
     })

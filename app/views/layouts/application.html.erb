@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= yield(:title).presence || 'PlebisHub' %> | <%= Rails.application.config.site_name rescue 'PlebisBrand' %></title>
 
-  <!-- Favicon -->
-  <link rel="shortcut icon" href="<%= image_path('favicon.png') %>" type="image/png">
-  <link rel="icon" href="<%= image_path('favicon.png') %>" type="image/png">
+  <!-- Favicon (dynamic from brand settings) -->
+  <link rel="shortcut icon" href="<%= brand_favicon_url %>" type="image/png">
+  <link rel="icon" href="<%= brand_favicon_url %>" type="image/png">
 
   <!-- Resource Hints for Performance -->
   <%= dns_prefetch_tag('fonts.googleapis.com') %>
@@ -15,11 +15,11 @@
   <%= preconnect_tag('https://fonts.googleapis.com') %>
   <%= preconnect_tag('https://fonts.gstatic.com', crossorigin: true) %>
 
-  <!-- Preload Critical Resources -->
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" as="style">
+  <!-- Preload Critical Resources (dynamic from brand settings) -->
+  <%= brand_font_preload_tags %>
 
-  <!-- Modern Fonts (with display=swap for FOUT prevention) -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <!-- Modern Fonts (dynamic from brand settings) -->
+  <%= brand_font_link_tag %>
 
   <!-- CSRF Protection -->
   <%= csrf_meta_tags %>
@@ -30,6 +30,10 @@
     <%= vite_stylesheet_tag 'application.css' rescue nil %>
   <% end %>
   <%= stylesheet_link_tag 'application', media: 'all' %>
+
+  <!-- Brand Theme CSS Variables (injected from backend) -->
+  <%= brand_style_tag %>
+  <%= brand_meta_tags %>
 
   <!-- Open Graph / Social Meta -->
   <meta property="og:title" content="<%= yield(:og_title).presence || 'PlebisBrand | Portal de participación' %>">

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import type { Meta, StoryObj } from '@storybook/vue3'
 import { ref, onMounted, onUnmounted } from 'vue'
 import Progress from './Progress.vue'
 

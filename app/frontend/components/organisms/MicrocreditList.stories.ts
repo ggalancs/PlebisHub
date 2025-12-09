@@ -285,7 +285,7 @@ export const CustomItemsPerPage: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       const microcredits = ref<Microcredit[]>([...mockMicrocredits])
@@ -363,7 +363,7 @@ export const Interactive: Story = {
 }
 
 export const FilteringDemo: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       return { mockMicrocredits }
@@ -382,7 +382,7 @@ export const FilteringDemo: Story = {
 }
 
 export const SortingDemo: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       return { mockMicrocredits }
@@ -401,7 +401,7 @@ export const SortingDemo: Story = {
 }
 
 export const PaginationDemo: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       const manyMicrocredits = Array(25).fill(null).map((_, i) => ({
@@ -425,7 +425,7 @@ export const PaginationDemo: Story = {
 }
 
 export const SearchDemo: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       return { mockMicrocredits }
@@ -444,7 +444,7 @@ export const SearchDemo: Story = {
 }
 
 export const ByStatus: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       const statuses = [
@@ -475,7 +475,7 @@ export const ByStatus: Story = {
 }
 
 export const ByCategory: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       const categories = [
@@ -506,7 +506,7 @@ export const ByCategory: Story = {
 }
 
 export const ByRiskLevel: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       const riskLevels = [
@@ -537,7 +537,7 @@ export const ByRiskLevel: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       return { mockMicrocredits }
@@ -559,7 +559,7 @@ export const MobileView: Story = {
 }
 
 export const EmptyWithFilters: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       return { mockMicrocredits }
@@ -578,7 +578,7 @@ export const EmptyWithFilters: Story = {
 }
 
 export const LoadingState: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       const loading = ref(true)
@@ -601,7 +601,7 @@ export const LoadingState: Story = {
 }
 
 export const InfiniteScroll: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditList },
     setup() {
       const microcredits = ref<Microcredit[]>([...mockMicrocredits.slice(0, 6)])

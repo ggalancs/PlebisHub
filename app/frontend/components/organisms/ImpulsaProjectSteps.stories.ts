@@ -246,7 +246,7 @@ export const ThreeSteps: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectSteps },
     setup() {
       const steps = ref<ProjectStep[]>([...mockSteps])
@@ -343,7 +343,7 @@ export const Interactive: Story = {
 }
 
 export const OrientationComparison: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectSteps },
     setup() {
       return { mockSteps }
@@ -365,7 +365,7 @@ export const OrientationComparison: Story = {
 }
 
 export const WithAndWithoutDescriptions: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectSteps },
     setup() {
       return { mockSteps }
@@ -387,7 +387,7 @@ export const WithAndWithoutDescriptions: Story = {
 }
 
 export const ProjectSubmissionFlow: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectSteps },
     setup() {
       const submissionSteps: ProjectStep[] = [
@@ -459,7 +459,7 @@ export const ProjectSubmissionFlow: Story = {
 }
 
 export const MobilePreview: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectSteps },
     setup() {
       return { mockSteps }

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import type { Meta, StoryObj } from '@storybook/vue3'
 import UserCard from './UserCard.vue'
 import Icon from '../atoms/Icon.vue'
 

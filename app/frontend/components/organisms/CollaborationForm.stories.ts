@@ -246,7 +246,7 @@ export const NoLocation: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CollaborationForm },
     setup() {
       const loading = ref(false)
@@ -330,7 +330,7 @@ export const Interactive: Story = {
 }
 
 export const EditWorkflow: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CollaborationForm },
     setup() {
       const mode = ref<'view' | 'edit'>('view')
@@ -407,7 +407,7 @@ export const EditWorkflow: Story = {
 }
 
 export const ValidationErrors: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CollaborationForm },
     setup() {
       return {}
@@ -426,7 +426,7 @@ export const ValidationErrors: Story = {
 }
 
 export const AllTypes: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CollaborationForm },
     setup() {
       const types = ['project', 'initiative', 'event', 'campaign', 'workshop', 'other']
@@ -451,7 +451,7 @@ export const AllTypes: Story = {
 }
 
 export const CharacterLimits: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CollaborationForm },
     setup() {
       const nearLimitData: Partial<CollaborationFormData> = {
@@ -474,7 +474,7 @@ export const CharacterLimits: Story = {
 }
 
 export const SkillManagement: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CollaborationForm },
     setup() {
       return {}
@@ -493,7 +493,7 @@ export const SkillManagement: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CollaborationForm },
     setup() {
       return {}
@@ -511,7 +511,7 @@ export const MobileView: Story = {
 }
 
 export const WithRealTimeValidation: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CollaborationForm },
     setup() {
       return {}
@@ -556,7 +556,7 @@ export const CompleteFields: Story = {
 }
 
 export const DateValidation: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CollaborationForm },
     setup() {
       return {}
@@ -575,7 +575,7 @@ export const DateValidation: Story = {
 }
 
 export const CollaboratorValidation: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { CollaborationForm },
     setup() {
       return {}

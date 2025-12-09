@@ -210,7 +210,7 @@ export const Interactive: Story = {
 }
 
 export const Grid: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ProposalCard },
     setup() {
       const proposals: Proposal[] = [

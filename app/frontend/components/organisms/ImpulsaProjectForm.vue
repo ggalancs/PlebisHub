@@ -338,7 +338,7 @@ const canSaveDraft = computed(() => {
               label="Descripción"
               placeholder="Describe tu proyecto en detalle: objetivos, impacto esperado, beneficiarios..."
               :rows="8"
-              :error="errors.description"
+              :error="!!errors.description"
               :disabled="disabled || loading"
               required
             />
@@ -352,7 +352,7 @@ const canSaveDraft = computed(() => {
               v-model="formData.category"
               label="Categoría"
               :options="categoryOptions"
-              :error="errors.category"
+              :error="!!errors.category"
               :disabled="disabled || loading"
               required
             />
@@ -370,7 +370,8 @@ const canSaveDraft = computed(() => {
         <div class="space-y-4">
           <div>
             <Input
-              v-model.number="formData.fundingGoal"
+              :model-value="formData.fundingGoal ?? undefined"
+              @update:model-value="formData.fundingGoal = $event ? Number($event) : null"
               type="number"
               label="Objetivo de Financiación (€)"
               placeholder="50000"
@@ -389,7 +390,7 @@ const canSaveDraft = computed(() => {
               label="Desglose del Presupuesto"
               placeholder="Detalla cómo se distribuirá el presupuesto:&#10;- Materiales: 15.000€&#10;- Personal: 25.000€&#10;- Gastos operativos: 10.000€"
               :rows="10"
-              :error="errors.budgetBreakdown"
+              :error="!!errors.budgetBreakdown"
               :disabled="disabled || loading"
               required
             />
@@ -414,7 +415,7 @@ const canSaveDraft = computed(() => {
               label="Miembros del Equipo"
               placeholder="Describe los miembros actuales del equipo y sus roles:&#10;- María González (Coordinadora): Experiencia en gestión de proyectos sociales&#10;- Juan Pérez (Desarrollador): Especialista en tecnología..."
               :rows="8"
-              :error="errors.teamMembers"
+              :error="!!errors.teamMembers"
               :disabled="disabled || loading"
               required
             />
@@ -429,7 +430,7 @@ const canSaveDraft = computed(() => {
               label="Habilidades Necesarias"
               placeholder="Describe las habilidades o perfiles que necesitas para completar el equipo:&#10;- Diseñador gráfico con experiencia en branding&#10;- Educador social para talleres..."
               :rows="8"
-              :error="errors.skillsNeeded"
+              :error="!!errors.skillsNeeded"
               :disabled="disabled || loading"
               required
             />
@@ -473,7 +474,7 @@ const canSaveDraft = computed(() => {
               label="Hitos del Proyecto"
               placeholder="Define los principales hitos y entregas:&#10;- Mes 1: Diseño y planificación detallada&#10;- Mes 3: Implementación fase 1&#10;- Mes 6: Evaluación intermedia&#10;- Mes 12: Finalización y evaluación final"
               :rows="10"
-              :error="errors.milestones"
+              :error="!!errors.milestones"
               :disabled="disabled || loading"
               required
             />

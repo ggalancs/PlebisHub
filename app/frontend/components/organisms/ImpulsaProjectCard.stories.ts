@@ -381,7 +381,7 @@ export const HighFunding: Story = {
 
 // Interactive Story
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectCard },
     setup() {
       const project = ref<ImpulsaProject>({
@@ -468,7 +468,7 @@ export const Interactive: Story = {
 
 // Grid Layout Story
 export const GridLayout: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectCard },
     setup() {
       const projects: ImpulsaProject[] = [
@@ -549,7 +549,7 @@ export const GridLayout: Story = {
 
 // Compact Grid Layout
 export const CompactGrid: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ImpulsaProjectCard },
     setup() {
       const projects: ImpulsaProject[] = [

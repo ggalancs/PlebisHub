@@ -92,12 +92,12 @@ const statusLabels: Record<Collaboration['status'], string> = {
   cancelled: 'Cancelada',
 }
 
-// Status variants
-const statusVariants: Record<Collaboration['status'], 'success' | 'warning' | 'error' | 'info'> = {
+// Status variants (using 'danger' instead of 'error' to match Badge variants)
+const statusVariants: Record<Collaboration['status'], 'success' | 'warning' | 'danger' | 'info'> = {
   open: 'success',
   in_progress: 'info',
   completed: 'success',
-  cancelled: 'error',
+  cancelled: 'danger',
 }
 
 // Type label

@@ -153,7 +153,7 @@ export const NearMaxLength: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ContentEditor },
     setup() {
       const content = ref('# Mi Artículo\n\nEscribe algo aquí...')
@@ -203,7 +203,7 @@ export const Interactive: Story = {
 }
 
 export const BlogPost: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ContentEditor },
     setup() {
       const content = ref(`# Mi Primera Publicación en el Blog
@@ -257,7 +257,7 @@ Estas tecnologías hacen que el desarrollo web sea más eficiente y mantenible.
 }
 
 export const Documentation: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ContentEditor },
     setup() {
       const content = ref(`# Documentación de la API
@@ -340,7 +340,7 @@ export const MinimalEditor: Story = {
 }
 
 export const ArticleEditor: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ContentEditor },
     setup() {
       const title = ref('Título del Artículo')
@@ -412,7 +412,7 @@ export const ArticleEditor: Story = {
 }
 
 export const CommentEditor: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ContentEditor },
     setup() {
       const comment = ref('')
@@ -453,7 +453,7 @@ export const CommentEditor: Story = {
 }
 
 export const WithValidation: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { ContentEditor },
     setup() {
       const content = ref('Short')

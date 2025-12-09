@@ -15,7 +15,7 @@ describe('Toggle', () => {
       const wrapper = mount(Toggle)
 
       const input = wrapper.find('input[type="checkbox"]')
-      expect(input.element.checked).toBe(false)
+      expect((input.element as HTMLInputElement).checked).toBe(false)
     })
 
     it('renders checked when modelValue is true', () => {
@@ -24,7 +24,7 @@ describe('Toggle', () => {
       })
 
       const input = wrapper.find('input[type="checkbox"]')
-      expect(input.element.checked).toBe(true)
+      expect((input.element as HTMLInputElement).checked).toBe(true)
     })
 
     it('renders with label', () => {
@@ -109,7 +109,7 @@ describe('Toggle', () => {
       })
 
       const input = wrapper.find('input[type="checkbox"]')
-      expect(input.element.disabled).toBe(true)
+      expect((input.element as HTMLInputElement).disabled).toBe(true)
     })
 
     it('applies disabled styling', () => {
@@ -224,7 +224,7 @@ describe('Toggle', () => {
       // Try to change the input
       const input = wrapper.find('input[type="checkbox"]')
       // When disabled, setting value won't trigger change event
-      expect(input.element.disabled).toBe(true)
+      expect((input.element as HTMLInputElement).disabled).toBe(true)
     })
   })
 
@@ -315,7 +315,7 @@ describe('Toggle', () => {
         },
       })
 
-      expect(wrapper.find('input[type="checkbox"]').element.checked).toBe(true)
+      expect((wrapper.find('input[type="checkbox"]').element as HTMLInputElement).checked).toBe(true)
       expect(wrapper.text()).toContain('Enable feature')
       expect(wrapper.text()).toContain('This will enable the feature')
       expect(wrapper.find('span[role="switch"]').classes()).toContain('bg-green-600')
@@ -330,7 +330,7 @@ describe('Toggle', () => {
         },
       })
 
-      expect(wrapper.find('input[type="checkbox"]').element.disabled).toBe(true)
+      expect((wrapper.find('input[type="checkbox"]').element as HTMLInputElement).disabled).toBe(true)
       expect(wrapper.text()).toContain('Cannot enable')
     })
   })
@@ -344,7 +344,7 @@ describe('Toggle', () => {
         },
       })
 
-      expect(wrapper.find('input[type="checkbox"]').element.checked).toBe(false)
+      expect((wrapper.find('input[type="checkbox"]').element as HTMLInputElement).checked).toBe(false)
 
       await wrapper.find('input[type="checkbox"]').setValue(true)
 

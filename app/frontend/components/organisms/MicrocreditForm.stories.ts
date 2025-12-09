@@ -270,7 +270,7 @@ export const NoMinimumInvestment: Story = {
 }
 
 export const Interactive: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       const loading = ref(false)
@@ -354,7 +354,7 @@ export const Interactive: Story = {
 }
 
 export const EditWorkflow: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       const mode = ref<'view' | 'edit'>('view')
@@ -438,7 +438,7 @@ export const EditWorkflow: Story = {
 }
 
 export const ValidationErrors: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       return {}
@@ -457,7 +457,7 @@ export const ValidationErrors: Story = {
 }
 
 export const AllRiskLevels: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       const riskLevels: Array<'low' | 'medium' | 'high'> = ['low', 'medium', 'high']
@@ -482,7 +482,7 @@ export const AllRiskLevels: Story = {
 }
 
 export const DifferentCategories: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       const categories = ['Negocio', 'Social', 'Educación', 'Ecología']
@@ -507,7 +507,7 @@ export const DifferentCategories: Story = {
 }
 
 export const CharacterLimits: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       const nearLimitData: Partial<MicrocreditFormData> = {
@@ -530,7 +530,7 @@ export const CharacterLimits: Story = {
 }
 
 export const MobileView: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       return {}
@@ -548,7 +548,7 @@ export const MobileView: Story = {
 }
 
 export const PaymentCalculator: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       return { mockData }
@@ -567,7 +567,7 @@ export const PaymentCalculator: Story = {
 }
 
 export const WithRealTimeValidation: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       return {}
@@ -595,7 +595,7 @@ export const WithRealTimeValidation: Story = {
 }
 
 export const StepByStep: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       const step = ref(1)
@@ -707,7 +707,7 @@ export const StepByStep: Story = {
 }
 
 export const DifferentAmounts: Story = {
-  render: (args) => ({
+  render: () => ({
     components: { MicrocreditForm },
     setup() {
       const amounts = [1000, 5000, 10000, 25000]

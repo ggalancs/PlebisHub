@@ -59,7 +59,7 @@ export function useSelect(options: UseSelectOptions = {}) {
   )
 
   // Debounced search
-  const { debouncedValue: debouncedQuery } = useDebounce(searchQuery, options.searchDelay ?? 300)
+  const debouncedQuery = useDebounce(searchQuery, options.searchDelay ?? 300)
 
   // All available options (static + async)
   const allOptions = computed(() => {
@@ -263,7 +263,7 @@ export function useSelect(options: UseSelectOptions = {}) {
   let clickOutsideHandler: ((e: MouseEvent) => void) | null = null
 
   onMounted(() => {
-    clickOutsideHandler = (e: MouseEvent) => {
+    clickOutsideHandler = (_e: MouseEvent) => {
       // This should be handled by the component with a ref to the container
     }
   })

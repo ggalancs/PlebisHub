@@ -18,8 +18,8 @@
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller<HTMLElement> {
-  static targets = ['tab', 'panel']
-  static values = {
+  static override targets = ['tab', 'panel']
+  static override values = {
     index: { type: Number, default: 0 },
   }
 
@@ -27,7 +27,7 @@ export default class extends Controller<HTMLElement> {
   declare readonly panelTargets: HTMLElement[]
   declare indexValue: number
 
-  connect() {
+  override connect() {
     this.showTab(this.indexValue)
     this.setupKeyboardNav()
   }

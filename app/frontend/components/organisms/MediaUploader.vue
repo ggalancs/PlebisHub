@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import Button from '@/components/atoms/Button.vue'
 import Icon from '@/components/atoms/Icon.vue'
 import ProgressBar from '@/components/atoms/ProgressBar.vue'
 import Badge from '@/components/atoms/Badge.vue'
@@ -344,7 +343,7 @@ defineExpose({
             </Badge>
             <Badge
               v-else-if="uploadFile.status === 'error'"
-              variant="error"
+              variant="danger"
               size="sm"
             >
               <Icon name="x" class="w-3 h-3" />
@@ -427,11 +426,11 @@ defineExpose({
 
 .media-uploader__dropzone {
   @apply relative border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-12 text-center cursor-pointer transition-colors;
-  @apply hover:border-primary hover:bg-primary/5;
+  @apply hover:border-primary-500 hover:bg-primary-700/5;
 }
 
 .media-uploader__dropzone--dragging {
-  @apply border-primary bg-primary/10;
+  @apply border-primary-500 bg-primary-700/10;
 }
 
 .media-uploader__dropzone--disabled {
@@ -472,7 +471,7 @@ defineExpose({
 }
 
 .media-uploader__add-more {
-  @apply aspect-square border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors;
+  @apply aspect-square border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary-500 hover:bg-primary-700/5 transition-colors;
 }
 
 .media-uploader__list {

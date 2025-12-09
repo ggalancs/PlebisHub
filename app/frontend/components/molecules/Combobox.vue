@@ -167,9 +167,10 @@ const clearSelection = () => {
 }
 
 // Handle search input
-const handleSearchInput = (value: string) => {
-  searchQuery.value = value
-  emit('search', value)
+const handleSearchInput = (value: string | number) => {
+  const stringValue = String(value)
+  searchQuery.value = stringValue
+  emit('search', stringValue)
   focusedIndex.value = -1
 }
 

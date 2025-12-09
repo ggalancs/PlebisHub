@@ -69,8 +69,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-// Badge variant type
-type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info'
+// Badge variant type (matches Badge component variants)
+type BadgeVariant = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral'
 
 // Status configuration
 const statusConfig: Record<MicrocreditStatus, { label: string; color: BadgeVariant; icon: string }> = {
@@ -101,7 +101,7 @@ const statusConfig: Record<MicrocreditStatus, { label: string; color: BadgeVaria
   },
   defaulted: {
     label: 'Impagado',
-    color: 'error',
+    color: 'danger',
     icon: 'x-circle',
   },
 }
@@ -120,7 +120,7 @@ const riskLevelConfig: Record<RiskLevel, { label: string; color: BadgeVariant; i
   },
   high: {
     label: 'Riesgo Alto',
-    color: 'error',
+    color: 'danger',
     icon: 'alert-triangle',
   },
 }
@@ -166,14 +166,6 @@ const formatCurrency = (amount: number): string => {
   }).format(amount)
 }
 
-// Format date
-const formatDate = (date: Date | string): string => {
-  return new Intl.DateTimeFormat('es-ES', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(date))
-}
 
 // Days until deadline
 const daysUntilDeadline = computed(() => {
@@ -227,7 +219,7 @@ const handleContactBorrower = () => {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-2">
             <h3 class="text-lg font-bold truncate">{{ microcredit.title }}</h3>
-            <Badge v-if="hasInvested" variant="blue" size="sm">
+            <Badge v-if="hasInvested" variant="info" size="sm">
               <Icon name="trending-up" class="w-3 h-3 mr-1" />
               Invertido
             </Badge>
@@ -359,7 +351,7 @@ const handleContactBorrower = () => {
 
       <!-- Category -->
       <div v-if="microcredit.category && !compact" class="mb-4">
-        <Badge variant="gray" size="sm">
+        <Badge variant="neutral" size="sm">
           {{ microcredit.category }}
         </Badge>
       </div>

@@ -54,7 +54,7 @@ export function throttle<T extends (...args: never[]) => unknown>(
  * @param fn - Function to memoize
  * @returns Memoized function
  */
-export function memoize<T extends (...args: never[]) => unknown>(
+export function memoize<T extends (...args: never[]) => ReturnType<T>>(
   fn: T
 ): (...args: Parameters<T>) => ReturnType<T> {
   const cache = new Map<string, ReturnType<T>>()
@@ -66,7 +66,7 @@ export function memoize<T extends (...args: never[]) => unknown>(
       return cache.get(key)!
     }
 
-    const result = fn(...args)
+    const result = fn(...args) as ReturnType<T>
     cache.set(key, result)
     return result
   }

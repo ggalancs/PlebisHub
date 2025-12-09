@@ -64,9 +64,9 @@ const emit = defineEmits<{
   remove: []
 }>()
 
-const handleClick = (event: MouseEvent) => {
+const handleClick = (event: MouseEvent | KeyboardEvent) => {
   if (!props.disabled && props.clickable) {
-    emit('click', event)
+    emit('click', event as MouseEvent)
   }
 }
 
