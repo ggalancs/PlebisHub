@@ -393,8 +393,9 @@ ActiveAdmin.register BrandSetting do
       color_script = <<~HEREDOC
         <script>
         (function() {
+          // Color conversion utilities
           function hexToHSL(hex) {
-            if (!hex) return { h: 0, s: 0, l: 50 };
+            if (!hex || typeof hex !== 'string') return { h: 0, s: 0, l: 50 };
             hex = hex.replace('#', '');
             if (hex.length !== 6) return { h: 0, s: 0, l: 50 };
             var r = parseInt(hex.substring(0, 2), 16) / 255;
@@ -412,6 +413,7 @@ ActiveAdmin.register BrandSetting do
             }
             return { h: h * 360, s: s * 100, l: l * 100 };
           }
+
           function hue2rgb(p, q, t) {
             if (t < 0) t += 1;
             if (t > 1) t -= 1;
@@ -420,6 +422,7 @@ ActiveAdmin.register BrandSetting do
             if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
             return p;
           }
+
           function hslToHex(h, s, l) {
             h = ((h % 360) + 360) % 360;
             h /= 360; s /= 100; l /= 100;
@@ -435,49 +438,74 @@ ActiveAdmin.register BrandSetting do
             var toHex = function(x) { var hx = Math.round(x * 255).toString(16); return hx.length === 1 ? '0' + hx : hx; };
             return '#' + toHex(r) + toHex(g) + toHex(b);
           }
+
           function lightenColor(hex) { var hsl = hexToHSL(hex); return hslToHex(hsl.h, hsl.s, Math.min(hsl.l + 25, 95)); }
           function darkenColor(hex) { var hsl = hexToHSL(hex); return hslToHex(hsl.h, hsl.s, Math.max(hsl.l - 20, 5)); }
           function complementaryColor(hex) { var hsl = hexToHSL(hex); return hslToHex(hsl.h + 180, hsl.s, hsl.l); }
+
           function updateComplementaryPreview(primaryHex) {
             var complementary = complementaryColor(primaryHex);
             var preview = document.getElementById('complementary_color_preview');
             var valueEl = document.getElementById('complementary_color_value');
-            if (preview) { preview.style.backgroundColor = complementary; }
+            if (preview) preview.style.backgroundColor = complementary;
             if (valueEl) { valueEl.textContent = complementary.toUpperCase(); valueEl.style.color = complementary; }
             return complementary;
           }
+
+          // Main initialization
+          var initialized = false;
+          var lastPrimaryValue = '';
+
           function initColorTools() {
-            var autoGenCheckbox = document.getElementById('auto_generate_variants');
+            if (initialized) return;
+
             var primaryInput = document.getElementById('brand_setting_primary_color');
+            if (!primaryInput) return; // Not ready yet
+
+            initialized = true;
+            lastPrimaryValue = primaryInput.value;
+
+            var autoGenCheckbox = document.getElementById('auto_generate_variants');
             var primaryLightInput = document.getElementById('brand_setting_primary_light_color');
             var primaryDarkInput = document.getElementById('brand_setting_primary_dark_color');
             var secondaryInput = document.getElementById('brand_setting_secondary_color');
             var secondaryLightInput = document.getElementById('brand_setting_secondary_light_color');
             var secondaryDarkInput = document.getElementById('brand_setting_secondary_dark_color');
             var applyComplementaryBtn = document.getElementById('apply_complementary_btn');
-            if (!primaryInput) { console.log('Primary input not found'); return; }
-            console.log('Color tools initialized, primary value:', primaryInput.value);
+
+            // Update complementary on page load
             updateComplementaryPreview(primaryInput.value);
-            primaryInput.addEventListener('input', function() {
-              console.log('Primary changed:', this.value);
-              updateComplementaryPreview(this.value);
-              if (autoGenCheckbox && autoGenCheckbox.checked) {
-                if (primaryLightInput) primaryLightInput.value = lightenColor(this.value);
-                if (primaryDarkInput) primaryDarkInput.value = darkenColor(this.value);
+
+            // Handle primary color changes
+            function handlePrimaryChange() {
+              var newValue = primaryInput.value;
+              if (newValue !== lastPrimaryValue) {
+                lastPrimaryValue = newValue;
+                updateComplementaryPreview(newValue);
+                if (autoGenCheckbox && autoGenCheckbox.checked) {
+                  if (primaryLightInput) primaryLightInput.value = lightenColor(newValue);
+                  if (primaryDarkInput) primaryDarkInput.value = darkenColor(newValue);
+                }
               }
-            });
-            primaryInput.addEventListener('change', function() {
-              console.log('Primary change event:', this.value);
-              updateComplementaryPreview(this.value);
-              if (autoGenCheckbox && autoGenCheckbox.checked) {
-                if (primaryLightInput) primaryLightInput.value = lightenColor(this.value);
-                if (primaryDarkInput) primaryDarkInput.value = darkenColor(this.value);
+            }
+
+            // Listen to multiple events for maximum compatibility
+            primaryInput.addEventListener('input', handlePrimaryChange);
+            primaryInput.addEventListener('change', handlePrimaryChange);
+            primaryInput.addEventListener('blur', handlePrimaryChange);
+
+            // Polling fallback - check every 200ms for color picker changes
+            setInterval(function() {
+              if (primaryInput.value !== lastPrimaryValue) {
+                handlePrimaryChange();
               }
-            });
+            }, 200);
+
+            // Apply complementary button
             if (applyComplementaryBtn) {
-              applyComplementaryBtn.addEventListener('click', function() {
+              applyComplementaryBtn.addEventListener('click', function(e) {
+                e.preventDefault();
                 var complementary = complementaryColor(primaryInput.value);
-                console.log('Applying complementary:', complementary);
                 if (secondaryInput) secondaryInput.value = complementary;
                 if (autoGenCheckbox && autoGenCheckbox.checked) {
                   if (secondaryLightInput) secondaryLightInput.value = lightenColor(complementary);
@@ -489,6 +517,8 @@ ActiveAdmin.register BrandSetting do
                 setTimeout(function() { btn.textContent = 'Use as Secondary'; btn.style.background = '#28a745'; }, 1500);
               });
             }
+
+            // Handle secondary color changes
             if (secondaryInput) {
               secondaryInput.addEventListener('input', function() {
                 if (autoGenCheckbox && autoGenCheckbox.checked) {
@@ -496,13 +526,35 @@ ActiveAdmin.register BrandSetting do
                   if (secondaryDarkInput) secondaryDarkInput.value = darkenColor(this.value);
                 }
               });
+              secondaryInput.addEventListener('change', function() {
+                if (autoGenCheckbox && autoGenCheckbox.checked) {
+                  if (secondaryLightInput) secondaryLightInput.value = lightenColor(this.value);
+                  if (secondaryDarkInput) secondaryDarkInput.value = darkenColor(this.value);
+                }
+              });
             }
           }
-          if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initColorTools);
-          } else {
-            setTimeout(initColorTools, 100);
+
+          // Try to initialize immediately, on DOMContentLoaded, and with retries
+          function tryInit() {
+            if (!initialized) initColorTools();
           }
+
+          // Initialize on various events
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', tryInit);
+          } else {
+            tryInit();
+          }
+
+          // Turbolinks/Turbo support
+          document.addEventListener('turbolinks:load', tryInit);
+          document.addEventListener('turbo:load', tryInit);
+
+          // Retry initialization a few times
+          setTimeout(tryInit, 100);
+          setTimeout(tryInit, 500);
+          setTimeout(tryInit, 1000);
         })();
         </script>
       HEREDOC
