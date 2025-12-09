@@ -9,11 +9,16 @@
   <link rel="shortcut icon" href="<%= image_path('favicon.png') %>" type="image/png">
   <link rel="icon" href="<%= image_path('favicon.png') %>" type="image/png">
 
-  <!-- Preconnect for performance -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Resource Hints for Performance -->
+  <%= dns_prefetch_tag('fonts.googleapis.com') %>
+  <%= dns_prefetch_tag('fonts.gstatic.com') %>
+  <%= preconnect_tag('https://fonts.googleapis.com') %>
+  <%= preconnect_tag('https://fonts.gstatic.com', crossorigin: true) %>
 
-  <!-- Modern Fonts -->
+  <!-- Preload Critical Resources -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" as="style">
+
+  <!-- Modern Fonts (with display=swap for FOUT prevention) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
 
   <!-- CSRF Protection -->
@@ -63,6 +68,23 @@
     <%= vite_javascript_tag 'application' rescue nil %>
   <% end %>
   <%= javascript_include_tag 'application', defer: true %>
+
+  <!-- Service Worker Registration (Production) -->
+  <% if Rails.env.production? %>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(function(registration) {
+              console.log('SW registered:', registration.scope);
+            })
+            .catch(function(error) {
+              console.log('SW registration failed:', error);
+            });
+        });
+      }
+    </script>
+  <% end %>
 
   <!-- Analytics (production only) -->
   <% if Rails.env.production? %>

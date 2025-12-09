@@ -178,4 +178,92 @@ module ApplicationHelper
       content_tag(:button, content, **options)
     end
   end
+
+  # ==========================================
+  # Performance Optimization Helpers
+  # ==========================================
+
+  # Lazy loading image with placeholder
+  # Usage: <%= lazy_image_tag('photo.jpg', alt: 'Description', class: 'w-full') %>
+  def lazy_image_tag(source, **options)
+    options[:loading] ||= 'lazy'
+    options[:decoding] ||= 'async'
+
+    # Add blur placeholder class if not specified
+    options[:class] = "#{options[:class]} lazy-image".strip
+
+    image_tag(source, **options)
+  end
+
+  # Responsive image with srcset
+  # Usage: <%= responsive_image_tag('hero', sizes: [320, 640, 1024], alt: 'Hero') %>
+  def responsive_image_tag(base_name, sizes: [320, 640, 1024, 1920], format: 'jpg', **options)
+    # Build srcset for different sizes
+    srcset = sizes.map do |size|
+      "#{asset_path("#{base_name}-#{size}.#{format}")} #{size}w"
+    end.join(', ')
+
+    # Default sizes attribute for responsive behavior
+    options[:sizes] ||= '(max-width: 640px) 100vw, (max-width: 1024px) 75vw, 50vw'
+    options[:srcset] = srcset
+    options[:loading] ||= 'lazy'
+    options[:decoding] ||= 'async'
+
+    # Use largest as default src
+    image_tag("#{base_name}-#{sizes.last}.#{format}", **options)
+  end
+
+  # Picture element for modern image formats (WebP/AVIF with fallback)
+  # Usage: <%= picture_tag('photo', alt: 'Description') %>
+  def picture_tag(base_name, formats: %w[avif webp jpg], **options)
+    content_tag(:picture) do
+      sources = formats[0..-2].map do |format|
+        mime = case format
+               when 'avif' then 'image/avif'
+               when 'webp' then 'image/webp'
+               else "image/#{format}"
+               end
+        tag(:source, srcset: asset_path("#{base_name}.#{format}"), type: mime)
+      end.join.html_safe
+
+      fallback = image_tag("#{base_name}.#{formats.last}", loading: 'lazy', decoding: 'async', **options)
+
+      sources + fallback
+    end
+  end
+
+  # Critical CSS inlining helper
+  def critical_css(stylesheet_name)
+    path = Rails.root.join('app', 'assets', 'stylesheets', 'critical', "#{stylesheet_name}.css")
+    return unless File.exist?(path)
+
+    content_tag(:style, File.read(path).html_safe, 'data-critical' => true)
+  end
+
+  # Preload resource hint helper
+  # Usage: <%= preload_tag('font.woff2', as: 'font', type: 'font/woff2', crossorigin: 'anonymous') %>
+  def preload_tag(source, **options)
+    options[:rel] = 'preload'
+    options[:href] = asset_path(source)
+    tag(:link, **options)
+  end
+
+  # Prefetch resource hint for next-page resources
+  def prefetch_tag(source, **options)
+    options[:rel] = 'prefetch'
+    options[:href] = asset_path(source)
+    tag(:link, **options)
+  end
+
+  # DNS prefetch for external domains
+  def dns_prefetch_tag(domain)
+    tag(:link, rel: 'dns-prefetch', href: "//#{domain}")
+  end
+
+  # Preconnect to external origins
+  def preconnect_tag(origin, crossorigin: false)
+    options = { rel: 'preconnect', href: origin }
+    options[:crossorigin] = 'anonymous' if crossorigin
+    tag(:link, **options)
+  end
 end

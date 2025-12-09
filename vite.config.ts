@@ -7,7 +7,16 @@ import { resolve } from 'path'
 export default defineConfig({
   // Security headers are managed by Rails SecureHeaders gem (config/initializers/secure_headers.rb)
   // Removed viteSecurityHeadersPlugin to avoid duplicate CSP headers
-  plugins: [vue(), RubyPlugin()],
+  plugins: [
+    vue({
+      // Enable reactive props destructure (Vue 3.4+)
+      script: {
+        defineModel: true,
+        propsDestructure: true,
+      },
+    }),
+    RubyPlugin(),
+  ],
   resolve: {
     alias: {
       '@': resolve(__dirname, './app/frontend'),
@@ -28,6 +37,18 @@ export default defineConfig({
     target: 'es2020',
     // Smaller chunk size for better caching
     chunkSizeWarningLimit: 150,
+    // Enable CSS code splitting
+    cssCodeSplit: true,
+    // Minification settings
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    // Generate sourcemaps for production debugging
+    sourcemap: 'hidden',
     rollupOptions: {
       output: {
         // Optimized chunking strategy: ~8 chunks for better HTTP/2 performance

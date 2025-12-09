@@ -1,0 +1,106 @@
+<%#
+  Cookie Consent Partial
+
+  Renders the GDPR-compliant cookie consent banner.
+  Uses Vue component when available, falls back to simple banner.
+
+  Usage:
+    <%= render 'shared/cookie_consent' %>
+%>
+
+<% if vite_asset_available? %>
+  <%= vue_component('CookieConsent',
+    privacyUrl: (page_path('privacy') rescue '/pages/privacy'),
+    cookiesUrl: (page_path('cookies') rescue '/pages/cookies'),
+    showSettings: true
+  ) %>
+<% else %>
+  <%# Legacy cookie consent banner %>
+  <div id="cookie-consent-banner" class="cookie-consent-legacy" style="display: none;">
+    <div class="cookie-consent-content">
+      <p>
+        <%= t('cookies.message', default: 'Utilizamos cookies propias y de terceros para mejorar tu experiencia.') %>
+        <a href="<%= page_path('cookies') rescue '/pages/cookies' %>">
+          <%= t('cookies.more_info', default: 'Más información') %>
+        </a>
+      </p>
+      <div class="cookie-consent-actions">
+        <button type="button" class="btn btn-ghost" onclick="rejectCookies()">
+          <%= t('cookies.reject', default: 'Rechazar') %>
+        </button>
+        <button type="button" class="btn btn-primary" onclick="acceptCookies()">
+          <%= t('cookies.accept', default: 'Aceptar') %>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var STORAGE_KEY = 'plebis_cookie_consent';
+      var banner = document.getElementById('cookie-consent-banner');
+
+      // Check if consent already given
+      if (!localStorage.getItem(STORAGE_KEY)) {
+        setTimeout(function() {
+          if (banner) banner.style.display = 'block';
+        }, 1000);
+      }
+
+      window.acceptCookies = function() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          necessary: true,
+          analytics: true,
+          marketing: true,
+          preferences: true
+        }));
+        if (banner) banner.style.display = 'none';
+        window.dispatchEvent(new CustomEvent('cookieConsent', {
+          detail: { analytics: true, marketing: true }
+        }));
+      };
+
+      window.rejectCookies = function() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          necessary: true,
+          analytics: false,
+          marketing: false,
+          preferences: false
+        }));
+        if (banner) banner.style.display = 'none';
+      };
+    })();
+  </script>
+
+  <style>
+    .cookie-consent-legacy {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+    }
+    .cookie-consent-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .cookie-consent-content p {
+      margin: 0;
+      flex: 1;
+      min-width: 300px;
+    }
+    .cookie-consent-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+  </style>
+<% end %>
