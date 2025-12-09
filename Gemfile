@@ -15,7 +15,7 @@ gem 'spring', group: :development
 gem 'sprockets-rails' # Legacy assets (will be phased out)
 gem 'sqlite3', '~> 1.4'
 gem 'vite_rails', '~> 3.0' # Modern frontend with Vite + Vue 3
-# REMOVED: coffee-rails (CoffeeScript deprecated, converting to JS)
+gem 'coffee-rails' # Required by Sprockets processor (even without .coffee files)
 # REMOVED: turbolinks (replaced by Vue Router / native navigation)
 # REMOVED: uglifier (Vite handles JS minification)
 # therubyracer removed - deprecated and crashes on Ruby 3.x
