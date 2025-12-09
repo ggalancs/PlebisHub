@@ -320,17 +320,22 @@ ActiveAdmin.register BrandSetting do
               hint: 'Main brand color'
 
       # Complementary color suggestion (using raw HTML)
-      text_node '<div id="complementary_color_suggestion" style="margin: 10px 0 15px 20%; padding: 12px 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border: 1px solid #dee2e6;">
+      # Calculate initial complementary color for display
+      primary_hex = f.object.primary_color.presence || colors[:primary] || '#612d62'
+      # Simple complementary calculation for initial display (180 degree hue shift)
+      complementary_hex = BrandSetting.complementary_color(primary_hex) rescue '#269283'
+
+      text_node %(<div id="complementary_color_suggestion" style="margin: 10px 0 15px 20%; padding: 12px 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border: 1px solid #dee2e6;">
         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
           <div>
             <span style="font-weight: 500; color: #495057;">Complementary color: </span>
-            <span id="complementary_color_value" style="font-family: monospace; font-weight: 600;"></span>
+            <span id="complementary_color_value" style="font-family: monospace; font-weight: 600; color: #{complementary_hex};">#{complementary_hex.upcase}</span>
           </div>
-          <div id="complementary_color_preview" style="width: 40px; height: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 2px solid white;"></div>
+          <div id="complementary_color_preview" style="width: 40px; height: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 2px solid white; background-color: #{complementary_hex};"></div>
           <button type="button" id="apply_complementary_btn" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Use as Secondary</button>
         </div>
         <div style="color: #6c757d; font-size: 11px; margin-top: 8px;">The complementary color is opposite on the color wheel (180° hue shift)</div>
-      </div>'.html_safe
+      </div>).html_safe
 
       f.input :primary_light_color,
               as: :string,
@@ -389,15 +394,16 @@ ActiveAdmin.register BrandSetting do
         <script>
         (function() {
           function hexToHSL(hex) {
+            if (!hex) return { h: 0, s: 0, l: 50 };
             hex = hex.replace('#', '');
+            if (hex.length !== 6) return { h: 0, s: 0, l: 50 };
             var r = parseInt(hex.substring(0, 2), 16) / 255;
             var g = parseInt(hex.substring(2, 4), 16) / 255;
             var b = parseInt(hex.substring(4, 6), 16) / 255;
             var max = Math.max(r, g, b);
             var min = Math.min(r, g, b);
-            var h, s, l = (max + min) / 2;
-            if (max === min) { h = s = 0; }
-            else {
+            var h = 0, s = 0, l = (max + min) / 2;
+            if (max !== min) {
               var d = max - min;
               s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
               if (max === r) { h = ((g - b) / d + (g < b ? 6 : 0)) / 6; }
@@ -406,42 +412,41 @@ ActiveAdmin.register BrandSetting do
             }
             return { h: h * 360, s: s * 100, l: l * 100 };
           }
+          function hue2rgb(p, q, t) {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1/6) return p + (q - p) * 6 * t;
+            if (t < 1/2) return q;
+            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+          }
           function hslToHex(h, s, l) {
+            h = ((h % 360) + 360) % 360;
             h /= 360; s /= 100; l /= 100;
             var r, g, b;
             if (s === 0) { r = g = b = l; }
             else {
-              function hue2rgb(p, q, t) {
-                if (t < 0) t += 1; if (t > 1) t -= 1;
-                if (t < 1/6) return p + (q - p) * 6 * t;
-                if (t < 1/2) return q;
-                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-                return p;
-              }
               var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
               var p = 2 * l - q;
               r = hue2rgb(p, q, h + 1/3);
               g = hue2rgb(p, q, h);
               b = hue2rgb(p, q, h - 1/3);
             }
-            function toHex(x) { var hex = Math.round(x * 255).toString(16); return hex.length === 1 ? '0' + hex : hex; }
+            var toHex = function(x) { var hx = Math.round(x * 255).toString(16); return hx.length === 1 ? '0' + hx : hx; };
             return '#' + toHex(r) + toHex(g) + toHex(b);
           }
           function lightenColor(hex) { var hsl = hexToHSL(hex); return hslToHex(hsl.h, hsl.s, Math.min(hsl.l + 25, 95)); }
           function darkenColor(hex) { var hsl = hexToHSL(hex); return hslToHex(hsl.h, hsl.s, Math.max(hsl.l - 20, 5)); }
-          function complementaryColor(hex) { var hsl = hexToHSL(hex); return hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l); }
+          function complementaryColor(hex) { var hsl = hexToHSL(hex); return hslToHex(hsl.h + 180, hsl.s, hsl.l); }
           function updateComplementaryPreview(primaryHex) {
             var complementary = complementaryColor(primaryHex);
             var preview = document.getElementById('complementary_color_preview');
-            var value = document.getElementById('complementary_color_value');
-            if (preview && value) {
-              preview.style.backgroundColor = complementary;
-              value.textContent = complementary.toUpperCase();
-              value.style.color = complementary;
-            }
+            var valueEl = document.getElementById('complementary_color_value');
+            if (preview) { preview.style.backgroundColor = complementary; }
+            if (valueEl) { valueEl.textContent = complementary.toUpperCase(); valueEl.style.color = complementary; }
             return complementary;
           }
-          document.addEventListener('DOMContentLoaded', function() {
+          function initColorTools() {
             var autoGenCheckbox = document.getElementById('auto_generate_variants');
             var primaryInput = document.getElementById('brand_setting_primary_color');
             var primaryLightInput = document.getElementById('brand_setting_primary_light_color');
@@ -450,22 +455,33 @@ ActiveAdmin.register BrandSetting do
             var secondaryLightInput = document.getElementById('brand_setting_secondary_light_color');
             var secondaryDarkInput = document.getElementById('brand_setting_secondary_dark_color');
             var applyComplementaryBtn = document.getElementById('apply_complementary_btn');
-            if (!autoGenCheckbox || !primaryInput) return;
+            if (!primaryInput) { console.log('Primary input not found'); return; }
+            console.log('Color tools initialized, primary value:', primaryInput.value);
             updateComplementaryPreview(primaryInput.value);
             primaryInput.addEventListener('input', function() {
+              console.log('Primary changed:', this.value);
               updateComplementaryPreview(this.value);
-              if (autoGenCheckbox.checked) {
-                primaryLightInput.value = lightenColor(this.value);
-                primaryDarkInput.value = darkenColor(this.value);
+              if (autoGenCheckbox && autoGenCheckbox.checked) {
+                if (primaryLightInput) primaryLightInput.value = lightenColor(this.value);
+                if (primaryDarkInput) primaryDarkInput.value = darkenColor(this.value);
+              }
+            });
+            primaryInput.addEventListener('change', function() {
+              console.log('Primary change event:', this.value);
+              updateComplementaryPreview(this.value);
+              if (autoGenCheckbox && autoGenCheckbox.checked) {
+                if (primaryLightInput) primaryLightInput.value = lightenColor(this.value);
+                if (primaryDarkInput) primaryDarkInput.value = darkenColor(this.value);
               }
             });
             if (applyComplementaryBtn) {
               applyComplementaryBtn.addEventListener('click', function() {
                 var complementary = complementaryColor(primaryInput.value);
-                secondaryInput.value = complementary;
-                if (autoGenCheckbox.checked) {
-                  secondaryLightInput.value = lightenColor(complementary);
-                  secondaryDarkInput.value = darkenColor(complementary);
+                console.log('Applying complementary:', complementary);
+                if (secondaryInput) secondaryInput.value = complementary;
+                if (autoGenCheckbox && autoGenCheckbox.checked) {
+                  if (secondaryLightInput) secondaryLightInput.value = lightenColor(complementary);
+                  if (secondaryDarkInput) secondaryDarkInput.value = darkenColor(complementary);
                 }
                 var btn = this;
                 btn.textContent = 'Applied!';
@@ -473,13 +489,20 @@ ActiveAdmin.register BrandSetting do
                 setTimeout(function() { btn.textContent = 'Use as Secondary'; btn.style.background = '#28a745'; }, 1500);
               });
             }
-            secondaryInput.addEventListener('input', function() {
-              if (autoGenCheckbox.checked) {
-                secondaryLightInput.value = lightenColor(this.value);
-                secondaryDarkInput.value = darkenColor(this.value);
-              }
-            });
-          });
+            if (secondaryInput) {
+              secondaryInput.addEventListener('input', function() {
+                if (autoGenCheckbox && autoGenCheckbox.checked) {
+                  if (secondaryLightInput) secondaryLightInput.value = lightenColor(this.value);
+                  if (secondaryDarkInput) secondaryDarkInput.value = darkenColor(this.value);
+                }
+              });
+            }
+          }
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initColorTools);
+          } else {
+            setTimeout(initColorTools, 100);
+          }
         })();
         </script>
       HEREDOC

@@ -175,6 +175,61 @@ class BrandSetting < ApplicationRecord
     )
   end
 
+  # Calculate complementary color (180 degree hue shift)
+  def self.complementary_color(hex)
+    return '#269283' unless hex.present? && hex.match?(HEX_COLOR_REGEX)
+
+    # Parse hex to RGB
+    hex = hex.gsub('#', '')
+    r = hex[0..1].to_i(16) / 255.0
+    g = hex[2..3].to_i(16) / 255.0
+    b = hex[4..5].to_i(16) / 255.0
+
+    # RGB to HSL
+    max = [r, g, b].max
+    min = [r, g, b].min
+    l = (max + min) / 2.0
+    h = 0
+    s = 0
+
+    if max != min
+      d = max - min
+      s = l > 0.5 ? d / (2.0 - max - min) : d / (max + min)
+      case max
+      when r then h = ((g - b) / d + (g < b ? 6 : 0)) / 6.0
+      when g then h = ((b - r) / d + 2) / 6.0
+      when b then h = ((r - g) / d + 4) / 6.0
+      end
+    end
+
+    # Shift hue by 180 degrees (0.5)
+    h = (h + 0.5) % 1.0
+
+    # HSL to RGB
+    if s == 0
+      r = g = b = l
+    else
+      q = l < 0.5 ? l * (1 + s) : l + s - l * s
+      p = 2 * l - q
+      r = hue_to_rgb(p, q, h + 1.0 / 3.0)
+      g = hue_to_rgb(p, q, h)
+      b = hue_to_rgb(p, q, h - 1.0 / 3.0)
+    end
+
+    # RGB to hex
+    format('#%02x%02x%02x', (r * 255).round, (g * 255).round, (b * 255).round)
+  end
+
+  def self.hue_to_rgb(p, q, t)
+    t += 1 if t < 0
+    t -= 1 if t > 1
+    return p + (q - p) * 6 * t if t < 1.0 / 6.0
+    return q if t < 1.0 / 2.0
+    return p + (q - p) * (2.0 / 3.0 - t) * 6 if t < 2.0 / 3.0
+
+    p
+  end
+
   # Instance methods
   def predefined_theme_name
     PREDEFINED_THEMES.dig(theme_id, :name)
