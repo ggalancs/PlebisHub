@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= yield(:title).presence || 'PlebisHub' %> | <%= Rails.application.config.site_name rescue 'PlebisBrand' %></title>
 
-  <!-- Favicon (dynamic from brand settings) -->
-  <link rel="shortcut icon" href="<%= brand_favicon_url %>" type="image/png">
-  <link rel="icon" href="<%= brand_favicon_url %>" type="image/png">
+  <!-- Favicon (dynamic from brand settings/images) -->
+  <link rel="shortcut icon" href="<%= brand_favicon_image_url %>" type="image/png">
+  <link rel="icon" href="<%= brand_favicon_image_url %>" type="image/png">
 
   <!-- Resource Hints for Performance -->
   <%= dns_prefetch_tag('fonts.googleapis.com') %>

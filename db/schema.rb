@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_09_184046) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_09_213347) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -87,6 +87,28 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_09_184046) do
     t.index ["name"], name: "index_analytics_metrics_on_name"
     t.index ["organization_id"], name: "index_analytics_metrics_on_organization_id"
     t.index ["timestamp"], name: "index_analytics_metrics_on_timestamp"
+  end
+
+  create_table "brand_images", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "key", null: false
+    t.string "category", null: false
+    t.text "description"
+    t.string "alt_text"
+    t.bigint "brand_setting_id"
+    t.bigint "organization_id"
+    t.boolean "active", default: true, null: false
+    t.integer "position", default: 0
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_brand_images_on_active"
+    t.index ["brand_setting_id"], name: "index_brand_images_on_brand_setting_id"
+    t.index ["category"], name: "index_brand_images_on_category"
+    t.index ["key", "brand_setting_id"], name: "idx_brand_images_key_brand_setting", unique: true
+    t.index ["key", "organization_id"], name: "idx_brand_images_key_organization", unique: true, where: "(brand_setting_id IS NULL)"
+    t.index ["key"], name: "index_brand_images_on_key"
+    t.index ["organization_id"], name: "index_brand_images_on_organization_id"
   end
 
   create_table "brand_settings", force: :cascade do |t|
@@ -1090,6 +1112,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_09_184046) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "analytics_dashboards", "users"
+  add_foreign_key "brand_images", "brand_settings"
+  add_foreign_key "brand_images", "organizations"
   add_foreign_key "gamification_challenges", "gamification_badges", column: "badge_id"
   add_foreign_key "gamification_points", "users"
   add_foreign_key "gamification_user_badges", "gamification_badges", column: "badge_id"

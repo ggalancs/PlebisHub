@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveAdmin.register BrandSetting do
-  menu priority: 2, label: 'Brand Settings'
+  menu parent: 'Branding', priority: 1, label: 'Theme Settings'
 
   permit_params :name, :description, :scope, :organization_id,
                 :theme_id, :theme_name, :active,

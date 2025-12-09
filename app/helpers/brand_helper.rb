@@ -94,6 +94,115 @@ module BrandHelper
     setting.persisted? && (setting.has_custom_colors? || setting.theme_id != 'default')
   end
 
+  # ========================================
+  # BRAND IMAGE HELPERS
+  # ========================================
+
+  # Returns the URL for a specific brand image by key
+  # Priority: brand_setting > organization > global > fallback
+  def brand_image_url(key, fallback: nil)
+    image = BrandImage.find_for(
+      key,
+      brand_setting: current_brand_setting,
+      organization: current_organization_for_brand
+    )
+
+    if image&.image&.attached?
+      url_for(image.image)
+    else
+      fallback || default_image_fallback(key)
+    end
+  rescue StandardError => e
+    Rails.logger.warn("BrandHelper#brand_image_url error for #{key}: #{e.message}")
+    fallback || default_image_fallback(key)
+  end
+
+  # Returns an image tag for a brand image with proper alt text
+  def brand_image_tag(key, options = {})
+    fallback = options.delete(:fallback)
+    alt = options.delete(:alt)
+
+    image = BrandImage.find_for(
+      key,
+      brand_setting: current_brand_setting,
+      organization: current_organization_for_brand
+    )
+
+    if image&.image&.attached?
+      image_tag url_for(image.image),
+                options.merge(alt: alt || image.alt_text || image.name)
+    elsif fallback
+      image_tag fallback, options.merge(alt: alt || key.to_s.humanize)
+    else
+      default_path = default_image_fallback(key)
+      image_tag default_path, options.merge(alt: alt || key.to_s.humanize) if default_path
+    end
+  rescue StandardError => e
+    Rails.logger.warn("BrandHelper#brand_image_tag error for #{key}: #{e.message}")
+    fallback_path = fallback || default_image_fallback(key)
+    image_tag(fallback_path, options.merge(alt: alt || key.to_s.humanize)) if fallback_path
+  end
+
+  # Returns the main logo URL (uses brand_image if available, falls back to URL setting)
+  def brand_logo_image_url(dark_mode: false)
+    key = dark_mode ? 'logo_dark' : 'logo_main'
+    image = BrandImage.find_for(
+      key,
+      brand_setting: current_brand_setting,
+      organization: current_organization_for_brand
+    )
+
+    if image&.image&.attached?
+      url_for(image.image)
+    else
+      # Fall back to URL-based logo from BrandSetting
+      brand_logo_url(dark_mode: dark_mode)
+    end
+  rescue StandardError
+    brand_logo_url(dark_mode: dark_mode)
+  end
+
+  # Returns the favicon URL (uses brand_image if available, falls back to URL setting)
+  def brand_favicon_image_url
+    image = BrandImage.find_for(
+      'favicon',
+      brand_setting: current_brand_setting,
+      organization: current_organization_for_brand
+    )
+
+    if image&.image&.attached?
+      url_for(image.image)
+    else
+      brand_favicon_url
+    end
+  rescue StandardError
+    brand_favicon_url
+  end
+
+  # Returns a social media icon URL
+  def brand_social_icon_url(platform)
+    key = "social_#{platform.to_s.downcase}"
+    brand_image_url(key, fallback: nil)
+  end
+
+  # Returns a banner image URL
+  def brand_banner_url(banner_key)
+    key = banner_key.to_s.start_with?('banner_') ? banner_key.to_s : "banner_#{banner_key}"
+    brand_image_url(key, fallback: nil)
+  end
+
+  # Check if a brand image exists for a given key
+  def brand_image_exists?(key)
+    image = BrandImage.find_for(
+      key,
+      brand_setting: current_brand_setting,
+      organization: current_organization_for_brand
+    )
+    image&.image&.attached?
+  rescue StandardError
+    false
+  end
+
   # Generates preload hint for critical fonts
   def brand_font_preload_tags
     setting = current_brand_setting
@@ -128,6 +237,45 @@ module BrandHelper
     return current_user.organization_id if respond_to?(:current_user) && current_user&.respond_to?(:organization_id)
 
     nil
+  rescue StandardError
+    nil
+  end
+
+  # Safely retrieves current organization object for brand images
+  def current_organization_for_brand
+    return current_organization if respond_to?(:current_organization) && current_organization
+    return current_user.organization if respond_to?(:current_user) && current_user&.respond_to?(:organization)
+
+    nil
+  rescue StandardError
+    nil
+  end
+
+  # Default fallback images based on key
+  def default_image_fallback(key)
+    fallbacks = {
+      'logo_main' => 'brand/logo-horizontal.svg',
+      'logo_dark' => 'brand/logo-inverted.svg',
+      'logo_white' => 'brand/logo-inverted.svg',
+      'logo_square' => 'brand/logo-mark.svg',
+      'logo_admin' => 'admin_logo.png',
+      'favicon' => 'favicon.png',
+      'favicon_large' => 'favicon.png',
+      'social_facebook' => 'ico.social45-facebook-on.png',
+      'social_twitter' => 'ico.social45-twitter-on.png',
+      'social_youtube' => 'ico.social45-youtube-on.png',
+      'banner_collaborations' => 'banner_collabs.png',
+      'banner_microcredits' => 'microcredits-banner.jpg',
+      'icon_menu_hamburger' => 'ico.menu-hamb-on.png',
+      'icon_menu_profile' => 'ico.menu-profile-on.png',
+      'icon_menu_economics' => 'ico.menu-econ-on.png',
+      'icon_menu_teams' => 'ico.menu-team-on.png',
+      'icon_menu_tools' => 'ico.menu-tools-on.png',
+      'icon_menu_notifications' => 'ico.menu-notif-on.png'
+    }
+
+    path = fallbacks[key.to_s]
+    path ? asset_path(path) : nil
   rescue StandardError
     nil
   end

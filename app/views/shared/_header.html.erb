@@ -11,11 +11,11 @@
 <header class="header bg-white border-b border-gray-200 sticky top-0 z-40">
   <div class="container mx-auto px-4">
     <div class="flex items-center justify-between h-16">
-      <%# Logo %>
+      <%# Logo (dynamic from brand images) %>
       <div class="flex items-center">
         <%= link_to root_path, class: 'flex items-center gap-2 text-primary-700 hover:text-primary-600 transition-colors' do %>
-          <%= image_tag 'logo.png', alt: 'PlebisHub', class: 'h-8 w-auto', onerror: "this.style.display='none'" rescue nil %>
-          <span class="font-heading font-bold text-xl hidden sm:block">PlebisHub</span>
+          <%= brand_image_tag 'logo_main', class: 'h-8 w-auto', fallback: 'brand/logo-horizontal.svg', onerror: "this.style.display='none'" %>
+          <span class="font-heading font-bold text-xl hidden sm:block"><%= Rails.application.config.site_name rescue 'PlebisHub' %></span>
         <% end %>
       </div>
 

@@ -11,11 +11,11 @@
 <footer class="footer bg-gray-900 text-gray-300">
   <div class="container mx-auto px-4 py-12">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-      <%# Brand & Description %>
+      <%# Brand & Description (logo dynamic from brand images) %>
       <div class="lg:col-span-1">
         <div class="flex items-center gap-2 mb-4">
-          <%= image_tag 'logo-white.png', alt: 'PlebisHub', class: 'h-8 w-auto', onerror: "this.style.display='none'" rescue nil %>
-          <span class="font-heading font-bold text-xl text-white">PlebisHub</span>
+          <%= brand_image_tag 'logo_white', class: 'h-8 w-auto', fallback: 'brand/logo-inverted.svg', onerror: "this.style.display='none'" %>
+          <span class="font-heading font-bold text-xl text-white"><%= Rails.application.config.site_name rescue 'PlebisHub' %></span>
         </div>
         <p class="text-sm text-gray-400 mb-4">
           <%= t('footer.description', default: 'Plataforma de participación ciudadana para una democracia más directa y transparente.') %>
