@@ -488,7 +488,7 @@ GEM
       date
       stringio
     public_suffix (7.0.0)
-    puma (7.1.0)
+    puma (6.6.1)
       nio4r (~> 2.0)
     pushmeup (0.3.0)
       httparty
@@ -823,7 +823,7 @@ DEPENDENCIES
   plebis_proposals!
   plebis_verification!
   plebis_votes!
-  puma
+  puma (~> 6.0)
   pushmeup
   rack-attack (~> 6.7)
   rack-openid

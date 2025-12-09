@@ -85,6 +85,9 @@ gem 'state_machines-audit_trail', '~> 1.0'
 gem 'validate_url'
 gem 'xmlrpc'
 
+# Web server - must be in all environments for Docker/production
+gem 'puma', '~> 6.0'
+
 group :development, :test do
   gem 'better_errors'
   gem 'binding_of_caller'
@@ -105,7 +108,6 @@ group :development, :test do
   gem 'minitest-reporters'
   gem 'mocha', require: false
   gem 'nokogiri', '~> 1.16' # Required by Rails 7.2, Ruby 3.3 compatible
-  gem 'puma'
   gem 'rails-controller-testing' # Required for assigns() and assert_template in controller specs
   gem 'rails-perftest'
   gem 'rspec_junit_formatter', require: false # For CI test results

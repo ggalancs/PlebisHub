@@ -62,7 +62,7 @@ services:
       target: ${BUILD_TARGET:-production}
     container_name: plebishub_app
     restart: unless-stopped
-    command: bundle exec rails server -b 0.0.0.0 -p 3000
+    command: /bin/sh -c "bundle install && exec bundle exec rails server -b 0.0.0.0 -p 3000 -u puma"
     environment:
       # Rails
       RAILS_ENV: ${RAILS_ENV:-production}
