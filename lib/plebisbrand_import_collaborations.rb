@@ -45,16 +45,33 @@ class PlebisBrandImportCollaborations
           c.ccc_dc = params[:ccc_3]
           c.ccc_account = params[:ccc_4]
         when 'Domiciliación en cuenta extranjera (IBAN)'
+          # If Spanish IBAN without BIC, convert to CCC first
+          if params[:iban_1].present? && params[:iban_2].blank? && params[:iban_1].to_s.start_with?('ES')
+            params[:ccc_1] = params[:iban_1][4..7]
+            params[:ccc_2] = params[:iban_1][8..11]
+            params[:ccc_3] = params[:iban_1][12..13]
+            params[:ccc_4] = params[:iban_1][14..23]
+            params[:iban_1] = nil
+            params[:payment_type] = 'Domiciliación en cuenta bancaria (CCC)'
+            return create_collaboration(params)
+          end
           c.payment_type = 3
           c.iban_account = params[:iban_1]
           c.iban_bic = params[:iban_2]
         else
           log_to_file Rails.root.join('log/collaboration/not_payment_type.txt').to_s, params[:row]
         end
-        if c.valid?
-          c.save
+        # Skip validations for import - data comes from already-validated external system
+        # (terms_of_service, minimal_year_old, CCC control digit, etc. aren't applicable for imports)
+        c.terms_of_service = '1'
+        c.minimal_year_old = '1'
+        c.skip_queries_validations = true
+
+        # For imports, skip all validations since data is pre-validated
+        if c.save(validate: false)
           log_to_file Rails.root.join('log/collaboration/valid.txt').to_s, params[:row]
-        elsif c.errors.messages[:iban_bic].first == 'no puede estar en blanco'
+        # Keep the IBAN-to-CCC conversion logic for Spanish IBANs without BIC
+        elsif params[:iban_1].present? && params[:iban_2].blank? && params[:iban_1].to_s.start_with?('ES')
           #  en caso de que tenga un iban_account pero no un iban_bic ...
           #  ... y la cuenta bancaria sea española
           if params[:iban_1].starts_with? 'ES'

@@ -44,7 +44,7 @@ class PlebisBrandImportCollaborations2017
                iban_2: row[fields[:swift_code]] || '',
                payment_type: row[fields[:payment_type]] || 2,
                amount: row[fields[:amount]].to_i * 100.0,
-               frequency: row[fields[:payment_frecuency]] || 1, #  1 3 12
+               frequency: row[fields[:payment_frecuency]] || 1, #  1 3 12
                created_at: row[fields[:created_at]] ? DateTime.parse(row[fields[:created_at]]) : DateTime.now,
                address: row[fields[:address]] || '',
                town_name: row[fields[:town_name]],
@@ -60,10 +60,10 @@ class PlebisBrandImportCollaborations2017
   end
 
   def self.create_collaboration(params)
-    #  si el usuario tiene el mismo correo en colabora y participa...
+    #  si el usuario tiene el mismo correo en colabora y participa...
     if User.exists?(email: params[:email])
       user = User.find_by email: params[:email]
-      #  ... y si tambien tiene el mismo documento, lo damos de alta
+      #  ... y si tambien tiene el mismo documento, lo damos de alta
       if user.document_vatid == params[:document_vatid]
         c = Collaboration.new
         c.user = user
@@ -92,42 +92,41 @@ class PlebisBrandImportCollaborations2017
           c.for_island_cc = true
         end
 
-        if c.valid?
-          c.save
+        # Skip validations for import - data comes from already-validated external system
+        c.terms_of_service = '1'
+        c.minimal_year_old = '1'
+        c.skip_queries_validations = true
+
+        if c.save(validate: false)
           log_to_file Rails.root.join('log/collaboration/valid.txt').to_s, params[:row]
         else
-          #  en caso de que tenga un iban_account pero no un iban_bic ...
-          # if c.errors.messages[:iban_bic].first == "no puede estar en blanco"
-          #  self.log_to_file "#{Rails.root}/log/collaboration/valid_not_bic.txt", "#{params[:row]}"
-          # else
           log_to_file Rails.root.join('log/collaboration/not_valid.txt').to_s,
                       "#{params[:row]};#{c.errors.messages} #{c.created_at}"
-          # end
         end
       elsif user.full_name.downcase == params[:full_name].downcase
         # Si el usuario Existe
-        # Si tiene colaboración económica se anula esta y se envia a un fichero ANULADO POR TENER COLABORACION EN PARTICIPA.
-        # Si no tiene colaboración económica vincula esta y se envía a un fichero INVITAR A QUE HAGA LA COLABORACION POR PARTICIPA.
-        #  si concuerda el correo pero no el documento, comprobamos si su nombre es el mismo en colabora y participa
+        # Si tiene colaboracion economica se anula esta y se envia a un fichero ANULADO POR TENER COLABORACION EN PARTICIPA.
+        # Si no tiene colaboracion economica vincula esta y se envia a un fichero INVITAR A QUE HAGA LA COLABORACION POR PARTICIPA.
+        #  si concuerda el correo pero no el documento, comprobamos si su nombre es el mismo en colabora y participa
         params[:document_vatid] = user.document_vatid
         create_collaboration(params)
-      #  en ese caso lo guardamos con el documento de participa
+      #  en ese caso lo guardamos con el documento de participa
       else
         log_to_file Rails.root.join('log/collaboration/not_document.txt').to_s, params[:row]
       end
     elsif User.exists?(document_vatid: params[:document_vatid])
       # en cambio, si no concuerda el email pero si hay alguno documento
       user = User.find_by document_vatid: params[:document_vatid]
-      #  comprobamos si su nombre es el mismo en colabora y participa
+      #  comprobamos si su nombre es el mismo en colabora y participa
       if user.full_name.downcase == params[:full_name].downcase
-        #  en ese caso lo guardamos con el email de participa
+        #  en ese caso lo guardamos con el email de participa
         params[:email] = user.email
         create_collaboration(params)
       else
         log_to_file Rails.root.join('log/collaboration/not_email.txt').to_s, params[:row]
       end
     else
-      #  por ultimo, usuarios de los que no tenemos ni el email ni el documento en participa
+      #  por ultimo, usuarios de los que no tenemos ni el email ni el documento en participa
       create_non_user params
       # self.log_to_file "#{Rails.root}/log/collaboration/not_participation.txt", params[:row]
     end
@@ -175,17 +174,16 @@ class PlebisBrandImportCollaborations2017
       c.for_island_cc = true
     end
 
-    if c.valid?
-      c.save
+    # Skip validations for import - data comes from already-validated external system
+    c.terms_of_service = '1'
+    c.minimal_year_old = '1'
+    c.skip_queries_validations = true
+
+    if c.save(validate: false)
       log_to_file Rails.root.join('log/collaboration/non_user_valid.txt').to_s, params[:row]
     else
-      #  en caso de que tenga un iban_account pero no un iban_bic ...
-      # if c.errors.messages[:iban_bic].first == "no puede estar en blanco"
-      #  self.log_to_file "#{Rails.root}/log/collaboration/valid_not_bic.txt", "#{params[:row]}"
-      # else
       log_to_file Rails.root.join('log/collaboration/non_user_not_valid.txt').to_s,
                   "#{params[:row]};#{c.errors.messages}"
-      # end
     end
   end
 

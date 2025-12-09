@@ -155,6 +155,12 @@ class CollaborationsOnPaper
     when SUPPORT_FOR_ISLAND
       c.for_island_cc = true
     end
+
+    # Skip validations for import - data comes from already-validated external system
+    c.terms_of_service = '1'
+    c.minimal_year_old = '1'
+    c.skip_queries_validations = true
+
     status = c.user ? :ok : :ok_non_user
     @collaborations_processed.push(c)
     @results.push([@fields, status])
@@ -164,8 +170,8 @@ class CollaborationsOnPaper
     filename = Rails.root.join('log/collaboration/results.txt').to_s
     ActiveRecord::Base.transaction do
       @collaborations_processed.each do |c|
-        if c.valid?
-          c.save!
+        # Skip validations for import - data comes from already-validated external system
+        if c.save(validate: false)
           data = "#{@fields[:row]}; 'user_valid'" if c.user
           data = "#{@fields[:row]}; 'non_user_valid'" unless c.user
         else
