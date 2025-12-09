@@ -112,7 +112,7 @@ services:
     networks:
       - plebishub_network
 
-  # ------------------ Resque Worker ------------------
+  # ------------------ Sidekiq Worker ------------------
   worker:
     build:
       context: .
@@ -120,7 +120,7 @@ services:
       target: ${BUILD_TARGET:-production}
     container_name: plebishub_worker
     restart: unless-stopped
-    command: bundle exec rake resque:work QUEUE=*
+    command: bundle exec sidekiq
     environment:
       # Rails
       RAILS_ENV: ${RAILS_ENV:-production}
