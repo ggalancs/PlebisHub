@@ -139,7 +139,10 @@ ActiveAdmin.setup do |config|
   # You can add before, after and around filters to all of your
   # Active Admin resources and pages from here.
   #
-  # config.before_filter :do_something_awesome
+  # Apply relaxed CSP for ActiveAdmin to allow inline scripts (color pickers, etc.)
+  config.before_action do
+    use_secure_headers_override(:active_admin)
+  end
 
 
   # == Setting a Favicon

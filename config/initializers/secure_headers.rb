@@ -58,14 +58,14 @@ SecureHeaders::Configuration.default do |config|
     default_src: %w['self' data:],
 
     script_src: if Rails.env.development?
-      # Development: Allow unsafe-inline and unsafe-eval for HMR
-      (trusted_src + ["'unsafe-eval'"]).uniq
+      # Development: Allow unsafe-inline and unsafe-eval for HMR and inline scripts
+      (trusted_src + ["'unsafe-eval'", "'unsafe-inline'"]).uniq
     else
       # Production: Strict policy
       trusted_src
     end,
 
-    style_src: (trusted_src + ["'unsafe-inline'"]).uniq, # unsafe-inline needed for Tailwind/inline styles
+    style_src: (trusted_src + ["'unsafe-inline'", 'https://fonts.googleapis.com']).uniq, # unsafe-inline needed for Tailwind/inline styles
 
     img_src: %w['self' data: blob: https:],
 
@@ -151,6 +151,20 @@ end
 # ========================================
 # CUSTOM CONFIGURATIONS FOR SPECIFIC CONTROLLERS
 # ========================================
+
+# Override for ActiveAdmin - allows inline scripts for admin panel functionality
+# This is needed for color pickers and other interactive admin features
+SecureHeaders::Configuration.override(:active_admin) do |config|
+  config.csp = {
+    default_src: %w['self' data:],
+    script_src: %w['self' 'unsafe-inline' 'unsafe-eval'],
+    style_src: %w['self' 'unsafe-inline' https://fonts.googleapis.com],
+    img_src: %w['self' data: blob: https:],
+    font_src: %w['self' data: https://fonts.gstatic.com],
+    connect_src: %w['self'],
+    frame_ancestors: %w['self'],
+  }
+end
 
 # Example: Disable CSP for API endpoints
 # SecureHeaders::Configuration.override(:api) do |config|

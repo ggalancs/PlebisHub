@@ -5,8 +5,8 @@
     "skipCompatibilityCheck": true
   },
   "development": {
-    "autoBuild": true,
-    "publicOutputDir": "vite-dev",
+    "autoBuild": false,
+    "publicOutputDir": "vite",
     "port": 3036
   },
   "test": {
