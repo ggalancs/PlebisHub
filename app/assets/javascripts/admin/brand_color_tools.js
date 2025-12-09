@@ -105,6 +105,8 @@
 
   function initColorTools() {
     var primaryInput = document.getElementById('brand_setting_primary_color')
+    var primaryTextInput = document.getElementById('brand_setting_primary_color_text')
+
     if (!primaryInput) {
       console.log('[BrandColorTools] Primary input not found, skipping init')
       return false
@@ -130,18 +132,37 @@
     // Update complementary on page load
     updateComplementaryPreview(primaryInput.value)
 
-    // Handle primary color changes
-    function handlePrimaryChange() {
-      var newValue = primaryInput.value
+    // Validate hex color format
+    function isValidHex(hex) {
+      return /^#[0-9A-Fa-f]{6}$/.test(hex)
+    }
+
+    // Handle primary color changes (from either picker or text input)
+    function handlePrimaryChange(newValue, source) {
       console.log(
         '[BrandColorTools] handlePrimaryChange called, value:',
         newValue,
-        'last:',
-        lastPrimaryValue
+        'source:',
+        source
       )
+
+      if (!isValidHex(newValue)) {
+        console.log('[BrandColorTools] Invalid hex, skipping update')
+        return
+      }
+
       if (newValue !== lastPrimaryValue) {
         lastPrimaryValue = newValue
         updateComplementaryPreview(newValue)
+
+        // Sync the other input
+        if (source === 'picker' && primaryTextInput) {
+          primaryTextInput.value = newValue.toUpperCase()
+        } else if (source === 'text' && primaryInput) {
+          primaryInput.value = newValue
+        }
+
+        // Auto-generate variants if enabled
         if (autoGenCheckbox && autoGenCheckbox.checked) {
           if (primaryLightInput) primaryLightInput.value = lightenColor(newValue)
           if (primaryDarkInput) primaryDarkInput.value = darkenColor(newValue)
@@ -149,26 +170,58 @@
       }
     }
 
-    // Listen to multiple events for maximum compatibility
+    // Listen to color picker events
     primaryInput.addEventListener('input', function () {
-      console.log('[BrandColorTools] input event fired')
-      handlePrimaryChange()
+      console.log('[BrandColorTools] picker input event fired')
+      handlePrimaryChange(this.value, 'picker')
     })
     primaryInput.addEventListener('change', function () {
-      console.log('[BrandColorTools] change event fired')
-      handlePrimaryChange()
+      console.log('[BrandColorTools] picker change event fired')
+      handlePrimaryChange(this.value, 'picker')
     })
-    primaryInput.addEventListener('blur', function () {
-      console.log('[BrandColorTools] blur event fired')
-      handlePrimaryChange()
-    })
+
+    // Listen to text input events for INSTANT feedback
+    if (primaryTextInput) {
+      primaryTextInput.addEventListener('input', function () {
+        var val = this.value.trim()
+        // Add # if not present
+        if (val && val[0] !== '#') {
+          val = '#' + val
+        }
+        console.log('[BrandColorTools] text input event fired, value:', val)
+        if (isValidHex(val)) {
+          handlePrimaryChange(val, 'text')
+        }
+      })
+      primaryTextInput.addEventListener('change', function () {
+        var val = this.value.trim()
+        if (val && val[0] !== '#') {
+          val = '#' + val
+          this.value = val.toUpperCase()
+        }
+        console.log('[BrandColorTools] text change event fired, value:', val)
+        if (isValidHex(val)) {
+          handlePrimaryChange(val, 'text')
+        }
+      })
+      // Also handle keyup for faster feedback
+      primaryTextInput.addEventListener('keyup', function () {
+        var val = this.value.trim()
+        if (val && val[0] !== '#') {
+          val = '#' + val
+        }
+        if (isValidHex(val)) {
+          handlePrimaryChange(val, 'text')
+        }
+      })
+    }
 
     // Polling fallback - check every 100ms for color picker changes
     if (pollingInterval) clearInterval(pollingInterval)
     pollingInterval = setInterval(function () {
       if (primaryInput && primaryInput.value !== lastPrimaryValue) {
         console.log('[BrandColorTools] Polling detected change')
-        handlePrimaryChange()
+        handlePrimaryChange(primaryInput.value, 'picker')
       }
     }, 100)
 

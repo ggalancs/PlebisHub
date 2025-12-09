@@ -308,23 +308,26 @@ ActiveAdmin.register BrandSetting do
         <div style="color: #666; font-size: 12px; margin-top: 5px; margin-left: 28px;">Light variants are 25% lighter, dark variants are 20% darker</div>
       </div>'.html_safe
 
-      f.input :primary_color,
-              as: :string,
-              input_html: {
-                type: 'color',
-                style: 'height: 50px; width: 100%;',
-                value: f.object.primary_color.presence || colors[:primary] || '#612d62',
-                id: 'brand_setting_primary_color',
-                data: { color_source: 'primary' }
-              },
-              hint: 'Main brand color'
-
-      # Complementary color suggestion (using raw HTML)
       # Calculate initial complementary color for display
       primary_hex = f.object.primary_color.presence || colors[:primary] || '#612d62'
-      # Simple complementary calculation for initial display (180 degree hue shift)
       complementary_hex = BrandSetting.complementary_color(primary_hex) rescue '#269283'
 
+      # Primary color with both picker and text input for instant feedback
+      text_node %(<div class="input string required" id="brand_setting_primary_color_input">
+        <label class="label" for="brand_setting_primary_color">Primary color<abbr title="required">*</abbr></label>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="color" id="brand_setting_primary_color" name="brand_setting[primary_color]"
+                 value="#{primary_hex}" style="height: 50px; width: 80px; cursor: pointer; border: none; padding: 0;">
+          <input type="text" id="brand_setting_primary_color_text"
+                 value="#{primary_hex.upcase}"
+                 style="width: 100px; font-family: monospace; font-size: 14px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; text-transform: uppercase;"
+                 maxlength="7" placeholder="#RRGGBB">
+          <span style="color: #666; font-size: 12px;">Type hex value for instant preview</span>
+        </div>
+        <p class="inline-hints">Main brand color - click picker or type hex value</p>
+      </div>).html_safe
+
+      # Complementary color suggestion
       text_node %(<div id="complementary_color_suggestion" style="margin: 10px 0 15px 20%; padding: 12px 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; border: 1px solid #dee2e6;">
         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
           <div>
@@ -334,7 +337,7 @@ ActiveAdmin.register BrandSetting do
           <div id="complementary_color_preview" style="width: 40px; height: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 2px solid white; background-color: #{complementary_hex};"></div>
           <button type="button" id="apply_complementary_btn" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Use as Secondary</button>
         </div>
-        <div style="color: #6c757d; font-size: 11px; margin-top: 8px;">The complementary color is opposite on the color wheel (180° hue shift)</div>
+        <div style="color: #6c757d; font-size: 11px; margin-top: 8px;">The complementary color is opposite on the color wheel (180° hue shift). Type a hex value above to see instant preview.</div>
       </div>).html_safe
 
       f.input :primary_light_color,
