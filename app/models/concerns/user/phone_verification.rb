@@ -74,7 +74,7 @@ module User::PhoneVerification
   end
 
   def send_sms_token!
-    require 'sms'
+    # SMS module is loaded via config/initializers/sms.rb
     # Rails 7.2: Use update_column instead of deprecated update_attribute
     update_column(:confirmation_sms_sent_at, DateTime.current)
     SMS::Sender.send_message(unconfirmed_phone, sms_confirmation_token)
@@ -122,7 +122,7 @@ module User::PhoneVerification
   end
 
   def send_sms_check!
-    require 'sms'
+    # SMS module is loaded via config/initializers/sms.rb
     if can_request_sms_check?
       # Rails 7.2: Use update_column instead of deprecated update_attribute
       # This bypasses validations/callbacks and directly updates the database

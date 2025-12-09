@@ -6,8 +6,8 @@ class Report < ApplicationRecord
   end
 
   after_initialize do |report|
-    if report.persisted?
-      table_name = query.match(/\s*SELECT\s*.*\s*FROM\s*"?(\w+)"?\s*/)
+    if report.persisted? && report.query.present?
+      table_name = report.query.match(/\s*SELECT\s*.*\s*FROM\s*"?(\w+)"?\s*/)
       table_name = table_name.captures.first if table_name
 
       if table_name
@@ -22,10 +22,13 @@ class Report < ApplicationRecord
     @main_group = ReportGroup.unserialize(self[:main_group]) if !defined?(@main_group) && self[:main_group].present?
     @main_group
   end
+  alias main_group get_main_group
 
   def get_groups
-    @get_groups ||= ReportGroup.unserialize(self[:groups])
+    @groups = ReportGroup.unserialize(self[:groups]) if !defined?(@groups) && self[:groups].present?
+    @groups
   end
+  alias groups get_groups
 
   def main_group=(value)
     self[:main_group] = if value.is_a? ReportGroup
@@ -46,6 +49,10 @@ class Report < ApplicationRecord
   end
 
   def batch_process(batch_size = 1000, &block)
+    # Ensure model is loaded (may not be set if after_initialize ran before model was loaded)
+    ensure_model_loaded
+    return unless @model
+
     offset = 0
     loop do
       # SECURITY FIX: Use parameterized query to prevent SQL injection
@@ -165,6 +172,22 @@ class Report < ApplicationRecord
   end
 
   private
+
+  # Ensure model is loaded from query (lazy loading for tests)
+  def ensure_model_loaded
+    return if @model
+
+    if persisted? && query.present?
+      table_name = query.match(/\s*SELECT\s*.*\s*FROM\s*"?(\w+)"?\s*/)
+      table_name = table_name.captures.first if table_name
+
+      if table_name
+        @model = ActiveRecord::Base.send(:descendants).find do |m|
+          m.table_name == table_name
+        end
+      end
+    end
+  end
 
   # SECURITY: Safe replacement for shell command: cut | sort | uniq -c | sort -rn
   # Processes log file to count and rank unique entries

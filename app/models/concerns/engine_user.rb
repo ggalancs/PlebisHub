@@ -44,7 +44,7 @@ module EngineUser
 
       # Check if EngineActivation exists before trying to use it
       # During initial migrations, this model might not exist yet
-      return unless defined?(EngineActivation)
+      return unless defined?(EngineActivation) && EngineActivation
       return unless EngineActivation.table_exists?
 
       # Check if the engine is enabled
@@ -89,7 +89,7 @@ module EngineUser
   # @return [Boolean] Whether the user can access the engine
   #
   def can_access_engine?(_user, engine_name)
-    return false unless defined?(EngineActivation)
+    return false unless defined?(EngineActivation) && EngineActivation
 
     EngineActivation.enabled?(engine_name)
   end
