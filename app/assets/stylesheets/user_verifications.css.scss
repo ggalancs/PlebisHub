@@ -37,7 +37,7 @@ label.vatid_sample {
   th,
   td {
     margin: 0;
-    color: var(--color-primary, #612d62);
+    color: #{var(--color-primary)};
     border: none;
     padding: 0.55em 0;
   }

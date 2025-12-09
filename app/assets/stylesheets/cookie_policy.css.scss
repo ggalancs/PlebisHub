@@ -10,7 +10,7 @@
   font-weight: 200;
   text-align: center;
   a {
-    color: var(--color-secondary, #269283);
+    color: #{var(--color-secondary)};
     text-decoration: underline;
     &:hover {
       text-decoration: none;

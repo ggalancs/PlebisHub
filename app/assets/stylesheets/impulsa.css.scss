@@ -18,7 +18,7 @@
     .current-file {
       a {
         text-align: right;
-        color: var(--color-secondary, #269283);
+        color: #{var(--color-secondary)};
         font-size: 14px;
         &.delete {
           color: #f5bfc9;
@@ -102,7 +102,7 @@
           text-transform: uppercase;
           color: #666;
           display: block;
-          border-left: 2px solid var(--color-secondary, #269283);
+          border-left: 2px solid #{var(--color-secondary)};
           font-size: 11px;
           font-weight: bold;
           padding: 10px 5px 12px 20px;
@@ -113,7 +113,7 @@
             content: '';
             width: 20px;
             height: 20px;
-            border: solid 2px var(--color-secondary, #269283);
+            border: solid 2px #{var(--color-secondary)};
             background: #fff;
 
             position: absolute;
@@ -140,8 +140,8 @@
         }
 
         &.is-ok a:before {
-          background: var(--color-secondary, #269283);
-          border-color: var(--color-secondary, #269283);
+          background: #{var(--color-secondary)};
+          border-color: #{var(--color-secondary)};
         }
         &.is-not-ok a:before {
           background: #ff9696;
@@ -149,8 +149,8 @@
         }
         &:hover a:before,
         &.active a:before {
-          background: var(--color-primary, #612d62);
-          border-color: var(--color-primary, #612d62);
+          background: #{var(--color-primary)};
+          border-color: #{var(--color-primary)};
         }
       }
     }

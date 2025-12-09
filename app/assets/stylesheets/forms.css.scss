@@ -29,7 +29,7 @@ box info & alerts
   left: -0.5em;
 }
 .box p {
-  color: var(--color-primary, #612d62);
+  color: #{var(--color-primary)};
 }
 
 .box-ko {
@@ -46,7 +46,7 @@ box info & alerts
   width: 100%;
 }
 .box-info p {
-  color: var(--color-primary, #612d62);
+  color: #{var(--color-primary)};
 }
 .box-ko p:last-of-type,
 .box-ok p:last-of-type,
@@ -119,7 +119,7 @@ legend span {
   padding: 0 0.1em 0 0;
   position: relative;
   top: 0.3em;
-  color: var(--color-primary, #612d62);
+  color: #{var(--color-primary)};
 }
 
 fieldset .inputlabel-box {
@@ -153,7 +153,7 @@ fieldset .inputlabel-box span.no-label,
   background: none;
   float: left;
   border: none;
-  color: var(--color-primary, #612d62);
+  color: #{var(--color-primary)};
   padding: 0.55em 0;
 }
 .content-content span.no-input {
@@ -269,7 +269,7 @@ fieldset .alert-nexttolabel {
 }
 fieldset .alert-nexttolabel .alert-ico {
   padding: 2.5em 1.5em;
-  background: var(--color-primary, #612d62) image-url('ico.alert-exclam.png') 50% 50% no-repeat;
+  background: #{var(--color-primary)} image-url('ico.alert-exclam.png') 50% 50% no-repeat;
   display: inline-block;
   float: right;
   position: relative;
@@ -284,7 +284,7 @@ fieldset .alert-nexttolabel .alert-ico span {
   right: -1em;
 }
 fieldset .alert-nexttolabel p {
-  color: var(--color-primary, #612d62);
+  color: #{var(--color-primary)};
   margin: 1.1em 0 0.5em 3%;
   width: 75%;
   text-align: center;
@@ -352,7 +352,7 @@ fieldset .inputlabel-box label.choice {
   float: left;
   clear: right;
   border: none;
-  color: var(--color-primary, #612d62);
+  color: #{var(--color-primary)};
   padding: 0.55em 0;
 }
 fieldset .inputlabel-box input {
@@ -375,7 +375,7 @@ fieldset .inputlabel-box input {
 .table-collaborations th,
 .table-collaborations td {
   margin: 0;
-  color: var(--color-primary, #612d62);
+  color: #{var(--color-primary)};
   border: none;
   padding: 0.55em 0;
 }
@@ -417,7 +417,7 @@ fieldset.with-tos .inputlabel-box .tos p:last-of-type {
 
 span.help-block {
   span {
-    color: var(--color-secondary, #269283);
+    color: #{var(--color-secondary)};
     text-decoration: underline;
     cursor: pointer;
   }

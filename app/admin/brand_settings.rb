@@ -308,16 +308,17 @@ ActiveAdmin.register BrandSetting do
         <div style="color: #666; font-size: 12px; margin-top: 5px; margin-left: 28px;">Light variants are 25% lighter, dark variants are 20% darker</div>
       </div>'.html_safe
 
-      # Skip WCAG validation option
+      # Skip WCAG validation option - includes hidden field for unchecked state (Rails convention)
       text_node '<div class="boolean input" style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">
         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="hidden" name="brand_setting[skip_wcag_validation]" value="0">
           <input type="checkbox" name="brand_setting[skip_wcag_validation]" value="1" id="skip_wcag_validation" style="width: 18px; height: 18px;">
-          <span style="font-weight: 500; color: #856404;">Skip WCAG contrast validation</span>
+          <span style="font-weight: 500; color: #856404;">Skip WCAG contrast validation (allow bright colors)</span>
         </label>
         <div style="color: #856404; font-size: 12px; margin-top: 5px; margin-left: 28px;">
-          WCAG AA requires 4.5:1 contrast ratio for text readability.
-          Check this to allow bright colors like yellow that have low contrast with white.
-          <strong>Warning:</strong> This may affect accessibility for visually impaired users.
+          <strong>Important:</strong> WCAG AA requires 4.5:1 contrast ratio for text readability.
+          By default, bright colors (like yellow) are automatically darkened to meet accessibility standards.
+          Check this box to keep your exact color values without auto-adjustment.
         </div>
       </div>'.html_safe
 

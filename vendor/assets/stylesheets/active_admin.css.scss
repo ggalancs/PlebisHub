@@ -42,7 +42,7 @@ table.index_table th a {
   background: #ccc;
   border-bottom: 1px solid #999;
   .label {
-    color: #612d62;
+    color: #{var(--color-primary)};
   }
   &.remark {
     background: #f5bfc9;

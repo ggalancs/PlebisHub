@@ -162,6 +162,7 @@ class BrandSetting < ApplicationRecord
   before_validation :set_theme_name_from_predefined, if: -> { theme_name.blank? }
   before_validation :auto_adjust_colors_for_wcag, if: :should_auto_adjust_colors?
   before_save :increment_version_if_colors_changed
+  after_save :deactivate_other_global_themes, if: :should_deactivate_others?
   after_commit :clear_cache
 
   # Class methods
@@ -684,5 +685,19 @@ class BrandSetting < ApplicationRecord
     # Clear all possible global cache keys
     Rails.cache.delete("brand_setting/active/global")
     Rails.cache.delete("brand_setting/active/")
+  end
+
+  # Check if we should deactivate other themes
+  def should_deactivate_others?
+    active? && global_scope? && saved_change_to_active?
+  end
+
+  # Deactivate all other global themes when this one is activated
+  # This ensures only ONE global theme is active at a time
+  def deactivate_other_global_themes
+    self.class.global_settings
+        .active
+        .where.not(id: id)
+        .update_all(active: false)
   end
 end

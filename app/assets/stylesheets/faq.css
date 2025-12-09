@@ -161,12 +161,12 @@ Main components
   height: 50px;
   line-height: 50px;
   padding: 0 28px 0 16px;
-  background-color: var(--color-secondary, #269283);
+  background-color: var(--color-secondary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #ffffff;
   white-space: nowrap;
-  border-bottom: 1px solid var(--color-secondary, #269283);
+  border-bottom: 1px solid var(--color-secondary);
   text-overflow: ellipsis;
 }
 .cd-faq-categories a::before,
@@ -217,7 +217,7 @@ Main components
     display: none;
   }
   .no-touch .cd-faq-categories a:hover {
-    background: var(--color-primary, #612d62);
+    background: var(--color-primary);
   }
   .no-js .cd-faq-categories {
     width: 100%;
@@ -247,7 +247,7 @@ Main components
     transition: opacity 0.2s;
   }
   .cd-faq-categories .selected {
-    background: var(--color-primary, #612d62) !important;
+    background: var(--color-primary) !important;
   }
   .cd-faq-categories .selected::before {
     opacity: 1;
@@ -403,7 +403,7 @@ Main components
   font-size: 12px;
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--color-primary, #612d62);
+  color: var(--color-primary);
 }
 .no-js .cd-faq-group {
   display: block;
@@ -456,7 +456,7 @@ Main components
     top: 50%;
     height: 2px;
     width: 13px;
-    background: var(--color-primary, #612d62);
+    background: var(--color-primary);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     -webkit-transition-property: -webkit-transform;
