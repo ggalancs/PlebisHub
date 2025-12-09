@@ -1,34 +1,73 @@
 <!DOCTYPE html>
 <html lang="<%= I18n.locale %>">
 <head>
-  <title><%= yield :title %> | PlebisBrand</title>
-  <link rel="shortcut icon" href="<%= image_path("favicon.png") %>" type="image/png">
-  <link rel="icon" href="<%= image_path("favicon.png") %>" type="image/png">
-  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1" name="viewport">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
-  <%= stylesheet_link_tag 'application', media: 'all' %>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= yield(:title).presence || 'PlebisHub' %> | <%= Rails.application.config.site_name rescue 'PlebisBrand' %></title>
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="<%= image_path('favicon.png') %>" type="image/png">
+  <link rel="icon" href="<%= image_path('favicon.png') %>" type="image/png">
+
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Modern Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSRF Protection -->
   <%= csrf_meta_tags %>
-  <meta property="og:title" content="PlebisBrand | Portal de participación" />
-  <meta property="og:image" content="<%=@meta_image%>" />
-  <meta property="og:description" content="<%=@meta_description%>" />
-  <meta name="twitter:title" content="PlebisBrand | Portal de participación" />
-  <meta name="twitter:description" content="<%=@meta_description%>" />
-  <meta name="twitter:image" content="<%=@meta_image%>" />
-  <%= render partial: 'tag_manager_head' %>
+  <%= csp_meta_tag rescue nil %>
+
+  <!-- Stylesheets -->
+  <% if vite_asset_available? %>
+    <%= vite_stylesheet_tag 'application.css' rescue nil %>
+  <% end %>
+  <%= stylesheet_link_tag 'application', media: 'all' %>
+
+  <!-- Open Graph / Social Meta -->
+  <meta property="og:title" content="<%= yield(:og_title).presence || 'PlebisBrand | Portal de participación' %>">
+  <meta property="og:description" content="<%= yield(:og_description).presence || @meta_description %>">
+  <meta property="og:image" content="<%= yield(:og_image).presence || @meta_image %>">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= yield(:twitter_title).presence || 'PlebisBrand | Portal de participación' %>">
+  <meta name="twitter:description" content="<%= yield(:twitter_description).presence || @meta_description %>">
+  <meta name="twitter:image" content="<%= yield(:twitter_image).presence || @meta_image %>">
+
+  <!-- Analytics (production only) -->
+  <% if Rails.env.production? %>
+    <%= render partial: 'shared/tag_manager_head' rescue render(partial: 'tag_manager_head') rescue nil %>
+  <% end %>
 </head>
-<body class="<%= body_class user_signed_in?, controller_name, action_name %>">
-  <div class="wrap">
-    <%= render partial: 'header' %>
-    <div class="content">
-      <%= render partial: 'flash_boxes' %>
+<body class="<%= body_class(user_signed_in?, controller_name, action_name) %> antialiased">
+  <div id="app" class="wrap min-h-screen flex flex-col">
+    <%= render partial: 'shared/header' rescue render(partial: 'header') %>
+
+    <main class="content flex-1">
+      <%= render partial: 'shared/flash_messages' rescue render(partial: 'flash_boxes') %>
       <%= yield %>
-    </div>
-    <%= render partial: 'footer' %>
-    <%= render partial: 'cookie_policy' %>
-    <%= render partial: 'tag_manager_body' %>
-    <%= render partial: 'facebook_pixel' %>
-    <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+    </main>
+
+    <%= render partial: 'shared/footer' rescue render(partial: 'footer') %>
   </div>
+
+  <!-- Cookie Consent -->
+  <%= render partial: 'shared/cookie_consent' rescue render(partial: 'cookie_policy') %>
+
+  <!-- JavaScript -->
+  <% if vite_asset_available? %>
+    <%= vite_javascript_tag 'application' rescue nil %>
+  <% end %>
+  <%= javascript_include_tag 'application', defer: true %>
+
+  <!-- Analytics (production only) -->
+  <% if Rails.env.production? %>
+    <%= render partial: 'shared/tag_manager_body' rescue render(partial: 'tag_manager_body') rescue nil %>
+    <%= render partial: 'shared/facebook_pixel' rescue render(partial: 'facebook_pixel') rescue nil %>
+  <% end %>
 </body>
 </html>
