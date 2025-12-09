@@ -18,7 +18,7 @@
     .current-file {
       a {
         text-align: right;
-        color: #269283;
+        color: var(--color-secondary, #269283);
         font-size: 14px;
         &.delete {
           color: #f5bfc9;
@@ -47,12 +47,12 @@
       color: red;
     }
   }
-  input[type=submit] {
+  input[type='submit'] {
     font-size: 14px;
     line-height: 16px;
   }
   fieldset.form-actions input {
-    font-family:"Helvetica Neue",Helvetica,Arial,sans-sefif;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-sefif;
   }
   .select2-container {
     float: none !important;
@@ -63,7 +63,6 @@
     width: 75%;
     float: right;
   }
-
 
   nav.steps.vertical-steps {
     margin-top: 10px;
@@ -93,7 +92,7 @@
         width: 100%;
         display: block;
         background: #fff !important;
-        border-radius: 0px; 
+        border-radius: 0px;
 
         position: relative;
         cursor: pointer;
@@ -103,7 +102,7 @@
           text-transform: uppercase;
           color: #666;
           display: block;
-          border-left: 2px solid #269283;
+          border-left: 2px solid var(--color-secondary, #269283);
           font-size: 11px;
           font-weight: bold;
           padding: 10px 5px 12px 20px;
@@ -114,7 +113,7 @@
             content: '';
             width: 20px;
             height: 20px;
-            border: solid 2px #269283;
+            border: solid 2px var(--color-secondary, #269283);
             background: #fff;
 
             position: absolute;
@@ -124,10 +123,8 @@
             -webkit-border-radius: 500px;
             -moz-border-radius: 500px;
             border-radius: 500px;
-
           }
-
-        }      
+        }
         span.errors {
           display: block;
           width: 27px;
@@ -142,18 +139,19 @@
           color: #fff;
         }
 
-        &.is-ok a:before{
-          background: #269283;
-          border-color: #269283;
+        &.is-ok a:before {
+          background: var(--color-secondary, #269283);
+          border-color: var(--color-secondary, #269283);
         }
-        &.is-not-ok a:before{
+        &.is-not-ok a:before {
           background: #ff9696;
           border-color: #ff9696;
         }
-        &:hover a:before, &.active a:before{
-          background: #612d62;
-          border-color:  #612d62;
-        }   
+        &:hover a:before,
+        &.active a:before {
+          background: var(--color-primary, #612d62);
+          border-color: var(--color-primary, #612d62);
+        }
       }
     }
   }
@@ -189,7 +187,7 @@
     }
     span {
       display: inline-block;
-      width: calc( 50% - 22px );
+      width: calc(50% - 22px);
       text-align: center;
       padding: 10px;
       margin: 0;
@@ -202,10 +200,11 @@
   }
 
   @media only screen and (max-width: 500px) {
-     nav.steps.vertical-steps, .data-form-container {
-         width: 100%;
-         margin-right: 0%;
-         float: none;
-     }
+    nav.steps.vertical-steps,
+    .data-form-container {
+      width: 100%;
+      margin-right: 0%;
+      float: none;
+    }
   }
 }

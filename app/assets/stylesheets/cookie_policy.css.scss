@@ -10,7 +10,7 @@
   font-weight: 200;
   text-align: center;
   a {
-    color: #269283;
+    color: var(--color-secondary, #269283);
     text-decoration: underline;
     &:hover {
       text-decoration: none;
@@ -19,8 +19,8 @@
   a.close {
     color: #000;
     text-decoration: none;
-    opacity:0.5;
-    display:block;
+    opacity: 0.5;
+    display: block;
     //background: transparent image-url('close.png') no-repeat;
     width: 20px;
     margin-right: 25px;
@@ -31,7 +31,7 @@
     -o-transition: 0.2s ease-in;
     transition: 0.2s ease-in;
     &:hover {
-      opacity:1;
+      opacity: 1;
     }
   }
 }

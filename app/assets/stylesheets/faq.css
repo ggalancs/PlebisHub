@@ -1,5 +1,3 @@
-  
-
 /* --------------------------------
 
 xnugget info
@@ -23,7 +21,7 @@ xnugget info
   transition: all 0.2s;
 }
 .no-touch .cd-nugget-info a:hover {
-  opacity: .8;
+  opacity: 0.8;
 }
 .cd-nugget-info span {
   vertical-align: middle;
@@ -62,7 +60,8 @@ xcarbonads
 #carbonads-container .close-carbon-adv:hover {
   background: #97c2b8;
 }
-#carbonads-container .close-carbon-adv::after, #carbonads-container .close-carbon-adv::before {
+#carbonads-container .close-carbon-adv::after,
+#carbonads-container .close-carbon-adv::before {
   content: '';
   background-color: #fff;
   height: 2px;
@@ -98,7 +97,8 @@ xcarbonads
 #carbonads-container .carbonad .carbonad-image img {
   margin: 0 0 10px 10px;
 }
-#carbonads-container .carbonad .carbonad-text, #carbonads-container .carbonad .carbonad-tag {
+#carbonads-container .carbonad .carbonad-text,
+#carbonads-container .carbonad .carbonad-tag {
   font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 #carbonads-container .carbonad .carbonad-text {
@@ -136,14 +136,13 @@ Main components
 
 -------------------------------- */
 
-
 .cd-faq {
   max-width: 1024px;
   margin: 2em auto;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
 }
 .cd-faq:after {
-  content: "";
+  content: '';
   display: table;
   clear: both;
 }
@@ -162,15 +161,16 @@ Main components
   height: 50px;
   line-height: 50px;
   padding: 0 28px 0 16px;
-  background-color: #269283;
+  background-color: var(--color-secondary, #269283);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #ffffff;
   white-space: nowrap;
-  border-bottom: 1px solid #269283;
+  border-bottom: 1px solid var(--color-secondary, #269283);
   text-overflow: ellipsis;
 }
-.cd-faq-categories a::before, .cd-faq-categories a::after {
+.cd-faq-categories a::before,
+.cd-faq-categories a::after {
   /* plus icon on the right */
   position: absolute;
   top: 50%;
@@ -202,15 +202,22 @@ Main components
     font-weight: 600;
     padding-left: 24px;
     padding: 0 24px;
-    -webkit-transition: background 0.2s, padding 0.2s;
-    -moz-transition: background 0.2s, padding 0.2s;
-    transition: background 0.2s, padding 0.2s;
+    -webkit-transition:
+      background 0.2s,
+      padding 0.2s;
+    -moz-transition:
+      background 0.2s,
+      padding 0.2s;
+    transition:
+      background 0.2s,
+      padding 0.2s;
   }
-  .cd-faq-categories a::before, .cd-faq-categories a::after {
+  .cd-faq-categories a::before,
+  .cd-faq-categories a::after {
     display: none;
   }
   .no-touch .cd-faq-categories a:hover {
-    background: #612d62;
+    background: var(--color-primary, #612d62);
   }
   .no-js .cd-faq-categories {
     width: 100%;
@@ -240,7 +247,7 @@ Main components
     transition: opacity 0.2s;
   }
   .cd-faq-categories .selected {
-    background: #612d62 !important;
+    background: var(--color-primary, #612d62) !important;
   }
   .cd-faq-categories .selected::before {
     opacity: 1;
@@ -271,9 +278,9 @@ Main components
   -ms-transform: translateZ(0) translateX(100%);
   -o-transform: translateZ(0) translateX(100%);
   transform: translateZ(0) translateX(100%);
-  -webkit-transition: -webkit-transform .3s;
-  -moz-transition: -moz-transform .3s;
-  transition: transform .3s;
+  -webkit-transition: -webkit-transform 0.3s;
+  -moz-transition: -moz-transform 0.3s;
+  transition: transform 0.3s;
 }
 .cd-faq-items.slide-in {
   -webkit-transform: translateZ(0) translateX(0%);
@@ -342,7 +349,8 @@ Main components
   -moz-transition: right 0.4s;
   transition: right 0.4s;
 }
-.cd-close-panel::before, .cd-close-panel::after {
+.cd-close-panel::before,
+.cd-close-panel::after {
   /* close icon in CSS */
   position: absolute;
   top: 16px;
@@ -395,7 +403,7 @@ Main components
   font-size: 12px;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #612d62;
+  color: var(--color-primary, #612d62);
 }
 .no-js .cd-faq-group {
   display: block;
@@ -425,11 +433,11 @@ Main components
 }
 
 .cd-faq-trigger {
-    font-size: 24px;
-    font-size: 1.4rem;
+  font-size: 24px;
+  font-size: 1.4rem;
   position: relative;
   display: block;
-  margin: 1.6em 0 .4em;
+  margin: 1.6em 0 0.4em;
   line-height: 1.2;
 }
 @media only screen and (min-width: 768px) {
@@ -440,14 +448,15 @@ Main components
     margin: 0;
     padding: 24px 72px 24px 24px;
   }
-  .cd-faq-trigger::before, .cd-faq-trigger::after {
+  .cd-faq-trigger::before,
+  .cd-faq-trigger::after {
     /* arrow icon on the right */
     position: absolute;
     right: 24px;
     top: 50%;
     height: 2px;
     width: 13px;
-    background: #612d62;
+    background: var(--color-primary, #612d62);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     -webkit-transition-property: -webkit-transform;
@@ -506,4 +515,3 @@ Main components
     display: block;
   }
 }
-

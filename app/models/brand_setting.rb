@@ -160,6 +160,7 @@ class BrandSetting < ApplicationRecord
 
   # Callbacks
   before_validation :set_theme_name_from_predefined, if: -> { theme_name.blank? }
+  before_validation :auto_adjust_colors_for_wcag, if: :should_auto_adjust_colors?
   before_save :increment_version_if_colors_changed
   after_commit :clear_cache
 
@@ -290,11 +291,87 @@ class BrandSetting < ApplicationRecord
     ActiveModel::Type::Boolean.new.cast(skip_wcag_validation)
   end
 
+  # Check if auto-adjustment should run
+  def should_auto_adjust_colors?
+    has_custom_colors? && !skip_wcag_validation_enabled?
+  end
+
   # Public method to get contrast ratio (for display in admin)
   def contrast_ratio_for(color)
     return nil unless color.present? && color.match?(HEX_COLOR_REGEX)
 
     calculate_contrast_ratio(color, '#ffffff')
+  end
+
+  # Adjust a color to meet WCAG AA contrast requirements (4.5:1)
+  # Returns the adjusted color or the original if it already passes
+  def self.adjust_color_for_wcag(hex_color, min_contrast: 4.5)
+    return hex_color unless hex_color.present? && hex_color.match?(HEX_COLOR_REGEX)
+
+    # Check current contrast
+    instance = new
+    current_contrast = instance.send(:calculate_contrast_ratio, hex_color, '#ffffff')
+    return hex_color if current_contrast >= min_contrast
+
+    # Parse to HSL
+    hex = hex_color.gsub('#', '')
+    r = hex[0..1].to_i(16) / 255.0
+    g = hex[2..3].to_i(16) / 255.0
+    b = hex[4..5].to_i(16) / 255.0
+
+    max = [r, g, b].max
+    min = [r, g, b].min
+    l = (max + min) / 2.0
+    h = 0
+    s = 0
+
+    if max != min
+      d = max - min
+      s = l > 0.5 ? d / (2.0 - max - min) : d / (max + min)
+      case max
+      when r then h = ((g - b) / d + (g < b ? 6 : 0)) / 6.0
+      when g then h = ((b - r) / d + 2) / 6.0
+      when b then h = ((r - g) / d + 4) / 6.0
+      end
+    end
+
+    # Darken the color (reduce lightness) until it meets contrast requirements
+    # Binary search for the right lightness value
+    low_l = 0.0
+    high_l = l
+    best_l = l
+    best_color = hex_color
+
+    20.times do
+      mid_l = (low_l + high_l) / 2.0
+      test_color = hsl_to_hex(h, s, mid_l)
+      test_contrast = instance.send(:calculate_contrast_ratio, test_color, '#ffffff')
+
+      if test_contrast >= min_contrast
+        best_l = mid_l
+        best_color = test_color
+        low_l = mid_l # Try to find a lighter color that still passes
+      else
+        high_l = mid_l # Need to go darker
+      end
+    end
+
+    best_color
+  end
+
+  # Convert HSL to hex (class method for color adjustment)
+  def self.hsl_to_hex(h, s, l)
+    if s == 0
+      r = g = b = l
+    else
+      q = l < 0.5 ? l * (1 + s) : l + s - l * s
+      p = 2 * l - q
+      r = hue_to_rgb(p, q, h + 1.0 / 3.0)
+      g = hue_to_rgb(p, q, h)
+      b = hue_to_rgb(p, q, h - 1.0 / 3.0)
+    end
+
+    format('#%02x%02x%02x', (r * 255).round, (g * 255).round, (b * 255).round)
   end
 
   def global_scope?
@@ -339,20 +416,116 @@ class BrandSetting < ApplicationRecord
   end
 
   # Generate CSS custom properties for theme injection
+  # Sets both the standard variables AND the numbered variants used by frontend CSS
+  # Also generates RGB format variables for Tailwind opacity modifier support
   def to_css_variables
     colors = theme_colors
     defaults = predefined_theme_colors
 
-    <<~CSS.squish
-      --color-primary: #{colors[:primary] || defaults[:primary]};
-      --color-primary-light: #{colors[:primaryLight] || defaults[:primaryLight]};
-      --color-primary-dark: #{colors[:primaryDark] || defaults[:primaryDark]};
-      --color-secondary: #{colors[:secondary] || defaults[:secondary]};
-      --color-secondary-light: #{colors[:secondaryLight] || defaults[:secondaryLight]};
-      --color-secondary-dark: #{colors[:secondaryDark] || defaults[:secondaryDark]};
-      --font-primary: '#{effective_font_primary}', sans-serif;
-      --font-display: '#{effective_font_display}', sans-serif;
-    CSS
+    primary = colors[:primary] || defaults[:primary]
+    primary_light = colors[:primaryLight] || defaults[:primaryLight]
+    primary_dark = colors[:primaryDark] || defaults[:primaryDark]
+    secondary = colors[:secondary] || defaults[:secondary]
+    secondary_light = colors[:secondaryLight] || defaults[:secondaryLight]
+    secondary_dark = colors[:secondaryDark] || defaults[:secondaryDark]
+
+    # Generate color shades using interpolation between light/base/dark
+    primary_shades = generate_color_shades(primary_light, primary, primary_dark)
+    secondary_shades = generate_color_shades(secondary_light, secondary, secondary_dark)
+
+    css_vars = []
+
+    # Standard color variables (hex format)
+    css_vars << "--color-primary: #{primary}"
+    css_vars << "--color-primary-light: #{primary_light}"
+    css_vars << "--color-primary-dark: #{primary_dark}"
+    css_vars << "--color-secondary: #{secondary}"
+    css_vars << "--color-secondary-light: #{secondary_light}"
+    css_vars << "--color-secondary-dark: #{secondary_dark}"
+
+    # Additional legacy shade variables used by Sprockets CSS
+    # These map to numbered shades for backward compatibility with hardcoded styles
+    css_vars << "--color-primary-medium: #{primary_shades[500]}"
+    css_vars << "--color-primary-very-light: #{primary_shades[200]}"
+    css_vars << "--color-primary-extra-light: #{primary_shades[100]}"
+
+    # Numbered variants (hex format) for backward compatibility
+    primary_shades.each do |shade, hex|
+      css_vars << "--color-primary-#{shade}: #{hex}"
+    end
+    secondary_shades.each do |shade, hex|
+      css_vars << "--color-secondary-#{shade}: #{hex}"
+    end
+
+    # RGB format variables for Tailwind opacity modifier support
+    # Format: "R G B" (space-separated) e.g., "97 45 98"
+    primary_shades.each do |shade, hex|
+      css_vars << "--color-primary-#{shade}-rgb: #{hex_to_rgb_string(hex)}"
+    end
+    secondary_shades.each do |shade, hex|
+      css_vars << "--color-secondary-#{shade}-rgb: #{hex_to_rgb_string(hex)}"
+    end
+
+    # Typography
+    css_vars << "--font-primary: '#{effective_font_primary}', sans-serif"
+    css_vars << "--font-display: '#{effective_font_display}', sans-serif"
+
+    css_vars.join('; ')
+  end
+
+  # Convert hex color to "R G B" format for Tailwind opacity support
+  def hex_to_rgb_string(hex)
+    return '0 0 0' unless hex.present? && hex.match?(HEX_COLOR_REGEX)
+
+    hex = hex.gsub('#', '')
+    r = hex[0..1].to_i(16)
+    g = hex[2..3].to_i(16)
+    b = hex[4..5].to_i(16)
+    "#{r} #{g} #{b}"
+  end
+
+  # Generate all shade values (50-950) by interpolating between light/base/dark
+  def generate_color_shades(light_hex, base_hex, dark_hex)
+    {
+      50 => lighten_color(light_hex, 0.6),
+      100 => lighten_color(light_hex, 0.4),
+      200 => lighten_color(light_hex, 0.2),
+      300 => light_hex,
+      400 => interpolate_colors(light_hex, base_hex, 0.5),
+      500 => interpolate_colors(light_hex, base_hex, 0.8),
+      600 => base_hex,
+      700 => base_hex,
+      800 => interpolate_colors(base_hex, dark_hex, 0.5),
+      900 => dark_hex,
+      950 => darken_color(dark_hex, 0.3)
+    }
+  end
+
+  # Lighten a color by mixing with white
+  def lighten_color(hex, amount)
+    interpolate_colors(hex, '#ffffff', amount)
+  end
+
+  # Darken a color by mixing with black
+  def darken_color(hex, amount)
+    interpolate_colors(hex, '#000000', amount)
+  end
+
+  # Interpolate between two colors
+  def interpolate_colors(hex1, hex2, ratio)
+    return hex1 unless hex1.present? && hex2.present?
+
+    hex1 = hex1.gsub('#', '')
+    hex2 = hex2.gsub('#', '')
+
+    r1, g1, b1 = hex1[0..1].to_i(16), hex1[2..3].to_i(16), hex1[4..5].to_i(16)
+    r2, g2, b2 = hex2[0..1].to_i(16), hex2[2..3].to_i(16), hex2[4..5].to_i(16)
+
+    r = (r1 + (r2 - r1) * ratio).round
+    g = (g1 + (g2 - g1) * ratio).round
+    b = (b1 + (b2 - b1) * ratio).round
+
+    format('#%02x%02x%02x', r, g, b)
   end
 
   # Generate complete style tag for layout injection
@@ -400,6 +573,19 @@ class BrandSetting < ApplicationRecord
   end
 
   private
+
+  # Auto-adjust colors that don't meet WCAG requirements
+  def auto_adjust_colors_for_wcag
+    if primary_color.present?
+      adjusted = self.class.adjust_color_for_wcag(primary_color)
+      self.primary_color = adjusted if adjusted != primary_color
+    end
+
+    if secondary_color.present?
+      adjusted = self.class.adjust_color_for_wcag(secondary_color)
+      self.secondary_color = adjusted if adjusted != secondary_color
+    end
+  end
 
   def unique_organization_setting
     return unless organization_scope? && organization_id.present?
@@ -493,5 +679,10 @@ class BrandSetting < ApplicationRecord
   def clear_cache
     Rails.cache.delete(cache_key_with_version)
     Rails.cache.delete("brand_setting/#{scope}/#{organization_id || 'global'}")
+    # Also clear the cache key used by BrandHelper
+    Rails.cache.delete("brand_setting/active/#{organization_id || 'global'}")
+    # Clear all possible global cache keys
+    Rails.cache.delete("brand_setting/active/global")
+    Rails.cache.delete("brand_setting/active/")
   end
 end
