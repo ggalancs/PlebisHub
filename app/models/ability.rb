@@ -54,6 +54,9 @@ class Ability
     can :read, ActiveAdmin::Page, name: 'Dashboard'
     can %i[read create], ActiveAdmin::Comment
 
+    # Brand/Theme customization
+    can :manage, BrandSetting
+
     # User management (limited - no destroy to prevent accidental deletions)
     can :admin, User
     can %i[read create update], User
