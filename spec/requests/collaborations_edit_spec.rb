@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Collaborations Edit', type: :request do
-
   let(:user) { create(:user, :with_dni) }
 
   before do

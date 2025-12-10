@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Collaborations Confirm', type: :request do
-
   let(:user) { create(:user, :with_dni) }
   let(:other_user) { create(:user, :with_dni) }
 

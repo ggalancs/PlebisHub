@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Blog Index', type: :request, skip: 'Tests check specific blog HTML structure' do
-
   let(:user) { create(:user) }
   let(:admin_user) { create(:user, admin: true) }
 

@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Devise Registrations QR Code', type: :request, skip: 'Tests check detailed QR code HTML' do
-
   let(:user) { create(:user, :with_dni) }
 
   before do

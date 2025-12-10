@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Collaborations OK', type: :request do
-
   let(:user) { create(:user, :with_dni) }
 
   # Bypass unresolved_issues before_action check in ApplicationController

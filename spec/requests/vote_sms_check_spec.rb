@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Vote SMS Check', type: :request do
-
   let(:user) { create(:user, :with_dni) }
   let(:election) { create(:election, requires_sms_check: true) }
 

@@ -6,24 +6,24 @@
 module Warning
   # Patterns for warnings to suppress (from vendor/bundle gems)
   SUPPRESSED_PATTERNS = [
-    'unprocessable_entity is deprecated',     # Devise/Rack
-    'method redefined',                        # execjs, sassc-rails, activeadmin, arbre, cancancan, ransack
-    'previous definition of',                  # Related to method redefined
-    'ambiguous `*`',                          # activeadmin
-    'ambiguous `&`',                          # activeadmin
-    'ambiguous `/`',                          # activeadmin
-    'assigned but unused variable'            # ransack
+    'unprocessable_entity is deprecated', # Devise/Rack
+    'method redefined',                   # execjs, sassc-rails, activeadmin, arbre, cancancan, ransack
+    'previous definition of',             # Related to method redefined
+    'ambiguous `*`',                      # activeadmin
+    'ambiguous `&`',                      # activeadmin
+    'ambiguous `/`',                      # activeadmin
+    'assigned but unused variable'        # ransack
   ].freeze
 
   class << self
-    alias_method :original_warn, :warn
+    alias original_warn warn
 
-    def warn(message, *args)
+    def warn(message, *)
       # Suppress warnings from vendor gems matching known patterns
       return if message.include?('/vendor/bundle/') &&
                 SUPPRESSED_PATTERNS.any? { |pattern| message.include?(pattern) }
 
-      original_warn(message, *args)
+      original_warn(message, *)
     end
   end
 end

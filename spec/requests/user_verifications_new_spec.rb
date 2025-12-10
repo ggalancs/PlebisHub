@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'User Verifications New', type: :request do
-
   let(:user) { create(:user, :with_dni) }
 
   before do
