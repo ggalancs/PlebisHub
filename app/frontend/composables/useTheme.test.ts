@@ -1,6 +1,22 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { mount } from '@vue/test-utils'
+import { defineComponent } from 'vue'
 import { useTheme, type Theme } from './useTheme'
+
+// Helper to use composable in a component context
+const withSetup = <T>(composableFn: () => T): { result: T; unmount: () => void } => {
+  let result: T = null as unknown as T
+  const TestComponent = defineComponent({
+    setup() {
+      result = composableFn()
+      return {}
+    },
+    template: '<div></div>',
+  })
+  const wrapper = mount(TestComponent)
+  return { result, unmount: () => wrapper.unmount() }
+}
 
 describe('useTheme', () => {
   let localStorageMock: { [key: string]: string }
@@ -56,10 +72,11 @@ describe('useTheme', () => {
 
   describe('initialization', () => {
     it('should initialize with default light theme', () => {
-      const theme = useTheme()
+      const { result: theme, unmount } = withSetup(() => useTheme())
 
       expect(theme.currentTheme.value).toBeTruthy()
       expect(theme.currentTheme.value?.id).toBe('default-light')
+      unmount()
     })
 
     it('should have default themes available', () => {
@@ -255,11 +272,13 @@ describe('useTheme', () => {
     })
 
     it('should remove dark class when not in dark mode', () => {
-      const theme = useTheme()
+      const { result: theme, unmount } = withSetup(() => useTheme())
 
+      // currentTheme is set via onMounted, so it should be available now
       theme.applyTheme(theme.currentTheme.value!)
 
       expect(document.documentElement.classList.remove).toHaveBeenCalledWith('dark')
+      unmount()
     })
   })
 
@@ -307,7 +326,7 @@ describe('useTheme', () => {
 
   describe('exportTheme', () => {
     it('should export current theme as JSON', () => {
-      const theme = useTheme()
+      const { result: theme, unmount } = withSetup(() => useTheme())
 
       const exported = theme.exportTheme()
       const parsed = JSON.parse(exported)
@@ -315,6 +334,7 @@ describe('useTheme', () => {
       expect(parsed.id).toBe('default-light')
       expect(parsed.name).toBe('Light')
       expect(parsed.colors).toBeTruthy()
+      unmount()
     })
 
     it('should return empty object if no current theme', () => {
@@ -425,23 +445,25 @@ describe('useTheme', () => {
     it('should restore theme from localStorage', () => {
       localStorageMock['plebis-hub-theme'] = 'default-dark'
 
-      const theme = useTheme()
+      const { result: theme, unmount } = withSetup(() => useTheme())
 
       expect(theme.currentTheme.value?.id).toBe('default-dark')
+      unmount()
     })
 
     it('should restore dark mode preference from localStorage', () => {
       localStorageMock['plebis-hub-dark-mode'] = 'true'
 
-      const theme = useTheme()
+      const { result: theme, unmount } = withSetup(() => useTheme())
 
       expect(theme.isDark.value).toBe(true)
+      unmount()
     })
   })
 
   describe('system color scheme', () => {
     it('should respect system color scheme when no saved preference', () => {
-      global.matchMedia = vi.fn(() => ({
+      vi.stubGlobal('matchMedia', vi.fn(() => ({
         matches: true, // Dark mode
         media: '',
         onchange: null,
@@ -450,11 +472,12 @@ describe('useTheme', () => {
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(),
-      })) as any
+      })))
 
-      const theme = useTheme()
+      const { result: theme, unmount } = withSetup(() => useTheme())
 
       expect(theme.isDark.value).toBe(true)
+      unmount()
     })
 
     it('should not override user preference with system preference', () => {

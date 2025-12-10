@@ -103,7 +103,8 @@ describe('TimePicker', () => {
     it('displays selected time in 12h format', () => {
       wrapper = mount(TimePicker, {
         props: {
-          modelValue: '14:30 PM',
+          // 12h format expects "HH:MM AM/PM" where HH is 1-12
+          modelValue: '02:30 PM',
           format: '12h',
         },
         global: {
@@ -154,7 +155,8 @@ describe('TimePicker', () => {
       await wrapper.find('.flex.w-full').trigger('click')
       await nextTick()
 
-      expect(wrapper.findAll('.h-48')).toHaveLength(2) // Hour + Minute
+      // Default format is 12h which has 3 columns: Hour + Minute + AM/PM Period
+      expect(wrapper.findAll('.h-48')).toHaveLength(3)
     })
 
     it('closes picker on second click', async () => {
@@ -434,6 +436,7 @@ describe('TimePicker', () => {
         props: {
           modelValue: null,
           showSeconds: true,
+          format: '24h', // Use 24h format for predictable column count
         },
         global: {
           components: { Icon },
@@ -445,7 +448,7 @@ describe('TimePicker', () => {
       await nextTick()
 
       expect(wrapper.text()).toContain('Sec')
-      expect(wrapper.findAll('.h-48')).toHaveLength(3) // Hour + Minute + Second
+      expect(wrapper.findAll('.h-48')).toHaveLength(3) // Hour + Minute + Second (no AM/PM in 24h)
     })
 
     it('hides seconds selector by default', async () => {
@@ -453,6 +456,7 @@ describe('TimePicker', () => {
         props: {
           modelValue: null,
           showSeconds: false,
+          format: '24h', // Use 24h format for predictable column count
         },
         global: {
           components: { Icon },
@@ -464,7 +468,7 @@ describe('TimePicker', () => {
       await nextTick()
 
       expect(wrapper.text()).not.toContain('Sec')
-      expect(wrapper.findAll('.h-48')).toHaveLength(2) // Hour + Minute only
+      expect(wrapper.findAll('.h-48')).toHaveLength(2) // Hour + Minute only (no AM/PM in 24h)
     })
 
     it('selects seconds', async () => {
