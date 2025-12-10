@@ -9,7 +9,7 @@ FactoryBot.define do
     # RAILS 7.2 FIX: Use different IBAN than test loan IBANs to avoid validation conflict
     account_number { 'ES7921000813610123456789' }
     # RAILS 7.2 FIX: total_goal required for remaining_percent calculation in admin views
-    total_goal { 10000 }
+    total_goal { 10_000 }
 
     trait :active do
       starts_at { 1.week.ago }

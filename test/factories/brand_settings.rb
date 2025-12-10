@@ -43,7 +43,7 @@ FactoryBot.define do
     end
 
     trait :with_partial_custom_colors do
-      primary_color { '#2F4F4F' }  # WCAG AA compliant
+      primary_color { '#2F4F4F' } # WCAG AA compliant
     end
 
     trait :with_invalid_color do

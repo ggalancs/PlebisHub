@@ -548,7 +548,7 @@ class BrandSetting < ApplicationRecord
 
     # Remove potentially dangerous CSS patterns
     custom_css
-      .gsub(%r{url\s*\([^)]*\)}i, '') # Remove url() to prevent external resource loading
+      .gsub(/url\s*\([^)]*\)/i, '') # Remove url() to prevent external resource loading
       .gsub(/expression\s*\([^)]*\)/i, '') # Remove IE expression()
       .gsub(/javascript:/i, '') # Remove javascript: protocol
       .gsub(/@import/i, '') # Remove @import to prevent external stylesheet loading
@@ -588,10 +588,10 @@ class BrandSetting < ApplicationRecord
       self.primary_color = adjusted if adjusted != primary_color
     end
 
-    if secondary_color.present?
-      adjusted = self.class.adjust_color_for_wcag(secondary_color)
-      self.secondary_color = adjusted if adjusted != secondary_color
-    end
+    return unless secondary_color.present?
+
+    adjusted = self.class.adjust_color_for_wcag(secondary_color)
+    self.secondary_color = adjusted if adjusted != secondary_color
   end
 
   def unique_organization_setting
@@ -689,8 +689,8 @@ class BrandSetting < ApplicationRecord
     # Also clear the cache key used by BrandHelper
     Rails.cache.delete("brand_setting/active/#{organization_id || 'global'}")
     # Clear all possible global cache keys
-    Rails.cache.delete("brand_setting/active/global")
-    Rails.cache.delete("brand_setting/active/")
+    Rails.cache.delete('brand_setting/active/global')
+    Rails.cache.delete('brand_setting/active/')
   end
 
   # Check if we should deactivate other themes
@@ -704,6 +704,6 @@ class BrandSetting < ApplicationRecord
     self.class.global_settings
         .active
         .where.not(id: id)
-        .update_all(active: false)
+        .update_all(active: false) # rubocop:disable Rails/SkipsModelValidations
   end
 end

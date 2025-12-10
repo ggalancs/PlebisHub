@@ -19,9 +19,7 @@ FactoryBot.define do
     # RAILS 7.2 FIX: Explicitly set document_vatid from user to ensure it's available
     # The after_initialize callback in the model may not run at the right time with FactoryBot
     after(:build) do |loan|
-      if loan.user && loan.document_vatid.blank?
-        loan.document_vatid = loan.user.document_vatid
-      end
+      loan.document_vatid = loan.user.document_vatid if loan.user && loan.document_vatid.blank?
     end
 
     # When creating with user, these virtual attrs are set automatically from user
