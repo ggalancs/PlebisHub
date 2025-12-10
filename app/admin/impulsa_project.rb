@@ -453,7 +453,7 @@ ActiveAdmin.register ImpulsaProject do
     def update_scopes
       resource = active_admin_config
 
-      ImpulsaProject.state_machine.states.each_key do |state|
+      ImpulsaProject.state_machine.states.keys.each do |state| # rubocop:disable Style/HashEachMethods
         next unless resource.scopes.none? { |scope| scope.id.to_s == state.to_s }
 
         resource.scopes << ActiveAdmin::Scope.new(state) do |projects|
