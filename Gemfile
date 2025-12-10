@@ -12,9 +12,9 @@ gem 'rails', '~> 7.2.3'
 gem 'sass-rails' # Legacy - for Sprockets SASS compilation
 gem 'sdoc', '>= 2.0', group: :doc # Ruby 3.3 / json 2.x compatible
 gem 'spring', group: :development
+gem 'coffee-rails' # Required by Sprockets processor (even without .coffee files)
 gem 'sprockets-rails' # Legacy assets (will be phased out)
 gem 'sqlite3', '~> 1.4'
-gem 'coffee-rails' # Required by Sprockets processor (even without .coffee files)
 gem 'vite_rails', '~> 3.0' # Modern frontend with Vite + Vue 3
 # REMOVED: turbolinks (replaced by Vue Router / native navigation)
 # REMOVED: uglifier (Vite handles JS minification)

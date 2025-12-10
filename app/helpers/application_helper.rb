@@ -170,11 +170,11 @@ module ApplicationHelper # rubocop:disable Metrics/ModuleLength
     options[:class] = [
       'btn',
       "btn-#{variant}",
-      size != :md ? "btn-#{size}" : nil,
+      size == :md ? nil : "btn-#{size}",
       options[:class]
     ].compact.join(' ')
 
-    content = icon ? "#{svg_icon(icon)} #{text}".html_safe : text
+    content = icon ? safe_join([svg_icon(icon), ' ', text]) : text
 
     if url
       link_to(content, url, **options)
@@ -227,12 +227,12 @@ module ApplicationHelper # rubocop:disable Metrics/ModuleLength
                when 'webp' then 'image/webp'
                else "image/#{format}"
                end
-        tag(:source, srcset: asset_path("#{base_name}.#{format}"), type: mime)
-      end.join.html_safe
+        tag.source(srcset: asset_path("#{base_name}.#{format}"), type: mime)
+      end
 
       fallback = image_tag("#{base_name}.#{formats.last}", loading: 'lazy', decoding: 'async', **options)
 
-      sources + fallback
+      safe_join(sources + [fallback])
     end
   end
 
@@ -241,7 +241,9 @@ module ApplicationHelper # rubocop:disable Metrics/ModuleLength
     path = Rails.root.join('app', 'assets', 'stylesheets', 'critical', "#{stylesheet_name}.css")
     return unless File.exist?(path)
 
+    # rubocop:disable Rails/OutputSafety
     content_tag(:style, File.read(path).html_safe, 'data-critical' => true)
+    # rubocop:enable Rails/OutputSafety
   end
 
   # Preload resource hint helper
@@ -249,25 +251,25 @@ module ApplicationHelper # rubocop:disable Metrics/ModuleLength
   def preload_tag(source, **options)
     options[:rel] = 'preload'
     options[:href] = asset_path(source)
-    tag(:link, **options)
+    tag.link(**options)
   end
 
   # Prefetch resource hint for next-page resources
   def prefetch_tag(source, **options)
     options[:rel] = 'prefetch'
     options[:href] = asset_path(source)
-    tag(:link, **options)
+    tag.link(**options)
   end
 
   # DNS prefetch for external domains
   def dns_prefetch_tag(domain)
-    tag(:link, rel: 'dns-prefetch', href: "//#{domain}")
+    tag.link(rel: 'dns-prefetch', href: "//#{domain}")
   end
 
   # Preconnect to external origins
   def preconnect_tag(origin, crossorigin: false)
     options = { rel: 'preconnect', href: origin }
     options[:crossorigin] = 'anonymous' if crossorigin
-    tag(:link, **options)
+    tag.link(**options)
   end
 end
