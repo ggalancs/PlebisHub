@@ -90,8 +90,8 @@
             >
               <%= link_to t('nav.profile', default: 'Mi perfil'), edit_user_registration_path, class: 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50', role: 'menuitem' %>
 
-              <% if current_user.is_admin? rescue false %>
-                <%= link_to t('nav.admin', default: 'Administración'), admin_root_path, class: 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50', role: 'menuitem' rescue nil %>
+              <% if current_user&.is_admin? %>
+                <%= link_to t('nav.admin', default: 'Administración'), admin_root_path, class: 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50', role: 'menuitem' if defined?(admin_root_path) %>
               <% end %>
 
               <hr class="my-1 border-gray-100">

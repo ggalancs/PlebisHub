@@ -27,7 +27,7 @@
       "check_name": "Evaluation",
       "message": "Dynamic string evaluated as code",
       "file": "engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb",
-      "line": 185,
+      "line": 186,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_eval/",
       "code": "self.instance_eval(...)",
       "render_path": null,
@@ -235,6 +235,6 @@
       "note": "URL comes from admin-controlled database field for legal agreement PDFs. Rails link_to helper properly escapes URLs. Agreement links are validated on model save."
     }
   ],
-  "updated": "2025-12-06 10:30:00 +0100",
+  "updated": "2025-12-10 12:00:00 +0100",
   "brakeman_version": "7.1.1"
 }
