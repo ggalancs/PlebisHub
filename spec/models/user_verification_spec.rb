@@ -2,6 +2,7 @@
 
 require 'rails_helper'
 
+# rubocop:disable Style/GlobalVars
 RSpec.describe UserVerification, type: :model do
   # ====================
   # FACTORY TESTS
@@ -686,3 +687,4 @@ RSpec.describe UserVerification, type: :model do
     end
   end
 end
+# rubocop:enable Style/GlobalVars

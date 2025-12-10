@@ -70,7 +70,7 @@ RSpec.configure do |config|
     if example.exception && page.driver.browser.respond_to?(:save_screenshot)
       screenshot_path = Rails.root.join('tmp', 'screenshots', "#{example.full_description.parameterize}.png")
       FileUtils.mkdir_p(File.dirname(screenshot_path))
-      page.save_screenshot(screenshot_path)
+      page.save_screenshot(screenshot_path) # rubocop:disable Lint/Debugger
     end
   end
 end

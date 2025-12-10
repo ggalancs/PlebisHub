@@ -2,6 +2,7 @@
 
 require 'rails_helper'
 
+# rubocop:disable Rails/SkipsModelValidations
 RSpec.describe SmsValidatorController, type: :controller do
   let(:user) { create(:user, :with_dni) }
 
@@ -455,7 +456,7 @@ RSpec.describe SmsValidatorController, type: :controller do
       before do
         # Rails 7.2: stub on any instance since current_user is different object
         allow_any_instance_of(User).to receive(:check_sms_token).and_return(false)
-        # Note: sms_confirmation_attempts column doesn't exist in schema
+        # NOTE: sms_confirmation_attempts column doesn't exist in schema
         # The controller handles nil gracefully with `|| 0` in the log
       end
 
@@ -465,7 +466,7 @@ RSpec.describe SmsValidatorController, type: :controller do
       end
 
       it 'sets error flash message' do
-        # Note: flash.now content isn't accessible in controller specs without render_views
+        # NOTE: flash.now content isn't accessible in controller specs without render_views
         # We verify the action completes successfully (which means flash.now was set)
         post :valid, params: { user: { sms_user_token_given: 'wrong' } }
         expect(response).to render_template(:step3)
@@ -556,3 +557,4 @@ RSpec.describe SmsValidatorController, type: :controller do
     end
   end
 end
+# rubocop:enable Rails/SkipsModelValidations

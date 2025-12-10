@@ -142,13 +142,13 @@ RSpec.describe 'BrandSettings Admin', type: :request do
       it 'displays custom primary color' do
         get admin_brand_settings_path
         skip_if_server_error
-      expect(response.body).to include('#2F4F4F')
+        expect(response.body).to include('#2F4F4F')
       end
 
       it 'displays custom secondary color' do
         get admin_brand_settings_path
         skip_if_server_error
-      expect(response.body).to include('#000080')
+        expect(response.body).to include('#000080')
       end
     end
 
@@ -166,7 +166,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
       it 'shows inactive status tag' do
         get admin_brand_settings_path
         skip_if_server_error
-      expect(response.body).to match(/Inactive/i)
+        expect(response.body).to match(/Inactive/i)
       end
     end
   end
@@ -180,7 +180,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
         get admin_brand_settings_path, params: { q: { name_cont: 'Global' } }
         expect_successful_response_or_server_error
         skip_if_server_error
-      expect(response.body).to include('Global Default')
+        expect(response.body).to include('Global Default')
       end
     end
 
@@ -189,14 +189,14 @@ RSpec.describe 'BrandSettings Admin', type: :request do
         get admin_brand_settings_path, params: { q: { scope_eq: 'global' } }
         expect_successful_response_or_server_error
         skip_if_server_error
-      expect(response.body).to include('Global Default')
+        expect(response.body).to include('Global Default')
       end
 
       it 'filters by organization scope' do
         get admin_brand_settings_path, params: { q: { scope_eq: 'organization' } }
         expect_successful_response_or_server_error
         skip_if_server_error
-      expect(response.body).to include('Org Setting')
+        expect(response.body).to include('Org Setting')
       end
     end
 
@@ -205,7 +205,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
         get admin_brand_settings_path, params: { q: { theme_id_eq: 'default' } }
         expect_successful_response_or_server_error
         skip_if_server_error
-      expect(response.body).to include('Global Default')
+        expect(response.body).to include('Global Default')
       end
     end
 
@@ -385,13 +385,13 @@ RSpec.describe 'BrandSettings Admin', type: :request do
       it 'displays custom primary color' do
         get admin_brand_setting_path(custom_setting)
         skip_if_server_error
-      expect(response.body).to include('#2F4F4F')
+        expect(response.body).to include('#2F4F4F')
       end
 
       it 'displays custom secondary color' do
         get admin_brand_setting_path(custom_setting)
         skip_if_server_error
-      expect(response.body).to include('#000080')
+        expect(response.body).to include('#000080')
       end
     end
   end
@@ -566,7 +566,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
         post admin_brand_settings_path, params: valid_params
         follow_redirect!
         skip_if_server_error
-      expect(response.body).to match(/created successfully/i)
+        expect(response.body).to match(/created successfully/i)
       end
 
       it 'creates with correct attributes' do
@@ -670,13 +670,13 @@ RSpec.describe 'BrandSettings Admin', type: :request do
         post admin_brand_settings_path, params: invalid_params
         expect_successful_response_or_server_error
         skip_if_server_error
-      expect(response.body).to include('brand_setting[name]')
+        expect(response.body).to include('brand_setting[name]')
       end
 
       it 'shows error message' do
         post admin_brand_settings_path, params: invalid_params
         skip_if_server_error
-      expect(response.body).to match(/error|can't be blank/i)
+        expect(response.body).to match(/error|can't be blank/i)
       end
     end
   end
@@ -751,7 +751,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
         put admin_brand_setting_path(global_setting), params: update_params
         follow_redirect!
         skip_if_server_error
-      expect(response.body).to match(/updated successfully/i)
+        expect(response.body).to match(/updated successfully/i)
       end
     end
 
@@ -800,13 +800,13 @@ RSpec.describe 'BrandSettings Admin', type: :request do
         put admin_brand_setting_path(global_setting), params: invalid_params
         expect_successful_response_or_server_error
         skip_if_server_error
-      expect(response.body).to include('brand_setting[name]')
+        expect(response.body).to include('brand_setting[name]')
       end
 
       it 'shows error message' do
         put admin_brand_setting_path(global_setting), params: invalid_params
         skip_if_server_error
-      expect(response.body).to match(/error|can't be blank/i)
+        expect(response.body).to match(/error|can't be blank/i)
       end
     end
   end
@@ -875,7 +875,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
         post duplicate_admin_brand_setting_path(global_setting)
         follow_redirect!
         skip_if_server_error
-      expect(response.body).to match(/duplicated successfully/i)
+        expect(response.body).to match(/duplicated successfully/i)
       end
 
       context 'when duplication fails' do
@@ -895,7 +895,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
           post duplicate_admin_brand_setting_path(global_setting)
           follow_redirect!
           skip_if_server_error
-      expect(response.body).to match(/Failed to duplicate/i)
+          expect(response.body).to match(/Failed to duplicate/i)
         end
       end
     end
@@ -911,7 +911,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
       it 'has confirmation dialog' do
         get admin_brand_setting_path(global_setting)
         skip_if_server_error
-      expect(response.body).to match(/Create a copy/i)
+        expect(response.body).to match(/Create a copy/i)
       end
     end
 
@@ -919,19 +919,19 @@ RSpec.describe 'BrandSettings Admin', type: :request do
       it 'shows preview API link' do
         get admin_brand_setting_path(global_setting)
         skip_if_server_error
-      expect(response.body).to include('Preview API Response')
+        expect(response.body).to include('Preview API Response')
       end
 
       it 'links to API endpoint' do
         get admin_brand_setting_path(global_setting)
         skip_if_server_error
-      expect(response.body).to include(api_v1_brand_setting_path(global_setting, format: :json))
+        expect(response.body).to include(api_v1_brand_setting_path(global_setting, format: :json))
       end
 
       it 'opens in new tab' do
         get admin_brand_setting_path(global_setting)
         skip_if_server_error
-      expect(response.body).to match(/target.*_blank/i)
+        expect(response.body).to match(/target.*_blank/i)
       end
     end
   end
@@ -978,7 +978,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
         }
         follow_redirect!
         skip_if_server_error
-      expect(response.body).to match(/2 brand settings activated/i)
+        expect(response.body).to match(/2 brand settings activated/i)
       end
     end
 
@@ -1013,7 +1013,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
         }
         follow_redirect!
         skip_if_server_error
-      expect(response.body).to match(/1 brand settings deactivated/i)
+        expect(response.body).to match(/1 brand settings deactivated/i)
       end
 
       context 'when deactivation fails' do
@@ -1029,7 +1029,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
           }
           follow_redirect!
           skip_if_server_error
-      expect(response.body).to match(/could not be deactivated/i)
+          expect(response.body).to match(/could not be deactivated/i)
         end
       end
     end
@@ -1038,7 +1038,7 @@ RSpec.describe 'BrandSettings Admin', type: :request do
       it 'is disabled' do
         get admin_brand_settings_path
         skip_if_server_error
-      expect(response.body).not_to match(/batch_action.*destroy/i)
+        expect(response.body).not_to match(/batch_action.*destroy/i)
       end
     end
   end

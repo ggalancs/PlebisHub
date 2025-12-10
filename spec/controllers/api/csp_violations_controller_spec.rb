@@ -70,18 +70,18 @@ RSpec.describe Api::CspViolationsController, type: :controller do
         # Rails 7.2: Invalid JSON raises ActionDispatch::Http::Parameters::ParseError in middleware
         # The controller can't handle this - it never reaches the action
         request.headers['Content-Type'] = 'application/json'
-        expect {
+        expect do
           post :create, body: 'invalid json'
-        }.to raise_error(ActionDispatch::Http::Parameters::ParseError)
+        end.to raise_error(ActionDispatch::Http::Parameters::ParseError)
       end
 
       it 'logs warning about invalid JSON' do
         # Rails 7.2: Invalid JSON is rejected by middleware, not the controller
         # This test verifies the expected behavior has changed
         request.headers['Content-Type'] = 'application/json'
-        expect {
+        expect do
           post :create, body: 'invalid json'
-        }.to raise_error(ActionDispatch::Http::Parameters::ParseError)
+        end.to raise_error(ActionDispatch::Http::Parameters::ParseError)
       end
     end
 
@@ -89,9 +89,9 @@ RSpec.describe Api::CspViolationsController, type: :controller do
       it 'returns http bad_request' do
         # Rails 7.2: Empty body with JSON content type raises ParseError
         request.headers['Content-Type'] = 'application/json'
-        expect {
+        expect do
           post :create, body: ''
-        }.to raise_error(ActionDispatch::Http::Parameters::ParseError)
+        end.to raise_error(ActionDispatch::Http::Parameters::ParseError)
       end
     end
 

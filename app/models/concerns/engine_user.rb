@@ -32,7 +32,7 @@ module EngineUser
     # @example
     #   register_engine_concern('plebis_voting', EngineUser::Votable)
     #
-    def register_engine_concern(engine_name, concern_module)
+    def register_engine_concern(engine_name, concern_module) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       # In test environment, include all concerns by default
       # This ensures tests have access to all engine functionality
       if Rails.env.test?

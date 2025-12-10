@@ -53,7 +53,7 @@ RSpec.describe 'Admin Credential Shipment', type: :request do
              born_at: Date.new(1990, 5, 15),
              vote_circle: vote_circle)
     end
-    # Note: Don't set born_at here - the :not_sended scope requires born_at: nil
+    # NOTE: Don't set born_at here - the :not_sended scope requires born_at: nil
     # The admin code copies user.born_at to verification.born_at when processing
     let!(:verification) { create(:user_verification, :not_sended, user: user) }
 
@@ -71,7 +71,7 @@ RSpec.describe 'Admin Credential Shipment', type: :request do
       expect(csv_content).to include('Calle Test 123')
     end
 
-    # Note: This test verifies an internal implementation detail.
+    # NOTE: This test verifies an internal implementation detail.
     # The admin code updates verification.born_at to mark it as processed.
     # In request specs, transaction isolation can cause the change to not be
     # visible when we reload. The core functionality (CSV generation) is tested

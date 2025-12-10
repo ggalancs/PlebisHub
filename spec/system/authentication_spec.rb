@@ -138,9 +138,7 @@ RSpec.describe 'Authentication Flows', type: :system do
 
     it 'accepts email for password reset' do
       visit '/es/users/password/new'
-      if page.has_field?('user_email')
-        fill_in 'user_email', with: user.email
-      end
+      fill_in 'user_email', with: user.email if page.has_field?('user_email')
       find('input[type="submit"], button[type="submit"]', match: :first).click
       expect(page.status_code).to eq(200)
     end
@@ -156,9 +154,7 @@ RSpec.describe 'Authentication Flows', type: :system do
 
     it 'has user form when accessible' do
       visit '/es/users/edit'
-      if page.status_code == 200
-        expect(page).to have_selector('form')
-      end
+      expect(page).to have_selector('form') if page.status_code == 200
     end
 
     it 'allows updating user information' do
@@ -193,9 +189,7 @@ RSpec.describe 'Authentication Flows', type: :system do
 
     it 'allows resending confirmation instructions' do
       visit '/es/users/confirmation/new'
-      if page.has_field?('user_email')
-        fill_in 'user_email', with: unconfirmed_user.email
-      end
+      fill_in 'user_email', with: unconfirmed_user.email if page.has_field?('user_email')
       find('input[type="submit"], button[type="submit"]', match: :first).click
       expect(page.status_code).to eq(200)
     end

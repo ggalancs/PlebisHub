@@ -6,7 +6,7 @@ require 'generators/plebis/engine/engine_generator'
 RSpec.describe Plebis::Generators::EngineGenerator, type: :generator do
   include FileUtils
 
-  # Note: Full generator tests require Rails::Generators::TestCase which provides
+  # NOTE: Full generator tests require Rails::Generators::TestCase which provides
   # proper filesystem isolation. These specs focus on validation logic and
   # generator behavior that can be tested without full isolation.
 
@@ -79,7 +79,7 @@ RSpec.describe Plebis::Generators::EngineGenerator, type: :generator do
     end
 
     it 'has templates directory' do
-      templates_path = File.expand_path('templates', described_class.source_root)
+      File.expand_path('templates', described_class.source_root)
       expect(File.directory?(described_class.source_root)).to be true
     end
 

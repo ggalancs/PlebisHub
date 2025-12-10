@@ -53,7 +53,7 @@ module Gamification
         )
 
         # Update totals using atomic SQL increment for concurrent safety
-        self.class.where(id: id).update_all(
+        self.class.where(id: id).update_all( # rubocop:disable Rails/SkipsModelValidations
           "total_points = total_points + #{amount.to_i}, xp = xp + #{amount.to_i}"
         )
         reload # Refresh in-memory values after SQL update

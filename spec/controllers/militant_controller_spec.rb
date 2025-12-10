@@ -513,7 +513,7 @@ RSpec.describe MilitantController, type: :controller do
 
     context 'CSRF protection documentation (MEDIUM PRIORITY FIX)' do
       it 'inherits from ApplicationController (should consider inheriting from ActionController::Base)' do
-        # Note: This test documents current state. Consider migrating to ActionController::Base
+        # NOTE: This test documents current state. Consider migrating to ActionController::Base
         # for external API endpoints that use HMAC authentication instead of session CSRF
         expect(MilitantController.superclass).to eq(ApplicationController)
       end

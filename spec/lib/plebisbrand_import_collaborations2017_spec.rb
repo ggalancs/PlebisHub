@@ -185,7 +185,7 @@ RSpec.describe PlebisBrandImportCollaborations2017 do
         # frequency may be stored as integer or string depending on database config
         expect(collab.frequency.to_s).to eq('1')
         expect(collab.payment_type).to eq(2)
-        # Note: status may be set differently depending on model callbacks
+        # NOTE: status may be set differently depending on model callbacks
         expect(collab.status).to be_present
       end
 

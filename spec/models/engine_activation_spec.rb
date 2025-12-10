@@ -6,7 +6,7 @@ RSpec.describe EngineActivation, type: :model do
   let(:engine_activation) { build(:engine_activation, engine_name: 'plebis_cms') rescue described_class.new(engine_name: 'plebis_cms') }
 
   before do
-    I18n.locale = :en
+    I18n.locale = :en # rubocop:disable Rails/I18nLocaleAssignment
   end
 
   # Helper method to create activation bypassing validation

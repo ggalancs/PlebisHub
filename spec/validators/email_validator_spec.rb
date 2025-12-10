@@ -33,7 +33,7 @@ RSpec.describe EmailValidator do
           '"quoted"@example.com',
           'user_name@example.com',
           'user-name@example.com',
-          'a@b.co',
+          'a@b.co'
         ]
       end
 
@@ -46,7 +46,7 @@ RSpec.describe EmailValidator do
     end
 
     context 'with blank values' do
-      # Note: EmailValidator allows blank values by design
+      # NOTE: EmailValidator allows blank values by design
       # Use presence: true separately if blank should be rejected
       it 'allows nil value (by design)' do
         record.email = nil
@@ -150,7 +150,7 @@ RSpec.describe EmailValidator do
         [
           'user', # no @ sign
           '@example.com', # starts with @
-          'user@.com', # domain starts with dot
+          'user@.com' # domain starts with dot
           # Note: 'user @example.com' is accepted by Mail::Address library
         ]
       end

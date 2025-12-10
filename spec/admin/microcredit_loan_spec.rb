@@ -834,7 +834,7 @@ RSpec.describe 'MicrocreditLoan Admin', type: :request do
       # Enable CSV download links - requires finances_admin
       allow_any_instance_of(User).to receive(:finances_admin?).and_return(true)
       # Ensure locale is English for consistent CSV column headers
-      I18n.locale = :en
+      I18n.locale = :en # rubocop:disable Rails/I18nLocaleAssignment
     end
 
     it 'exports CSV with all columns' do
@@ -1009,7 +1009,7 @@ RSpec.describe 'MicrocreditLoan Admin', type: :request do
     end
 
     it 'permits document_vatid' do
-      # Note: When user_id is provided, the model's after_initialize copies user.document_vatid
+      # NOTE: When user_id is provided, the model's after_initialize copies user.document_vatid
       # So this test verifies that document_vatid param is permitted (not that it overrides user)
       fresh_user = create(:user, :with_dni)
       post admin_microcredit_loans_path, params: {

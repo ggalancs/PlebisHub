@@ -40,7 +40,9 @@ require_relative '../config/environment'
 
 # IMPORTANT: After Rails loads, remove the stub so the real model can be used
 # This allows tests to use the real EngineActivation ActiveRecord model
-Object.send(:remove_const, :EngineActivation) if defined?(EngineActivation) && !EngineActivation.ancestors.include?(ApplicationRecord)
+if defined?(EngineActivation) && EngineActivation.ancestors.exclude?(ApplicationRecord)
+  Object.send(:remove_const, :EngineActivation)
+end
 # Force reload of the real model
 require Rails.root.join('app/models/engine_activation')
 # Prevent database truncation if the environment is production

@@ -584,7 +584,7 @@ RSpec.describe 'User Admin', type: :request do
       u
     end
 
-    # Note: Regular admins may not have destroy permission (only superadmins)
+    # NOTE: Regular admins may not have destroy permission (only superadmins)
     # These tests verify the request is processed; actual deletion depends on Ability
     it 'soft deletes the user' do
       # Need to check if current admin has destroy permission

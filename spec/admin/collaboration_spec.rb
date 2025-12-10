@@ -460,7 +460,7 @@ RSpec.describe 'Collaboration Admin', type: :request do
       allow(Order).to receive_message_chain(:paid, :group, :order, :pluck).and_return([])
     end
 
-    # Note: Some endpoints may return 500 due to missing helper methods or templates
+    # NOTE: Some endpoints may return 500 due to missing helper methods or templates
     # These are production code issues, not test issues
 
     describe 'GET /admin/collaborations/download_for_town' do

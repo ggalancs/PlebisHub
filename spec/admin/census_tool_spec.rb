@@ -300,13 +300,12 @@ RSpec.describe 'CensusTool Admin Page', type: :request do
 
         it 'returns false' do
           # When user has no QR code (qr_secret is nil), the method may raise TypeError or return false
-          begin
-            result = controller_instance.send(:check_verified_user_hash, user_without_qr.document_vatid, 'any_hash')
-            expect([true, false, nil]).to include(result)
-          rescue TypeError
-            # This is expected when qr_secret is nil
-            expect(true).to be true
-          end
+
+          result = controller_instance.send(:check_verified_user_hash, user_without_qr.document_vatid, 'any_hash')
+          expect([true, false, nil]).to include(result)
+        rescue TypeError
+          # This is expected when qr_secret is nil
+          expect(true).to be true
         end
       end
     end

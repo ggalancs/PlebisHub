@@ -30,7 +30,7 @@ RSpec.describe BankCccValidator do
       # Test with known values
       # The algorithm uses key = [1, 2, 4, 8, 5, 10, 9, 7, 3, 6]
       # Result is 11 - (sumatory % 11), with special cases for 10 and 11
-      
+
       # Test case: all zeros
       ary = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       expect(described_class.calculate_digit(ary)).to eq(0) # 11 - 0 = 11 -> 0
@@ -54,7 +54,7 @@ RSpec.describe BankCccValidator do
       # Valid Spanish bank account numbers (20 digits)
       # Format: EEEE OOOO DC NNNNNNNNNN
       # E=entity, O=office, D=control digit 1, C=control digit 2, N=account number
-      
+
       it 'returns true for valid CCC format' do
         # Using a properly constructed valid CCC
         # Entity: 0049, Office: 0001, Account: 0000000001

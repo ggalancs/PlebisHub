@@ -24,7 +24,9 @@ RSpec.describe SupportsController, type: :controller, skip: 'Route is disabled -
     # Use main app routes - define the route inline since it's commented out in main routes
     @routes = Rails.application.routes
     Rails.application.routes.draw do
-      post '/apoyar/:proposal_id', to: 'supports#create', as: 'proposal_supports' unless Rails.application.routes.named_routes.key?(:proposal_supports)
+      unless Rails.application.routes.named_routes.key?(:proposal_supports)
+        post '/apoyar/:proposal_id', to: 'supports#create', as: 'proposal_supports'
+      end
     end
   end
 

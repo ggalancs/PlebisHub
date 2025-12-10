@@ -60,7 +60,7 @@ RSpec.describe PlebisBrandImport do
 
     after do
       # Restore original locale
-      I18n.locale = @original_locale
+      I18n.locale = @original_locale # rubocop:disable Rails/I18nLocaleAssignment
     end
 
     context 'when country is found in first locale (ca)' do
@@ -174,7 +174,7 @@ RSpec.describe PlebisBrandImport do
 
   describe '.invalid_record' do
     let(:user) { User.new }
-    let(:row) { [['first_name', 'John'], ['last_name', 'Doe']] }
+    let(:row) { [%w[first_name John], %w[last_name Doe]] }
 
     before do
       # Create log directory if it doesn't exist
@@ -183,8 +183,8 @@ RSpec.describe PlebisBrandImport do
 
     after do
       # Clean up test log files
-      File.delete(Rails.root.join('log/users_invalid.log')) if File.exist?(Rails.root.join('log/users_invalid.log'))
-      File.delete(Rails.root.join('log/users_email.log')) if File.exist?(Rails.root.join('log/users_email.log'))
+      FileUtils.rm_f(Rails.root.join('log/users_invalid.log'))
+      FileUtils.rm_f(Rails.root.join('log/users_email.log'))
     end
 
     context 'when error is duplicate email' do
@@ -195,7 +195,7 @@ RSpec.describe PlebisBrandImport do
       it 'logs to users_email.log' do
         described_class.invalid_record(user, row)
 
-        expect(File.exist?(Rails.root.join('log/users_email.log'))).to be true
+        expect(Rails.root.join('log/users_email.log').exist?).to be true
       end
 
       it 'does not raise an error' do
@@ -241,9 +241,9 @@ RSpec.describe PlebisBrandImport do
     end
 
     after do
-      File.delete(csv_file) if File.exist?(csv_file)
-      File.delete(Rails.root.join('log/users_invalid.log')) if File.exist?(Rails.root.join('log/users_invalid.log'))
-      File.delete(Rails.root.join('log/users_email.log')) if File.exist?(Rails.root.join('log/users_email.log'))
+      FileUtils.rm_f(csv_file)
+      FileUtils.rm_f(Rails.root.join('log/users_invalid.log'))
+      FileUtils.rm_f(Rails.root.join('log/users_email.log'))
     end
 
     it 'deletes existing log files' do
@@ -251,8 +251,8 @@ RSpec.describe PlebisBrandImport do
 
       described_class.init(csv_file)
 
-      expect(File.exist?(Rails.root.join('log/users_invalid.log'))).to be false
-      expect(File.exist?(Rails.root.join('log/users_email.log'))).to be false
+      expect(Rails.root.join('log/users_invalid.log').exist?).to be false
+      expect(Rails.root.join('log/users_email.log').exist?).to be false
     end
 
     it 'enqueues worker for each row' do

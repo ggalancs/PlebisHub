@@ -545,7 +545,7 @@ RSpec.describe 'Election Admin', type: :request do
     end
 
     it 'sets requires_sms_check to true by default for new records' do
-      # Note: The admin form sets this default only on form render, not on model create
+      # NOTE: The admin form sets this default only on form render, not on model create
       # This test expects the default to be applied on creation
       params_with_sms_check = valid_params.deep_merge(election: { requires_sms_check: '1' })
       post admin_elections_path, params: params_with_sms_check

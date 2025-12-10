@@ -422,9 +422,7 @@ RSpec.describe 'EngineActivation Admin', type: :request do
       post disable_admin_engine_activation_path(engine_activation)
       # Accept redirect or server error
       expect([302, 500]).to include(response.status)
-      if response.status == 302
-        expect(response).to redirect_to(admin_engine_activations_path)
-      end
+      expect(response).to redirect_to(admin_engine_activations_path) if response.status == 302
     end
 
     context 'when other engines depend on this one' do

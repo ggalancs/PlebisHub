@@ -34,7 +34,7 @@ RSpec.describe 'Admin Brand Settings Color Picker', type: :system, js: true do
       sleep 1
 
       # Find the primary color input
-      primary_input = find('#brand_setting_primary_color', visible: :all)
+      find('#brand_setting_primary_color', visible: :all)
 
       # Change to yellow (#FFFF00)
       # For color inputs, we need to use JavaScript to set the value

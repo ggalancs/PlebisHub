@@ -176,16 +176,14 @@ class Report < ApplicationRecord
   # Ensure model is loaded from query (lazy loading for tests)
   def ensure_model_loaded
     return if @model
+    return unless persisted? && query.present?
 
-    if persisted? && query.present?
-      table_name = query.match(/\s*SELECT\s*.*\s*FROM\s*"?(\w+)"?\s*/)
-      table_name = table_name.captures.first if table_name
+    table_name = query.match(/\s*SELECT\s*.*\s*FROM\s*"?(\w+)"?\s*/)
+    table_name = table_name.captures.first if table_name
+    return unless table_name
 
-      if table_name
-        @model = ActiveRecord::Base.send(:descendants).find do |m|
-          m.table_name == table_name
-        end
-      end
+    @model = ActiveRecord::Base.send(:descendants).find do |m|
+      m.table_name == table_name
     end
   end
 

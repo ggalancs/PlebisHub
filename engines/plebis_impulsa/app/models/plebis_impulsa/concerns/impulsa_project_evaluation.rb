@@ -162,6 +162,7 @@ module PlebisImpulsa
           step[:groups][gname] && step[:groups][gname][:fields][fname] && sname
         end.compact.first
         return :wrong_field unless sname
+
         field = evaluation[sname][:groups][gname][:fields][fname]
         if field && field[:sum].blank?
           evaluation_values(evaluator)["#{gname}.#{fname}"] = value

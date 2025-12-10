@@ -42,13 +42,13 @@ module GeneratorHelpers
 
   # Sets up the temporary directory for generator tests
   def setup_generator_destination
-    FileUtils.rm_rf(destination_root) if File.exist?(destination_root)
+    FileUtils.rm_rf(destination_root)
     FileUtils.mkdir_p(destination_root)
   end
 
   # Cleans up the temporary directory after generator tests
   def cleanup_generator_destination
-    FileUtils.rm_rf(destination_root) if File.exist?(destination_root)
+    FileUtils.rm_rf(destination_root)
   end
 
   # Creates a minimal Gemfile in the destination for testing

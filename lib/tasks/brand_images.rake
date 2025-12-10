@@ -160,7 +160,7 @@ namespace :brand do
 
     puts ''
     puts '=' * 50
-    puts "Brand images seeding complete!"
+    puts 'Brand images seeding complete!'
     puts "  Created: #{created_count}"
     puts "  Updated: #{updated_count}"
     puts "  Skipped: #{skipped_count}"

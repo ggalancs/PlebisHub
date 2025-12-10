@@ -6,10 +6,9 @@ RSpec.describe 'Proposal Admin', type: :request do
   let(:admin_user) { create(:user, :admin, :superadmin) }
   let!(:proposal) do
     create(:proposal,
-      title: 'Test Proposal',
-      description: 'This is a test proposal description',
-      image_url: 'http://example.com/image.jpg'
-    )
+           title: 'Test Proposal',
+           description: 'This is a test proposal description',
+           image_url: 'http://example.com/image.jpg')
   end
 
   before do

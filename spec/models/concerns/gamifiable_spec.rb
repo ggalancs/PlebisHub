@@ -117,7 +117,7 @@ RSpec.describe Gamifiable, type: :model do
         stats = new_user.gamification_stats  # Use gamification_stats to ensure initialization
         stats_id = stats.id
         new_user.reload
-        new_user.instance_variable_set(:@gamification_stats, nil)  # Clear memoization
+        new_user.instance_variable_set(:@gamification_stats, nil) # Clear memoization
         expect(new_user.gamification_stats.id).to eq(stats_id)
       end
     end
@@ -162,7 +162,7 @@ RSpec.describe Gamifiable, type: :model do
   end
 
   describe 'delegated methods' do
-    let(:stats) { user.gamification_stats }  # Use gamification_stats to ensure it's initialized
+    let(:stats) { user.gamification_stats } # Use gamification_stats to ensure it's initialized
 
     describe '#total_points' do
       it 'delegates to gamification_stats' do
@@ -464,7 +464,7 @@ RSpec.describe Gamifiable, type: :model do
       it 'creates UserStats with user_id' do
         new_user = build(:user)
         new_user.save!
-        stats = new_user.gamification_stats  # Use gamification_stats to ensure initialization
+        stats = new_user.gamification_stats # Use gamification_stats to ensure initialization
         expect(stats.user_id).to eq(new_user.id)
       end
 
@@ -476,7 +476,7 @@ RSpec.describe Gamifiable, type: :model do
         new_user = build(:user)
         new_user.save!
         # Ensure stats exist then delete them
-        new_user.gamification_stats  # Initialize via gamification_stats
+        new_user.gamification_stats # Initialize via gamification_stats
         new_user.reload
         stats = new_user.gamification_user_stats || Gamification::UserStats.find_by(user_id: new_user.id)
         stats&.destroy

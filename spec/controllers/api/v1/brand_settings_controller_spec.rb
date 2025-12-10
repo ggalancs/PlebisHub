@@ -31,7 +31,7 @@ RSpec.describe Api::V1::BrandSettingsController, type: :controller do
       end
 
       it 'uses user organization_id when available' do
-        # Note: User model doesn't currently have organization_id column
+        # NOTE: User model doesn't currently have organization_id column
         # This test documents the expected behavior if the column is added
         # For now, we test that nil organization_id works correctly
         # (current_user&.organization_id returns nil when method doesn't exist via &.)
@@ -41,7 +41,7 @@ RSpec.describe Api::V1::BrandSettingsController, type: :controller do
       end
 
       context 'when user has organization_id method' do
-        # Note: User model doesn't currently have organization_id column/method
+        # NOTE: User model doesn't currently have organization_id column/method
         # When this feature is implemented, uncomment these tests and add proper
         # column/association to User model
         it 'passes organization_id to BrandSetting', skip: 'User model lacks organization_id - feature pending implementation' do
