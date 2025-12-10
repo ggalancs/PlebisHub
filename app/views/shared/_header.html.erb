@@ -15,7 +15,7 @@
       <div class="flex items-center">
         <%= link_to root_path, class: 'flex items-center gap-2 text-primary-700 hover:text-primary-600 transition-colors' do %>
           <%= brand_image_tag 'logo_main', class: 'h-8 w-auto', fallback: 'brand/logo-horizontal.svg', onerror: "this.style.display='none'" %>
-          <span class="font-heading font-bold text-xl hidden sm:block"><%= Rails.application.config.site_name rescue 'PlebisHub' %></span>
+          <span class="font-heading font-bold text-xl hidden sm:block"><%= Rails.application.config.site_name || 'PlebisHub' %></span>
         <% end %>
       </div>
 
@@ -25,28 +25,28 @@
           <%= link_to t('nav.home', default: 'Inicio'), root_path, class: "nav-link #{current_page?(root_path) ? 'nav-link-active' : ''}" %>
         <% end %>
 
-        <% if defined?(PlebisProposals) && PlebisProposals::Engine %>
-          <%= link_to t('nav.proposals', default: 'Propuestas'), proposals_path, class: "nav-link #{controller_name == 'proposals' ? 'nav-link-active' : ''}" rescue nil %>
+        <% if defined?(PlebisProposals) && PlebisProposals::Engine && respond_to?(:proposals_path) %>
+          <%= link_to t('nav.proposals', default: 'Propuestas'), proposals_path, class: "nav-link #{controller_name == 'proposals' ? 'nav-link-active' : ''}" %>
         <% end %>
 
-        <% if defined?(PlebisVotes) && PlebisVotes::Engine %>
-          <%= link_to t('nav.votes', default: 'Votaciones'), elections_path, class: "nav-link #{controller_name == 'elections' || controller_name == 'vote' ? 'nav-link-active' : ''}" rescue nil %>
+        <% if defined?(PlebisVotes) && PlebisVotes::Engine && respond_to?(:elections_path) %>
+          <%= link_to t('nav.votes', default: 'Votaciones'), elections_path, class: "nav-link #{controller_name == 'elections' || controller_name == 'vote' ? 'nav-link-active' : ''}" %>
         <% end %>
 
-        <% if defined?(PlebisImpulsa) && PlebisImpulsa::Engine %>
-          <%= link_to t('nav.impulsa', default: 'Impulsa'), impulsa_path, class: "nav-link #{controller_name == 'impulsa' ? 'nav-link-active' : ''}" rescue nil %>
+        <% if defined?(PlebisImpulsa) && PlebisImpulsa::Engine && respond_to?(:impulsa_path) %>
+          <%= link_to t('nav.impulsa', default: 'Impulsa'), impulsa_path, class: "nav-link #{controller_name == 'impulsa' ? 'nav-link-active' : ''}" %>
         <% end %>
 
-        <% if defined?(PlebisCollaborations) && PlebisCollaborations::Engine %>
-          <%= link_to t('nav.collaborate', default: 'Colabora'), collaborations_path, class: "nav-link #{controller_name == 'collaborations' ? 'nav-link-active' : ''}" rescue nil %>
+        <% if defined?(PlebisCollaborations) && PlebisCollaborations::Engine && respond_to?(:collaborations_path) %>
+          <%= link_to t('nav.collaborate', default: 'Colabora'), collaborations_path, class: "nav-link #{controller_name == 'collaborations' ? 'nav-link-active' : ''}" %>
         <% end %>
 
-        <% if defined?(PlebisMicrocredit) && PlebisMicrocredit::Engine %>
-          <%= link_to t('nav.microcredits', default: 'Microcréditos'), microcredits_path, class: "nav-link #{controller_name == 'microcredit' ? 'nav-link-active' : ''}" rescue nil %>
+        <% if defined?(PlebisMicrocredit) && PlebisMicrocredit::Engine && respond_to?(:microcredits_path) %>
+          <%= link_to t('nav.microcredits', default: 'Microcréditos'), microcredits_path, class: "nav-link #{controller_name == 'microcredit' ? 'nav-link-active' : ''}" %>
         <% end %>
 
-        <% if defined?(PlebisParticipation) && PlebisParticipation::Engine %>
-          <%= link_to t('nav.teams', default: 'Equipos'), participation_teams_path, class: "nav-link #{controller_name == 'participation_teams' ? 'nav-link-active' : ''}" rescue nil %>
+        <% if defined?(PlebisParticipation) && PlebisParticipation::Engine && respond_to?(:participation_teams_path) %>
+          <%= link_to t('nav.teams', default: 'Equipos'), participation_teams_path, class: "nav-link #{controller_name == 'participation_teams' ? 'nav-link-active' : ''}" %>
         <% end %>
       </nav>
 
@@ -90,8 +90,8 @@
             >
               <%= link_to t('nav.profile', default: 'Mi perfil'), edit_user_registration_path, class: 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50', role: 'menuitem' %>
 
-              <% if current_user&.is_admin? %>
-                <%= link_to t('nav.admin', default: 'Administración'), admin_root_path, class: 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50', role: 'menuitem' if defined?(admin_root_path) %>
+              <% if current_user&.is_admin? && respond_to?(:admin_root_path) %>
+                <%= link_to t('nav.admin', default: 'Administración'), admin_root_path, class: 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50', role: 'menuitem' %>
               <% end %>
 
               <hr class="my-1 border-gray-100">
@@ -126,24 +126,24 @@
         <%= link_to t('nav.home', default: 'Inicio'), root_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' %>
       <% end %>
 
-      <% if defined?(PlebisProposals) && PlebisProposals::Engine %>
-        <%= link_to t('nav.proposals', default: 'Propuestas'), proposals_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' rescue nil %>
+      <% if defined?(PlebisProposals) && PlebisProposals::Engine && respond_to?(:proposals_path) %>
+        <%= link_to t('nav.proposals', default: 'Propuestas'), proposals_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' %>
       <% end %>
 
-      <% if defined?(PlebisVotes) && PlebisVotes::Engine %>
-        <%= link_to t('nav.votes', default: 'Votaciones'), elections_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' rescue nil %>
+      <% if defined?(PlebisVotes) && PlebisVotes::Engine && respond_to?(:elections_path) %>
+        <%= link_to t('nav.votes', default: 'Votaciones'), elections_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' %>
       <% end %>
 
-      <% if defined?(PlebisImpulsa) && PlebisImpulsa::Engine %>
-        <%= link_to t('nav.impulsa', default: 'Impulsa'), impulsa_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' rescue nil %>
+      <% if defined?(PlebisImpulsa) && PlebisImpulsa::Engine && respond_to?(:impulsa_path) %>
+        <%= link_to t('nav.impulsa', default: 'Impulsa'), impulsa_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' %>
       <% end %>
 
-      <% if defined?(PlebisCollaborations) && PlebisCollaborations::Engine %>
-        <%= link_to t('nav.collaborate', default: 'Colabora'), collaborations_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' rescue nil %>
+      <% if defined?(PlebisCollaborations) && PlebisCollaborations::Engine && respond_to?(:collaborations_path) %>
+        <%= link_to t('nav.collaborate', default: 'Colabora'), collaborations_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' %>
       <% end %>
 
-      <% if defined?(PlebisMicrocredit) && PlebisMicrocredit::Engine %>
-        <%= link_to t('nav.microcredits', default: 'Microcréditos'), microcredits_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' rescue nil %>
+      <% if defined?(PlebisMicrocredit) && PlebisMicrocredit::Engine && respond_to?(:microcredits_path) %>
+        <%= link_to t('nav.microcredits', default: 'Microcréditos'), microcredits_path, class: 'block px-3 py-2 rounded-lg text-gray-700 hover:bg-white' %>
       <% end %>
 
       <% if !user_signed_in? %>
