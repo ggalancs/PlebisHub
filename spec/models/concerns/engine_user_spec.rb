@@ -332,8 +332,8 @@ RSpec.describe EngineUser, type: :model do
         include EngineUser
       end
 
-      # This will raise an error, which is expected behavior
-      expect { test_class.register_engine_concern('test_engine', nil) }.to raise_error
+      # This will raise a TypeError when nil is passed instead of a Module
+      expect { test_class.register_engine_concern('test_engine', nil) }.to raise_error(TypeError)
     end
   end
 end
