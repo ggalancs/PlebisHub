@@ -12,15 +12,16 @@ module Warning
     'ambiguous `*`',                      # activeadmin
     'ambiguous `&`',                      # activeadmin
     'ambiguous `/`',                      # activeadmin
-    'assigned but unused variable'        # ransack
+    'assigned but unused variable',       # ransack
+    'circular require considered harmful' # esendex gem
   ].freeze
 
   class << self
     alias original_warn warn
 
     def warn(message, *)
-      # Suppress warnings from vendor gems matching known patterns
-      return if message.include?('/vendor/bundle/') &&
+      # Suppress warnings from vendor gems or Ruby lib matching known patterns
+      return if (message.include?('/vendor/bundle/') || message.include?('bundled_gems.rb')) &&
                 SUPPRESSED_PATTERNS.any? { |pattern| message.include?(pattern) }
 
       original_warn(message, *)
