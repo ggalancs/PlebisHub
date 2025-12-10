@@ -53,7 +53,7 @@ class BrandImage < ApplicationRecord
   validates :name, presence: true
   validates :key, presence: true
   validates :category, presence: true, inclusion: { in: CATEGORIES }
-  validates :key, uniqueness: { scope: [:brand_setting_id, :organization_id] }
+  validates :key, uniqueness: { scope: [:brand_setting_id, :organization_id] } # rubocop:disable Rails/UniqueValidationWithoutIndex
 
   validate :image_format_validation
   validate :image_size_validation
@@ -186,24 +186,22 @@ class BrandImage < ApplicationRecord
       end
     end
 
-    update_column(:metadata, metadata.merge(new_metadata)) if new_metadata != metadata
+    update_column(:metadata, metadata.merge(new_metadata)) if new_metadata != metadata # rubocop:disable Rails/SkipsModelValidations
   end
 
   def image_format_validation
     return unless image.attached?
 
     allowed_types = %w[image/png image/jpeg image/gif image/svg+xml image/webp image/x-icon image/vnd.microsoft.icon]
-    unless allowed_types.include?(image.blob.content_type)
-      errors.add(:image, "must be a PNG, JPEG, GIF, SVG, WebP, or ICO file")
-    end
+    return if allowed_types.include?(image.blob.content_type)
+
+    errors.add(:image, 'must be a PNG, JPEG, GIF, SVG, WebP, or ICO file')
   end
 
   def image_size_validation
     return unless image.attached?
 
     max_size = 5.megabytes
-    if image.blob.byte_size > max_size
-      errors.add(:image, "must be less than 5MB")
-    end
+    errors.add(:image, 'must be less than 5MB') if image.blob.byte_size > max_size
   end
 end

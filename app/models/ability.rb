@@ -166,9 +166,9 @@ class Ability
     end
 
     # Finances admins: preserve financial records
-    if user.finances_admin?
-      cannot :destroy, Order if defined?(Order)
-      cannot :destroy, Collaboration if defined?(Collaboration)
-    end
+    return unless user.finances_admin?
+
+    cannot :destroy, Order if defined?(Order)
+    cannot :destroy, Collaboration if defined?(Collaboration)
   end
 end

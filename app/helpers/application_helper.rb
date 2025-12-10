@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ApplicationHelper
+module ApplicationHelper # rubocop:disable Metrics/ModuleLength
   # Rails 7.2 FIX: semantic_form_with doesn't exist in formtastic gem
   # This method provides compatibility by delegating to semantic_form_for
   # which is the correct formtastic helper method

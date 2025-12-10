@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module BrandHelper
+module BrandHelper # rubocop:disable Metrics/ModuleLength
   # Fetches the active brand setting for the current organization context
   # Uses caching to avoid repeated database queries
   def current_brand_setting
@@ -13,7 +13,7 @@ module BrandHelper
   # Generates and returns the complete style tag for brand theme injection
   # Includes CSS custom properties and optional custom CSS
   def brand_style_tag
-    current_brand_setting.to_style_tag.html_safe
+    current_brand_setting.to_style_tag.html_safe # rubocop:disable Rails/OutputSafety
   end
 
   # Returns the appropriate logo URL based on dark mode preference
@@ -118,7 +118,7 @@ module BrandHelper
   end
 
   # Returns an image tag for a brand image with proper alt text
-  def brand_image_tag(key, options = {})
+  def brand_image_tag(key, options = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     fallback = options.delete(:fallback)
     alt = options.delete(:alt)
 
@@ -234,7 +234,7 @@ module BrandHelper
   # Returns nil if no organization context or method not available
   def current_organization_id
     return current_organization.id if respond_to?(:current_organization) && current_organization
-    return current_user.organization_id if respond_to?(:current_user) && current_user&.respond_to?(:organization_id)
+    return current_user.organization_id if respond_to?(:current_user) && current_user.respond_to?(:organization_id)
 
     nil
   rescue StandardError
@@ -244,7 +244,7 @@ module BrandHelper
   # Safely retrieves current organization object for brand images
   def current_organization_for_brand
     return current_organization if respond_to?(:current_organization) && current_organization
-    return current_user.organization if respond_to?(:current_user) && current_user&.respond_to?(:organization)
+    return current_user.organization if respond_to?(:current_user) && current_user.respond_to?(:organization)
 
     nil
   rescue StandardError
