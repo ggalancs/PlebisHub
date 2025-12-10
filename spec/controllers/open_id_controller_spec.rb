@@ -6,7 +6,6 @@ require 'rails_helper'
 # See: config/routes.rb line 56: if Rails.application.secrets.openid.try(:[], "enabled")
 # To run these tests, enable OpenID in test secrets
 RSpec.describe OpenIdController, type: :controller, skip: 'OpenID feature is conditionally disabled in test environment' do
-
   let(:user) { create(:user, :with_dni) }
   let(:openid_store) { instance_double(OpenID::Store::Filesystem) }
   let(:openid_server) { instance_double(OpenID::Server::Server) }

@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe OrdersController, type: :controller do
-
   # Skip ApplicationController filters for isolation
   before do
     allow(controller).to receive(:banned_user).and_return(true)

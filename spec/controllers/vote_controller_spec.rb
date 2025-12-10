@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe VoteController, type: :controller do
-
   let(:user) { create(:user) }
   let(:election) { create(:election, :active) }
   let(:election_location) { create(:election_location, election: election) }

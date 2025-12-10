@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe ToolsController, type: :controller do
-
   let(:user) { create(:user) }
 
   # Skip ApplicationController filters for isolation
