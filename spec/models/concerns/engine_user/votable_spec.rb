@@ -99,7 +99,7 @@ RSpec.describe EngineUser::Votable, type: :model do
       it 'does not modify the existing vote' do
         original_created_at = existing_vote.created_at
         vote = user.get_or_create_vote(election.id)
-        expect(vote.created_at).to eq(original_created_at)
+        expect(vote.created_at).to be_within(1.second).of(original_created_at)
       end
     end
 

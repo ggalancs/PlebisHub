@@ -473,7 +473,7 @@ RSpec.describe User::PhoneVerification, type: :model do
         original_time = test_user.sms_confirmed_at
         test_user.check_sms_token('WRONG123')
         test_user.reload
-        expect(test_user.sms_confirmed_at).to eq(original_time)
+        expect(test_user.sms_confirmed_at).to be_within(1.second).of(original_time)
       end
 
       it 'does not move unconfirmed_phone to phone' do

@@ -25,16 +25,16 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
 
     it 'has breadcrumb configuration' do
       # The breadcrumb block exists in the admin file
-      expect(File.read('/Users/gabriel/ggalancs/PlebisHub/app/admin/credential_shipment.rb')).to include('breadcrumb do')
-      expect(File.read('/Users/gabriel/ggalancs/PlebisHub/app/admin/credential_shipment.rb')).to include("['admin', 'Envíos de Credenciales']")
+      expect(File.read('#{Rails.root}/app/admin/credential_shipment.rb')).to include('breadcrumb do')
+      expect(File.read('#{Rails.root}/app/admin/credential_shipment.rb')).to include("['admin', 'Envíos de Credenciales']")
     end
 
     it 'has content block' do
-      expect(File.read('/Users/gabriel/ggalancs/PlebisHub/app/admin/credential_shipment.rb')).to include('content do')
+      expect(File.read('#{Rails.root}/app/admin/credential_shipment.rb')).to include('content do')
     end
 
     it 'has generate_shipment page action' do
-      expect(File.read('/Users/gabriel/ggalancs/PlebisHub/app/admin/credential_shipment.rb')).to include('page_action :generate_shipment')
+      expect(File.read('#{Rails.root}/app/admin/credential_shipment.rb')).to include('page_action :generate_shipment')
     end
   end
 
@@ -177,7 +177,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
       get admin_envios_de_credenciales_generate_shipment_path, params: { max_reg: 10 }
       # The code calls v.update(born_at: r.born_at) for each verification
       # Check that the update logic exists in the code
-      expect(File.read('/Users/gabriel/ggalancs/PlebisHub/app/admin/credential_shipment.rb')).to include('v.update(born_at: r.born_at)')
+      expect(File.read('#{Rails.root}/app/admin/credential_shipment.rb')).to include('v.update(born_at: r.born_at)')
     end
 
     it 'uses tab separator in CSV' do
@@ -252,7 +252,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
       expect(response.content_type).to include('charset=utf-8')
       # header=present is defined in code but may not appear in response content_type header
       # Verify it's in the code
-      expect(File.read('/Users/gabriel/ggalancs/PlebisHub/app/admin/credential_shipment.rb')).to include('header=present')
+      expect(File.read('#{Rails.root}/app/admin/credential_shipment.rb')).to include('header=present')
     end
 
     it 'includes town and province names' do
@@ -350,17 +350,17 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
 
   describe 'CSV generation logic' do
     it 'creates CSV with tab separator' do
-      content = File.read('/Users/gabriel/ggalancs/PlebisHub/app/admin/credential_shipment.rb')
+      content = File.read('#{Rails.root}/app/admin/credential_shipment.rb')
       expect(content).to include("col_sep: \"\\t\"")
     end
 
     it 'encodes as UTF-8' do
-      content = File.read('/Users/gabriel/ggalancs/PlebisHub/app/admin/credential_shipment.rb')
+      content = File.read('#{Rails.root}/app/admin/credential_shipment.rb')
       expect(content).to include("encoding: 'utf-8'")
     end
 
     it 'sends data with send_data' do
-      content = File.read('/Users/gabriel/ggalancs/PlebisHub/app/admin/credential_shipment.rb')
+      content = File.read('#{Rails.root}/app/admin/credential_shipment.rb')
       expect(content).to include('send_data csv.encode')
     end
   end
