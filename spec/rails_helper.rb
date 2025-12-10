@@ -1,34 +1,5 @@
 # frozen_string_literal: true
 
-# Suppress Ruby 3.4 warnings from third-party gems
-# These are compatibility issues that gem maintainers need to fix
-# Suppressing to keep CI output clean until gems are updated
-module Warning
-  # Patterns for warnings to suppress (from vendor/bundle gems)
-  SUPPRESSED_PATTERNS = [
-    'unprocessable_entity is deprecated', # Devise/Rack
-    'method redefined',                   # execjs, sassc-rails, activeadmin, arbre, cancancan, ransack
-    'previous definition of',             # Related to method redefined
-    'ambiguous `*`',                      # activeadmin
-    'ambiguous `&`',                      # activeadmin
-    'ambiguous `/`',                      # activeadmin
-    'assigned but unused variable',       # ransack
-    'circular require considered harmful' # esendex gem
-  ].freeze
-
-  class << self
-    alias original_warn warn
-
-    def warn(message, *)
-      # Suppress warnings from vendor gems or Ruby lib matching known patterns
-      return if (message.include?('/vendor/bundle/') || message.include?('bundled_gems.rb')) &&
-                SUPPRESSED_PATTERNS.any? { |pattern| message.include?(pattern) }
-
-      original_warn(message, *)
-    end
-  end
-end
-
 # SimpleCov must be loaded BEFORE any application code
 require 'simplecov'
 SimpleCov.start 'rails' do
