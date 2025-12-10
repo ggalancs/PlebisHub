@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'SMS Validator Step1', type: :request do
-  include Devise::Test::IntegrationHelpers
 
   let(:user) { create(:user, :with_dni, sms_confirmed_at: nil) }
 

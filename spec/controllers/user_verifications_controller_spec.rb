@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe UserVerificationsController, type: :controller do
-  include Devise::Test::ControllerHelpers
 
   # Rails 7.2 FIX: User model doesn't have verified_at column
   # Verification is tracked through user_verifications table with status field

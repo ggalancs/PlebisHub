@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe ImpulsaController, type: :controller do
-  include Devise::Test::ControllerHelpers
 
   let(:user) { create(:user, confirmed_at: Time.current) }
   let(:other_user) { create(:user, confirmed_at: Time.current) }

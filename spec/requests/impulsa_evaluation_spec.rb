@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Impulsa Evaluation', type: :request do
-  include Devise::Test::IntegrationHelpers
 
   let(:user) { create(:user, :with_dni) }
 

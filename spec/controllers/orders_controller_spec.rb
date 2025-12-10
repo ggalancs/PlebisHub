@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe OrdersController, type: :controller do
-  include Devise::Test::ControllerHelpers
 
   # Skip ApplicationController filters for isolation
   before do

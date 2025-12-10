@@ -4,7 +4,6 @@ require 'rails_helper'
 
 RSpec.describe CollaborationsController, type: :controller do
   # Use Devise test helpers for authentication
-  include Devise::Test::ControllerHelpers
 
   let(:user) do
     # Create user with valid DNI (not passport) to pass Collaboration validations

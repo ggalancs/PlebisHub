@@ -6,7 +6,6 @@ require 'rails_helper'
 # The proposal supports functionality is now handled by PlebisProposals engine
 # See: config/routes.rb line 103 (commented: #post '/apoyar/:proposal_id', to: 'supports#create')
 RSpec.describe SupportsController, type: :controller, skip: 'Route is disabled - supports handled by PlebisProposals engine' do
-  include Devise::Test::ControllerHelpers
 
   let(:user) { create(:user, :with_dni) }
   let(:proposal) { create(:proposal, :active) }

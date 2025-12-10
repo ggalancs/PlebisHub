@@ -7,7 +7,6 @@ require 'rails_helper'
 # See: config/routes.rb lines 100-102 (commented out)
 # The engine's ProposalsController (PlebisProposals::ProposalsController) handles all proposal routes
 RSpec.describe ProposalsController, type: :controller, skip: 'Routes disabled - proposals handled by PlebisProposals engine' do
-  include Devise::Test::ControllerHelpers
 
   let(:user) { create(:user, :with_dni) }
   let(:proposal) { create(:proposal, :active) }

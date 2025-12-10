@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe PlebisMicrocredit::MicrocreditController, type: :controller do
-  include Devise::Test::ControllerHelpers
 
   # RAILS 7.2 FIX: Include main app route helpers for engine controller specs
   # Engine specs need access to main app routes like root_path

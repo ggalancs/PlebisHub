@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe PlebisCms::PageController, type: :controller do
-  include Devise::Test::ControllerHelpers
 
   let(:user) { create(:user, born_at: Date.new(1990, 1, 1)) }
   let(:user_without_birthdate) do

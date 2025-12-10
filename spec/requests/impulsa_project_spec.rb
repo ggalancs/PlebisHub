@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Impulsa Project', type: :request do
-  include Devise::Test::IntegrationHelpers
 
   let(:user) { create(:user, :with_dni) }
   let!(:edition) { create(:impulsa_edition, start_at: 1.week.ago, new_projects_until: 1.week.from_now, ends_at: 1.month.from_now) }

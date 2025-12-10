@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Vote Create', type: :request do
-  include Devise::Test::IntegrationHelpers
 
   let(:user) { create(:user, :with_dni) }
   let(:election) { create(:election) }

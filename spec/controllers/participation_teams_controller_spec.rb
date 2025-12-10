@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe PlebisParticipation::ParticipationTeamsController, type: :controller do
-  include Devise::Test::ControllerHelpers
 
   let(:user) { create(:user) }
   let(:team) { create(:participation_team) }

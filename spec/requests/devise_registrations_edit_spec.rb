@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 RSpec.describe 'Devise Registrations Edit', type: :request do
-  include Devise::Test::IntegrationHelpers
 
   let(:user) { create(:user, :with_dni) }
 
