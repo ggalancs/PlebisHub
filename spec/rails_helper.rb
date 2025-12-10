@@ -1,5 +1,20 @@
 # frozen_string_literal: true
 
+# Suppress Rack deprecation warning for :unprocessable_entity status code
+# This warning comes from Devise 4.9.4's failure_app.rb and will be fixed in a future Devise version
+# See: https://github.com/heartcombo/devise/issues/5648
+module Warning
+  class << self
+    alias_method :original_warn, :warn
+
+    def warn(message, *args)
+      return if message.include?('unprocessable_entity is deprecated')
+
+      original_warn(message, *args)
+    end
+  end
+end
+
 # SimpleCov must be loaded BEFORE any application code
 require 'simplecov'
 SimpleCov.start 'rails' do
