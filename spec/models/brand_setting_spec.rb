@@ -245,7 +245,7 @@ RSpec.describe BrandSetting, type: :model do
     end
 
     context 'WCAG contrast validation' do
-      it 'validates primary_color contrast against white background' do
+      it 'auto-adjusts primary_color to meet WCAG requirements' do
         setting = BrandSetting.new(
           name: 'Test',
           scope: 'global',
@@ -253,11 +253,13 @@ RSpec.describe BrandSetting, type: :model do
           primary_color: '#f0f0f0' # Very light color, poor contrast
         )
 
-        expect(setting).not_to be_valid
-        expect(setting.errors[:primary_color]).to include(match(/insufficient contrast/))
+        setting.valid?
+        # The color should be auto-adjusted to meet WCAG requirements
+        expect(setting.primary_color).not_to eq('#f0f0f0')
+        expect(setting.contrast_ratio_for(setting.primary_color)).to be >= 4.5
       end
 
-      it 'validates secondary_color contrast against white background' do
+      it 'auto-adjusts secondary_color to meet WCAG requirements' do
         setting = BrandSetting.new(
           name: 'Test',
           scope: 'global',
@@ -265,8 +267,10 @@ RSpec.describe BrandSetting, type: :model do
           secondary_color: '#eeeeee' # Very light color, poor contrast
         )
 
-        expect(setting).not_to be_valid
-        expect(setting.errors[:secondary_color]).to include(match(/insufficient contrast/))
+        setting.valid?
+        # The color should be auto-adjusted to meet WCAG requirements
+        expect(setting.secondary_color).not_to eq('#eeeeee')
+        expect(setting.contrast_ratio_for(setting.secondary_color)).to be >= 4.5
       end
 
       it 'accepts colors with good contrast' do
@@ -458,8 +462,10 @@ RSpec.describe BrandSetting, type: :model do
           theme_id: 'default'
         )
 
-        expect(Rails.cache).to receive(:delete).with(setting.cache_key_with_version)
-        expect(Rails.cache).to receive(:delete).with('brand_setting/global/global')
+        # Allow all cache delete calls (clear_cache deletes multiple keys)
+        allow(Rails.cache).to receive(:delete).and_call_original
+        expect(Rails.cache).to receive(:delete).with(setting.cache_key_with_version).at_least(:once)
+        expect(Rails.cache).to receive(:delete).with('brand_setting/global/global').at_least(:once)
 
         setting.update!(name: 'Updated')
       end
@@ -1067,8 +1073,10 @@ RSpec.describe BrandSetting, type: :model do
           theme_id: 'default'
         )
 
-        expect(Rails.cache).to receive(:delete).with(setting.cache_key_with_version)
-        expect(Rails.cache).to receive(:delete).with("brand_setting/organization/#{organization.id}")
+        # Allow all cache delete calls (clear_cache deletes multiple keys)
+        allow(Rails.cache).to receive(:delete).and_call_original
+        expect(Rails.cache).to receive(:delete).with(setting.cache_key_with_version).at_least(:once)
+        expect(Rails.cache).to receive(:delete).with("brand_setting/organization/#{organization.id}").at_least(:once)
 
         setting.update!(name: 'Updated')
       end

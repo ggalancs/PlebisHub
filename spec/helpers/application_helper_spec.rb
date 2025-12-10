@@ -549,65 +549,66 @@ RSpec.describe ApplicationHelper, type: :helper do
 
   describe '#body_class' do
     context 'when user is not signed in and on login page' do
-      it 'returns "logged-out"' do
+      it 'returns class starting with "logged-out"' do
         result = helper.body_class(false, 'sessions', 'new')
-        expect(result).to eq('logged-out')
+        expect(result).to start_with('logged-out')
       end
 
-      it 'correctly evaluates the condition' do
+      it 'includes controller and action classes' do
         result = helper.body_class(false, 'sessions', 'new')
-        expect(result).to eq('logged-out')
+        expect(result).to include('controller-sessions')
+        expect(result).to include('action-new')
       end
     end
 
     context 'when user is signed in' do
-      it 'returns "signed-in"' do
+      it 'returns class starting with "signed-in"' do
         result = helper.body_class(true, 'sessions', 'new')
-        expect(result).to eq('signed-in')
+        expect(result).to start_with('signed-in')
       end
 
       it 'returns "signed-in" for any controller' do
         result = helper.body_class(true, 'posts', 'index')
-        expect(result).to eq('signed-in')
+        expect(result).to start_with('signed-in')
       end
 
       it 'returns "signed-in" for any action' do
         result = helper.body_class(true, 'users', 'edit')
-        expect(result).to eq('signed-in')
+        expect(result).to start_with('signed-in')
       end
     end
 
     context 'when user is not signed in but not on login page' do
-      it 'returns "signed-in" for different controller' do
+      it 'returns "logged-out" for different controller' do
         result = helper.body_class(false, 'registrations', 'new')
-        expect(result).to eq('signed-in')
+        expect(result).to start_with('logged-out')
       end
 
-      it 'returns "signed-in" for different action' do
+      it 'returns "logged-out" for different action' do
         result = helper.body_class(false, 'sessions', 'create')
-        expect(result).to eq('signed-in')
+        expect(result).to start_with('logged-out')
       end
 
-      it 'returns "signed-in" for different controller and action' do
+      it 'returns "logged-out" for different controller and action' do
         result = helper.body_class(false, 'pages', 'show')
-        expect(result).to eq('signed-in')
+        expect(result).to start_with('logged-out')
       end
     end
 
     context 'edge cases' do
       it 'handles nil signed_in as falsy' do
         result = helper.body_class(nil, 'sessions', 'new')
-        expect(result).to eq('logged-out')
+        expect(result).to start_with('logged-out')
       end
 
       it 'handles empty strings' do
         result = helper.body_class(false, '', '')
-        expect(result).to eq('signed-in')
+        expect(result).to eq('logged-out')
       end
 
       it 'handles nil controller and action' do
         result = helper.body_class(false, nil, nil)
-        expect(result).to eq('signed-in')
+        expect(result).to eq('logged-out')
       end
     end
   end

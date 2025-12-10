@@ -558,7 +558,8 @@ RSpec.describe 'plebis_cms/notice/index.html.erb', type: :view do
       end
 
       it 'muestra cuerpos con espacios extra' do
-        expect(rendered).to have_content('Body with   extra   spaces')
+        # HTML rendering collapses multiple spaces to single spaces
+        expect(rendered).to have_content('Body with extra spaces')
       end
     end
 
