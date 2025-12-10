@@ -181,7 +181,7 @@ class BrandSetting < ApplicationRecord
   end
 
   # Calculate complementary color (180 degree hue shift)
-  def self.complementary_color(hex)
+  def self.complementary_color(hex) # rubocop:disable Metrics/CyclomaticComplexity
     return '#269283' unless hex.present? && hex.match?(HEX_COLOR_REGEX)
 
     # Parse hex to RGB
@@ -199,11 +199,11 @@ class BrandSetting < ApplicationRecord
 
     if max != min
       d = max - min
-      s = l > 0.5 ? d / (2.0 - max - min) : d / (max + min)
+      s = l > 0.5 ? (d / (2.0 - max - min)) : (d / (max + min))
       case max
-      when r then h = ((g - b) / d + (g < b ? 6 : 0)) / 6.0
-      when g then h = ((b - r) / d + 2) / 6.0
-      when b then h = ((r - g) / d + 4) / 6.0
+      when r then h = (((g - b) / d) + (g < b ? 6 : 0)) / 6.0
+      when g then h = (((b - r) / d) + 2) / 6.0
+      when b then h = (((r - g) / d) + 4) / 6.0
       end
     end
 
@@ -211,28 +211,28 @@ class BrandSetting < ApplicationRecord
     h = (h + 0.5) % 1.0
 
     # HSL to RGB
-    if s == 0
+    if s.zero?
       r = g = b = l
     else
-      q = l < 0.5 ? l * (1 + s) : l + s - l * s
-      p = 2 * l - q
-      r = hue_to_rgb(p, q, h + 1.0 / 3.0)
+      q = l < 0.5 ? (l * (1 + s)) : (l + s - (l * s))
+      p = (2 * l) - q
+      r = hue_to_rgb(p, q, h + (1.0 / 3.0))
       g = hue_to_rgb(p, q, h)
-      b = hue_to_rgb(p, q, h - 1.0 / 3.0)
+      b = hue_to_rgb(p, q, h - (1.0 / 3.0))
     end
 
     # RGB to hex
-    format('#%02x%02x%02x', (r * 255).round, (g * 255).round, (b * 255).round)
+    format('#%<r>02x%<g>02x%<b>02x', r: (r * 255).round, g: (g * 255).round, b: (b * 255).round)
   end
 
-  def self.hue_to_rgb(p, q, t)
-    t += 1 if t < 0
-    t -= 1 if t > 1
-    return p + (q - p) * 6 * t if t < 1.0 / 6.0
-    return q if t < 1.0 / 2.0
-    return p + (q - p) * (2.0 / 3.0 - t) * 6 if t < 2.0 / 3.0
+  def self.hue_to_rgb(p_val, q_val, t_val)
+    t_val += 1 if t_val.negative?
+    t_val -= 1 if t_val > 1
+    return p_val + ((q_val - p_val) * 6 * t_val) if t_val < (1.0 / 6.0)
+    return q_val if t_val < (1.0 / 2.0)
+    return p_val + ((q_val - p_val) * ((2.0 / 3.0) - t_val) * 6) if t_val < (2.0 / 3.0)
 
-    p
+    p_val
   end
 
   # Instance methods
@@ -306,6 +306,7 @@ class BrandSetting < ApplicationRecord
 
   # Adjust a color to meet WCAG AA contrast requirements (4.5:1)
   # Returns the adjusted color or the original if it already passes
+  # rubocop:disable Metrics/CyclomaticComplexity
   def self.adjust_color_for_wcag(hex_color, min_contrast: 4.5)
     return hex_color unless hex_color.present? && hex_color.match?(HEX_COLOR_REGEX)
 
@@ -328,11 +329,11 @@ class BrandSetting < ApplicationRecord
 
     if max != min
       d = max - min
-      s = l > 0.5 ? d / (2.0 - max - min) : d / (max + min)
+      s = l > 0.5 ? (d / (2.0 - max - min)) : (d / (max + min))
       case max
-      when r then h = ((g - b) / d + (g < b ? 6 : 0)) / 6.0
-      when g then h = ((b - r) / d + 2) / 6.0
-      when b then h = ((r - g) / d + 4) / 6.0
+      when r then h = (((g - b) / d) + (g < b ? 6 : 0)) / 6.0
+      when g then h = (((b - r) / d) + 2) / 6.0
+      when b then h = (((r - g) / d) + 4) / 6.0
       end
     end
 
@@ -359,20 +360,21 @@ class BrandSetting < ApplicationRecord
 
     best_color
   end
+  # rubocop:enable Metrics/CyclomaticComplexity
 
   # Convert HSL to hex (class method for color adjustment)
-  def self.hsl_to_hex(h, s, l)
-    if s == 0
-      r = g = b = l
+  def self.hsl_to_hex(hue, sat, lightness)
+    if sat.zero?
+      r = g = b = lightness
     else
-      q = l < 0.5 ? l * (1 + s) : l + s - l * s
-      p = 2 * l - q
-      r = hue_to_rgb(p, q, h + 1.0 / 3.0)
-      g = hue_to_rgb(p, q, h)
-      b = hue_to_rgb(p, q, h - 1.0 / 3.0)
+      q = lightness < 0.5 ? (lightness * (1 + sat)) : (lightness + sat - (lightness * sat))
+      p = (2 * lightness) - q
+      r = hue_to_rgb(p, q, hue + (1.0 / 3.0))
+      g = hue_to_rgb(p, q, hue)
+      b = hue_to_rgb(p, q, hue - (1.0 / 3.0))
     end
 
-    format('#%02x%02x%02x', (r * 255).round, (g * 255).round, (b * 255).round)
+    format('#%<r>02x%<g>02x%<b>02x', r: (r * 255).round, g: (g * 255).round, b: (b * 255).round)
   end
 
   def global_scope?
@@ -419,7 +421,7 @@ class BrandSetting < ApplicationRecord
   # Generate CSS custom properties for theme injection
   # Sets both the standard variables AND the numbered variants used by frontend CSS
   # Also generates RGB format variables for Tailwind opacity modifier support
-  def to_css_variables
+  def to_css_variables # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     colors = theme_colors
     defaults = predefined_theme_colors
 
@@ -519,14 +521,18 @@ class BrandSetting < ApplicationRecord
     hex1 = hex1.gsub('#', '')
     hex2 = hex2.gsub('#', '')
 
-    r1, g1, b1 = hex1[0..1].to_i(16), hex1[2..3].to_i(16), hex1[4..5].to_i(16)
-    r2, g2, b2 = hex2[0..1].to_i(16), hex2[2..3].to_i(16), hex2[4..5].to_i(16)
+    r1 = hex1[0..1].to_i(16)
+    g1 = hex1[2..3].to_i(16)
+    b1 = hex1[4..5].to_i(16)
+    r2 = hex2[0..1].to_i(16)
+    g2 = hex2[2..3].to_i(16)
+    b2 = hex2[4..5].to_i(16)
 
-    r = (r1 + (r2 - r1) * ratio).round
-    g = (g1 + (g2 - g1) * ratio).round
-    b = (b1 + (b2 - b1) * ratio).round
+    r = (r1 + ((r2 - r1) * ratio)).round
+    g = (g1 + ((g2 - g1) * ratio)).round
+    b = (b1 + ((b2 - b1) * ratio)).round
 
-    format('#%02x%02x%02x', r, g, b)
+    format('#%<r>02x%<g>02x%<b>02x', r: r, g: g, b: b)
   end
 
   # Generate complete style tag for layout injection
