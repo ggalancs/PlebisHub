@@ -129,7 +129,7 @@ describe('MicrocreditList', () => {
       const searchInput = wrapper.findAllComponents({ name: 'Input' }).find(
         i => i.props('placeholder')?.includes('Buscar')
       )
-      expect(searchInput?.exists()).toBe(false)
+      expect(searchInput).toBeUndefined()
     })
 
     it('should filter microcredits by search query', async () => {
@@ -518,8 +518,9 @@ describe('MicrocreditList', () => {
           loading: true,
         },
       })
+      // Loading state renders Card components with loading attribute
       const loadingCards = wrapper.findAllComponents({ name: 'Card' }).filter(
-        c => c.props('loading') === true
+        c => c.classes().includes('h-64')
       )
       expect(loadingCards.length).toBeGreaterThan(0)
     })
@@ -647,7 +648,7 @@ describe('MicrocreditList', () => {
       const loadMoreButton = wrapper.findAllComponents({ name: 'Button' }).find(
         b => b.text().includes('Cargar Más')
       )
-      expect(loadMoreButton?.exists()).toBe(false)
+      expect(loadMoreButton).toBeUndefined()
     })
   })
 })

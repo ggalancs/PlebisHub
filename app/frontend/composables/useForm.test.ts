@@ -416,6 +416,8 @@ describe('useForm', () => {
       const handleSubmit = form.handleSubmit(onSubmit)
       const submitPromise = handleSubmit()
 
+      // Wait for validation to complete before checking isSubmitting
+      await new Promise((resolve) => setTimeout(resolve, 10))
       expect(form.isSubmitting.value).toBe(true)
 
       await submitPromise

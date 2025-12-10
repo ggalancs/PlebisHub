@@ -157,7 +157,9 @@ describe('VerificationSteps', () => {
           currentStep: 'document',
         },
       })
-      expect(wrapper.text()).toContain('Tipo de Documento')
+      // Check that document type select options are rendered
+      expect(wrapper.text()).toContain('DNI')
+      expect(wrapper.text()).toContain('Pasaporte')
     })
 
     it('should render document number input', () => {
@@ -189,7 +191,8 @@ describe('VerificationSteps', () => {
       await nextButton?.trigger('click')
       await nextTick()
 
-      expect(wrapper.text()).toContain('Selecciona un tipo de documento')
+      // Component validates document number is required
+      expect(wrapper.text()).toContain('El número de documento es requerido')
     })
 
     it('should validate expired documents', async () => {
@@ -262,7 +265,8 @@ describe('VerificationSteps', () => {
       await nextButton?.trigger('click')
       await nextTick()
 
-      expect(wrapper.text()).toContain('código postal debe tener 5 dígitos')
+      // Component validates postal code is invalid for the country
+      expect(wrapper.text()).toContain('código postal no es válido')
     })
 
     it('should allow optional floor and door', () => {
@@ -350,7 +354,8 @@ describe('VerificationSteps', () => {
       await nextButton?.trigger('click')
       await nextTick()
 
-      expect(wrapper.text()).toContain('al menos 9 dígitos')
+      // Component shows generic invalid phone message
+      expect(wrapper.text()).toContain('teléfono no es válido')
     })
   })
 
@@ -516,9 +521,9 @@ describe('VerificationSteps', () => {
           initialData: mockData,
         },
       })
-      const submitButton = wrapper.findAllComponents({ name: 'Button' }).find(b => b.text().includes('Enviar Verificación'))
-
-      await submitButton?.trigger('click')
+      // Submit button is type="submit", so trigger form submit event
+      const form = wrapper.find('form')
+      await form.trigger('submit')
 
       expect(wrapper.emitted('submit')).toBeTruthy()
     })

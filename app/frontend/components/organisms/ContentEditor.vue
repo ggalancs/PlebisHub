@@ -181,11 +181,11 @@ const renderMarkdown = (text: string): string => {
   // Italic
   html = html.replace(/_(.+?)_/g, '<em>$1</em>')
 
+  // Images (must be before links since image syntax contains link-like syntax)
+  html = html.replace(/!\[(.+?)\]\((.+?)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded my-2" />')
+
   // Links
   html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-primary hover:underline">$1</a>')
-
-  // Images
-  html = html.replace(/!\[(.+?)\]\((.+?)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded my-2" />')
 
   // Code inline
   html = html.replace(/`(.+?)`/g, '<code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">$1</code>')

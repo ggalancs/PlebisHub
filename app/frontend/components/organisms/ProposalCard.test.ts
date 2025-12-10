@@ -104,10 +104,13 @@ describe('ProposalCard', () => {
         props: {
           proposal: mockProposal,
           showSupportButton: true,
+          isAuthenticated: true,
         },
       })
 
-      expect(wrapper.find('button').text()).toContain('Apoyar propuesta')
+      const buttons = wrapper.findAll('button')
+      const supportButton = buttons.find((b) => b.text().includes('Apoyar'))
+      expect(supportButton?.text()).toContain('Apoyar propuesta')
     })
 
     it('should not render support button when showSupportButton is false', () => {
@@ -127,10 +130,13 @@ describe('ProposalCard', () => {
         props: {
           proposal,
           showSupportButton: true,
+          isAuthenticated: true,
         },
       })
 
-      expect(wrapper.find('button').text()).toContain('Apoyada')
+      const buttons = wrapper.findAll('button')
+      const supportButton = buttons.find((b) => b.text().includes('Apoyada'))
+      expect(supportButton?.text()).toContain('Apoyada')
     })
 
     it('should be disabled when not authenticated', () => {
@@ -142,8 +148,8 @@ describe('ProposalCard', () => {
         },
       })
 
-      const button = wrapper.find('button')
-      expect(button.attributes('disabled')).toBeDefined()
+      // When not authenticated, the button is not shown - only a span with message
+      expect(wrapper.text()).toContain('Inicia sesión para apoyar')
     })
 
     it('should be enabled when authenticated', () => {
@@ -192,6 +198,7 @@ describe('ProposalCard', () => {
           proposal: mockProposal,
           showSupportButton: true,
           loadingSupport: true,
+          isAuthenticated: true,
         },
       })
 
@@ -347,7 +354,7 @@ describe('ProposalCard', () => {
       })
 
       const progressBar = wrapper.findComponent({ name: 'ProgressBar' })
-      expect(progressBar.props('color')).toBe('success')
+      expect(progressBar.props('variant')).toBe('success')
     })
 
     it('should use primary color when threshold not reached', () => {
@@ -356,7 +363,7 @@ describe('ProposalCard', () => {
       })
 
       const progressBar = wrapper.findComponent({ name: 'ProgressBar' })
-      expect(progressBar.props('color')).toBe('primary')
+      expect(progressBar.props('variant')).toBe('primary')
     })
   })
 

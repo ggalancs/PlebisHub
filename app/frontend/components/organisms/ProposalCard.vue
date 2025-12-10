@@ -154,7 +154,7 @@ const truncatedDescription = computed(() => {
         </div>
         <ProgressBar
           :value="supportProgress"
-          :color="proposal.redditThreshold ? 'success' : 'primary'"
+          :variant="proposal.redditThreshold ? 'success' : 'primary'"
           size="sm"
         />
       </div>
@@ -210,10 +210,10 @@ const truncatedDescription = computed(() => {
       </Button>
 
       <Button
-        v-if="showSupportButton && !proposal.finished && !proposal.discarded"
+        v-if="showSupportButton && isAuthenticated && !proposal.finished && !proposal.discarded"
         :variant="proposal.supported ? 'secondary' : 'primary'"
         size="sm"
-        :disabled="!isAuthenticated || proposal.supported || loadingSupport"
+        :disabled="proposal.supported || loadingSupport"
         :loading="loadingSupport"
         @click="handleSupport"
       >
@@ -237,7 +237,7 @@ const truncatedDescription = computed(() => {
       </Button>
 
       <span
-        v-else-if="!isAuthenticated && showSupportButton"
+        v-else-if="!isAuthenticated && showSupportButton && !proposal.finished && !proposal.discarded"
         class="text-sm text-gray-500 dark:text-gray-400"
       >
         Inicia sesión para apoyar
