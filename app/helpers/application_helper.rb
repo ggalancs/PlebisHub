@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ApplicationHelper
+module ApplicationHelper # rubocop:disable Metrics/ModuleLength
   # Rails 7.2 FIX: semantic_form_with doesn't exist in formtastic gem
   # This method provides compatibility by delegating to semantic_form_for
   # which is the correct formtastic helper method
@@ -101,7 +101,7 @@ module ApplicationHelper
     return false unless defined?(ViteRuby)
 
     # Check if the Vite manifest exists
-    manifest_path = Rails.root.join('public', ViteRuby.config.public_output_dir, '.vite', 'manifest.json')
+    manifest_path = Rails.public_path.join(ViteRuby.config.public_output_dir, '.vite', 'manifest.json')
     File.exist?(manifest_path)
   rescue StandardError
     false
@@ -133,7 +133,7 @@ module ApplicationHelper
   def component_styles(*components)
     components.map do |component|
       stylesheet_link_tag("components/#{component}", media: 'all')
-    end.join.html_safe
+    end.join.html_safe # rubocop:disable Rails/OutputSafety
   end
 
   # SVG icon helper (for Lucide icons or custom SVGs)

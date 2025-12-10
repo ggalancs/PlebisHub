@@ -324,7 +324,11 @@ ActiveAdmin.register BrandSetting do
 
       # Calculate initial complementary color for display
       primary_hex = f.object.primary_color.presence || colors[:primary] || '#612d62'
-      complementary_hex = BrandSetting.complementary_color(primary_hex) rescue '#269283'
+      complementary_hex = begin
+        BrandSetting.complementary_color(primary_hex)
+      rescue StandardError
+        '#269283'
+      end
 
       # Primary color with both picker and text input for instant feedback
       text_node %(<div class="input string required" id="brand_setting_primary_color_input">

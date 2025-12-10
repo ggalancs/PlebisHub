@@ -4,7 +4,7 @@ module ActiveAdmin
   module Views
     class Footer < Component
       # ActiveAdmin 3.x: Accept optional argument from ActiveAdmin framework
-      def build(*args)
+      def build(*)
         super(id: 'footer', style: 'text-align: right;')
 
         within(self) do

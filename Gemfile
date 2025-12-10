@@ -14,8 +14,8 @@ gem 'sdoc', '>= 2.0', group: :doc # Ruby 3.3 / json 2.x compatible
 gem 'spring', group: :development
 gem 'sprockets-rails' # Legacy assets (will be phased out)
 gem 'sqlite3', '~> 1.4'
-gem 'vite_rails', '~> 3.0' # Modern frontend with Vite + Vue 3
 gem 'coffee-rails' # Required by Sprockets processor (even without .coffee files)
+gem 'vite_rails', '~> 3.0' # Modern frontend with Vite + Vue 3
 # REMOVED: turbolinks (replaced by Vue Router / native navigation)
 # REMOVED: uglifier (Vite handles JS minification)
 # therubyracer removed - deprecated and crashes on Ruby 3.x

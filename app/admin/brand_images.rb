@@ -358,9 +358,7 @@ ActiveAdmin.register BrandImage do
     duplicated.active = false
 
     # Duplicate the image attachment if present
-    if original.image.attached?
-      duplicated.image.attach(original.image.blob)
-    end
+    duplicated.image.attach(original.image.blob) if original.image.attached?
 
     if duplicated.save
       redirect_to admin_brand_image_path(duplicated),
@@ -406,7 +404,6 @@ ActiveAdmin.register BrandImage do
     batch_action_collection.find(ids).each { |bi| bi.update(active: false) }
     redirect_to collection_path, notice: "#{ids.count} images deactivated!"
   end
-
 end
 
 # Helper method for category tag styling

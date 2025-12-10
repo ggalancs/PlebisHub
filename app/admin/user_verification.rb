@@ -234,7 +234,7 @@ ActiveAdmin.register UserVerification do
     degrees = params[:degrees].to_i
     # Store rotation value (used by variant transformation)
     verification.rotate[attachment] = degrees
-    # Note: In ActiveStorage, rotation is applied at variant generation time,
+    # NOTE: In ActiveStorage, rotation is applied at variant generation time,
     # so we don't need to reprocess - the variant will be generated with rotation on next access
     redirect_back_or_to(admin_user_verifications_path)
   end
