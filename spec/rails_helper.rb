@@ -1,14 +1,27 @@
 # frozen_string_literal: true
 
-# Suppress Rack deprecation warning for :unprocessable_entity status code
-# This warning comes from Devise 4.9.4's failure_app.rb and will be fixed in a future Devise version
-# See: https://github.com/heartcombo/devise/issues/5648
+# Suppress Ruby 3.4 warnings from third-party gems
+# These are compatibility issues that gem maintainers need to fix
+# Suppressing to keep CI output clean until gems are updated
 module Warning
+  # Patterns for warnings to suppress (from vendor/bundle gems)
+  SUPPRESSED_PATTERNS = [
+    'unprocessable_entity is deprecated',     # Devise/Rack
+    'method redefined',                        # execjs, sassc-rails, activeadmin, arbre, cancancan, ransack
+    'previous definition of',                  # Related to method redefined
+    'ambiguous `*`',                          # activeadmin
+    'ambiguous `&`',                          # activeadmin
+    'ambiguous `/`',                          # activeadmin
+    'assigned but unused variable'            # ransack
+  ].freeze
+
   class << self
     alias_method :original_warn, :warn
 
     def warn(message, *args)
-      return if message.include?('unprocessable_entity is deprecated')
+      # Suppress warnings from vendor gems matching known patterns
+      return if message.include?('/vendor/bundle/') &&
+                SUPPRESSED_PATTERNS.any? { |pattern| message.include?(pattern) }
 
       original_warn(message, *args)
     end
