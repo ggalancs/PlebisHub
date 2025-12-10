@@ -588,7 +588,7 @@ class BrandSetting < ApplicationRecord
       self.primary_color = adjusted if adjusted != primary_color
     end
 
-    return unless secondary_color.present?
+    return if secondary_color.blank?
 
     adjusted = self.class.adjust_color_for_wcag(secondary_color)
     self.secondary_color = adjusted if adjusted != secondary_color
