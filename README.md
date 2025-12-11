@@ -1,5 +1,7 @@
 # PlebisHub
 
+[![CI](https://github.com/ggalancs/PlebisHub/actions/workflows/ci.yml/badge.svg)](https://github.com/ggalancs/PlebisHub/actions/workflows/ci.yml)
+
 **PlebisHub** es una plataforma modular de participación ciudadana que nació como un fork de la aplicación "Participa" de Podemos, pero que pretende evolucionar hacia una solución completamente independiente, modular y adaptable a diferentes organizaciones y necesidades.
 
 ## Capturas de Pantalla
@@ -31,9 +33,9 @@ El objetivo de esta aplicación es ofrecer el siguiente conjunto de herramientas
 
 ### Elecciones
 
-Permite integrado un censo con Agora Voting: *Agora Voting es un software libre de votaciones que permite a cualquier organización realizar procesos electorales de forma segura, flexible, transparente y a un precio competitivo*. Permite que las elecciones se realicen en función a la localización del inscrito.
+Permite integrado un censo con Agora Voting: _Agora Voting es un software libre de votaciones que permite a cualquier organización realizar procesos electorales de forma segura, flexible, transparente y a un precio competitivo_. Permite que las elecciones se realicen en función a la localización del inscrito.
 
-* https://agoravoting.com/
+- https://agoravoting.com/
 
 ### Colaboraciones económicas
 
@@ -63,13 +65,13 @@ Sistema de publicación de noticias.
 
 Sincronización de usuarios entre sistemas para los distintos casos que puede haber de falta de sincronía entre las bases de datos, es decir, si un usuario se quiere dar de baja sólo de la newsletter o si quiere darse de baja completamente como usuario.
 
-* https://sendy.co/
+- https://sendy.co/
 
 ### Formularios y páginas estáticas
 
 Sistema de integración con formularios basados en Wordpress (con el plugin Gravity Forms).
 
-* http://www.gravityforms.com/
+- http://www.gravityforms.com/
 
 ### Notificaciones móviles
 
@@ -94,12 +96,14 @@ La forma más fácil de instalar PlebisHub es usando Docker. Solo necesitas tene
 ```
 
 Esto automáticamente:
+
 - Crea la configuración con secretos seguros generados
 - Construye las imágenes Docker
 - Inicia PostgreSQL, Redis y la aplicación Rails
 - Configura la base de datos
 
 **Accesos después de la instalación:**
+
 - 🌐 Aplicación Web: http://localhost:3000
 - 👤 Panel de Admin: http://localhost:3000/admin
 - 💚 Health Check: http://localhost:3000/health
@@ -150,22 +154,24 @@ rake test
 
 ## APIs externas
 
-* Para las votaciones de los usuarios usamos [Agora Voting](https://agoravoting.com/). La configuración del secreto compartido se encuentra en una clave de `secrets.yml`. Documentación: [Sobre la integración](https://github.com/agoravoting/agora-core-view/blob/master/INTEGRATION.md), [Sobre la API REST general de AgoraVoting](https://agora-ciudadana.readthedocs.org/).
+- Para las votaciones de los usuarios usamos [Agora Voting](https://agoravoting.com/). La configuración del secreto compartido se encuentra en una clave de `secrets.yml`. Documentación: [Sobre la integración](https://github.com/agoravoting/agora-core-view/blob/master/INTEGRATION.md), [Sobre la API REST general de AgoraVoting](https://agora-ciudadana.readthedocs.org/).
 
-* Para el envío de SMS usamos [esendex](http://esendex.es/). Puede comprobarse con el comando `rake esendex:validate[username,password,account_reference]`. La configuración de la autenticación se encuentra en unas claves de `secrets.yml`.
+- Para el envío de SMS usamos [esendex](http://esendex.es/). Puede comprobarse con el comando `rake esendex:validate[username,password,account_reference]`. La configuración de la autenticación se encuentra en unas claves de `secrets.yml`.
 
-* Para el control de excepciones en staging y production usamos una instancia privada de [errbit](https://github.com/errbit/errbit), una aplicación libre basada en la API de [airbrake](https://airbrake.io/). Puede comprobarse la conexión con el servidor con el comando `rake airbrake:test`. La configuración de la autenticación se encuentra en unas claves de `secrets.yml`.
+- Para el control de excepciones en staging y production usamos una instancia privada de [errbit](https://github.com/errbit/errbit), una aplicación libre basada en la API de [airbrake](https://airbrake.io/). Puede comprobarse la conexión con el servidor con el comando `rake airbrake:test`. La configuración de la autenticación se encuentra en unas claves de `secrets.yml`.
 
-* Para la gestión de las colas de trabajo utilizamos [resque](https://github.com/resque/resque/), que usa como DDBB redis. Un comando útil para desarrollo es el de iniciar un worker: `rake resque:work`
+- Para la gestión de las colas de trabajo utilizamos [resque](https://github.com/resque/resque/), que usa como DDBB redis. Un comando útil para desarrollo es el de iniciar un worker: `rake resque:work`
 
-* En desarrollo, para comprobar el envío de correos, utilizamos [mailcatcher](http://mailcatcher.me/), una gema que levanta un servidor SMTP en el puerto 1025 y una interfaz web para ver los correos que se envían en el puerto 1080.
+- En desarrollo, para comprobar el envío de correos, utilizamos [mailcatcher](http://mailcatcher.me/), una gema que levanta un servidor SMTP en el puerto 1025 y una interfaz web para ver los correos que se envían en el puerto 1080.
 
   **Instalación** (se instala separadamente del proyecto para evitar conflictos de dependencias):
+
   ```bash
   gem install mailcatcher
   ```
 
   **Uso**:
+
   ```bash
   mailcatcher
   ```
@@ -174,7 +180,7 @@ rake test
 
   > **Nota**: Mailcatcher se instala como gema del sistema, no en el Gemfile de la aplicación, ya que sus dependencias (sinatra) podrían conflictuar con las del proyecto
 
-* Para el envío de correo en producción usamos [Amazon SES](http://aws.amazon.com/es/ses/). La configuración va en `config/secrets.yml`.
+- Para el envío de correo en producción usamos [Amazon SES](http://aws.amazon.com/es/ses/). La configuración va en `config/secrets.yml`.
 
 ## Dependencias
 
@@ -206,9 +212,10 @@ Ver ejemplos en `config/databases.yml.example` y `config/secrets.yml.example`.
 
 Para modificar los distintos idiomas, revisar los ficheros de `config/locales/`
 Para agregar uno nuevo se deben seguir los siguientes pasos:
-* Agregarlo en la línea de 'scope locale' en `config/routes`
-* Agregarlo en la UI de cambio de idiomas del footer en `app/views/layouts/application.html.erb`
-* Agregarlo en la configuración para idiomas válidos en `config/application.rb`
+
+- Agregarlo en la línea de 'scope locale' en `config/routes`
+- Agregarlo en la UI de cambio de idiomas del footer en `app/views/layouts/application.html.erb`
+- Agregarlo en la configuración para idiomas válidos en `config/application.rb`
 
 ## Colaboraciones económicas
 
