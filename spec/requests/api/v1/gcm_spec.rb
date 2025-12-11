@@ -88,11 +88,11 @@ RSpec.describe 'Api::V1 GCM/FCM Push Notification', type: :request do
 
     describe 'C. SUCCESSFUL REGISTRATION' do
       it 'creates a new registration' do
-        expect {
+        expect do
           post '/api/v1/gcm_register',
                params: { v1: { registration_id: valid_registration_id } },
                headers: headers
-        }.to change(NoticeRegistrar, :count).by(1)
+        end.to change(NoticeRegistrar, :count).by(1)
       end
 
       it 'returns registration details' do
@@ -166,11 +166,11 @@ RSpec.describe 'Api::V1 GCM/FCM Push Notification', type: :request do
 
     describe 'C. SUCCESSFUL UNREGISTRATION' do
       it 'deletes the registration' do
-        expect {
+        expect do
           delete '/api/v1/gcm_unregister',
                  params: { v1: { registration_id: valid_registration_id } },
                  headers: headers
-        }.to change(NoticeRegistrar, :count).by(-1)
+        end.to change(NoticeRegistrar, :count).by(-1)
       end
 
       it 'returns success message' do

@@ -75,7 +75,7 @@ RSpec.describe UrlSignatureService do
 
     it 'uses current timestamp' do
       freeze_time = Time.now.to_i
-      allow(Time).to receive(:now).and_return(Time.at(freeze_time))
+      allow(Time).to receive(:now).and_return(Time.zone.at(freeze_time))
 
       result = subject.sign_url(url)
       expect(result).to include("timestamp=#{freeze_time}")
@@ -91,7 +91,7 @@ RSpec.describe UrlSignatureService do
 
     it 'generates consistent signatures for same inputs' do
       freeze_time = Time.now.to_i
-      allow(Time).to receive(:now).and_return(Time.at(freeze_time))
+      allow(Time).to receive(:now).and_return(Time.zone.at(freeze_time))
 
       result1 = subject.sign_url(url)
       result2 = subject.sign_url(url)
@@ -100,7 +100,7 @@ RSpec.describe UrlSignatureService do
 
     it 'generates different signatures for different URLs' do
       freeze_time = Time.now.to_i
-      allow(Time).to receive(:now).and_return(Time.at(freeze_time))
+      allow(Time).to receive(:now).and_return(Time.zone.at(freeze_time))
 
       result1 = subject.sign_url(url)
       result2 = subject.sign_url('https://example.com/different')
@@ -112,7 +112,7 @@ RSpec.describe UrlSignatureService do
 
     it 'generates different signatures with different secrets' do
       freeze_time = Time.now.to_i
-      allow(Time).to receive(:now).and_return(Time.at(freeze_time))
+      allow(Time).to receive(:now).and_return(Time.zone.at(freeze_time))
 
       service1 = described_class.new('secret1')
       service2 = described_class.new('secret2')
@@ -127,16 +127,16 @@ RSpec.describe UrlSignatureService do
   end
 
   describe '#verify_signed_url' do
-    # Note: sign_url and verify_signed_url use DIFFERENT signature formats
+    # NOTE: sign_url and verify_signed_url use DIFFERENT signature formats
     # sign_url uses 21-byte truncation, verify_signed_url uses 28-char truncation
     # Tests must construct signatures manually for verification
 
     let(:timestamp) { Time.now.to_i.to_s }
     let(:canonical_url) { 'https://example.com/page' }
 
-    def generate_verification_signature(ts, data)
+    def generate_verification_signature(time_val, data)
       Base64.urlsafe_encode64(
-        OpenSSL::HMAC.digest('SHA256', secret_key, "#{ts}::#{data}")
+        OpenSSL::HMAC.digest('SHA256', secret_key, "#{time_val}::#{data}")
       )[0..27]
     end
 
@@ -205,9 +205,9 @@ RSpec.describe UrlSignatureService do
       allow(Rails.application.secrets).to receive(:host).and_return(host)
     end
 
-    def generate_verification_signature(ts, data)
+    def generate_verification_signature(time_val, data)
       Base64.urlsafe_encode64(
-        OpenSSL::HMAC.digest('SHA256', secret_key, "#{ts}::#{data}")
+        OpenSSL::HMAC.digest('SHA256', secret_key, "#{time_val}::#{data}")
       )[0..27]
     end
 

@@ -74,11 +74,11 @@ RSpec.describe 'Militant API', type: :request do
       end
 
       it 'returns not found for non-existent user' do
-        get base_path, params: { participa_user_id: 999999 }
+        get base_path, params: { participa_user_id: 999_999 }
         expect(response).to have_http_status(:not_found)
         json = response.parsed_body
         expect(json['error']).to eq('User not found')
-        expect(json['user_id']).to eq(999999)
+        expect(json['user_id']).to eq(999_999)
       end
 
       it 'finds existing user' do

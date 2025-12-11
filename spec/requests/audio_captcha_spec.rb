@@ -37,7 +37,7 @@ RSpec.describe 'AudioCaptcha', type: :request do
 
         # Create tmp directory and mock file
         FileUtils.mkdir_p(Rails.root.join('tmp/audios'))
-        File.write(Rails.root.join('tmp/audios', "#{captcha_key}.mp3"), 'mock audio content')
+        Rails.root.join('tmp/audios', "#{captcha_key}.mp3").write('mock audio content')
       end
 
       after do

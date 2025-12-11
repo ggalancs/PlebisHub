@@ -86,7 +86,7 @@ RSpec.describe 'Registrations', type: :request do
 
   describe 'POST /es/users' do
     describe 'A. VALIDATION ERRORS' do
-      # Note: Devise re-renders the form on validation errors (returns 200 OK)
+      # NOTE: Devise re-renders the form on validation errors (returns 200 OK)
       # rather than returning 422. We check that the form is re-rendered with errors.
       it 'rejects empty submission and re-renders form' do
         post '/es/users', params: { user: { email: '', password: '' } }
@@ -301,7 +301,7 @@ RSpec.describe 'Registrations', type: :request do
       it 'rejects invalid vote_circle_id' do
         put '/es/users', params: {
           user: {
-            vote_circle_id: 999999,
+            vote_circle_id: 999_999,
             current_password: 'Password123!'
           }
         }
