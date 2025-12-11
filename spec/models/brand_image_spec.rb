@@ -211,16 +211,16 @@ RSpec.describe BrandImage, type: :model do
     let(:brand_setting) { create(:brand_setting) }
 
     it 'creates entries for all IMAGE_DEFINITIONS' do
-      expect {
+      expect do
         BrandImage.create_defaults_for(brand_setting: brand_setting)
-      }.to change(BrandImage, :count).by(BrandImage::IMAGE_DEFINITIONS.count)
+      end.to change(BrandImage, :count).by(BrandImage::IMAGE_DEFINITIONS.count)
     end
 
     it 'does not duplicate on second call' do
       BrandImage.create_defaults_for(brand_setting: brand_setting)
-      expect {
+      expect do
         BrandImage.create_defaults_for(brand_setting: brand_setting)
-      }.not_to change(BrandImage, :count)
+      end.not_to change(BrandImage, :count)
     end
 
     it 'sets correct attributes from definition' do

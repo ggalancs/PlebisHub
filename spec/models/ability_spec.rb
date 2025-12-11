@@ -131,21 +131,29 @@ RSpec.describe Ability do
   describe 'Finances admin user' do
     let(:user) { create(:user, :with_dni, finances_admin: true) }
 
-    it 'can manage collaborations' do
-      expect(ability).to be_able_to(:manage, Collaboration)
-    end if defined?(Collaboration)
+    if defined?(Collaboration)
+      it 'can manage collaborations' do
+        expect(ability).to be_able_to(:manage, Collaboration)
+      end
+    end
 
-    it 'can manage orders' do
-      expect(ability).to be_able_to(:manage, Order)
-    end if defined?(Order)
+    if defined?(Order)
+      it 'can manage orders' do
+        expect(ability).to be_able_to(:manage, Order)
+      end
+    end
 
-    it 'cannot destroy orders' do
-      expect(ability).not_to be_able_to(:destroy, Order)
-    end if defined?(Order)
+    if defined?(Order)
+      it 'cannot destroy orders' do
+        expect(ability).not_to be_able_to(:destroy, Order)
+      end
+    end
 
-    it 'cannot destroy collaborations' do
-      expect(ability).not_to be_able_to(:destroy, Collaboration)
-    end if defined?(Collaboration)
+    if defined?(Collaboration)
+      it 'cannot destroy collaborations' do
+        expect(ability).not_to be_able_to(:destroy, Collaboration)
+      end
+    end
 
     it 'can read users' do
       expect(ability).to be_able_to(:read, User)
@@ -224,13 +232,17 @@ RSpec.describe Ability do
     describe 'for finances admin' do
       let(:user) { create(:user, :with_dni, finances_admin: true) }
 
-      it 'cannot destroy orders (financial records must be preserved)' do
-        expect(ability).not_to be_able_to(:destroy, Order)
-      end if defined?(Order)
+      if defined?(Order)
+        it 'cannot destroy orders (financial records must be preserved)' do
+          expect(ability).not_to be_able_to(:destroy, Order)
+        end
+      end
 
-      it 'cannot destroy collaborations (financial records must be preserved)' do
-        expect(ability).not_to be_able_to(:destroy, Collaboration)
-      end if defined?(Collaboration)
+      if defined?(Collaboration)
+        it 'cannot destroy collaborations (financial records must be preserved)' do
+          expect(ability).not_to be_able_to(:destroy, Collaboration)
+        end
+      end
     end
   end
 

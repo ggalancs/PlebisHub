@@ -142,14 +142,16 @@ RSpec.describe BrandHelper, type: :helper do
 
   describe '#brand_color' do
     before do
-      allow(brand_setting).to receive(:theme_colors).and_return({
-        primary: '#FF0000',
-        primaryLight: '#FF5555',
-        primaryDark: '#AA0000',
-        secondary: '#00FF00',
-        secondaryLight: '#55FF55',
-        secondaryDark: '#00AA00'
-      })
+      allow(brand_setting).to receive(:theme_colors).and_return(
+        {
+          primary: '#FF0000',
+          primaryLight: '#FF5555',
+          primaryDark: '#AA0000',
+          secondary: '#00FF00',
+          secondaryLight: '#55FF55',
+          secondaryDark: '#00AA00'
+        }
+      )
     end
 
     it 'returns primary color by default' do
@@ -358,7 +360,7 @@ RSpec.describe BrandHelper, type: :helper do
     describe '#brand_cache_key' do
       it 'returns a cache key string' do
         key = helper.send(:brand_cache_key)
-        expect(key).to match(/^brand_setting\/active\//)
+        expect(key).to match(%r{^brand_setting/active/})
       end
 
       it 'defaults to global when no organization context' do
