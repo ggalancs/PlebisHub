@@ -19,8 +19,9 @@ Rails.application.config.action_controller.per_form_csrf_tokens = true
 # Enable origin-checking CSRF mitigation (modern default is true)
 Rails.application.config.action_controller.forgery_protection_origin_check = true
 
-# Preserve the timezone of the receiver when calling `to_time` (modern default is true)
-ActiveSupport.to_time_preserves_timezone = true
+# NOTE: `to_time_preserves_timezone` moved to config/application.rb. Framework
+# defaults have to be set before initialization; assigning them here is a no-op
+# because the Active Support railtie has already run.
 
 # Require `belongs_to` associations by default (modern default is true)
 # Set to false here for backward compatibility with existing data

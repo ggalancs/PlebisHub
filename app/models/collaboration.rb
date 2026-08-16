@@ -449,13 +449,13 @@ class Collaboration < ApplicationRecord
 
     col_user = get_user
     [format('%02d%02d%06d', date.year % 100, date.month, order.id % 1_000_000),
-     col_user.full_name.mb_chars.upcase.to_s, col_user.document_vatid.upcase, col_user.email,
-     col_user.address.mb_chars.upcase.to_s, col_user.town_name.mb_chars.upcase.to_s,
+     col_user.full_name.upcase, col_user.document_vatid.upcase, col_user.email,
+     col_user.address.upcase, col_user.town_name.upcase,
      col_user.postal_code, col_user.country.upcase,
      calculate_iban, ccc_full, calculate_bic,
      order.amount / 100, order.due_code, order.url_source, id,
      created_at.strftime('%d-%m-%Y'), order.reference, order.payable_at.strftime('%d-%m-%Y'),
-     frequency_name, col_user.full_name.mb_chars.upcase.to_s,
+     frequency_name, col_user.full_name.upcase,
      col_user.respond_to?(:still_militant?) ? col_user.still_militant? : false]
   end
 
