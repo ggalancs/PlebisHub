@@ -18,6 +18,9 @@ module PlebisCollaborations
     # Changed from :order to :orders to follow standard has_many naming
     # Where ordering is needed, use explicit .order(column: :direction) syntax
     has_many :orders, as: :parent, class_name: 'PlebisCollaborations::Order'
+    # Alias historico en singular: lo usan los mailers y el admin de la aplicacion.
+    # El codigo nuevo debe usar :orders.
+    has_many :order, as: :parent, class_name: 'PlebisCollaborations::Order'
 
     attr_accessor :skip_queries_validations
 
@@ -796,8 +799,10 @@ module PlebisCollaborations
 
     # Get available frequencies for user based on existing collaborations and parameters
     def self.available_frequencies_for_user(user, force_single: false, only_recurrent: false)
-      return FREQUENCIES.to_a.slice('Puntual') if force_single
-      return FREQUENCIES.to_a.except('Puntual') if user.recurrent_collaboration || only_recurrent
+      # slice/except son de Hash: invertir el orden con to_a rompia con
+      # TypeError y NoMethodError respectivamente.
+      return FREQUENCIES.slice('Puntual').to_a if force_single
+      return FREQUENCIES.except('Puntual').to_a if user.recurrent_collaboration || only_recurrent
 
       FREQUENCIES.to_a
     end

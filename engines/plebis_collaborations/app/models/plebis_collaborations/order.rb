@@ -34,6 +34,12 @@ module PlebisCollaborations
       PlebisCollaborations::Collaboration => 'C'
     }.freeze
 
+    # La aplicacion define Collaboration como subclase de la del engine, asi que
+    # parent.class no casa con la clave literal del hash. Se busca por ascendencia.
+    def self.parent_class_code(klass)
+      PARENT_CLASSES.find { |k, _| klass <= k }&.last
+    end
+
     REDSYS_SERVER_TIME_ZONE = ActiveSupport::TimeZone.new('Madrid')
 
     scope :created, -> { where(deleted_at: nil) }
@@ -283,7 +289,7 @@ module PlebisCollaborations
         elsif persisted?
           id.to_s.rjust(12, '0')
         else
-          parent.id.to_s.rjust(7, '0') + PARENT_CLASSES[parent.class] + Time.now.to_i.to_s(36)[-4..]
+          parent.id.to_s.rjust(7, '0') + self.class.parent_class_code(parent.class).to_s + Time.now.to_i.to_s(36)[-4..]
         end
     end
 
