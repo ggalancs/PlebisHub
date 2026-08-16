@@ -18,9 +18,6 @@ module PlebisCollaborations
     # Changed from :order to :orders to follow standard has_many naming
     # Where ordering is needed, use explicit .order(column: :direction) syntax
     has_many :orders, as: :parent, class_name: 'PlebisCollaborations::Order'
-    # Alias historico en singular: lo usan los mailers y el admin de la aplicacion.
-    # El codigo nuevo debe usar :orders.
-    has_many :order, as: :parent, class_name: 'PlebisCollaborations::Order'
 
     attr_accessor :skip_queries_validations
 
@@ -81,7 +78,7 @@ module PlebisCollaborations
     scope :non_user, -> { live.where(user_id: nil) }
     scope :deleted, -> { only_deleted }
 
-    scope :full_view, -> { with_deleted.eager_load(:order) }
+    scope :full_view, -> { with_deleted.eager_load(:orders) }
 
     scope :autonomy_cc, -> { live.where(for_autonomy_cc: true) }
     scope :town_cc, -> { live.where(for_town_cc: true) }
@@ -783,7 +780,7 @@ module PlebisCollaborations
     end
 
     def self.update_paid_unconfirmed_bank_collaborations(orders)
-      PlebisCollaborations::Collaboration.unconfirmed.joins(:order).merge(orders).update_all(status: 3)
+      PlebisCollaborations::Collaboration.unconfirmed.joins(:orders).merge(orders).update_all(status: 3)
     end
 
     def verify_user_militant_status

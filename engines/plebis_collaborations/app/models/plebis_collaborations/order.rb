@@ -15,7 +15,7 @@ module PlebisCollaborations
 
     belongs_to :parent, -> { with_deleted }, polymorphic: true
     belongs_to :collaboration, lambda {
-      with_deleted.joins(:order).where(orders: { parent_type: 'PlebisCollaborations::Collaboration' })
+      with_deleted.joins(:orders).where(orders: { parent_type: 'PlebisCollaborations::Collaboration' })
     }, foreign_key: 'parent_id', class_name: 'PlebisCollaborations::Collaboration'
     belongs_to :user, -> { with_deleted }, class_name: '::User'
 
