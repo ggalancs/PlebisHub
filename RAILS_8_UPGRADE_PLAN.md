@@ -1,9 +1,41 @@
 # Plan de Actualización a Rails 8 — PlebisHub
 
-**Fecha de análisis:** 2026-08-16
-**Origen:** Rails 7.2.3 / Ruby 3.4.4
-**Destino:** Rails 8.1.3.1 (última estable, publicada 2026-07-29), con hito intermedio en Rails 8.0.5.1
+> ## ⚠️ ESTADO: EJECUTADO — este documento es el plan original, conservado como referencia
+>
+> **El upgrade está hecho.** Lo que realmente ocurrió, con las desviaciones y las
+> hipótesis que resultaron falsas al medirlas, está en
+> **[RAILS_8_UPGRADE_LOG.md](RAILS_8_UPGRADE_LOG.md)** — ese es el documento vivo.
+>
+> Varias secciones de abajo quedaron **obsoletas o desmentidas** durante la ejecución.
+> Están marcadas con ❌. No las uses como referencia sin leer antes el registro.
+
+**Fecha del plan:** 2026-08-16 · **Ejecutado:** 2026-08-16
+**Origen:** Rails 7.2.3 / Ruby 3.4.4 → **Estado final: Rails 8.1.3.1 / Ruby 3.4.10**
+**Rama:** `rails-8-upgrade` · **Punto de retorno:** tag `pre-rails8-baseline`
 **Método:** guía oficial `https://guides.rubyonrails.org/upgrading_ruby_on_rails.html`, avance versión menor a versión menor (7.2 → 8.0 → 8.1), nunca en un solo salto.
+
+### Estado por fase
+
+| Fase | Estado | Nota |
+|---|---|---|
+| 0 — Prerequisitos | ✅ Hecho | La suite ya estaba verde: §1.3 era falso ❌ |
+| 1 — Preparación en 7.2 | ✅ Hecho | Solo se subieron las gems que bloqueaban |
+| 1b — Gems abandonadas | ⏭️ No ejecutado | Solo `cocoon` está sin uso; el resto es funcionalidad viva |
+| 2 — Rails 8.0 + `load_defaults 8.0` | ✅ Hecho | 10.522 ejemplos, 0 fallos |
+| 3 — Rails 8.1 + `load_defaults 8.1` | ✅ Hecho | 10.522 ejemplos, 0 fallos |
+| 4 — Limpieza de parches | 🔶 Parcial | Eager loading arreglado; `secrets` y ActionText siguen pendientes |
+| 5 — Infraestructura | 🔶 Parcial | Docker y CI actualizados; **sin desplegar** |
+| 6 — Verificación | ✅ Hecho | `zeitwerk:check`, brakeman, bundler-audit y rubocop en verde |
+
+### Añadido sobre el plan original
+
+| Trabajo | Estado |
+|---|---|
+| Ruby 3.4.4 → **3.4.10** (última estable) | ✅ Hecho |
+| **3 bugs de producción** destapados y corregidos | ✅ Hecho — §0 del registro |
+| Suites de los 9 engines: 447 → 228 fallos preexistentes | 🔶 En curso |
+| CI cubre ahora engines y `zeitwerk:check` | ✅ Hecho |
+| Fuentes de intermitencia de la suite (3) | ✅ Corregidas |
 
 ---
 
@@ -32,7 +64,18 @@
 - 9 engines locales (`engines/plebis_*`), todos con `spec.add_dependency 'rails', '~> 7.2.3'` — **pin restrictivo que bloquea el bundle update**
 - 309 ficheros de spec, ~3.735 ejemplos
 
-### 1.3 Salud de la suite de tests (baseline crítico)
+### 1.3 Salud de la suite de tests (baseline crítico) — ❌ FALSO
+
+> **Desmentido al medirlo.** Esta sección se apoyaba en `TEST_SUITE_STATUS.md`
+> (3-dic-2025), que estaba obsoleto. Al ejecutar la suite el 16-ago-2026:
+> **10.522 ejemplos, 0 fallos, 666 pending, 86,64 % de cobertura**. El
+> prerequisito bloqueante ya estaba cumplido.
+>
+> El plan tampoco contaba con las **suites de los 9 engines** (2.188 ejemplos),
+> que no forman parte de la suite raíz ni de CI y acumulaban **447 fallos**.
+> Ese era el verdadero agujero de cobertura.
+
+<details><summary>Texto original del plan (obsoleto)</summary>
 
 Según `TEST_SUITE_STATUS.md` (3-dic-2025):
 
@@ -42,7 +85,7 @@ Según `TEST_SUITE_STATUS.md` (3-dic-2025):
 | **Requests** | **1.133** | **240 (21%)** |
 | **Total** | **3.735** | **240 (6,4%)** |
 
-> La guía oficial es explícita: *"Before attempting to upgrade an existing application, you should be sure you have good test coverage"*. Con 240 request specs en rojo, la capa HTTP **no tiene red de seguridad**. Esto es el prerequisito nº1.
+</details>
 
 ### 1.4 Deuda técnica que condiciona el upgrade
 
@@ -73,6 +116,13 @@ Según `TEST_SUITE_STATUS.md` (3-dic-2025):
 
 **Conclusión del diagnóstico:** el código de aplicación está sorprendentemente limpio de APIs eliminadas. El riesgo real no está en el código propio sino en **(a) las gems del ecosistema, (b) los 240 tests rojos y (c) los parches de compatibilidad acumulados**.
 
+> **Revisión tras ejecutar.** El punto (a) resultó trivial: Rails 8.0 y 8.1 resolvieron
+> con solo tres cambios de gem. El (b) era falso (§1.3). El (c) acertó, pero se quedó
+> corto: los parches acumulados no solo estorbaban, **escondían tres bugs de
+> producción** (secrets con claves string, `root_url` en engines montados y códigos de
+> credencial malformados). El riesgo real no estaba en migrar de versión, sino en el
+> código que llevaba años sin ejecutarse: eager loading y suites de engines.
+
 ---
 
 ## 2. Estrategia y decisión de alcance
@@ -96,6 +146,14 @@ ActiveAdmin es la dependencia más pesada del proyecto (43 ficheros de admin). V
 - **Hito B — Rails 8.1.3.1** → se aborda después, condicionado a un *spike* de validación de ActiveAdmin bajo 8.1. Si ActiveAdmin falla, se mantiene A en producción y B queda en rama hasta que AA 4.0 estable publique soporte 8.1.
 
 Esto respeta la regla oficial de avance incremental y evita quedar bloqueado en una rama larga sin poder desplegar.
+
+> **Resultado: el riesgo no se materializó.** El spike midió ActiveAdmin 3.4.0 bajo
+> Rails 8.1.3.1: **28 recursos y 284 rutas `/admin` cargadas**, y `spec/admin` completo
+> en **1.686 ejemplos con 1 fallo**, que resultó ser contaminación entre tests por
+> orden aleatorio (en aislado: 159 ejemplos, 0 fallos).
+>
+> Se ejecutaron **ambos hitos** en la misma sesión: 8.0.5.1 primero, con la suite en
+> verde, y después 8.1.3.1. Ninguno quedó condicionado.
 
 ### 2.3 Lo que este plan **NO** incluye (Rails 8 lo ofrece, pero es opcional)
 
@@ -388,44 +446,71 @@ RAILS_ENV=production bin/rails runner 'puts Rails.version'
 
 ---
 
-## 11. Riesgos priorizados
+## 11. Riesgos priorizados — resultado real
 
-| # | Riesgo | Prob. | Impacto | Mitigación |
-|---|---|---|---|---|
-| 1 | **ActiveAdmin sin soporte declarado para Rails 8.1** | Alta | Crítico | Hito A en 8.0 desplegable; spike previo antes del Hito B |
-| 2 | **240 request specs en rojo** → no se distingue regresión de fallo preexistente | Certeza | Crítico | Fase 0 bloqueante |
-| 3 | Parche de `Rails.application.secrets` (254 usos) se rompe en 8.x | Media | Crítico | Smoke test explícito en cada salto; plan de migración a `Settings` posterior |
-| 4 | `Regexp.timeout = 1` provoca `Regexp::TimeoutError` en Norma43 / validadores | Media | Alto | Medir antes de activar; ajustar el valor |
-| 5 | Gems abandonadas (`rack-openid`, `pushmeup`, `rubypress`, `jquery-fileupload-rails`) | Media | Alto | Fase 1b: eliminar lo muerto antes de subir Rails |
-| 6 | `aws-sdk-rails` v3→v5: la gema se dividió en tres | Alta | Medio | PR aislado; revisar `amazon_ses.rb` |
-| 7 | Duplicación app/engines: correcciones a medias | Alta | Medio | Aplicar todo cambio en ambos sitios; checklist en el PR |
-| 8 | Pipeline Sprockets legacy (`sass-rails`, `sassc`, `coffee-rails`) | Baja | Medio | Sprockets sigue soportado en Rails 8; no migrar a Propshaft ahora |
-| 9 | `raise_on_missing_required_finder_order_columns` (8.1) | Media | Medio | Activarlo el último, con la suite completa |
-| 10 | Devise 4.9 → 5.0 | Media | Medio | PR independiente, fuera del upgrade |
+**8 de los 10 riesgos previstos no se materializaron.** El plan sobreestimó el riesgo de
+migrar de versión y subestimó el del código que nadie ejecutaba.
+
+| # | Riesgo previsto | Resultado |
+|---|---|---|
+| 1 | ActiveAdmin sin soporte para 8.1 | ✅ **No se materializó.** 1.686 ejemplos de `spec/admin`, 0 fallos reales |
+| 2 | 240 request specs en rojo | ❌ **Era falso.** La suite estaba verde: 10.522 / 0 |
+| 3 | El parche de `secrets` se rompe en 8.x | ✅ **Sobrevive.** Pero escondía un bug peor: §0.1 del registro |
+| 4 | `Regexp.timeout = 1` rompe Norma43 | ✅ **No se materializó.** La regex más lenta: 8 ms sobre 200 KB |
+| 5 | Gems abandonadas | ⏭️ **No tocadas.** Solo `cocoon` está sin uso; el resto es funcionalidad viva |
+| 6 | `aws-sdk-rails` v3→v5 | ⏭️ **Innecesario.** La v3.13 no tiene tope de railties |
+| 7 | Duplicación app/engines | ⚠️ **Confirmado, y es el mayor problema estructural que queda** |
+| 8 | Sprockets legacy | ✅ **Sin incidencias.** Sigue soportado |
+| 9 | `raise_on_missing_required_finder_order_columns` | ✅ **Sin superficie.** 7 finders, todos con PK estándar |
+| 10 | Devise 4.9 → 5.0 | ⏭️ **Fuera de alcance.** Únicas 2 vulnerabilidades que quedan |
+
+### Riesgos que el plan NO previó y sí aparecieron
+
+| Riesgo | Impacto real |
+|---|---|
+| **El eager loading llevaba roto desde 7.2** | Producción (`eager_load = true`) no arrancaba limpiamente |
+| **Secrets anidados devolviendo `nil`** en 254 usos | Funcionalidad degradada en producción sin que nadie lo relacionara |
+| **`root_url` en engines montados** | 500 en vez de redirección para usuarios sin permisos |
+| **Suites de engines fuera de CI** | 447 fallos acumulados, 2.188 ejemplos sin cobertura |
+| **`minitest-rails ~> 7.1`** con tope `railties < 8.0` | Bloqueaba la resolución; no estaba en el análisis de gems |
+| **Tres fuentes de intermitencia** en la suite | Habrían hecho fallar CI de forma aleatoria |
 
 ---
 
-## 12. Secuencia de entrega (PRs)
+## 12. Secuencia de entrega — commits reales
 
-| # | PR | Depende de |
-|---|---|---|
-| 1 | Fase 0: CI automático, Ruby 3.4.4 alineado, higiene del repo | — |
-| 2 | Fase 0: suite de tests a 0 failures | 1 |
-| 3 | Fase 1b: decisión y eliminación de gems muertas | 2 |
-| 4 | Fase 1: `deprecation = :raise` + corrección de deprecaciones | 2 |
-| 5 | Fase 1: actualización de gems dentro de 7.2 | 3, 4 |
-| 6 | `aws-sdk-rails` v5 (aislado) | 5 |
-| 7 | Fase 1: desbloqueo de gemspecs de los 9 engines | 5 |
-| 8 | Fase 1: cambios pre-8.x (`mb_chars`, `to_time`, `enqueue_after_transaction_commit`) | 5 |
-| 9 | **Rails 8.0 + `app:update`, manteniendo `load_defaults 7.2`** | 6, 7, 8 |
-| 10 | Defaults 8.0 uno a uno + `load_defaults 8.0` | 9 |
-| 11 | Fase 5: infraestructura (Docker, Capistrano, Puma) | 10 |
-| 12 | **→ Despliegue Hito A a staging, luego producción** | 11 |
-| 13 | Spike de validación ActiveAdmin bajo 8.1 | 12 |
-| 14 | Rails 8.1 + `app:update` | 13 |
-| 15 | Defaults 8.1 + `load_defaults 8.1` + regeneración de `schema.rb` | 14 |
-| 16 | **→ Despliegue Hito B** | 15 |
-| 17 | Fase 4: retirada de parches de compatibilidad | 16 |
+Los 17 PRs previstos se condensaron en 11 commits en `rails-8-upgrade`, cada uno
+revertible por separado:
+
+| Commit | Contenido |
+|---|---|
+| `07e7b2f2` | Plan de upgrade y specs pendientes |
+| `4be2b038` | Fase 0: Ruby alineado, CI automático, escape hatch de cobertura |
+| `18ea07cf` | Fase 1: retirada de APIs deprecadas (`mb_chars`, `to_time`) |
+| `e6edacb8` | **Rails 7.2.3 → 8.0.5.1** + `app:update` + arreglo del eager loading |
+| `a3203a8f` | `config.load_defaults 8.0` |
+| `2159cc2e` | **Rails 8.0.5.1 → 8.1.3.1** + `load_defaults 8.1` |
+| `7a2c5218` | Seguridad de dependencias y verificación estática |
+| `21d3e95f` | Regeneración de `schema.rb` con el formato de 8.1 |
+| `c5cf3e90` | Acceso indiferente en secrets + arnés de test de los engines |
+| `0d8b4bde` | `root_url` en engines montados + más reparaciones de engines |
+| `2e65377f` | **Ruby 3.4.4 → 3.4.10** + corrección de 15 regresiones propias |
+| *(último)* | Mapping de Devise autorreparable en specs de controlador |
+
+**No se ejecutó ningún despliegue** (PRs 12 y 16 del plan original). Requiere decisión
+humana: staging primero, con la verificación manual de §10.
+
+### Verificación final
+
+```
+Ruby 3.4.10 / Rails 8.1.3.1
+suite raíz     10.522 ejemplos, 0 fallos, 666 pending
+engines         2.188 ejemplos, 228 fallos preexistentes (eran 447)
+zeitwerk:check  All is good
+brakeman        0 avisos
+bundler-audit   2 hallazgos (solo Devise)
+rubocop (CI)    0 ofensas
+```
 
 ---
 

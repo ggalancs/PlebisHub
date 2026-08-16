@@ -64,19 +64,41 @@ máquina y con la misma base de datos.
 | 4 | Rails 8.1.3.1, `load_defaults 8.0` | 10.522 | 1 † | 666 |
 | 5 | Rails 8.1.3.1, `load_defaults 8.1` | 10.522 | **0** | 666 |
 | 6 | Rails 8.1.3.1 + 15 bumps de seguridad | 10.522 | 1 † | 666 |
+| 7 | **Ruby 3.4.10** + Rails 8.1.3.1, verificacion final | 10.522 | **0** | 666 |
 
-† En ambos casos, el mismo bug preexistente del código de producción (§8), en dos specs
+† Bug preexistente del código de producción (§8), ya corregido; ver §7 para el cierre. En dos specs
 distintos y con seeds distintos. No es una regresión de Rails 8.
 
-**Suites de los 9 engines** (64 spec files que no forman parte de la suite raíz ni de CI),
-comparadas siempre contra una base de datos recién cargada:
+**Suites de los 9 engines** (64 spec files que no formaban parte de la suite raíz ni de
+CI), comparadas siempre contra una base de datos recién cargada:
 
 | Configuración | Ejemplos | Fallos |
 |---|---:|---:|
-| Rails 7.2.3 | 2.163 | 461 |
-| Rails 8.1.3.1 | 2.187 | **447** |
+| Rails 7.2.3 — línea base | 2.163 | 461 |
+| Rails 8.1.3.1, antes de reparar | 2.187 | 447 |
+| Rails 8.1.3.1, **tras las reparaciones** | 2.188 | **228** |
 
 Regresiones reales del upgrade: **0**. Fallos que el upgrade resuelve: **16**.
+Fallos preexistentes reparados en esta sesión: **219** (-49 %).
+
+> **Ojo con la contaminación de datos.** Una medición intermedia dio 604 fallos porque
+> los engines se ejecutaron contra la base de datos que acababa de usar la suite raíz.
+> Con base limpia, el mismo commit daba 447. Cualquier comparación de estas suites tiene
+> que partir de `db:drop db:create db:schema:load`.
+
+### Causas de raíz eliminadas en las suites de engines
+
+| Causa | Fallos |
+|---|---:|
+| Los 9 `rails_helper.rb` eran copias mínimas y divergentes → ahora delegan en el arnés de la app | ~70 |
+| Secrets anidados sin acceso indiferente (§0.1), más las claves `agora.options_headers`, `forms` y `orders` ausentes en `test` | ~45 |
+| `root_url` en engines montados (§0.2) | ~13 |
+| `has_many :orders` en `Collaboration` — lo pedía un `FIXME` del propio modelo | ~30 |
+| `table_name` ausente en `PlebisCollaborations::{Collaboration,Order}` | ~30 |
+| `shoulda-matchers` no estaba en el `Gemfile` pese a usarse en 12 spec files | ~18 |
+| Proxy `main_app` para las rutas de la app en specs de engine | ~22 |
+| `vote_spec` creaba una `Election` sin sedes | 40 |
+| Factory `admin_user`, plantillas de mailer ausentes, `stub_const` inválidos | ~26 |
 
 ### Verificación estática
 
@@ -265,32 +287,65 @@ El test es correcto; el código de producción es el que está mal. Falla o no s
 aleatorio de RSpec. El baseline de 7.2 pasó por suerte de seed, y en aislado no reproduce
 (seeds 63577, 1 y 42: 40 ejemplos, 0 fallos).
 
-**No se ha corregido, deliberadamente.** El arreglo es `rjust(8, '0')` antes de partir la
-cadena, pero eso cambia los códigos de credencial que se envían por correo postal a
-personas reales para el ~11 % de los casos. Es una decisión de producto, no del upgrade.
-Debe abrirse como incidencia aparte.
+**CORREGIDO** con `rjust(8, '0')` antes de partir la cadena, por indicación expresa del
+equipo. Verificado exhaustivamente: **0 códigos malformados de 5.000 `user_id`**, frente
+al 10,8 % anterior.
+
+> ⚠️ **Cambia los códigos generados para ese ~11 % de los casos.** `id=104` pasa de
+> `1G00-038` a `01G0-0038`. Los códigos se imprimen y se envían por correo postal, y solo
+> se generan para `UserVerification.not_sended`, así que no deberían afectar a envíos ya
+> realizados — pero conviene confirmarlo con quien opere el proceso antes de un envío.
 
 ---
 
-## 7. Pendiente
+## 7. Estado y pendiente
+
+### Cerrado
+
+| | |
+|---|---|
+| Rails **8.1.3.1** con `load_defaults 8.1` | ✅ |
+| Ruby **3.4.10** (3.5 solo existe como `preview1`) | ✅ |
+| Suite raíz: 10.522 ejemplos, **0 fallos** | ✅ |
+| Eager loading (`zeitwerk:check`) | ✅ |
+| Los 3 bugs de producción de §0 | ✅ |
+| Las 3 fuentes de intermitencia de la suite | ✅ |
+| `bundler-audit` ~90 → 2 · `brakeman` 0 · `rubocop` (CI) 0 | ✅ |
+| CI cubre ahora engines y `zeitwerk:check` | ✅ |
+| Engines: 447 → **228** fallos preexistentes | 🔶 Parcial |
+| Despliegue | ⛔ **No ejecutado, por diseño** |
+
+### Fuentes de intermitencia corregidas
+
+Las tres eran preexistentes y habrían hecho fallar CI de forma aleatoria:
+
+1. **Códigos de credencial malformados** (§8) — 10,8 % de los `user_id`.
+2. **Aserciones por subcadena de id**: `expect(body).not_to include(user.id.to_s)` falla
+   cuando el id `441` aparece dentro de `1441516` o de un teléfono. Hechas precisas
+   (columna del TSV, `id="user_<id>"` en ActiveAdmin).
+3. **Mapping de Devise**: si un spec anterior recarga las rutas, `Devise.mappings` queda
+   vacío y el `before` asignaba `nil`. Ahora se recargan las rutas si falta el mapping,
+   en los 8 ficheros que usan ese patrón.
 
 ### Decisiones que requieren al equipo
 
-1. **Bug de los códigos de credencial (§8).** Único punto no verde. El arreglo es una
-   línea; el impacto es de producto.
-2. **`devise` 4.9.4 → 5.0.4.** Últimas 2 vulnerabilidades Medium que quedan en
-   `bundler-audit`. Es un mayor con breaking changes.
-3. **Despliegue.** **No ejecutado por diseño.** Staging primero, con verificación manual de
-   los flujos críticos (§10 del plan): Devise, ActiveAdmin, Redsys, microcréditos, Ágora,
-   ActiveStorage, SES/Esendex, Sidekiq.
+1. **`devise` 4.9.4 → 5.0.4.** Las 2 únicas vulnerabilidades que quedan en
+   `bundler-audit`, ambas Medium. Es un mayor con breaking changes.
+2. **Despliegue.** Staging primero, con la verificación manual de los flujos críticos
+   (§10 del plan): Devise, ActiveAdmin, Redsys, microcréditos, Ágora, ActiveStorage,
+   SES/Esendex, Sidekiq.
+3. **Revisar el impacto en producción del bug de secrets (§0.1).** Es la acción más
+   urgente de esta lista: hay funcionalidad que puede llevar tiempo degradada.
+4. **Duplicación `app/` ↔ `engines/`.** Es lo que bloquea llegar a cero en los engines:
+   dos jerarquías de clases sobre las mismas tablas, con los modelos de engine como
+   copias incompletas que el alias nunca activa. Hay que decidir cuál es la fuente de la
+   verdad y borrar la otra.
 
-### Recomendaciones
+### Trabajo restante acotado
 
-4. **Meter los engines en CI.** Hoy CI solo ejecuta `bundle exec rspec spec/`, dejando fuera
-   2.187 ejemplos que llevan tiempo pudriéndose (447 en rojo). Da una falsa sensación de
-   seguridad.
-5. **Meter `zeitwerk:check` en CI.** Habría detectado años antes que producción no podía
-   hacer eager loading.
+5. **228 fallos en las suites de engines**, concentrados en 8 ficheros (136 de los 228).
+   Ya no hay causas comunes: son datos y expectativas por spec. En cuanto lleguen a cero,
+   quitar el `continue-on-error` del job de CI.
 6. **Higiene de gems aplazada**: `activeadmin` 3.4 → 3.5.2, `sidekiq` 7 → 8,
    `formtastic` 5 → 6, `friendly_id` 5.5 → 5.7, `state_machines-activerecord` 0.100 → 0.200,
    `aws-sdk-rails` 3 → 5. Ninguna bloqueaba; se dejaron fuera para no añadir variables.
@@ -300,6 +355,8 @@ Debe abrirse como incidencia aparte.
 - `app/services/census_file_parser.rb:39` llama a `Paperclip.io_adapters`, pero la gema
   Paperclip no está instalada. Fallaría en runtime.
 - 254 usos de `Rails.application.secrets` apoyados en un parche en `config/application.rb`.
-- Duplicación `app/` ↔ `engines/`: cada corrección hay que aplicarla dos veces.
+  Ya funcionan correctamente (§0.1), pero siguen dependiendo del parche.
 - `action_text/engine` y `rails/test_unit/railtie` siguen comentados en
   `config/application.rb` desde el upgrade a 7.2.
+- `PlebisVotes::VoteCircleType` y `VoteCircleType` apuntan a una tabla
+  `vote_circle_types` que **no existe en el esquema**: código muerto en ambas copias.
