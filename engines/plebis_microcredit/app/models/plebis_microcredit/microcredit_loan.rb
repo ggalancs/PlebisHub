@@ -184,6 +184,7 @@ module PlebisMicrocredit
     end
 
     def microcredit_option_without_children
+      return if microcredit.nil?
       return unless microcredit.microcredit_options.any?
 
       return unless microcredit_option.blank? || microcredit_option.children.any?
@@ -236,12 +237,18 @@ module PlebisMicrocredit
     end
 
     def check_amount
+      return if microcredit.nil?
       return unless confirmed_at.nil? && amount && !microcredit.has_amount_available?(amount)
 
       errors.add(:amount, 'Lamentablemente, ya no quedan préstamos por esa cantidad.')
     end
 
     def check_user_limits
+      # Sin microcredito no hay limites que comprobar: la ausencia ya la reporta
+      # la validacion de la asociacion. Sin este guardado, validar un registro
+      # nuevo sin microcredito reventaba con NoMethodError sobre nil.
+      return if microcredit.nil?
+
       # RAILS 7.2 FIX: Add .to_i to handle nil config values
       # Ruby 3.4+ raises ArgumentError when comparing Integer with nil
       # .to_i converts nil to 0, maintaining the original logic
@@ -258,6 +265,8 @@ module PlebisMicrocredit
     end
 
     def check_microcredit_active
+      # Igual que check_user_limits: sin microcredito no hay nada que comprobar.
+      return if microcredit.nil?
       return unless confirmed_at.nil? && !microcredit.is_active?
 
       errors.add(:microcredit,

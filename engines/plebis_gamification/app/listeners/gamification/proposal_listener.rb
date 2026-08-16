@@ -15,6 +15,13 @@ module Gamification
       implemented: 500
     }.freeze
 
+    REASONS = {
+      created: 'Propuesta creada',
+      approved: 'Propuesta aprobada',
+      featured: 'Propuesta destacada',
+      implemented: '¡Propuesta implementada!'
+    }.freeze
+
     class << self
       def register!
         EventBus.instance.subscribe('proposal.created', method(:on_proposal_created))
@@ -24,54 +31,62 @@ module Gamification
       end
 
       def on_proposal_created(event)
-        user = User.find(event[:user_id])
-        stats = UserStats.for_user(user)
-
-        stats.earn_points!(
-          POINTS_CONFIG[:created],
-          reason: 'Propuesta creada',
-          source: Proposal.find(event[:proposal_id])
-        )
-
-        # Check for badges
-        BadgeAwarder.check_and_award!(user)
+        award(event, :created, award_badges: true)
       end
 
       def on_proposal_approved(event)
-        proposal = Proposal.find(event[:proposal_id])
-        stats = UserStats.for_user(proposal.author)
-
-        stats.earn_points!(
-          POINTS_CONFIG[:approved],
-          reason: 'Propuesta aprobada',
-          source: proposal
-        )
-
-        BadgeAwarder.check_and_award!(proposal.author)
+        award(event, :approved, award_badges: true)
       end
 
       def on_proposal_featured(event)
-        proposal = Proposal.find(event[:proposal_id])
-        stats = UserStats.for_user(proposal.author)
-
-        stats.earn_points!(
-          POINTS_CONFIG[:featured],
-          reason: 'Propuesta destacada',
-          source: proposal
-        )
+        award(event, :featured)
       end
 
       def on_proposal_implemented(event)
-        proposal = Proposal.find(event[:proposal_id])
-        stats = UserStats.for_user(proposal.author)
+        award(event, :implemented, award_badges: true)
+      end
 
-        stats.earn_points!(
-          POINTS_CONFIG[:implemented],
-          reason: '¡Propuesta implementada!',
+      private
+
+      # Los eventos aprobado/destacado/implementado resolvian el usuario con
+      # `proposal.author`, pero `author` es una columna de texto con el nombre de
+      # quien publicó (importado de Reddit), no una asociación: UserStats.for_user
+      # recibía una String y reventaba. Proposal no tiene relación con User, así
+      # que el usuario solo puede venir en el propio evento.
+      #
+      # El payload se normaliza porque puede llegar con claves de texto, por
+      # ejemplo si el evento viaja serializado a través de una cola.
+      def award(event, kind, award_badges: false)
+        event = normalize(event)
+        user = resolve_user(event)
+        return if user.nil?
+
+        # find (y no find_by): un evento que apunte a una propuesta inexistente es
+        # un error que debe aflorar, no silenciarse.
+        proposal = Proposal.find(event[:proposal_id])
+
+        UserStats.for_user(user).earn_points!(
+          POINTS_CONFIG[kind],
+          reason: REASONS[kind],
           source: proposal
         )
 
-        BadgeAwarder.check_and_award!(proposal.author)
+        BadgeAwarder.check_and_award!(user) if award_badges
+      end
+
+      def normalize(event)
+        return {} if event.nil?
+
+        event.respond_to?(:symbolize_keys) ? event.symbolize_keys : event
+      end
+
+      def resolve_user(event)
+        # Sin user_id no se puede atribuir la puntuacion y se ignora el evento;
+        # con un user_id que no existe se deja aflorar el RecordNotFound, igual
+        # que con la propuesta.
+        return nil if event[:user_id].blank?
+
+        User.find(event[:user_id])
       end
     end
   end
