@@ -37,7 +37,42 @@ module PlebisHub
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    # Files under lib/ that Zeitwerk must not manage: they either reopen core
+    # classes / define bare methods instead of a matching constant, or use a
+    # constant name that does not match the file name. All of them are loaded
+    # explicitly (config/initializers/date_extensions.rb, sms.rb, or an explicit
+    # `require` at the call site).
+    config.autoload_lib(ignore: %w[
+      assets
+      tasks
+      generators
+      paperclip
+      add_unique_month_to_dates.rb
+      plebisbrand_export.rb
+      plebisbrand_import.rb
+      plebisbrand_import_collaborations.rb
+      plebisbrand_import_collaborations2017.rb
+      sms.rb
+    ])
+
+    # app/workers/plebisbrand_*.rb define PlebisBrand… (capital B) while Zeitwerk
+    # would infer Plebisbrand…. Override the inflection for just those files
+    # rather than registering a global `PlebisBrand` acronym, which would also
+    # change `underscore` everywhere and collide with the PlebisBrand = Podemos
+    # alias in config/initializers/plebis_brand_alias.rb.
+    # Engines expose app/admin as an autoload path, but those files are
+    # ActiveAdmin DSL (`ActiveAdmin.register…`) and define no constants, so
+    # eager loading them raises. ActiveAdmin already excludes the main app's
+    # app/admin for the same reason; do the same for the engines.
+    Rails.autoloaders.main.ignore(Rails.root.glob('engines/*/app/admin'))
+
+    Rails.autoloaders.each do |autoloader|
+      autoloader.inflector.inflect(
+        'plebisbrand_collaboration_worker' => 'PlebisBrandCollaborationWorker',
+        'plebisbrand_import_worker' => 'PlebisBrandImportWorker',
+        'plebisbrand_report_worker' => 'PlebisBrandReportWorker'
+      )
+    end
 
     # Configuration for the application, engines, and railties goes here.
     #

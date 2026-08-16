@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir['{app,config,db,lib,spec}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
 
   # Rails dependency
-  spec.add_dependency 'rails', '~> 7.2.3'
+  spec.add_dependency 'rails', '>= 7.2.3', '< 9.0'
 
   # Development dependencies
   spec.add_development_dependency 'factory_bot_rails'

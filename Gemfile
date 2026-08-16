@@ -4,17 +4,17 @@ source 'https://rubygems.org'
 
 ruby '>= 3.3.6'
 
-# Rails 7.2 - Following official upgrade guide
+# Rails 8.0 - Following official upgrade guide
 gem 'coffee-rails' # Required by Sprockets processor (even without .coffee files)
 gem 'jbuilder', '~> 2.0'
 gem 'jquery-rails' # Legacy - will be removed after full Vue migration
 gem 'json', '>= 2.0' # Ruby 3.3 compatible (old 1.8.6 breaks)
-gem 'rails', '~> 7.2.3'
+gem 'rails', '~> 8.0.5'
 gem 'sass-rails' # Legacy - for Sprockets SASS compilation
 gem 'sdoc', '>= 2.0', group: :doc # Ruby 3.3 / json 2.x compatible
 gem 'spring', group: :development
 gem 'sprockets-rails' # Legacy assets (will be phased out)
-gem 'sqlite3', '~> 1.4'
+gem 'sqlite3', '~> 2.1' # Rails 8 requiere sqlite3 >= 2.1
 gem 'vite_rails', '~> 3.0' # Modern frontend with Vite + Vue 3
 # REMOVED: turbolinks (replaced by Vue Router / native navigation)
 # REMOVED: uglifier (Vite handles JS minification)
@@ -51,7 +51,7 @@ gem 'font-awesome-rails', '~> 4.7'
 gem 'friendly_id', '~> 5.2' # Updated for Rails 5
 gem 'iban-tools'
 gem 'kaminari'
-gem 'paper_trail', '~> 15.2' # Rails 7.2+ compatible
+gem 'paper_trail', '~> 17.0' # Rails 8 compatible (15.x avisa de incompatibilidad con AR 8)
 gem 'paranoia', '~> 3.0' # Rails 7.2 compatible
 gem 'phonelib'
 gem 'pushmeup'
@@ -104,7 +104,7 @@ group :development, :test do
   gem 'factory_bot_rails', '~> 6.2' # Ruby 2.7+ compatible
   gem 'launchy'
   gem 'listen' # Required by Rails 6.0 for file watching
-  gem 'minitest-rails', '~> 7.1' # Rails 7.2 compatible
+  gem 'minitest-rails', '~> 8.0' # ~> 7.1 topa en railties < 8.0
   gem 'minitest-reporters'
   gem 'mocha', require: false
   gem 'nokogiri', '~> 1.16' # Required by Rails 7.2, Ruby 3.3 compatible

@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir['{app,config,db,lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
 
   # Rails dependency
-  spec.add_dependency 'rails', '~> 7.2.3'
+  spec.add_dependency 'rails', '>= 7.2.3', '< 9.0'
 
   # External dependencies used by this engine
   # Note: These are already in main Gemfile, but documented here for clarity

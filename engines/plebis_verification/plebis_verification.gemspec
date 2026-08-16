@@ -16,5 +16,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'image_processing', '~> 1.12' # For image variants (ActiveStorage)
   spec.add_dependency 'phonelib' # Phone number validation
-  spec.add_dependency 'rails', '~> 7.2.3'
+  spec.add_dependency 'rails', '>= 7.2.3', '< 9.0'
 end
