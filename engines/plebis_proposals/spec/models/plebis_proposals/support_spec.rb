@@ -13,7 +13,7 @@ module PlebisProposals
       subject { create(:support) }
       it {
         is_expected.to validate_uniqueness_of(:user_id).scoped_to(:proposal_id)
-                                                        .with_message('has already supported this proposal')
+                                                       .with_message('has already supported this proposal')
       }
     end
 

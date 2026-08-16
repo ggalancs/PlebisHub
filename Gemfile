@@ -112,11 +112,11 @@ group :development, :test do
   gem 'rails-perftest'
   gem 'rspec_junit_formatter', require: false # For CI test results
   gem 'rspec-rails'
-  gem 'shoulda-matchers', '~> 6.0' # usado por 12 spec files, faltaba en el Gemfile
   gem 'rubocop', require: false
   gem 'rubocop-rails', require: false
   gem 'ruby-prof'
   gem 'selenium-webdriver' # Modern driver for Capybara
+  gem 'shoulda-matchers', '~> 6.0' # usado por 12 spec files, faltaba en el Gemfile
   gem 'simplecov'
   gem 'webmock'
   # gem 'capybara-webkit' # Commented: deprecated and requires Qt (qmake)

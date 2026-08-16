@@ -322,16 +322,16 @@ RSpec.describe PlebisImpulsa::ImpulsaProjectStates, type: :model do
       # Create new users to avoid uniqueness violation
       validated_user = create(:user, email: "validated_#{SecureRandom.hex(4)}@test.com")
       validated_project = create(:impulsa_project,
-                                   impulsa_edition: impulsa_edition,
-                                   impulsa_edition_category: impulsa_edition_category,
-                                   user: validated_user)
+                                 impulsa_edition: impulsa_edition,
+                                 impulsa_edition_category: impulsa_edition_category,
+                                 user: validated_user)
       validated_project.update_column(:state, 'validated')
 
       winner_user = create(:user, email: "winner_#{SecureRandom.hex(4)}@test.com")
       winner_project = create(:impulsa_project,
-                               impulsa_edition: impulsa_edition,
-                               impulsa_edition_category: impulsa_edition_category,
-                               user: winner_user)
+                              impulsa_edition: impulsa_edition,
+                              impulsa_edition_category: impulsa_edition_category,
+                              user: winner_user)
       winner_project.update_column(:state, 'winner')
 
       exportable = PlebisImpulsa::ImpulsaProject.exportable
@@ -344,9 +344,9 @@ RSpec.describe PlebisImpulsa::ImpulsaProjectStates, type: :model do
   describe 'audit trail' do
     it 'creates state transitions' do
       project.save
-      expect {
+      expect do
         project.mark_as_spam
-      }.to change { project.impulsa_project_state_transitions.count }.by(1)
+      end.to change { project.impulsa_project_state_transitions.count }.by(1)
     end
   end
 end

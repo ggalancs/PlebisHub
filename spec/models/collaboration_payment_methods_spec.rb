@@ -2,8 +2,10 @@
 
 require 'rails_helper'
 
-RSpec.describe Collaboration::PaymentMethods, type: :model do
-  # Test using Collaboration model which includes the concern
+# Estos metodos vivian en el concern Collaboration::PaymentMethods, retirado al
+# consolidar plebis_collaborations: ahora estan en PlebisCollaborations::Collaboration,
+# de la que Collaboration es subclase.
+RSpec.describe Collaboration, type: :model do
   let(:model_class) { Collaboration }
 
   # ====================
@@ -151,25 +153,25 @@ RSpec.describe Collaboration::PaymentMethods, type: :model do
       it 'validates presence of ccc_entity' do
         collaboration = build(:collaboration, :with_ccc, ccc_entity: nil)
         expect(collaboration).not_to be_valid
-        expect(collaboration.errors[:ccc_entity]).to include("no puede estar en blanco")
+        expect(collaboration.errors[:ccc_entity]).to include('no puede estar en blanco')
       end
 
       it 'validates presence of ccc_office' do
         collaboration = build(:collaboration, :with_ccc, ccc_office: nil)
         expect(collaboration).not_to be_valid
-        expect(collaboration.errors[:ccc_office]).to include("no puede estar en blanco")
+        expect(collaboration.errors[:ccc_office]).to include('no puede estar en blanco')
       end
 
       it 'validates presence of ccc_dc' do
         collaboration = build(:collaboration, :with_ccc, ccc_dc: nil)
         expect(collaboration).not_to be_valid
-        expect(collaboration.errors[:ccc_dc]).to include("no puede estar en blanco")
+        expect(collaboration.errors[:ccc_dc]).to include('no puede estar en blanco')
       end
 
       it 'validates presence of ccc_account' do
         collaboration = build(:collaboration, :with_ccc, ccc_account: nil)
         expect(collaboration).not_to be_valid
-        expect(collaboration.errors[:ccc_account]).to include("no puede estar en blanco")
+        expect(collaboration.errors[:ccc_account]).to include('no puede estar en blanco')
       end
 
       it 'validates numericality of ccc_entity' do
@@ -231,8 +233,8 @@ RSpec.describe Collaboration::PaymentMethods, type: :model do
 
       it 'does not validate CCC fields for IBAN' do
         collaboration = build(:collaboration, :with_iban,
-                                              ccc_entity: nil, ccc_office: nil,
-                                              ccc_dc: nil, ccc_account: nil)
+                              ccc_entity: nil, ccc_office: nil,
+                              ccc_dc: nil, ccc_account: nil)
         collaboration.valid?
         expect(collaboration.errors[:ccc_entity]).to be_empty
         expect(collaboration.errors[:ccc_office]).to be_empty
@@ -275,7 +277,7 @@ RSpec.describe Collaboration::PaymentMethods, type: :model do
       it 'validates presence of iban_account' do
         collaboration = build(:collaboration, payment_type: 3, iban_account: nil)
         expect(collaboration).not_to be_valid
-        expect(collaboration.errors[:iban_account]).to include("no puede estar en blanco")
+        expect(collaboration.errors[:iban_account]).to include('no puede estar en blanco')
       end
 
       it 'validates IBAN format' do
@@ -446,7 +448,7 @@ RSpec.describe Collaboration::PaymentMethods, type: :model do
 
       it 'returns cleaned iban_account when provided' do
         collaboration = build(:collaboration, :with_iban,
-                                              iban_account: 'DE89 3704 0044 0532 0130 00')
+                              iban_account: 'DE89 3704 0044 0532 0130 00')
         expect(collaboration.calculate_iban).to eq('DE89370400440532013000')
       end
 
@@ -491,7 +493,7 @@ RSpec.describe Collaboration::PaymentMethods, type: :model do
 
       it 'returns iban_bic when provided' do
         collaboration = build(:collaboration, :with_iban,
-                                              iban_bic: 'COBADEFFXXX')
+                              iban_bic: 'COBADEFFXXX')
         expect(collaboration.calculate_bic).to eq('COBADEFFXXX')
       end
 
@@ -510,7 +512,7 @@ RSpec.describe Collaboration::PaymentMethods, type: :model do
 
       it 'cleans spaces from iban_bic' do
         collaboration = build(:collaboration, :with_iban,
-                                              iban_bic: 'COBA DEFF XXX')
+                              iban_bic: 'COBA DEFF XXX')
         collaboration.iban_account = 'FR7612345678901234567890123' # Non-Spanish to skip BIC lookup
         expect(collaboration.calculate_bic).to eq('COBADEFFXXX')
       end
@@ -776,7 +778,7 @@ RSpec.describe Collaboration::PaymentMethods, type: :model do
 
       it 'handles BIC with spaces' do
         collaboration = build(:collaboration, :with_iban,
-                                              iban_bic: 'COBA DEFF XXX')
+                              iban_bic: 'COBA DEFF XXX')
         collaboration.iban_account = 'FR7612345678901234567890123' # Non-Spanish
         expect(collaboration.calculate_bic).to eq('COBADEFFXXX')
       end

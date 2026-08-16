@@ -196,7 +196,7 @@ module PlebisVerification
 
         it 'applies initial status' do
           verification = instance_double(UserVerification, save: true, wants_card: false,
-                                         id: 1, status: 'pending', front_vatid: nil, back_vatid: nil)
+                                                           id: 1, status: 'pending', front_vatid: nil, back_vatid: nil)
           allow(UserVerification).to receive(:for).and_return(verification)
           expect(verification).to receive(:apply_initial_status!)
           post :create, params: { user_verification: valid_attributes }

@@ -144,19 +144,17 @@ module PlebisVerification
       data_town = collect_town_data
 
       provinces.each do |province_num, province_name|
-        begin
-          process_towns(report, data_town, province_num)
-          process_province(report, data, province_num, province_name)
-        rescue StandardError => e
-          # Una provincia sin datos geograficos no debe tumbar el informe entero
-          Rails.logger.error({
-            event: 'town_verification_report_province_skipped',
-            province_num: province_num,
-            error_class: e.class.name,
-            error_message: e.message,
-            timestamp: Time.current.iso8601
-          }.to_json)
-        end
+        process_towns(report, data_town, province_num)
+        process_province(report, data, province_num, province_name)
+      rescue StandardError => e
+        # Una provincia sin datos geograficos no debe tumbar el informe entero
+        Rails.logger.error({
+          event: 'town_verification_report_province_skipped',
+          province_num: province_num,
+          error_class: e.class.name,
+          error_message: e.message,
+          timestamp: Time.current.iso8601
+        }.to_json)
       end
 
       report
@@ -192,6 +190,21 @@ module PlebisVerification
       carmen_province(@town_code[2..3])&.name
     rescue StandardError
       nil
+    end
+
+    def collect_data
+      return {} unless @town_code
+
+      @collect_data ||= begin
+        data = base_query.joins(:user_verifications)
+                         .group(:status)
+                         .pluck('status', 'count(distinct users.id)')
+                         .to_h { |status, count| [status, count] }
+
+        # Add user activity data
+        add_user_data_to_hash_simple(data)
+        data
+      end
     end
 
     private
@@ -302,21 +315,6 @@ module PlebisVerification
 
     def provinces
       @provinces ||= Carmen::Country.coded('ES').subregions.map { |p| ['%02d' % +p.index, p.name] }
-    end
-
-    public def collect_data
-      return {} unless @town_code
-
-      @collect_data ||= begin
-        data = base_query.joins(:user_verifications)
-                         .group(:status)
-                         .pluck('status', 'count(distinct users.id)')
-                         .to_h { |status, count| [status, count] }
-
-        # Add user activity data
-        add_user_data_to_hash_simple(data)
-        data
-      end
     end
 
     def add_user_data_to_hash_simple(data_hash)

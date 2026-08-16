@@ -1,0 +1,59 @@
+<!-- PlebisHub Logo Vertical - Para espacios estrechos -->
+<svg width="180" height="140" viewBox="0 0 180 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#612d62;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8a4f98;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#269283;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:1" />
+    </linearGradient>
+    <style>
+      .logo-text {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+    </style>
+  </defs>
+
+  <!-- Logo Mark centered at top (offset to center horizontally at x=90) -->
+  <g transform="translate(58, 8)">
+    <!-- Círculo central -->
+    <circle cx="32" cy="32" r="12" fill="url(#primaryGradient)"/>
+
+    <!-- Elementos orbitales -->
+    <circle cx="32" cy="8" r="4" fill="url(#secondaryGradient)"/>
+    <path d="M32 12 L32 20" stroke="#269283" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="49" cy="15" r="4" fill="url(#secondaryGradient)"/>
+    <path d="M47 17 L40 26" stroke="#269283" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="56" cy="32" r="4" fill="url(#secondaryGradient)"/>
+    <path d="M52 32 L44 32" stroke="#269283" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="49" cy="49" r="4" fill="url(#secondaryGradient)"/>
+    <path d="M47 47 L40 38" stroke="#269283" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="32" cy="56" r="4" fill="url(#secondaryGradient)"/>
+    <path d="M32 52 L32 44" stroke="#269283" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="15" cy="49" r="4" fill="url(#secondaryGradient)"/>
+    <path d="M17 47 L24 38" stroke="#269283" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="8" cy="32" r="4" fill="url(#secondaryGradient)"/>
+    <path d="M12 32 L20 32" stroke="#269283" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="15" cy="15" r="4" fill="url(#secondaryGradient)"/>
+    <path d="M17 17 L24 26" stroke="#269283" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Logo Type centered below mark -->
+  <text x="90" y="105" class="logo-text" font-size="32" fill="#612d62">
+    Plebis
+  </text>
+  <text x="90" y="132" class="logo-text" font-size="32" fill="#269283">
+    Hub
+  </text>
+</svg>

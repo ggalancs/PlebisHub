@@ -229,7 +229,7 @@ class ApplicationController < ActionController::Base
     )
       log_security_event('admin_authentication_failed',
                          user_id: current_user&.id)
-      redirect_to main_app.root_url, flash: { error: t("plebisbrand.unauthorized") }
+      redirect_to main_app.root_url, flash: { error: t('plebisbrand.unauthorized') }
     end
   end
 
