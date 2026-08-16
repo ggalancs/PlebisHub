@@ -63,17 +63,17 @@ module PlebisVerification
       describe 'report actions' do
         it 'requires admin authentication for report' do
           get :report, params: { report_code: 'test' }
-          expect(response).to redirect_to(main_app.root_path)
+          expect(response).to redirect_to(main_app.root_path(locale: I18n.locale))
         end
 
         it 'requires admin authentication for report_town' do
           get :report_town, params: { report_code: 'test' }
-          expect(response).to redirect_to(main_app.root_path)
+          expect(response).to redirect_to(main_app.root_path(locale: I18n.locale))
         end
 
         it 'requires admin authentication for report_exterior' do
           get :report_exterior, params: { report_code: 'test' }
-          expect(response).to redirect_to(main_app.root_path)
+          expect(response).to redirect_to(main_app.root_path(locale: I18n.locale))
         end
       end
     end
@@ -218,9 +218,9 @@ module PlebisVerification
           allow(user).to receive(:verified?).and_return(false)
         end
 
-        it 'redirects to edit_user_registration_path' do
+        it 'redirects to main_app.edit_user_registration_path' do
           post :create, params: { user_verification: valid_attributes.merge(wants_card: true) }
-          expect(response).to redirect_to(edit_user_registration_path)
+          expect(response).to redirect_to(main_app.edit_user_registration_path)
         end
 
         it 'sets multiple flash notices' do
@@ -238,9 +238,9 @@ module PlebisVerification
           allow(user).to receive(:verified?).and_return(false)
         end
 
-        it 'redirects to create_vote_path' do
+        it 'redirects to main_app.create_vote_path' do
           post :create, params: { user_verification: valid_attributes, election_id: 123 }
-          expect(response).to redirect_to(create_vote_path(election_id: 123))
+          expect(response).to redirect_to(main_app.create_vote_path(election_id: 123))
         end
       end
 
@@ -615,7 +615,10 @@ module PlebisVerification
     # ==================== HELPER METHODS ====================
 
     def sign_in_admin_user(admin_user)
-      sign_in admin_user, scope: :admin_user
+      # No existe un scope :admin_user en Devise (ActiveAdmin usa User con el
+      # flag admin). Con el scope inexistente el sign_in no autenticaba nada y
+      # authenticate_admin_user! redirigia, dejando 33 ejemplos en rojo.
+      sign_in admin_user
     end
   end
 end
