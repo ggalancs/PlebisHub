@@ -16,9 +16,11 @@ module PlebisCms
         expect(response).to have_http_status(:success)
       end
 
-      it 'requires authentication for privacy_policy' do
+      # privacy_policy esta en la lista `except` de authenticate_user! desde siempre:
+      # la politica de privacidad tiene que ser publica
+      it 'allows public access to privacy_policy' do
         get :privacy_policy
-        expect(response).to redirect_to(main_app.new_user_session_url)
+        expect(response).to have_http_status(:success)
       end
     end
 
@@ -26,7 +28,9 @@ module PlebisCms
       context 'with valid page' do
         it 'loads the page' do
           get :show_form, params: { id: page.id }
-          expect(assigns(:page)).to eq(page)
+          # La consulta devuelve PlebisCms::Page y la factory Page: ActiveRecord#==
+          # exige instance_of?, asi que comparamos por id
+          expect(assigns(:page)&.id).to eq(page.id)
         end
 
         it 'sets meta description if present' do
@@ -36,7 +40,8 @@ module PlebisCms
         end
 
         it 'renders formview_iframe for external links' do
-          external_page = create(:page, link: 'https://forms.external.com/form/123')
+          # external_plebisbrand_link? solo casa dominios *.plebisbrand.info
+          external_page = create(:page, link: 'https://forms.plebisbrand.info/form/123')
           get :show_form, params: { id: external_page.id }
           expect(response).to render_template(:formview_iframe)
         end
@@ -224,11 +229,22 @@ module PlebisCms
 
       it 'signs the URL' do
         url = controller.send(:form_url, 77)
-        expect(url).to include('_s=') # signature parameter
+        # UrlSignatureService#sign_url anade `&signature=…&timestamp=…`
+        expect(url).to include('signature=')
+        expect(url).to include('timestamp=')
       end
     end
 
     describe '#set_metas' do
+      # `metas` no existe en config/secrets.yml de test; los valores por defecto
+      # solo salen del despliegue, asi que hay que inyectarlos
+      before do
+        allow(Rails.application.secrets).to receive(:metas).and_return({
+                                                                        'description' => 'Meta por defecto',
+                                                                        'image' => 'https://example.com/meta.png'
+                                                                      })
+      end
+
       it 'loads current elections' do
         election = create(:election, :active)
         get :show_form, params: { id: page.id }

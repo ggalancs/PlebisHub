@@ -144,8 +144,19 @@ module PlebisVerification
       data_town = collect_town_data
 
       provinces.each do |province_num, province_name|
-        process_towns(report, data_town, province_num)
-        process_province(report, data, province_num, province_name)
+        begin
+          process_towns(report, data_town, province_num)
+          process_province(report, data, province_num, province_name)
+        rescue StandardError => e
+          # Una provincia sin datos geograficos no debe tumbar el informe entero
+          Rails.logger.error({
+            event: 'town_verification_report_province_skipped',
+            province_num: province_num,
+            error_class: e.class.name,
+            error_message: e.message,
+            timestamp: Time.current.iso8601
+          }.to_json)
+        end
       end
 
       report
@@ -161,7 +172,35 @@ module PlebisVerification
       empty_report
     end
 
+    # Helpers publicos para los informes de un unico municipio.
+    # La provincia se busca por su atributo `index`, no por su posicion en el
+    # array: la posicion coincide hoy, pero es un detalle de los datos de Carmen.
+    def town_name
+      return nil unless @town_code
+
+      province = carmen_province(@town_code[2..3])
+      return nil unless province
+
+      province.subregions.coded(@town_code)&.name
+    rescue StandardError
+      nil
+    end
+
+    def province_name
+      return nil unless @town_code
+
+      carmen_province(@town_code[2..3])&.name
+    rescue StandardError
+      nil
+    end
+
     private
+
+    def carmen_province(province_code)
+      return nil if province_code.blank?
+
+      Carmen::Country.coded('ES').subregions.find { |p| ('%02d' % +p.index) == province_code }
+    end
 
     def validate_configuration!
       unless Rails.application.secrets.user_verifications &&
@@ -265,37 +304,7 @@ module PlebisVerification
       @provinces ||= Carmen::Country.coded('ES').subregions.map { |p| ['%02d' % +p.index, p.name] }
     end
 
-    # RAILS 7.2 FIX: Add helper methods expected by specs
-    # These methods provide backward compatibility with older test suite
-    def town_name
-      return nil unless @town_code
-
-      # Extract province code from town code (e.g., "m_01_001" -> "01")
-      province_index = @town_code[2..3].to_i - 1
-      return nil if province_index.negative?
-
-      province = Carmen::Country.coded('ES').subregions[province_index]
-      return nil unless province
-
-      town = province.subregions.coded(@town_code)
-      town&.name
-    rescue StandardError
-      nil
-    end
-
-    def province_name
-      return nil unless @town_code
-
-      # Extract province code from town code (e.g., "m_01_001" -> "01")
-      province_index = @town_code[2..3].to_i - 1
-      return nil if province_index.negative?
-
-      Carmen::Country.coded('ES').subregions[province_index]&.name
-    rescue StandardError
-      nil
-    end
-
-    def collect_data
+    public def collect_data
       return {} unless @town_code
 
       @collect_data ||= begin

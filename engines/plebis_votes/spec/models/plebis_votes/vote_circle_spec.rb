@@ -232,7 +232,8 @@ module PlebisVotes
     describe '#country_name' do
       it 'returns country name for valid code' do
         vote_circle.country_code = 'ES'
-        expect(vote_circle.country_name).to eq('Spain')
+        # El arnes fija I18n.locale = :es, asi que Carmen devuelve el nombre traducido
+        expect(vote_circle.country_name).to eq(Carmen::Country.coded('ES').name)
       end
 
       it 'returns empty string for invalid code' do

@@ -54,8 +54,12 @@ module PlebisVotes
       result
     end
 
+    # BUG: comparaba `kind` (el enum devuelve el *nombre*, un String) contra los
+    # valores enteros de `VoteCircle.kinds`, asi que siempre daba false.
+    IN_SPAIN_KINDS = %w[barrial municipal comarcal].freeze
+
     def in_spain?
-      [VoteCircle.kinds[:barrial], VoteCircle.kinds[:municipal], VoteCircle.kinds[:comarcal]].include? kind
+      IN_SPAIN_KINDS.include?(kind.to_s)
     end
 
     def code_in_spain?
@@ -78,17 +82,17 @@ module PlebisVotes
     end
 
     def town_name
-      if town
-        prov = Carmen::Country.coded('ES').subregions[town[2, 2].to_i - 1]
-        carmen_town = prov.subregions.coded(town.strip)
-        carmen_town.present? ? carmen_town.name : "#{town} no es un municipio válido"
-      else
-        ''
-      end
+      return '' unless town
+
+      prov = carmen_province(town[2, 2])
+      carmen_town = prov&.subregions&.coded(town.strip)
+      carmen_town.present? ? carmen_town.name : "#{town} no es un municipio válido"
     end
 
     def province_name
-      province_code ? Carmen::Country.coded('ES').subregions[province_code[2, 2].to_i - 1].name : ''
+      return '' unless province_code
+
+      carmen_province(province_code[2, 2])&.name.to_s
     end
 
     def autonomy_name
@@ -100,6 +104,15 @@ module PlebisVotes
     end
 
     private
+
+    # Provincia de Carmen por su numero ("28"). Devuelve nil si no existe, en vez
+    # de reventar con NoMethodError sobre nil.
+    def carmen_province(province_number)
+      index = province_number.to_i
+      return nil unless index.positive?
+
+      Carmen::Country.coded('ES').subregions[index - 1]
+    end
 
     def get_next_circle_id(territory_code, circle_type = 'TM')
       num_circles = VoteCircle.where('code like ?', "#{circle_type}#{territory_code}%").count
