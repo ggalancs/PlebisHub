@@ -19,10 +19,30 @@ máquina y con la misma base de datos.
 | 2 | Rails 8.0.5.1, `load_defaults 7.2` | 10.522 | **0** | 666 |
 | 3 | Rails 8.0.5.1, `load_defaults 8.0` | 10.522 | **0** | 666 |
 | 4 | Rails 8.1.3.1, `load_defaults 8.0` | 10.522 | 1 † | 666 |
-| 5 | Rails 8.1.3.1, `load_defaults 8.1` | *en curso* | | |
+| 5 | Rails 8.1.3.1, `load_defaults 8.1` | 10.522 | **0** | 666 |
+| 6 | Rails 8.1.3.1 + 15 bumps de seguridad | 10.522 | 1 † | 666 |
 
-† Test intermitente por un bug preexistente del código de producción, no por Rails 8.1.
-Ver §8.
+† En ambos casos, el mismo bug preexistente del código de producción (§8), en dos specs
+distintos y con seeds distintos. No es una regresión de Rails 8.
+
+**Suites de los 9 engines** (64 spec files que no forman parte de la suite raíz ni de CI),
+comparadas siempre contra una base de datos recién cargada:
+
+| Configuración | Ejemplos | Fallos |
+|---|---:|---:|
+| Rails 7.2.3 | 2.163 | 461 |
+| Rails 8.1.3.1 | 2.187 | **447** |
+
+Regresiones reales del upgrade: **0**. Fallos que el upgrade resuelve: **16**.
+
+### Verificación estática
+
+| Comprobación | Antes (7.2) | Después (8.1) |
+|---|---|---|
+| `bin/rails zeitwerk:check` | ❌ falla | ✅ *All is good* |
+| `bundler-audit` | ~90 hallazgos | **2** (solo Devise) |
+| `brakeman` | 1 aviso + 1 entrada obsoleta | ✅ sin avisos |
+| `rubocop` (config de CI) | 0 ofensas | ✅ 0 ofensas |
 
 Cobertura en la línea base: 86,64 % (10.421 / 12.028 líneas).
 
@@ -168,8 +188,13 @@ deprecación que ensuciaba la salida en cada request de test.
 
 ## 8. Bug destapado: códigos de credencial malformados
 
-`spec/admin/credential_shipment_spec.rb:273` («formats credential codes with dash») falló
-una vez en la ejecución #4 con `expected "H4GC-IU8" to match /^[A-Z0-9]{4}-[A-Z0-9]{4}$/i`.
+> **Decisión pendiente para el equipo.** Es el único punto no verde del upgrade y hará que
+> CI falle de forma intermitente hasta que se resuelva.
+
+Falló dos veces, en **specs distintos y con seeds distintos**:
+
+- ejecución #4 — `spec/admin/credential_shipment_spec.rb:273`, `expected "H4GC-IU8" to match /^[A-Z0-9]{4}-[A-Z0-9]{4}$/i`
+- ejecución #6 — `spec/requests/admin/credential_shipment_spec.rb:85`, código `73GD-L8M`
 
 **No es una regresión de Rails 8.1.** En `app/admin/credential_shipment.rb:41` el código se
 genera así:
@@ -206,13 +231,26 @@ Debe abrirse como incidencia aparte.
 
 ## 7. Pendiente
 
-- [ ] Suite completa sobre Rails 8.1.3.1 con `load_defaults 8.0`
-- [ ] Activar los 6 defaults de 8.1 y `load_defaults 8.1`
-- [ ] Regenerar `schema.rb` (8.1 ordena las columnas alfabéticamente) en commit aislado
-- [ ] Ejecutar las suites de los 9 engines por separado (no forman parte de la suite raíz)
-- [ ] `brakeman`, `bundler-audit`, `rubocop` con `TargetRailsVersion` actualizado
-- [ ] Verificación manual en staging de los flujos críticos (§10 del plan)
-- [ ] **No ejecutado por diseño:** cualquier despliegue. Requiere decisión humana
+### Decisiones que requieren al equipo
+
+1. **Bug de los códigos de credencial (§8).** Único punto no verde. El arreglo es una
+   línea; el impacto es de producto.
+2. **`devise` 4.9.4 → 5.0.4.** Últimas 2 vulnerabilidades Medium que quedan en
+   `bundler-audit`. Es un mayor con breaking changes.
+3. **Despliegue.** **No ejecutado por diseño.** Staging primero, con verificación manual de
+   los flujos críticos (§10 del plan): Devise, ActiveAdmin, Redsys, microcréditos, Ágora,
+   ActiveStorage, SES/Esendex, Sidekiq.
+
+### Recomendaciones
+
+4. **Meter los engines en CI.** Hoy CI solo ejecuta `bundle exec rspec spec/`, dejando fuera
+   2.187 ejemplos que llevan tiempo pudriéndose (447 en rojo). Da una falsa sensación de
+   seguridad.
+5. **Meter `zeitwerk:check` en CI.** Habría detectado años antes que producción no podía
+   hacer eager loading.
+6. **Higiene de gems aplazada**: `activeadmin` 3.4 → 3.5.2, `sidekiq` 7 → 8,
+   `formtastic` 5 → 6, `friendly_id` 5.5 → 5.7, `state_machines-activerecord` 0.100 → 0.200,
+   `aws-sdk-rails` 3 → 5. Ninguna bloqueaba; se dejaron fuera para no añadir variables.
 
 ### Deuda técnica destapada, fuera del alcance del upgrade
 
