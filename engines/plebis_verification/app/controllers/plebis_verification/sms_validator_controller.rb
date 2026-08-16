@@ -120,11 +120,18 @@ module PlebisVerification
                            user_id: current_user.id,
                            phone: current_user.unconfirmed_phone)
         flash.now[:notice] = t('plebisbrand.valid.phone.valid')
-        redirect_to authenticated_root_path
+        # main_app: en un controlador de engine los url helpers se resuelven contra
+        # las rutas del propio engine, que no define authenticated_root. Sin el
+        # prefijo esto lanzaba una excepcion y caia al rescue, de modo que un token
+        # correcto acababa mostrando la pantalla de error.
+        redirect_to main_app.authenticated_root_path
       else
+        # User no define sms_confirmation_attempts: con la llamada directa,
+        # cualquier token invalido lanzaba NoMethodError y el usuario recibia el
+        # error generico del rescue en lugar del mensaje de token incorrecto.
         log_security_event('sms_validation_token_invalid',
                            user_id: current_user.id,
-                           attempts: current_user.sms_confirmation_attempts || 0)
+                           attempts: current_user.try(:sms_confirmation_attempts) || 0)
         flash.now[:error] = t('plebisbrand.valid.phone.invalid')
         render action: 'step3'
       end
