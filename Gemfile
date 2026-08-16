@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-ruby '>= 3.3.6'
+ruby '>= 3.4.10'
 
 # Rails 8.1 - Following official upgrade guide
 gem 'coffee-rails' # Required by Sprockets processor (even without .coffee files)

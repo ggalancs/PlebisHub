@@ -8,6 +8,49 @@ plan que resultaron falsas al medirlas**.
 
 ---
 
+## 0. Tres bugs de producción destapados por el upgrade
+
+Ninguno lo causó el cambio de versión: los tres llevaban tiempo ahí y salieron al
+ejecutar por primera vez código y tests que nadie ejecutaba.
+
+### 0.1 Los secrets anidados devolvían `nil`
+
+`config_for(:secrets)` symboliza las claves, pero la aplicación los lee con claves
+string en sus 254 usos:
+
+```ruby
+Rails.application.secrets.agora['servers']       # => nil
+Rails.application.secrets.forms['domain']        # => nil
+Rails.application.secrets.microcredits['brands'] # => nil
+```
+
+Solo funcionaba donde algún parche inyectaba claves string por efecto colateral:
+`secrets.agora` tenía `:themes` y `"themes"` **duplicadas** porque
+`config/initializers/test_agora_themes.rb` hace `agora["themes"] ||= …` sobre un hash
+con claves símbolo y nunca las encontraba.
+
+Corregido dando acceso indiferente a los hashes anidados en `config/application.rb`.
+
+> **Conviene revisar qué funcionalidad llevaba degradada por esto**: integración con
+> Ágora, formularios embebidos y configuración de marcas de microcréditos.
+
+### 0.2 `root_url` reventaba en los engines montados
+
+`ApplicationController` usaba `root_url` en sus tres redirects de acceso denegado
+(`rescue_from CanCan::AccessDenied`, `access_denied` y `authenticate_admin_user!`). Los
+8 engines montados heredan de esa clase y, en un controlador de engine, los url helpers
+se resuelven contra el route set del propio engine, que no define `root`.
+
+Resultado: en lugar de redirigir, esos redirects lanzaban
+`ActionController::UrlGenerationError`. **Un usuario sin permisos en una acción
+protegida de un engine recibía un 500.** Corregido con `main_app.root_url`.
+
+### 0.3 Códigos de credencial malformados
+
+Ver §8.
+
+---
+
 ## 1. Resultados de la suite
 
 Todas las ejecuciones son de la suite raíz completa (`bundle exec rspec`), en la misma

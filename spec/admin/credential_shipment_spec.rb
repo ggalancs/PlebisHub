@@ -5,6 +5,14 @@ require 'rails_helper'
 RSpec.describe 'Credential Shipment Admin', type: :request do
   let(:admin_user) { create(:user, :admin, :superadmin) }
 
+  # El fichero de envio es un TSV cuya primera columna es el id de usuario.
+  # Comprobar la ausencia de un id con `body.not_to include(id.to_s)` es fragil:
+  # el id "441" aparece dentro de "1441516" o de un telefono, asi que el test
+  # fallaba de forma intermitente segun los datos acumulados.
+  def shipped_user_ids(body)
+    body.split("\n").drop(1).reject(&:blank?).map { |line| line.split("\t").first }
+  end
+
   before do
     sign_in_admin admin_user
     # Stub User verification methods that may cause issues
