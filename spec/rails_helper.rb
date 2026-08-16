@@ -52,8 +52,12 @@ SimpleCov.start 'rails' do
   # Current: 65.01% - excellent progress!
   # Adjusted to current level to allow passing CI
   # Next target: 70%, then 80%, then 90%
-  minimum_coverage 65
-  minimum_coverage_by_file 40
+  # Skipped when running partial suites (e.g. during a Rails upgrade), where a
+  # subset of specs naturally reports low global coverage.
+  unless ENV['SKIP_COVERAGE_CHECK']
+    minimum_coverage 65
+    minimum_coverage_by_file 40
+  end
 end
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'

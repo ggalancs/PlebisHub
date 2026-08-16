@@ -1,13 +1,11 @@
 name: CI
 
-# Manual trigger only for now - enable automatic runs when tests are stable
 on:
   workflow_dispatch:
-  # Uncomment below to enable automatic CI on push/PR
-  # push:
-  #   branches: [ master, develop ]
-  # pull_request:
-  #   branches: [ master, develop ]
+  push:
+    branches: [ master, develop, rails-8-upgrade ]
+  pull_request:
+    branches: [ master, develop ]
 
 jobs:
   test:
