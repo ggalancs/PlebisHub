@@ -9,21 +9,10 @@ SimpleCov.start 'rails' do
   add_filter '/config/'
   add_filter '/vendor/'
 
-  # Exclude dead code files - these are duplicates of engine concerns that are not loaded
-  # The actual implementations live in engines/plebis_impulsa/app/models/plebis_impulsa/concerns/
-  add_filter 'app/models/concerns/impulsa_project_wizard.rb'
-  add_filter 'app/models/concerns/impulsa_project_states.rb'
-  add_filter 'app/models/concerns/impulsa_project_evaluation.rb'
-
   # Exclude backward compatibility alias controllers - they just inherit from engine controllers
   # The actual implementations are tested via the engine controller specs
   add_filter 'app/controllers/microcredit_controller.rb'
 
-  # Exclude disabled/legacy controllers - routes are commented out or conditionally disabled
-  # SupportsController: route commented out, functionality moved to PlebisProposals engine
-  add_filter 'app/controllers/supports_controller.rb'
-  # ProposalsController: routes commented out, functionality moved to PlebisProposals engine
-  add_filter 'app/controllers/proposals_controller.rb'
   # OpenIdController: conditionally enabled via secrets.openid["enabled"], disabled in test
   add_filter 'app/controllers/open_id_controller.rb'
 

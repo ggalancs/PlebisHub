@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ImpulsaProjectStates, type: :model do
+RSpec.describe PlebisImpulsa::ImpulsaProjectStates, type: :model do
   let(:impulsa_edition) { create(:impulsa_edition) }
   let(:impulsa_edition_category) { create(:impulsa_edition_category, impulsa_edition: impulsa_edition) }
   let(:user) { create(:user) }
