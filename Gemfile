@@ -86,7 +86,7 @@ gem 'validate_url'
 gem 'xmlrpc'
 
 # Web server - must be in all environments for Docker/production
-gem 'puma', '~> 6.0'
+gem 'puma', '~> 8.0', '>= 8.0.2' # CVE-2026-*: 6.x vulnerable; solo se usa en desarrollo (produccion va con unicorn/passenger)
 
 group :development, :test do
   gem 'better_errors'

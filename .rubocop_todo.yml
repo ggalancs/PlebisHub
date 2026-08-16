@@ -47,7 +47,7 @@ Layout/ArgumentAlignment:
 Layout/BlockAlignment:
   Exclude:
     - 'app/models/concerns/impulsa_project_wizard.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'spec/workers/plebisbrand_collaboration_worker_spec.rb'
 
 # Offense count: 1
@@ -219,8 +219,8 @@ Layout/LineLength:
     - 'engines/plebis_gamification/spec/listeners/gamification/proposal_listener_spec.rb'
     - 'engines/plebis_impulsa/app/admin/impulsa_edition.rb'
     - 'engines/plebis_impulsa/app/admin/impulsa_project.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'engines/plebis_impulsa/app/models/plebis_impulsa/impulsa_edition.rb'
     - 'engines/plebis_impulsa/app/models/plebis_impulsa/impulsa_project.rb'
     - 'engines/plebis_impulsa/plebis_impulsa.gemspec'
@@ -316,8 +316,8 @@ Lint/ConstantDefinitionInBlock:
     - 'app/admin/vote_circle.rb'
     - 'app/models/concerns/impulsa_project_evaluation.rb'
     - 'app/models/concerns/impulsa_project_wizard.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'engines/plebis_votes/app/admin/vote_circle.rb'
     - 'lib/tasks/plebisbrand/municipies_extract.rake'
     - 'spec/models/concerns/safe_condition_evaluator_spec.rb'
@@ -386,7 +386,7 @@ Lint/UnderscorePrefixedVariableName:
     - 'app/models/election.rb'
     - 'app/models/order.rb'
     - 'engines/plebis_collaborations/app/models/plebis_collaborations/order.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'engines/plebis_microcredit/app/models/plebis_microcredit/microcredit_loan.rb'
     - 'engines/plebis_votes/app/models/plebis_votes/election.rb'
     - 'spec/support/workers_helper.rb'
@@ -514,8 +514,8 @@ Metrics/AbcSize:
     - 'engines/plebis_gamification/app/models/gamification/user_badge.rb'
     - 'engines/plebis_impulsa/app/admin/impulsa_project.rb'
     - 'engines/plebis_impulsa/app/controllers/plebis_impulsa/impulsa_controller.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'engines/plebis_impulsa/app/models/plebis_impulsa/impulsa_edition.rb'
     - 'engines/plebis_microcredit/app/admin/microcredit_loan.rb'
     - 'engines/plebis_microcredit/app/controllers/plebis_microcredit/microcredit_controller.rb'
@@ -589,9 +589,9 @@ Metrics/BlockLength:
     - 'engines/plebis_impulsa/app/admin/impulsa_edition.rb'
     - 'engines/plebis_impulsa/app/admin/impulsa_edition_category.rb'
     - 'engines/plebis_impulsa/app/admin/impulsa_project.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_states.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_states.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'engines/plebis_impulsa/spec/lib/plebis_impulsa/engine_spec.rb'
     - 'engines/plebis_impulsa/spec/models/plebis_impulsa/concerns/impulsa_project_evaluation_spec.rb'
     - 'engines/plebis_impulsa/spec/models/plebis_impulsa/concerns/impulsa_project_wizard_spec.rb'
@@ -661,7 +661,7 @@ Metrics/BlockNesting:
     - 'app/models/concerns/user/phone_verification.rb'
     - 'engines/plebis_collaborations/app/admin/collaboration.rb'
     - 'engines/plebis_collaborations/app/models/plebis_collaborations/collaboration.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'lib/plebisbrand_import_collaborations.rb'
 
 # Offense count: 30
@@ -727,8 +727,8 @@ Metrics/CyclomaticComplexity:
     - 'engines/plebis_collaborations/app/models/plebis_collaborations/order.rb'
     - 'engines/plebis_collaborations/lib/collaborations_on_paper.rb'
     - 'engines/plebis_impulsa/app/admin/impulsa_project.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'engines/plebis_microcredit/app/controllers/plebis_microcredit/microcredit_controller.rb'
     - 'engines/plebis_microcredit/app/models/plebis_microcredit/microcredit.rb'
     - 'engines/plebis_verification/app/admin/user_verification.rb'
@@ -798,8 +798,8 @@ Metrics/MethodLength:
     - 'engines/plebis_gamification/app/services/gamification/badge_awarder.rb'
     - 'engines/plebis_impulsa/app/admin/impulsa_project.rb'
     - 'engines/plebis_impulsa/app/controllers/plebis_impulsa/impulsa_controller.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'engines/plebis_impulsa/app/models/plebis_impulsa/impulsa_edition.rb'
     - 'engines/plebis_microcredit/app/controllers/plebis_microcredit/microcredit_controller.rb'
     - 'engines/plebis_microcredit/app/models/plebis_microcredit/microcredit.rb'
@@ -849,8 +849,8 @@ Metrics/ModuleLength:
     - 'engines/plebis_gamification/spec/listeners/gamification/proposal_listener_spec.rb'
     - 'engines/plebis_gamification/spec/models/gamification/point_spec.rb'
     - 'engines/plebis_gamification/spec/services/gamification/badge_awarder_spec.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'engines/plebis_impulsa/spec/models/plebis_impulsa/concerns/impulsa_project_evaluation_spec.rb'
     - 'engines/plebis_impulsa/spec/models/plebis_impulsa/concerns/impulsa_project_wizard_spec.rb'
     - 'engines/plebis_impulsa/spec/models/plebis_impulsa/impulsa_project_spec.rb'
@@ -872,6 +872,7 @@ Metrics/ModuleLength:
     - 'engines/plebis_votes/spec/models/plebis_votes/vote_circle_spec.rb'
     - 'engines/plebis_votes/spec/models/plebis_votes/vote_spec.rb'
     - 'engines/plebis_votes/spec/services/plebis_votes/paper_vote_service_spec.rb'
+    - 'engines/plebis_gamification/spec/models/gamification/badge_spec.rb'
 
 # Offense count: 15
 # Configuration parameters: Max, CountKeywordArgs, MaxOptionalParameters.
@@ -881,7 +882,7 @@ Metrics/ParameterLists:
     - 'app/models/concerns/impulsa_project_evaluation.rb'
     - 'app/models/report.rb'
     - 'engines/plebis_collaborations/app/admin/collaboration.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
     - 'lib/tasks/paperclip_to_active_storage.rake'
 
 # Offense count: 77
@@ -911,8 +912,8 @@ Metrics/PerceivedComplexity:
     - 'engines/plebis_collaborations/app/models/plebis_collaborations/order.rb'
     - 'engines/plebis_collaborations/lib/collaborations_on_paper.rb'
     - 'engines/plebis_impulsa/app/admin/impulsa_project.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_wizard.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
     - 'engines/plebis_microcredit/app/controllers/plebis_microcredit/microcredit_controller.rb'
     - 'engines/plebis_microcredit/app/models/plebis_microcredit/microcredit.rb'
     - 'engines/plebis_microcredit/app/models/plebis_microcredit/microcredit_loan.rb'
@@ -1191,6 +1192,7 @@ Rails/OutputSafety:
 Rails/Pluck:
   Exclude:
     - 'spec/models/gamification/point_spec.rb'
+    - 'engines/plebis_gamification/spec/models/gamification/badge_spec.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -1292,6 +1294,7 @@ Rails/SkipsModelValidations:
     - 'test/factories/collaborations.rb'
     - 'test/factories/proposals.rb'
     - 'test/factories/users.rb'
+    - 'spec/models/concerns/engine_user/militant_spec.rb'
 
 # Offense count: 8
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -1368,6 +1371,12 @@ Style/Alias:
 Style/ArgumentsForwarding:
   Exclude:
     - 'spec/controllers/audio_captcha_controller_spec.rb'
+    - 'app/helpers/application_helper.rb'
+    - 'app/models/concerns/impulsa_project_evaluation.rb'
+    - 'app/models/concerns/impulsa_project_wizard.rb'
+    - 'app/models/report.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_wizard.rb'
 
 # Offense count: 26
 # This cop supports safe autocorrection (--autocorrect).
@@ -1460,7 +1469,7 @@ Style/DocumentDynamicEvalDefinition:
     - 'app/models/concerns/impulsa_project_evaluation.rb'
     - 'app/models/report_group.rb'
     - 'app/models/spam_filter.rb'
-    - 'engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb'
+    - 'engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -1933,3 +1942,28 @@ Style/YodaCondition:
 Style/ZeroLengthPredicate:
   Exclude:
     - 'analyze_file_coverage.rb'
+
+# Offense count: 2
+# Nuevo en RuboCop con TargetRubyVersion 3.4 (reenvio anonimo de bloques).
+# Refactor cosmetico, sin relacion con el upgrade a Rails 8.
+Naming/BlockForwarding:
+  Exclude:
+    - app/models/report.rb
+
+# Offense count: 15
+# Nuevo con TargetRailsVersion 8.1: sugiere params.expect en lugar de
+# params.require(...).permit(...). Es el idioma de Rails 8, pero cambia el
+# comportamiento ante parametros ausentes o malformados, asi que se aborda
+# como trabajo aparte y no dentro del upgrade de version.
+Rails/StrongParametersExpect:
+  Exclude:
+    - app/controllers/api/v1_controller.rb
+    - app/controllers/collaborations_controller.rb
+    - app/controllers/legacy_password_controller.rb
+    - app/controllers/registrations_controller.rb
+    - engines/plebis_collaborations/app/controllers/plebis_collaborations/collaborations_controller.rb
+    - engines/plebis_impulsa/app/controllers/plebis_impulsa/impulsa_controller.rb
+    - engines/plebis_microcredit/app/controllers/plebis_microcredit/microcredit_controller.rb
+    - engines/plebis_participation/app/controllers/plebis_participation/participation_teams_controller.rb
+    - engines/plebis_verification/app/controllers/plebis_verification/sms_validator_controller.rb
+    - engines/plebis_verification/app/controllers/plebis_verification/user_verifications_controller.rb

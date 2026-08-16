@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.license     = 'MIT'
 
   # VERSIONES OBLIGATORIAS (ver GUIA_MAESTRA_MODULARIZACION.md sección 1.5)
-  spec.required_ruby_version = '>= 3.3.6'
+  spec.required_ruby_version = '>= 3.4.0'
 
   spec.files = Dir['{app,config,db,lib,spec}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
 

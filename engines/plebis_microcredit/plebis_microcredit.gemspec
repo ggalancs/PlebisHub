@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir['{app,config,db,lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
 
-  spec.required_ruby_version = '>= 3.3.6'
+  spec.required_ruby_version = '>= 3.4.0'
 
   spec.add_dependency 'iban-tools' # IBAN validation
   spec.add_dependency 'rails', '>= 7.2.3', '< 9.0'

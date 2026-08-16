@@ -56,11 +56,11 @@ RSpec.describe MicrocreditController, type: :controller do
 
   describe 'controller class' do
     it 'is defined in the global namespace' do
-      expect(defined?(::MicrocreditController)).to eq('constant')
+      expect(defined?(MicrocreditController)).to eq('constant')
     end
 
     it 'has the same ancestors except itself' do
-      parent_ancestors = PlebisMicrocredit::MicrocreditController.ancestors
+      PlebisMicrocredit::MicrocreditController.ancestors
       child_ancestors = MicrocreditController.ancestors
 
       # Child should include parent in its ancestors

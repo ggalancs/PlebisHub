@@ -158,10 +158,10 @@ module Gamification
 
       it 'handles registered_before date criteria' do
         # User registered today
-        badge.update!(criteria: { 'registered_before' => (Date.today + 1.day).to_s })
+        badge.update!(criteria: { 'registered_before' => (Time.zone.today + 1.day).to_s })
         expect(badge.criteria_met?(user)).to be true
 
-        badge.update!(criteria: { 'registered_before' => (Date.today - 10.years).to_s })
+        badge.update!(criteria: { 'registered_before' => (Time.zone.today - 10.years).to_s })
         expect(badge.criteria_met?(user)).to be false
       end
 
@@ -245,9 +245,9 @@ module Gamification
 
       context 'with string conditions (date comparison)' do
         it 'compares dates' do
-          past_date = Date.today - 30.days
+          past_date = Time.zone.today - 30.days
           expect(badge.check_condition(past_date, '2030-01-01')).to be true
-          expect(badge.check_condition(Date.today, '2000-01-01')).to be false
+          expect(badge.check_condition(Time.zone.today, '2000-01-01')).to be false
         end
       end
 

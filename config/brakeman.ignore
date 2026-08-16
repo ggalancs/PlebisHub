@@ -23,10 +23,10 @@
     {
       "warning_type": "Dangerous Eval",
       "warning_code": 13,
-      "fingerprint": "2a891e8672e6247fc6ef892146ee56e2ff2ff48fd00176ba7ef741d2f5d5a359",
+      "fingerprint": "6cb0b189274d6d3b6675aa05307fdfd9ad608c58d08e1fd92b2233001b8b507f",
       "check_name": "Evaluation",
       "message": "Dynamic string evaluated as code",
-      "file": "engines/plebis_impulsa/app/models/plebis_impulsa/concerns/impulsa_project_evaluation.rb",
+      "file": "engines/plebis_impulsa/app/models/concerns/plebis_impulsa/impulsa_project_evaluation.rb",
       "line": 187,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_eval/",
       "code": "self.instance_eval(...)",

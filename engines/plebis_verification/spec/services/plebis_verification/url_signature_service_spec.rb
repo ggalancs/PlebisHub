@@ -84,7 +84,7 @@ module PlebisVerification
     end
 
     describe '#verify_signed_url' do
-      # Note: sign_url and verify_signed_url use different signature truncation methods
+      # NOTE: sign_url and verify_signed_url use different signature truncation methods
       # sign_url uses generate_signature (21 bytes), verify_signed_url uses generate_signature_for_verification (28 chars)
       # So we manually construct the signed URL with the correct signature format for verification
       let(:timestamp) { Time.now.to_i }
@@ -350,7 +350,7 @@ module PlebisVerification
     end
 
     describe 'integration scenarios' do
-      # Note: sign_url and verify_signed_url use different signature formats and are NOT
+      # NOTE: sign_url and verify_signed_url use different signature formats and are NOT
       # designed to work together. sign_url is for external form embedding (21-byte signatures),
       # while verify_signed_url is for API callbacks (28-char signatures).
       # We test each method's signing/verification consistency separately.
@@ -364,7 +364,7 @@ module PlebisVerification
         end
 
         it 'generates consistent signatures for same input' do
-          allow(Time).to receive(:now).and_return(double(to_i: 1234567890))
+          allow(Time).to receive(:now).and_return(double(to_i: 1_234_567_890))
           signed1 = subject.sign_url(url)
           signed2 = subject.sign_url(url)
           expect(signed1).to eq(signed2)
