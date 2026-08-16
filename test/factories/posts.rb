@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :post, class: 'Post' do
+  factory :post, class: 'PlebisCms::Post' do
     sequence(:title) { |n| "Post Title #{n}" }
     sequence(:content) { |n| "This is the content for post #{n}." }
     status { 1 } # Published by default
