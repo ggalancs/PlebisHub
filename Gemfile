@@ -31,7 +31,7 @@ gem 'active_skin'
 gem 'bootstrap-sass', '~> 3.4.1'
 gem 'cancancan', '~> 3.5' # Updated from 1.9 - Rails 7.2 compatible
 gem 'carmen-rails'
-gem 'devise', '~> 4.9' # Rails 7.0+ compatible
+gem 'devise', '~> 5.0' # Rails 7.0+; 5.0.4 cierra CVE-2026-32700 y CVE-2026-40295
 gem 'esendex'
 gem 'formtastic'
 gem 'formtastic-bootstrap'

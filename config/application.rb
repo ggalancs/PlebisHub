@@ -112,7 +112,12 @@ module PlebisHub
 
     # Rack::Attack - Rate limiting and throttling
     # Configuration in config/initializers/rack_attack.rb
-    config.middleware.use Rack::Attack
+    #
+    # BUG: aqui habia un `config.middleware.use Rack::Attack`. La propia gema ya
+    # se inserta desde su railtie ("rack-attack.middleware"), asi que el
+    # middleware quedaba dos veces en la pila y cada peticion incrementaba los
+    # contadores el doble: todos los limites de tasa valian la mitad de lo
+    # configurado. Se deja que lo registre el railtie.
 
     # Note: SecureHeaders configuration is in config/initializers/secure_headers.rb
     # It's automatically applied when the gem is loaded

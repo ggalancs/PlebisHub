@@ -5,20 +5,25 @@
 # Configures cache headers for static assets to improve performance.
 # Works with both Sprockets and Vite assets.
 
-Rails.application.config.after_initialize do
-  # Enable asset caching in production
-  if Rails.env.production?
-    # Configure static file serving with cache headers
-    Rails.application.config.public_file_server.headers = {
-      # Cache static assets for 1 year (they have fingerprinted filenames)
-      'Cache-Control' => 'public, max-age=31536000, immutable',
-      # Add Vary header for proper CDN caching
-      'Vary' => 'Accept-Encoding'
-    }
+# BUG: esto vivia dentro de un `after_initialize`, es decir, despues de que Rails
+# construya y congele la pila de middleware y de que ActionDispatch::Static se
+# haya creado con las cabeceras antiguas. Consecuencias en produccion:
+#   * `middleware.use Rack::Deflater` lanzaba FrozenError y la aplicacion no
+#     arrancaba;
+#   * las cabeceras `immutable` no llegaban a aplicarse nunca.
+# Al nivel del initializer si estamos a tiempo, igual que el insert_before del
+# final del fichero.
+if Rails.env.production?
+  # Configure static file serving with cache headers
+  Rails.application.config.public_file_server.headers = {
+    # Cache static assets for 1 year (they have fingerprinted filenames)
+    'Cache-Control' => 'public, max-age=31536000, immutable',
+    # Add Vary header for proper CDN caching
+    'Vary' => 'Accept-Encoding'
+  }
 
-    # Enable gzip compression for served assets
-    Rails.application.config.middleware.use Rack::Deflater
-  end
+  # Enable gzip compression for served assets
+  Rails.application.config.middleware.use Rack::Deflater
 end
 
 # Middleware to add specific cache headers for different asset types
