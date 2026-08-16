@@ -220,7 +220,7 @@ RSpec.describe Order, type: :model do
     it 'belongs to parent polymorphically' do
       order = create(:order)
       expect(order).to respond_to(:parent)
-      expect(order.parent_type).to eq('Collaboration')
+      expect(order.parent_type).to eq('PlebisCollaborations::Collaboration')
     end
 
     it 'belongs to collaboration' do
@@ -228,7 +228,7 @@ RSpec.describe Order, type: :model do
       order = create(:order, parent: collaboration)
 
       expect(order.parent_id).to eq(collaboration.id)
-      expect(order.parent_type).to eq('Collaboration')
+      expect(order.parent_type).to eq('PlebisCollaborations::Collaboration')
     end
   end
 
@@ -588,7 +588,8 @@ RSpec.describe Order, type: :model do
 
         parent = Order.parent_from_order_id(order_id)
 
-        expect(parent).to eq(collaboration)
+        # La consulta devuelve la clase del engine y la factory la de la app
+        expect(parent.id).to eq(collaboration.id)
       end
     end
   end
@@ -669,7 +670,7 @@ RSpec.describe Order, type: :model do
                      reference: 'Test collaboration order')
 
       expect(order.parent_id).to eq(collaboration.id)
-      expect(order.parent_type).to eq('Collaboration')
+      expect(order.parent_type).to eq('PlebisCollaborations::Collaboration')
       expect(order.user_id).to eq(user.id)
       expect(order).to be_is_credit_card
     end
@@ -786,7 +787,7 @@ RSpec.describe Order, type: :model do
         payment_methods: 'C',
         secret_key: Base64.strict_encode64(secret_key),
         identifier: 'REQUIRED'
-      })
+      }.with_indifferent_access)
     end
 
     describe '#redsys_secret' do
@@ -1003,14 +1004,22 @@ RSpec.describe Order, type: :model do
 
         order.redsys_parse_response!(params)
 
-        expect(order.reload.status).to eq(4)
+        # Ds_Response < 100 es un pago aceptado: un fallo al interpretar la
+        # respuesta deja estado 3 ("OK, con errores"), no 4 (que es el KO)
+        expect(order.reload.status).to eq(3)
       end
     end
 
-    # NOTE: #redsys_callback_response is not tested due to a bug in production code (line 484)
-    # where rstrip! is called on a frozen string from heredoc. This would need to be fixed
-    # in the production code first by using rstrip instead of rstrip!
-    # describe '#redsys_callback_response' do ... end
+    describe '#redsys_callback_response' do
+      it 'genera la respuesta SOAP del callback' do
+        order.payment_response = { 'Ds_Order' => '123456789012' }.to_json
+        response = order.redsys_callback_response
+        expect(response).to include('procesaNotificacionSIS')
+        # El <Message> con la respuesta y la firma va escapado dentro del <return>
+        expect(response).to include('&lt;Ds_Response_Merchant&gt;')
+        expect(response).to include('&lt;Signature&gt;')
+      end
+    end
   end
 
   # ====================
@@ -1112,7 +1121,7 @@ RSpec.describe Order, type: :model do
         payment_methods: 'C',
         secret_key: Base64.strict_encode64(secret_key),
         identifier: 'REQUIRED'
-      })
+      }.with_indifferent_access)
     end
 
     describe '#redsys_text_status for various error codes' do

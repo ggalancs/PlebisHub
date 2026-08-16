@@ -87,7 +87,10 @@ module PlebisCollaborations
     after_initialize :parse_non_user
     before_save :check_spanish_bic
     before_save :format_non_user
-    after_create :set_initial_status
+    # BUG: era before_create y paso a after_create al consolidar. En after_create
+    # la asignacion no se persiste, asi que toda colaboracion nueva se quedaba con
+    # el valor por defecto de la columna (2, "Sin confirmar") en vez de 0, "Sin pago".
+    before_create :set_initial_status
     before_save do
       iban_account.presence&.upcase!
       if payment_type != 1 && (redsys_identifier.present? || redsys_expiration.present?)

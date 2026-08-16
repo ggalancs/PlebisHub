@@ -500,7 +500,7 @@ RSpec.describe 'Order Admin', type: :request do
       end
 
       before do
-        allow_any_instance_of(Collaboration).to receive(:get_user).and_return(collab_order.user)
+        allow_any_instance_of(PlebisCollaborations::Collaboration).to receive(:get_user).and_return(collab_order.user)
         allow_any_instance_of(User).to receive(:full_name).and_return('Test User')
         allow_any_instance_of(User).to receive(:document_vatid).and_return('12345678A')
         allow_any_instance_of(User).to receive(:address).and_return('Test Address')
@@ -838,7 +838,7 @@ RSpec.describe 'Order Admin', type: :request do
 
     before do
       sign_in finances_admin_user
-      allow_any_instance_of(Collaboration).to receive(:get_user).and_return(complex_order.user)
+      allow_any_instance_of(PlebisCollaborations::Collaboration).to receive(:get_user).and_return(complex_order.user)
     end
 
     it 'includes vote_circle in CSV' do
