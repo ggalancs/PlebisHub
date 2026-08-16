@@ -3,6 +3,11 @@
 require 'English'
 module PlebisCollaborations
   class Order < ApplicationRecord
+    # `isolate_namespace` sets table_name_prefix to "plebis_collaborations_",
+    # which would make Rails look for a non-existent plebis_collaborations_orders
+    # table. The data lives in the host application's `orders` table.
+    self.table_name = 'orders'
+
     include Rails.application.routes.url_helpers
 
     acts_as_paranoid

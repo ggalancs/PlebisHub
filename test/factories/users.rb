@@ -144,3 +144,9 @@ FactoryBot.define do
     end
   end
 end
+
+# Alias usado por los specs de los engines, que esperan una factory `admin_user`
+# en lugar de `user` con el trait `:admin`.
+FactoryBot.define do
+  factory :admin_user, parent: :user, traits: [:admin]
+end

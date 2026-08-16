@@ -108,7 +108,7 @@ RSpec.describe PlebisMicrocredit::ApplicationHelper, type: :helper do
     end
 
     context 'with real main_app routes' do
-      it 'can access root_path' do
+      it 'can access main_app.root_path' do
         result = helper.root_path
         expect(result).to be_a(String)
         expect(result).to eq('/')
@@ -233,7 +233,7 @@ RSpec.describe PlebisMicrocredit::ApplicationHelper, type: :helper do
     end
 
     context 'with real routes' do
-      it 'responds to root_path' do
+      it 'responds to main_app.root_path' do
         expect(helper).to respond_to(:root_path)
       end
 

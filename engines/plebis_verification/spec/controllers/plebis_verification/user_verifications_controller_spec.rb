@@ -42,21 +42,21 @@ module PlebisVerification
       describe 'GET #new' do
         it 'requires authentication' do
           get :new
-          expect(response).to redirect_to(new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_path)
         end
 
         it 'allows authenticated users' do
           sign_in user
           allow(UserVerification).to receive(:for).and_return(UserVerification.new)
           get :new
-          expect(response).not_to redirect_to(new_user_session_path)
+          expect(response).not_to redirect_to(main_app.new_user_session_path)
         end
       end
 
       describe 'POST #create' do
         it 'requires authentication' do
           post :create, params: { user_verification: valid_attributes }
-          expect(response).to redirect_to(new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_path)
         end
       end
 
@@ -155,9 +155,9 @@ module PlebisVerification
           allow(UserVerification).to receive(:for).and_raise(StandardError.new('Test error'))
         end
 
-        it 'redirects to root_path' do
+        it 'redirects to main_app.root_path' do
           get :new
-          expect(response).to redirect_to(root_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'sets flash alert' do
@@ -280,9 +280,9 @@ module PlebisVerification
           allow(UserVerification).to receive(:for).and_raise(StandardError.new('Test error'))
         end
 
-        it 'redirects to root_path' do
+        it 'redirects to main_app.root_path' do
           post :create, params: { user_verification: valid_attributes }
-          expect(response).to redirect_to(root_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'sets flash alert' do
@@ -349,9 +349,9 @@ module PlebisVerification
           )
         end
 
-        it 'redirects to root_path' do
+        it 'redirects to main_app.root_path' do
           get :report, params: { report_code: invalid_code }
-          expect(response).to redirect_to(root_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'sets flash alert' do
@@ -372,9 +372,9 @@ module PlebisVerification
           allow(report_service).to receive(:generate).and_raise(StandardError.new('Test error'))
         end
 
-        it 'redirects to root_path' do
+        it 'redirects to main_app.root_path' do
           get :report, params: { report_code: report_code }
-          expect(response).to redirect_to(root_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'sets flash alert' do
@@ -439,9 +439,9 @@ module PlebisVerification
           allow(report_service).to receive(:generate).and_raise(StandardError.new('Test error'))
         end
 
-        it 'redirects to root_path' do
+        it 'redirects to main_app.root_path' do
           get :report_town, params: { report_code: report_code }
-          expect(response).to redirect_to(root_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'logs error' do
@@ -501,9 +501,9 @@ module PlebisVerification
           allow(report_service).to receive(:generate).and_raise(StandardError.new('Test error'))
         end
 
-        it 'redirects to root_path' do
+        it 'redirects to main_app.root_path' do
           get :report_exterior, params: { report_code: report_code }
-          expect(response).to redirect_to(root_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'logs error' do
@@ -527,7 +527,7 @@ module PlebisVerification
           session[:return_to] = 'http://evil.com/phishing'
           post :create, params: { user_verification: valid_attributes }
           expect(response).not_to redirect_to('http://evil.com/phishing')
-          expect(response).to redirect_to(root_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'allows internal redirects' do

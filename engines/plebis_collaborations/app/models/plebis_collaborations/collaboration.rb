@@ -3,6 +3,10 @@
 require 'fileutils'
 module PlebisCollaborations
   class Collaboration < ApplicationRecord
+    # See PlebisCollaborations::Order: isolate_namespace would prefix the table
+    # name with "plebis_collaborations_". The data lives in `collaborations`.
+    self.table_name = 'collaborations'
+
     include Rails.application.routes.url_helpers
 
     acts_as_paranoid

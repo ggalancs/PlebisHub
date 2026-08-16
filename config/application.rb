@@ -79,8 +79,17 @@ module PlebisHub
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Restore Rails.application.secrets for Rails 7.2+ compatibility
-    # secrets.yml support was removed in Rails 7.2
-    config.secrets = config_for(:secrets)
+    # secrets.yml support was removed in Rails 7.2.
+    #
+    # `config_for` symbolizes keys, but the application reads nested secrets with
+    # string keys everywhere (`secrets.agora['servers']`, `secrets.forms['domain']`,
+    # `secrets.microcredits['brands']`, …), which silently returned nil. Give the
+    # nested hashes indifferent access so both forms work.
+    config.secrets = config_for(:secrets).tap do |secrets|
+      secrets.each do |key, value|
+        secrets[key] = value.with_indifferent_access if value.is_a?(Hash)
+      end
+    end
 
     # Rails 7.2 compatibility: Allow engines to modify autoload_paths
     # Some legacy engines attempt to modify autoload_paths during initialization

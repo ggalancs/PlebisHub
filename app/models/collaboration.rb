@@ -23,8 +23,11 @@ class Collaboration < ApplicationRecord
   # should have a solid test base before doing this change and review where .order
   # is called.
   #
-  # has_many :orders, as: :parent
   has_many :order, as: :parent
+  # Nombre correcto segun las convenciones de Rails. Se anade junto al singular
+  # en lugar de renombrarlo para no tocar los numerosos `.order` ya existentes;
+  # el codigo nuevo (y los specs de PlebisCollaborations) deben usar `.orders`.
+  has_many :orders, as: :parent, class_name: 'Order'
 
   attr_accessor :skip_queries_validations
 

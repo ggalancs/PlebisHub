@@ -230,7 +230,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
                                           wants_card: true,
                                           born_at: 20.years.ago)
       get admin_envios_de_credenciales_generate_shipment_path, params: { max_reg: 100 }
-      expect(response.body).not_to include(verification_already_sent.user.id.to_s)
+      expect(shipped_user_ids(response.body)).not_to include(verification_already_sent.user.id.to_s)
     end
 
     it 'excludes verifications where wants_card is false' do
@@ -238,7 +238,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
                                      wants_card: false,
                                      born_at: nil)
       get admin_envios_de_credenciales_generate_shipment_path, params: { max_reg: 100 }
-      expect(response.body).not_to include(verification_no_card.user.id.to_s)
+      expect(shipped_user_ids(response.body)).not_to include(verification_no_card.user.id.to_s)
     end
 
     it 'sends data as attachment' do

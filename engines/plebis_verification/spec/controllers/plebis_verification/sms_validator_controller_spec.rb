@@ -22,12 +22,12 @@ module PlebisVerification
 
         it 'redirects to sign in for step1' do
           get :step1
-          expect(response).to redirect_to(new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_path)
         end
 
         it 'redirects to sign in for phone' do
           post :phone, params: { user: { unconfirmed_phone: '123456789' } }
-          expect(response).to redirect_to(new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_path)
         end
       end
     end
@@ -38,7 +38,7 @@ module PlebisVerification
 
         it 'redirects to root' do
           get :step1
-          expect(response).to redirect_to(root_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'sets error flash' do

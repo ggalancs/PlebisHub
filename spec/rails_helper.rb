@@ -187,3 +187,11 @@ RSpec.configure do |config|
   require 'webmock/rspec'
   WebMock.disable_net_connect!(allow_localhost: true)
 end
+
+# shoulda-matchers: usado por los specs de modelos de la app y de los engines.
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+    with.library :rails
+  end
+end

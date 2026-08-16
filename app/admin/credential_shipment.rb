@@ -38,8 +38,11 @@ ActiveAdmin.register_page 'Envios de Credenciales' do
     us = UserVerification.not_sended.limit(max_reg).joins(:user).select('user_verifications.id', 'users.id as user_id',
                                                                         'users.first_name', 'users.last_name', 'users.address', 'users.postal_code', 'users.phone', 'users.born_at').order('user_verifications.created_at ASC')
     us.each do |r|
+      # `to_s(32)` no rellena por la izquierda, asi que para valores pequenos
+      # devolvia 6 o 7 caracteres y el codigo salia malformado (p.ej. "H4GC-IU8"
+      # en lugar de "XXXX-XXXX"). Afectaba al 10,8 % de los user_id.
       code = ([r.user_id].pack('L')[0..2] + Digest::CRC16.digest("#{r.user_id}-#{r.born_at}").ljust(8,
-                                                                                                    "\x00")).unpack1('Q').to_s(32).upcase
+                                                                                                    "\x00")).unpack1('Q').to_s(32).upcase.rjust(8, '0')
       code = "#{code[0..3]}-#{code[4..7]}"
 
       u = User.find(r.user_id)
