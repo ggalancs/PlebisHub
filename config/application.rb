@@ -26,10 +26,9 @@ module PlebisHub
       @secrets ||= config.secrets
     end
     # Initialize configuration defaults for originally generated Rails version.
-    # 8.0 brings: to_time_preserves_timezone = :zone, strict_freshness = true
-    # and Regexp.timeout = 1. All three were verified against this codebase
-    # before switching (see RAILS_8_UPGRADE_PLAN.md).
-    config.load_defaults 8.0
+    # Every new default introduced by 8.0 and 8.1 was audited against this
+    # codebase before switching; see RAILS_8_UPGRADE_LOG.md for the evidence.
+    config.load_defaults 8.1
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.

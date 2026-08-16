@@ -9,8 +9,8 @@ plugins:
 AllCops:
   NewCops: enable
   SuggestExtensions: false
-  TargetRubyVersion: 3.3
-  TargetRailsVersion: 7.2
+  TargetRubyVersion: 3.4
+  TargetRailsVersion: 8.1
   Exclude:
     - 'bin/**/*'
     - 'db/**/*'
