@@ -9,6 +9,12 @@ module PlebisCollaborations
 
     include Rails.application.routes.url_helpers
 
+    # url_helpers necesita un host; sin esto los enlaces generados desde el
+    # modelo salian sin dominio. Se perdio al consolidar.
+    def default_url_options
+      ActionMailer::Base.default_url_options.presence || { host: 'www.example.com' }
+    end
+
     acts_as_paranoid
     has_paper_trail
 

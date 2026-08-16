@@ -180,8 +180,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.live
 
-        expect(results).to include(active)
-        expect(results).not_to include(deleted)
+        expect(results.map(&:id)).to include(active.id)
+        expect(results.map(&:id)).not_to include(deleted.id)
       end
     end
 
@@ -192,8 +192,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.credit_cards
 
-        expect(results).to include(cc)
-        expect(results).not_to include(bank)
+        expect(results.map(&:id)).to include(cc.id)
+        expect(results.map(&:id)).not_to include(bank.id)
       end
     end
 
@@ -204,8 +204,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.banks
 
-        expect(results).to include(bank)
-        expect(results).not_to include(cc)
+        expect(results.map(&:id)).to include(bank.id)
+        expect(results.map(&:id)).not_to include(cc.id)
       end
     end
 
@@ -216,8 +216,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.frequency_single
 
-        expect(results).to include(single)
-        expect(results).not_to include(monthly)
+        expect(results.map(&:id)).to include(single.id)
+        expect(results.map(&:id)).not_to include(monthly.id)
       end
     end
 
@@ -228,8 +228,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.frequency_month
 
-        expect(results).to include(monthly)
-        expect(results).not_to include(quarterly)
+        expect(results.map(&:id)).to include(monthly.id)
+        expect(results.map(&:id)).not_to include(quarterly.id)
       end
     end
 
@@ -240,8 +240,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.incomplete
 
-        expect(results).to include(incomplete)
-        expect(results).not_to include(active)
+        expect(results.map(&:id)).to include(incomplete.id)
+        expect(results.map(&:id)).not_to include(active.id)
       end
     end
 
@@ -252,8 +252,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.active
 
-        expect(results).to include(active)
-        expect(results).not_to include(incomplete)
+        expect(results.map(&:id)).to include(active.id)
+        expect(results.map(&:id)).not_to include(incomplete.id)
       end
     end
 
@@ -264,8 +264,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.warnings
 
-        expect(results).to include(warning)
-        expect(results).not_to include(active)
+        expect(results.map(&:id)).to include(warning.id)
+        expect(results.map(&:id)).not_to include(active.id)
       end
     end
 
@@ -276,8 +276,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.errors
 
-        expect(results).to include(error)
-        expect(results).not_to include(active)
+        expect(results.map(&:id)).to include(error.id)
+        expect(results.map(&:id)).not_to include(active.id)
       end
     end
   end
@@ -295,7 +295,7 @@ RSpec.describe Collaboration, type: :model do
 
     it 'has many orders' do
       collaboration = create(:collaboration)
-      expect(collaboration).to respond_to(:order)
+      expect(collaboration).to respond_to(:orders)
     end
 
     it 'allows nil user for non-user collaborations' do
@@ -543,8 +543,8 @@ RSpec.describe Collaboration, type: :model do
 
       results = Collaboration.all
 
-      expect(results).to include(active)
-      expect(results).not_to include(deleted)
+      expect(results.map(&:id)).to include(active.id)
+      expect(results.map(&:id)).not_to include(deleted.id)
     end
 
     it 'includes soft deleted with with_deleted scope' do
@@ -553,8 +553,8 @@ RSpec.describe Collaboration, type: :model do
 
       results = Collaboration.with_deleted
 
-      expect(results).to include(active)
-      expect(results).to include(deleted)
+      expect(results.map(&:id)).to include(active.id)
+      expect(results.map(&:id)).to include(deleted.id)
     end
 
     it 'restores soft deleted collaboration' do
@@ -566,7 +566,7 @@ RSpec.describe Collaboration, type: :model do
       collaboration.restore
 
       expect(collaboration.reload.deleted_at).to be_nil
-      expect(Collaboration.all).to include(collaboration)
+      expect(Collaboration.all.map(&:id)).to include(collaboration.id)
     end
   end
 
@@ -956,8 +956,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.frequency_quarterly
 
-        expect(results).to include(quarterly)
-        expect(results).not_to include(monthly)
+        expect(results.map(&:id)).to include(quarterly.id)
+        expect(results.map(&:id)).not_to include(monthly.id)
       end
     end
 
@@ -968,8 +968,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.frequency_anual
 
-        expect(results).to include(annual)
-        expect(results).not_to include(monthly)
+        expect(results.map(&:id)).to include(annual.id)
+        expect(results.map(&:id)).not_to include(monthly.id)
       end
     end
 
@@ -980,8 +980,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.amount_1
 
-        expect(results).to include(small)
-        expect(results).not_to include(large)
+        expect(results.map(&:id)).to include(small.id)
+        expect(results.map(&:id)).not_to include(large.id)
       end
     end
 
@@ -993,9 +993,9 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.amount_2
 
-        expect(results).to include(medium)
-        expect(results).not_to include(small)
-        expect(results).not_to include(large)
+        expect(results.map(&:id)).to include(medium.id)
+        expect(results.map(&:id)).not_to include(small.id)
+        expect(results.map(&:id)).not_to include(large.id)
       end
     end
 
@@ -1006,8 +1006,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.amount_3
 
-        expect(results).to include(large)
-        expect(results).not_to include(small)
+        expect(results.map(&:id)).to include(large.id)
+        expect(results.map(&:id)).not_to include(small.id)
       end
     end
 
@@ -1018,8 +1018,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.unconfirmed
 
-        expect(results).to include(unconfirmed)
-        expect(results).not_to include(active)
+        expect(results.map(&:id)).to include(unconfirmed.id)
+        expect(results.map(&:id)).not_to include(active.id)
       end
     end
 
@@ -1030,8 +1030,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.legacy
 
-        expect(results).to include(legacy)
-        expect(results).not_to include(regular)
+        expect(results.map(&:id)).to include(legacy.id)
+        expect(results.map(&:id)).not_to include(regular.id)
       end
     end
 
@@ -1042,8 +1042,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.non_user
 
-        expect(results).to include(non_user_collab)
-        expect(results).not_to include(user_collab)
+        expect(results.map(&:id)).to include(non_user_collab.id)
+        expect(results.map(&:id)).not_to include(user_collab.id)
       end
     end
 
@@ -1054,8 +1054,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.autonomy_cc
 
-        expect(results).to include(autonomy)
-        expect(results).not_to include(town)
+        expect(results.map(&:id)).to include(autonomy.id)
+        expect(results.map(&:id)).not_to include(town.id)
       end
     end
 
@@ -1066,8 +1066,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.town_cc
 
-        expect(results).to include(town)
-        expect(results).not_to include(autonomy)
+        expect(results.map(&:id)).to include(town.id)
+        expect(results.map(&:id)).not_to include(autonomy.id)
       end
     end
 
@@ -1078,8 +1078,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.island_cc
 
-        expect(results).to include(island)
-        expect(results).not_to include(town)
+        expect(results.map(&:id)).to include(island.id)
+        expect(results.map(&:id)).not_to include(town.id)
       end
     end
 
@@ -1090,8 +1090,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.bank_nationals
 
-        expect(results).to include(national)
-        expect(results).not_to include(international)
+        expect(results.map(&:id)).to include(national.id)
+        expect(results.map(&:id)).not_to include(international.id)
       end
     end
 
@@ -1102,8 +1102,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.bank_internationals
 
-        expect(results).to include(international)
-        expect(results).not_to include(national)
+        expect(results.map(&:id)).to include(international.id)
+        expect(results.map(&:id)).not_to include(national.id)
       end
     end
 
@@ -1114,8 +1114,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.full_view
 
-        expect(results.to_a).to include(active)
-        expect(results.to_a).to include(deleted)
+        expect(results.to_a.map(&:id)).to include(active.id)
+        expect(results.to_a.map(&:id)).to include(deleted.id)
       end
     end
 
@@ -1126,8 +1126,8 @@ RSpec.describe Collaboration, type: :model do
 
         results = Collaboration.deleted
 
-        expect(results).to include(deleted)
-        expect(results).not_to include(active)
+        expect(results.map(&:id)).to include(deleted.id)
+        expect(results.map(&:id)).not_to include(active.id)
       end
     end
   end

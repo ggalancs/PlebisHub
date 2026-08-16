@@ -177,12 +177,16 @@ RSpec.describe ApplicationRecord, type: :model do
       expect(User.superclass).to eq(ApplicationRecord)
     end
 
+    # Election y Order pasaron a ser subclases del engine al consolidar: siguen
+    # descendiendo de ApplicationRecord, pero ya no directamente
     it 'Election inherits from ApplicationRecord' do
-      expect(Election.superclass).to eq(ApplicationRecord)
+      expect(Election.ancestors).to include(ApplicationRecord)
+      expect(Election.superclass).to eq(PlebisVotes::Election)
     end
 
     it 'Order inherits from ApplicationRecord' do
-      expect(Order.superclass).to eq(ApplicationRecord)
+      expect(Order.ancestors).to include(ApplicationRecord)
+      expect(Order.superclass).to eq(PlebisCollaborations::Order)
     end
 
     it 'all models inherit ransackable_attributes method' do

@@ -140,7 +140,7 @@ RSpec.describe EngineUser::Verifiable, type: :model do
       end
 
       it 'returns the pending verification' do
-        expect(user.imperative_verification).to eq(pending_verification)
+        expect(user.imperative_verification.id).to eq(pending_verification.id)
       end
     end
 
@@ -152,7 +152,7 @@ RSpec.describe EngineUser::Verifiable, type: :model do
       end
 
       it 'returns the issues verification' do
-        expect(user.imperative_verification).to eq(issues_verification)
+        expect(user.imperative_verification.id).to eq(issues_verification.id)
       end
     end
 
@@ -164,7 +164,7 @@ RSpec.describe EngineUser::Verifiable, type: :model do
       end
 
       it 'returns the paused verification' do
-        expect(user.imperative_verification).to eq(paused_verification)
+        expect(user.imperative_verification.id).to eq(paused_verification.id)
       end
     end
 

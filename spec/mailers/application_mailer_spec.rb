@@ -31,7 +31,9 @@ RSpec.describe ApplicationMailer, type: :mailer do
 
   describe 'subclasses' do
     it 'is inherited by CollaborationsMailer' do
-      expect(CollaborationsMailer.superclass).to eq(ApplicationMailer)
+      # La app hereda del mailer del engine, que a su vez hereda de este
+      expect(CollaborationsMailer.ancestors).to include(ApplicationMailer)
+      expect(CollaborationsMailer.superclass).to eq(PlebisCollaborations::CollaborationsMailer)
     end
 
     it 'is inherited by ImpulsaMailer' do

@@ -60,9 +60,9 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
       verification_no_card = create(:user_verification, wants_card: false, born_at: nil)
 
       results = UserVerification.not_sended
-      expect(results).to include(verification_not_sent)
-      expect(results).not_to include(verification_sent)
-      expect(results).not_to include(verification_no_card)
+      expect(results.map(&:id)).to include(verification_not_sent.id)
+      expect(results.map(&:id)).not_to include(verification_sent.id)
+      expect(results.map(&:id)).not_to include(verification_no_card.id)
     end
   end
 
