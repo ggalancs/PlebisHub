@@ -101,7 +101,9 @@ module PlebisCollaborations
     after_commit :verify_user_militant_status
 
     def only_have_single_collaborations?
-      frequency.zero? || skip_queries_validations
+      # Navegacion segura: esta condicion se evalua antes que la validacion de
+      # presencia, asi que con frequency nil reventaba con NoMethodError.
+      frequency&.zero? || skip_queries_validations
     end
 
     def territorial_assignment=(value)
