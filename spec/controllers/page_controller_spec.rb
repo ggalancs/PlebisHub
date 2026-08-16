@@ -18,6 +18,10 @@ RSpec.describe PlebisCms::PageController, type: :controller do
     allow(controller).to receive(:admin_logger).and_return(true)
 
     # Setup Devise mapping
+    # Si algun spec anterior recargo las rutas, Devise.mappings queda vacio y aqui
+    # se asignaria nil, provocando "Could not find devise mapping" de forma
+    # dependiente del orden de ejecucion.
+    Rails.application.reload_routes! if Devise.mappings[:user].nil?
     @request.env['devise.mapping'] = Devise.mappings[:user]
 
     # Mock Election.active to avoid DB dependencies

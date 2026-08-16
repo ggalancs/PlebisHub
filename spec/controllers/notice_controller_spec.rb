@@ -15,6 +15,10 @@ RSpec.describe PlebisCms::NoticeController, type: :controller do
     allow(controller).to receive(:set_locale).and_return(true)
 
     # Setup Devise mapping for tests
+    # Si algun spec anterior recargo las rutas, Devise.mappings queda vacio y aqui
+    # se asignaria nil, provocando "Could not find devise mapping" de forma
+    # dependiente del orden de ejecucion.
+    Rails.application.reload_routes! if Devise.mappings[:user].nil?
     @request.env['devise.mapping'] = Devise.mappings[:user]
 
     # Use actual engine routes instead of custom route set
