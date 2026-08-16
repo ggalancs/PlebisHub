@@ -147,7 +147,9 @@ module PlebisImpulsa
           if field[:format] == 'dninie' && !(validate_nif(value) || validate_nie(value))
             return 'no es un DNI o NIE correcto'
           end
-          return 'no es un teléfono válido' if field[:format] == 'phone' && Phonelib.parse(value).valid?
+          # BUG: la condicion estaba invertida — rechazaba los telefonos validos
+          # y dejaba pasar los que no lo son
+          return 'no es un teléfono válido' if field[:format] == 'phone' && !Phonelib.parse(value).valid?
           return 'no es una dirección web válida' if field[:type] == 'url' && URI::DEFAULT_PARSER.make_regexp(%w[http
                                                                                                                  https]).match(value).nil?
 

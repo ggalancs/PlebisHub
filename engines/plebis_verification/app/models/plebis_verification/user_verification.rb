@@ -89,12 +89,14 @@ module PlebisVerification
       pending? || issues?
     end
 
+    # Ambos se ejecutan como condicion de validacion, tambien sobre registros sin
+    # usuario asignado: no pueden reventar con NoMethodError sobre nil.
     def require_back?
-      !user.is_passport?
+      !user&.is_passport?
     end
 
     def not_require_photos?
-      user.photos_unnecessary?
+      user&.photos_unnecessary? || false
     end
 
     def self.for(user, params = {})
@@ -156,8 +158,9 @@ module PlebisVerification
       # If previously rejected or had issues, reset to pending for resubmission
       return :pending if rejected? || issues?
 
-      # Otherwise keep current status
-      status
+      # Otherwise keep current status. El enum devuelve un String; el resto de
+      # ramas devuelven simbolos, asi que normalizamos.
+      status&.to_sym
     end
 
     # Apply the determined status

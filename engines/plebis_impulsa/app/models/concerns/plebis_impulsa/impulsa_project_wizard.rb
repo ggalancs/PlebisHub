@@ -103,9 +103,10 @@ module PlebisImpulsa
       end
 
       def wizard_editable_field?(gname, fname)
-        editable? || (fixable? && (wizard_review["#{gname}.#{fname}"].present? || wizard_field_error(
-          gname, fname
-        )))
+        return true if editable?
+
+        fixable? && (wizard_review["#{gname}.#{fname}"].present? ||
+                     wizard_field_error(gname, fname).present?)
       end
 
       def wizard_all_errors(options = {})
@@ -161,8 +162,12 @@ module PlebisImpulsa
 
         # Use safe evaluator instead of eval()
         # SECURITY: This prevents arbitrary code execution from database-stored conditions
-        SafeConditionEvaluator.evaluate(self, group[:condition])
-      rescue StandardError => e
+        # BUG: `evaluate` lo aporta SafeConditionEvaluator::ClassMethods, que se
+        # mezcla en la clase que incluye el concern, no en el modulo. Llamarlo
+        # sobre el modulo lanzaba NoMethodError y *toda* condicion daba false,
+        # asi que los grupos condicionados del wizard nunca se validaban.
+        evaluate_condition(group[:condition])
+      rescue StandardError, SecurityError => e
         Rails.logger.error("Wizard condition evaluation failed: #{e.message} for condition: #{group[:condition]}")
         # Fail-safe: if condition can't be evaluated safely, skip the group
         false
@@ -186,7 +191,9 @@ module PlebisImpulsa
           if field[:format] == 'dninie' && !(validate_nif(value) || validate_nie(value))
             return 'no es un DNI o NIE correcto'
           end
-          return 'no es un teléfono válido' if field[:format] == 'phone' && Phonelib.parse(value).valid?
+          # BUG: la condicion estaba invertida — rechazaba los telefonos validos
+          # y dejaba pasar los que no lo son
+          return 'no es un teléfono válido' if field[:format] == 'phone' && !Phonelib.parse(value).valid?
           return 'no es una dirección web válida' if field[:type] == 'url' && URI::DEFAULT_PARSER.make_regexp(%w[http
                                                                                                                  https]).match(value).nil?
           if field[:type] == 'check_boxes' && field[:minimum] && value.count < field[:minimum]

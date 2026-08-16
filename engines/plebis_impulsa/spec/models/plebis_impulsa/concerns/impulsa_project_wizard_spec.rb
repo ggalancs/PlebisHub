@@ -564,7 +564,9 @@ module PlebisImpulsa
       end
 
       it 'passes options to step errors' do
-        project.wizard_values = {}
+        # El comentario de revision solo aflora si el campo no falla antes por
+        # obligatorio, asi que hay que darle valor
+        project.wizard_values = { 'personal.name' => 'Un nombre' }
         project.wizard_review = { 'personal.name' => 'Review' }
         errors = project.wizard_all_errors(ignore_state: true)
         expect(errors.any? { |e| e.include?('Review') }).to be true
@@ -668,7 +670,10 @@ module PlebisImpulsa
         end
 
         it 'returns :wrong_size for files exceeding limit' do
-          large_file = double('File', path: '/tmp/test.pdf', size: 10_000_000)
+          # La extension se comprueba antes que el tamano: el campo :sheet solo
+          # admite xls/xlsx/ods, y el `before` fuerza File.extname a '.pdf'
+          allow(File).to receive(:extname).and_return('.xls')
+          large_file = double('File', path: '/tmp/test.xls', size: 10_000_000)
           result = project.assign_wizard_value(:files, :sheet, large_file)
           expect(result).to eq(:wrong_size)
         end
@@ -807,16 +812,13 @@ module PlebisImpulsa
         expect(project.wizard_eval_condition(group)).to be true
       end
 
-      # TODO: Fix integration - SafeConditionEvaluator is tested separately
-      # This test has issues with Ruby stubbing and rescue blocks
-      xit 'evaluates condition using SafeConditionEvaluator' do
+      it 'evaluates condition using SafeConditionEvaluator' do
         allow(project).to receive(:editable?).and_return(true)
         group = { condition: 'editable?' }
         expect(project.wizard_eval_condition(group)).to be true
       end
 
-      # TODO: Fix integration - SafeConditionEvaluator is tested separately
-      xit 'returns false when condition is not met' do
+      it 'returns false when condition is not met' do
         allow(project).to receive(:editable?).and_return(false)
         group = { condition: 'editable?' }
         expect(project.wizard_eval_condition(group)).to be false

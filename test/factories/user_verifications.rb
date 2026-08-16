@@ -10,6 +10,20 @@ FactoryBot.define do
     # Skip validations for tests since we can't easily create actual image files
     to_create { |instance| instance.save(validate: false) }
 
+    # Adjunta las dos fotos del documento: sin ellas el registro no pasa las
+    # validaciones de presencia (front_vatid siempre, back_vatid salvo pasaporte)
+    trait :with_photos do
+      after(:build) do |verification|
+        %i[front_vatid back_vatid].each do |attachment|
+          verification.public_send(attachment).attach(
+            io: StringIO.new('fake image content'),
+            filename: "#{attachment}.png",
+            content_type: 'image/png'
+          )
+        end
+      end
+    end
+
     trait :accepted do
       status { :accepted }
       processed_at { 1.day.ago }

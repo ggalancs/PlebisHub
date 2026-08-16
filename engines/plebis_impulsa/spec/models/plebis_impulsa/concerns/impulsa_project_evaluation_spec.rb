@@ -350,15 +350,20 @@ module PlebisImpulsa
 
     describe '#evaluation_has_errors?' do
       it 'returns false when no errors' do
+        # totals.total_step1 tambien es obligatorio: normalmente lo rellena
+        # _evaluator_update_formulas al asignar por los setters, pero aqui el
+        # hash se asigna en bloque
         project.evaluator1_evaluation = {
           'technical.score' => '10',
           'technical.feasibility' => 'high',
-          'social.impact_score' => '8'
+          'social.impact_score' => '8',
+          'totals.total_step1' => '10'
         }
         project.evaluator2_evaluation = {
           'technical.score' => '9',
           'technical.feasibility' => 'med',
-          'social.impact_score' => '7'
+          'social.impact_score' => '7',
+          'totals.total_step1' => '9'
         }
         expect(project.evaluation_has_errors?).to be false
       end
@@ -379,7 +384,8 @@ module PlebisImpulsa
         project.evaluator1_evaluation = {
           'technical.score' => '10',
           'technical.feasibility' => 'high',
-          'social.impact_score' => '8'
+          'social.impact_score' => '8',
+          'totals.total_step1' => '10'
         }
         expect(project.evaluation_count_errors(1)).to eq(0)
       end
@@ -508,8 +514,9 @@ module PlebisImpulsa
         # First call defines the method
         expect(project._evl1_technical__score).to eq('10')
 
-        # Verify method is defined
-        expect(project.class.instance_methods).to include(:_evl1_technical__score)
+        # evaluation_method_missing usa instance_eval: el metodo queda en el
+        # singleton de la instancia, no en la clase
+        expect(project.singleton_methods).to include(:_evl1_technical__score)
 
         # Second call should use the defined method
         project.evaluator1_evaluation['technical.score'] = '9'
@@ -670,7 +677,8 @@ module PlebisImpulsa
         cat = create(:impulsa_edition_category, impulsa_edition: edition, evaluation: config)
         proj = create(:impulsa_project, impulsa_edition_category: cat, state: 'validable')
 
-        proj.evaluator1_evaluation = { 'technical.dni' => '12345678Z' }
+        # 12345678Z si es un DNI valido; la letra correcta para 12345678 es Z
+        proj.evaluator1_evaluation = { 'technical.dni' => '12345678A' }
         error = proj.evaluation_field_error(1, :technical, :dni)
         expect(error).to be_present
       end
