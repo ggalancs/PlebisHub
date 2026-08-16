@@ -72,7 +72,8 @@ module PlebisCms
 
         it 'redirects to root on error' do
           get :index
-          expect(response).to redirect_to(main_app.root_path)
+          # root_path del controlador lleva prefijo de locale; el del ejemplo no
+          expect(response).to redirect_to(controller.main_app.root_path)
           expect(flash[:alert]).to be_present
         end
 
@@ -92,10 +93,11 @@ module PlebisCms
           expect(assigns(:post)).to eq(published_post)
         end
 
-        it 'returns 404 for draft post' do
-          expect do
-            get :post, params: { id: draft_post.id }
-          end.to raise_error(ActiveRecord::RecordNotFound)
+        it 'redirects to the blog for a draft post' do
+          # El controlador captura RecordNotFound y redirige con aviso, no propaga
+          get :post, params: { id: draft_post.id }
+          expect(response).to redirect_to(blog_path)
+          expect(flash[:alert]).to be_present
         end
 
         it 'logs the view event' do

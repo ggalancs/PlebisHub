@@ -104,7 +104,7 @@ module PlebisVerification
           # Mock UserVerification statuses
           allow(UserVerification).to receive(:statuses).and_return({
                                                                      'pending' => 0,
-                                                                     'verified' => 1,
+                                                                     'accepted' => 1,
                                                                      'rejected' => 2
                                                                    })
 
@@ -134,8 +134,8 @@ module PlebisVerification
           service = described_class.new(report_code)
           result = service.generate
 
-          expect(result[:paises]['France']).to have_key(:verified)
-          expect(result[:paises]['France'][:verified]).to eq(10)
+          expect(result[:paises]['France']).to have_key(:accepted)
+          expect(result[:paises]['France'][:accepted]).to eq(10)
         end
 
         it 'calculates totals for each country' do
@@ -359,7 +359,7 @@ module PlebisVerification
 
         allow(UserVerification).to receive(:statuses).and_return({
                                                                    'pending' => 0,
-                                                                   'verified' => 1,
+                                                                   'accepted' => 1,
                                                                    'rejected' => 2
                                                                  })
       end
@@ -396,7 +396,7 @@ module PlebisVerification
           result = service.generate
 
           france_data = result[:paises]['France']
-          expect(france_data).to include(:pending, :verified, :rejected, :total, :users, :active, :active_verified)
+          expect(france_data).to include(:pending, :accepted, :rejected, :total, :users, :active, :active_verified)
         end
 
         it 'calculates correct totals' do
@@ -420,6 +420,10 @@ module PlebisVerification
       end
 
       context 'error recovery' do
+        # collect_data se ejecuta antes que `countries`, asi que el doble tiene
+        # que aceptar los pluck aunque el fallo que se prueba sea otro
+        before { allow(users).to receive(:pluck).and_return([]) }
+
         it 'handles Carmen Country errors gracefully' do
           allow(Carmen::Country).to receive(:all).and_raise(StandardError.new('Carmen error'))
           allow(Rails.logger).to receive(:error)

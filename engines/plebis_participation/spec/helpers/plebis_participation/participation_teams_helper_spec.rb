@@ -17,14 +17,18 @@ RSpec.describe PlebisParticipation::ParticipationTeamsHelper, type: :helper do
     end
 
     it 'is included in the helper object' do
-      expect(helper.class.ancestors).to include(PlebisParticipation::ParticipationTeamsHelper)
+      # ActionView::TestCase mezcla los helpers en la clase singleton de la
+      # vista, no en `helper.class`
+      expect(helper).to be_a(PlebisParticipation::ParticipationTeamsHelper)
     end
   end
 
   describe 'helper availability' do
     it 'is available in views' do
       expect(helper).to respond_to(:class)
-      expect(helper.class.ancestors).to include(PlebisParticipation::ParticipationTeamsHelper)
+      # ActionView::TestCase mezcla los helpers en la clase singleton de la
+      # vista, no en `helper.class`
+      expect(helper).to be_a(PlebisParticipation::ParticipationTeamsHelper)
     end
   end
 
@@ -56,9 +60,9 @@ RSpec.describe PlebisParticipation::ParticipationTeamsHelper, type: :helper do
 
   describe 'module structure' do
     it 'is properly frozen with frozen_string_literal' do
-      # This test verifies the file has frozen_string_literal: true
-      expect('test'.frozen?).to be false # strings in test are not frozen by default
-      # The actual module code has frozen strings due to the pragma
+      # Comprobamos la pragma en el fichero real del helper, no en este spec
+      source_path = Object.const_source_location('PlebisParticipation::ParticipationTeamsHelper').first
+      expect(File.readlines(source_path).first).to eq("# frozen_string_literal: true\n")
     end
 
     it 'does not define any methods' do

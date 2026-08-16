@@ -23,7 +23,7 @@ module PlebisProposals
         it 'orders by created_at descending' do
           old = create(:proposal, created_at: 2.days.ago)
           new = create(:proposal, created_at: 1.hour.ago)
-          expect(Proposal.recent.first).to eq(new)
+          expect(Proposal.recent.first.id).to eq(new.id)
         end
       end
 
@@ -31,7 +31,7 @@ module PlebisProposals
         it 'orders by supports_count descending' do
           less_popular = create(:proposal, supports_count: 5)
           more_popular = create(:proposal, supports_count: 10)
-          expect(Proposal.popular.first).to eq(more_popular)
+          expect(Proposal.popular.first.id).to eq(more_popular.id)
         end
       end
 

@@ -21,9 +21,12 @@ module PlebisVerification
                    'p_28' => ['c_13', 'Comunidad de Madrid']
                  })
 
+      # Los nombres tienen que ser los reales del enum: el informe usa ademas una
+      # clave :verified propia para el recuento de usuarios verificados, y un
+      # estado llamado "verified" la pisaria
       allow(UserVerification).to receive(:statuses).and_return({
                                                                  'pending' => 0,
-                                                                 'verified' => 1,
+                                                                 'accepted' => 1,
                                                                  'rejected' => 2
                                                                })
     end
@@ -288,7 +291,7 @@ module PlebisVerification
         service.send(:process_province_data, report, data, '28', 'Madrid', 'Comunidad de Madrid')
 
         expect(report[:provincias]['Madrid'][:pending]).to eq(10)
-        expect(report[:provincias]['Madrid'][:verified]).to eq(50)
+        expect(report[:provincias]['Madrid'][:accepted]).to eq(50)
         expect(report[:provincias]['Madrid'][:rejected]).to eq(5)
       end
 
@@ -303,7 +306,7 @@ module PlebisVerification
         service = described_class.new(report_code)
         service.send(:process_province_data, report, data, '28', 'Madrid', 'Comunidad de Madrid')
 
-        expect(report[:autonomias]['Comunidad de Madrid'][:verified]).to eq(50)
+        expect(report[:autonomias]['Comunidad de Madrid'][:accepted]).to eq(50)
         expect(report[:autonomias]['Comunidad de Madrid'][:total]).to eq(65)
       end
     end
@@ -345,7 +348,7 @@ module PlebisVerification
           result = service.generate
 
           madrid_data = result[:provincias]['Madrid']
-          expect(madrid_data).to include(:pending, :verified, :rejected, :total, :users, :active, :active_verified)
+          expect(madrid_data).to include(:pending, :accepted, :rejected, :total, :users, :active, :active_verified)
         end
 
         it 'calculates correct totals' do

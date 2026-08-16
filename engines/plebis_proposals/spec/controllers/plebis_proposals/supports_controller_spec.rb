@@ -102,7 +102,10 @@ module PlebisProposals
       context 'when support creation fails' do
         before do
           allow_any_instance_of(Proposal).to receive(:supportable?).with(user).and_return(true)
-          allow(user.supports).to receive(:create!).and_raise(ActiveRecord::RecordInvalid)
+          # `current_user` es otra instancia distinta de `user`, asi que no vale
+          # stubear `user.supports`: provocamos el fallo real de unicidad
+          # apoyando la propuesta de antemano
+          create(:support, user: user, proposal: proposal)
         end
 
         it 'redirects to proposal path' do

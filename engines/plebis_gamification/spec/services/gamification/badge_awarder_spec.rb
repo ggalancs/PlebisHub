@@ -166,7 +166,8 @@ module Gamification
           allow(user_stats).to receive(:earn_points!)
           allow(notification_class).to receive(:create!)
 
-          expect_any_instance_of(Object).to receive(:publish_event).with(
+          # publish_event es un metodo privado del propio singleton del servicio
+          expect(described_class).to receive(:publish_event).with(
             'gamification.badge_earned',
             {
               user_id: user.id,
