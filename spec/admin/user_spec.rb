@@ -1201,7 +1201,7 @@ RSpec.describe 'User Admin', type: :request do
         expect(new_user.vote_circle_id).to be_nil
       else
         # If user wasn't created, that's also acceptable (validation fails without vote_circle)
-        expect(response).to have_http_status(:unprocessable_entity).or have_http_status(:success)
+        expect(response).to have_http_status(:unprocessable_content).or have_http_status(:success)
       end
     end
   end

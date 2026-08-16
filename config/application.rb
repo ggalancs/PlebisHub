@@ -26,13 +26,10 @@ module PlebisHub
       @secrets ||= config.secrets
     end
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.2
-
-    # Rails 8.0 default, set ahead of `load_defaults 8.0`. The boolean form was
-    # deprecated in 8.0 and removed in 8.1. On Rails 7.2 this is equivalent to
-    # the previous `true`; from 8.0 on it selects zone-preserving semantics.
-    # Remove this line once `load_defaults 8.0` is in place.
-    config.active_support.to_time_preserves_timezone = :zone
+    # 8.0 brings: to_time_preserves_timezone = :zone, strict_freshness = true
+    # and Regexp.timeout = 1. All three were verified against this codebase
+    # before switching (see RAILS_8_UPGRADE_PLAN.md).
+    config.load_defaults 8.0
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.

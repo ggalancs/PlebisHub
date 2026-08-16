@@ -272,7 +272,7 @@ RSpec.describe Api::V1Controller, type: :controller do
       it 'returns 422 unprocessable entity' do
         post :gcm_register, params: { v1: { registration_id: valid_registration_id } }, format: :json
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it 'returns error details' do

@@ -221,7 +221,7 @@ RSpec.describe CollaborationsController, type: :controller do
 
       it 'returns unprocessable_entity with invalid params' do
         post :create, params: { collaboration: { amount: nil } }, format: :json
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
 

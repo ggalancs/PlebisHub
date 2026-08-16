@@ -39,7 +39,7 @@ class ConfirmationsController < Devise::ConfirmationsController
                          errors: resource.errors.full_messages,
                          token_present: params[:confirmation_token].present?)
 
-      respond_with_navigational(resource.errors, status: :unprocessable_entity) do
+      respond_with_navigational(resource.errors, status: :unprocessable_content) do
         render :new
       end
     end

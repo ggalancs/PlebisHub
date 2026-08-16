@@ -288,7 +288,7 @@ RSpec.describe 'Report Admin', type: :request do
         }
       }
       # Check redirect or that main_group was set
-      expect(response).to redirect_to(admin_report_path(Report.last)).or have_http_status(:unprocessable_entity)
+      expect(response).to redirect_to(admin_report_path(Report.last)).or have_http_status(:unprocessable_content)
     end
 
     it 'permits groups' do
@@ -300,7 +300,7 @@ RSpec.describe 'Report Admin', type: :request do
         }
       }
       # Check redirect or that groups was set
-      expect(response).to redirect_to(admin_report_path(Report.last)).or have_http_status(:unprocessable_entity)
+      expect(response).to redirect_to(admin_report_path(Report.last)).or have_http_status(:unprocessable_content)
     end
 
     it 'permits version_at' do
@@ -313,7 +313,7 @@ RSpec.describe 'Report Admin', type: :request do
         }
       }
       # Check redirect indicates success
-      expect(response).to redirect_to(admin_report_path(Report.last)).or have_http_status(:unprocessable_entity)
+      expect(response).to redirect_to(admin_report_path(Report.last)).or have_http_status(:unprocessable_content)
     end
   end
 

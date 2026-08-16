@@ -390,7 +390,7 @@ RSpec.describe MilitantController, type: :controller do
 
         it 'returns unprocessable entity status' do
           get :get_militant_info, params: { participa_user_id: user.id, exemption: 'true' }
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it 'returns JSON error with details' do

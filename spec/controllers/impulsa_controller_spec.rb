@@ -377,7 +377,7 @@ RSpec.describe ImpulsaController, type: :controller do
     it 'requires file parameter' do
       post :upload, params: { step: 'step1', field: 'group1.file1' }, format: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body).to include(I18n.t('impulsa.errors.no_file_provided'))
     end
 
@@ -386,7 +386,7 @@ RSpec.describe ImpulsaController, type: :controller do
 
       post :upload, params: { step: 'step1', field: 'group1.file1', file: fixture_file_upload('test.exe', 'application/octet-stream') }, format: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body).to include(I18n.t('impulsa.errors.wrong_extension'))
     end
 
@@ -395,7 +395,7 @@ RSpec.describe ImpulsaController, type: :controller do
 
       post :upload, params: { step: 'step1', field: 'group1.file1', file: fixture_file_upload('test.pdf', 'application/pdf') }, format: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body).to include(I18n.t('impulsa.errors.wrong_size'))
     end
 
@@ -404,7 +404,7 @@ RSpec.describe ImpulsaController, type: :controller do
 
       post :upload, params: { step: 'step1', field: 'group1.file1', file: fixture_file_upload('test.pdf', 'application/pdf') }, format: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body).to include(I18n.t('impulsa.errors.wrong_field_upload'))
     end
   end

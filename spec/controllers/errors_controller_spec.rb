@@ -94,7 +94,7 @@ RSpec.describe ErrorsController, type: :controller do
 
       it 'returns http status 422 (unprocessable_entity)' do
         get :show, params: { code: 422 }
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
 
@@ -493,7 +493,7 @@ RSpec.describe ErrorsController, type: :controller do
         ['408', :request_timeout],
         ['409', :conflict],
         ['410', :gone],
-        ['422', :unprocessable_entity],
+        ['422', :unprocessable_content],
         ['429', :too_many_requests]
       ].each do |code, status_symbol|
         it "handles #{code} (#{status_symbol}) correctly" do
