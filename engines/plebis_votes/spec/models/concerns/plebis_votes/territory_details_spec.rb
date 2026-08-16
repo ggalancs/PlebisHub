@@ -45,7 +45,7 @@ module PlebisVotes
 
     describe '#get_valid_town_code' do
       it 'validates and formats numeric town code' do
-        result = test_instance.get_valid_town_code(28_079)
+        result = test_instance.get_valid_town_code(28_079, 'ES', true)
         expect(result).to eq('m_28_079_6')
       end
 
@@ -75,12 +75,12 @@ module PlebisVotes
       end
 
       it 'validates against Carmen database' do
-        result = test_instance.get_valid_town_code(28_079, 'ES')
+        result = test_instance.get_valid_town_code(28_079, 'ES', true)
         expect(result).to eq('m_28_079_6')
       end
 
       it 'handles string numeric input' do
-        result = test_instance.get_valid_town_code('28079')
+        result = test_instance.get_valid_town_code('28079', 'ES', true)
         expect(result).to eq('m_28_079_6')
       end
     end
@@ -88,7 +88,7 @@ module PlebisVotes
     describe '#territory_details' do
       context 'with valid town code' do
         it 'returns hash of territory details' do
-          result = test_instance.territory_details(town_code: 28_079)
+          result = test_instance.territory_details(town_code: 28_079, generate_dc: true)
           expect(result).to be_a(Hash)
           expect(result[:town_code]).to eq('m_28_079_6')
           expect(result[:province_code]).to eq('p_28')
@@ -96,18 +96,18 @@ module PlebisVotes
         end
 
         it 'returns town name' do
-          result = test_instance.territory_details(town_code: 28_079)
+          result = test_instance.territory_details(town_code: 28_079, generate_dc: true)
           expect(result[:town_name]).to be_a(String)
           expect(result[:town_name]).not_to be_empty
         end
 
         it 'returns province name' do
-          result = test_instance.territory_details(town_code: 28_079)
+          result = test_instance.territory_details(town_code: 28_079, generate_dc: true)
           expect(result[:province_name]).to eq('Madrid')
         end
 
         it 'returns autonomy name' do
-          result = test_instance.territory_details(town_code: 28_079)
+          result = test_instance.territory_details(town_code: 28_079, generate_dc: true)
           expect(result[:autonomy_name]).to be_a(String)
           expect(result[:autonomy_name]).not_to be_empty
         end
@@ -126,13 +126,14 @@ module PlebisVotes
         end
 
         it 'uses default country code ES' do
-          result = test_instance.territory_details(town_code: 28_079)
+          result = test_instance.territory_details(town_code: 28_079, generate_dc: true)
           expect(result).to be_a(Hash)
         end
 
         it 'returns OpenStruct when result_as is :struct' do
           result = test_instance.territory_details(
             town_code: 28_079,
+            generate_dc: true,
             result_as: :struct
           )
           expect(result).to be_a(OpenStruct)
@@ -144,7 +145,8 @@ module PlebisVotes
             town_code: nil,
             unknown: 'Custom Unknown'
           )
-          expect(result).to be_nil
+          # No devuelve nil: rellena cada campo con el valor de `unknown`.
+          expect(result[:town_code]).to eq('Custom Unknown')
         end
       end
 
@@ -165,17 +167,17 @@ module PlebisVotes
       context 'with invalid input' do
         it 'returns nil for invalid town code' do
           result = test_instance.territory_details(town_code: 'invalid')
-          expect(result).to be_nil
+          expect(result[:town_code]).to eq('Desconocido')
         end
 
         it 'returns nil for nil town code' do
           result = test_instance.territory_details(town_code: nil)
-          expect(result).to be_nil
+          expect(result[:town_code]).to eq('Desconocido')
         end
 
         it 'returns nil for out of range code' do
           result = test_instance.territory_details(town_code: 999_999)
-          expect(result).to be_nil
+          expect(result[:town_code]).to eq('Desconocido')
         end
       end
 
@@ -193,7 +195,7 @@ module PlebisVotes
 
       context 'different country codes' do
         it 'defaults to ES country code' do
-          result = test_instance.territory_details(town_code: 28_079)
+          result = test_instance.territory_details(town_code: 28_079, generate_dc: true)
           expect(result).to be_a(Hash)
         end
 
@@ -250,20 +252,20 @@ module PlebisVotes
 
       it 'handles empty options hash' do
         result = test_instance.territory_details({})
-        expect(result).to be_nil
+        expect(result[:town_code]).to eq('Desconocido')
       end
     end
 
     describe 'real-world examples' do
       it 'handles Madrid municipality' do
-        result = test_instance.territory_details(28_079)
+        result = test_instance.territory_details(town_code: 28_079, generate_dc: true)
         expect(result[:town_name]).to eq('Madrid')
         expect(result[:province_name]).to eq('Madrid')
         expect(result[:province_code]).to eq('p_28')
       end
 
       it 'handles Barcelona municipality' do
-        result = test_instance.territory_details(8_019)
+        result = test_instance.territory_details(town_code: 8_019, generate_dc: true)
         expect(result[:town_code]).to match(/m_08_019_/)
         expect(result[:province_name]).to eq('Barcelona')
       end

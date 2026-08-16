@@ -422,7 +422,9 @@ module PlebisVotes
 
     describe '.available_servers' do
       it 'returns available server keys' do
-        expect(Election.available_servers).to be_a(Hash)
+        # El engine devuelve las claves: se usa como collection de un select, y el hash
+        # anidado renderizaria los valores como opciones.
+        expect(Election.available_servers).to be_an(Array)
       end
     end
 
@@ -455,11 +457,20 @@ module PlebisVotes
     end
 
     describe '#valid_votes_count' do
+      # Vote#save_voter_id resuelve la sede con election_locations.find_by(...);
+      # sin ninguna sede, crear un voto revienta con NoMethodError sobre nil.
+      before do
+        ElectionLocation.new(
+          election: election, location: '00', agora_version: 0, new_agora_version: 0,
+          layout: 'simple', theme: 'default'
+        ).save(validate: false)
+      end
+
       it 'counts valid votes' do
         user = double('User', id: 1)
         allow(::User).to receive(:find).and_return(user)
-        election.votes.create!(user_id: 1, voter_id: 'test1', agora_id: 1)
-        election.votes.create!(user_id: 2, voter_id: 'test2', agora_id: 1)
+        election.votes.create!(user: create(:user), voter_id: 'test1', agora_id: 1)
+        election.votes.create!(user: create(:user), voter_id: 'test2', agora_id: 1)
         expect(election.valid_votes_count).to eq(2)
       end
     end
