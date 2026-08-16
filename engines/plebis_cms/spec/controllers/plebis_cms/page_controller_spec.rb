@@ -18,7 +18,7 @@ module PlebisCms
 
       it 'requires authentication for privacy_policy' do
         get :privacy_policy
-        expect(response).to redirect_to(main_app.new_user_session_path)
+        expect(response).to redirect_to(main_app.new_user_session_url)
       end
     end
 
@@ -81,7 +81,7 @@ module PlebisCms
         context 'when not logged in' do
           it 'redirects to login' do
             get :show_form, params: { id: protected_page.id }
-            expect(response).to redirect_to(main_app.new_user_session_path)
+            expect(response).to redirect_to(main_app.new_user_session_url)
           end
 
           it 'preserves meta information in flash' do

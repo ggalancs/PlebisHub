@@ -17,7 +17,7 @@ module PlebisProposals
 
         it 'redirects to sign in' do
           post :create, params: { proposal_id: proposal.id }
-          expect(response).to redirect_to(main_app.new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
       end
     end

@@ -22,12 +22,12 @@ module PlebisVerification
 
         it 'redirects to sign in for step1' do
           get :step1
-          expect(response).to redirect_to(main_app.new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
 
         it 'redirects to sign in for phone' do
           post :phone, params: { user: { unconfirmed_phone: '123456789' } }
-          expect(response).to redirect_to(main_app.new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
       end
     end

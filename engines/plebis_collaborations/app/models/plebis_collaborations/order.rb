@@ -124,7 +124,9 @@ module PlebisCollaborations
     end
 
     def self.payment_day
-      Rails.application.secrets.orders['payment_day'].to_i
+      # Mismo guardado que app/models/order.rb: la clave `orders` puede no estar
+      # definida en un entorno dado y aqui reventaba con NoMethodError.
+      Rails.application.secrets.orders&.[]('payment_day').to_i
     end
 
     def self.by_month_count(date)

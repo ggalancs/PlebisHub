@@ -2,12 +2,12 @@
 # PlebisHub Rails Application Dockerfile
 # ========================================
 # Multi-stage build for optimal image size and security
-# Base: Ruby 3.4.4 on Alpine Linux
+# Base: Ruby 3.4.10 on Alpine Linux
 # Includes: Rails 8.0, PostgreSQL client, Redis client
 # ========================================
 
 # ==================== Stage 1: Base ====================
-FROM ruby:3.4.4-alpine AS base
+FROM ruby:3.4.10-alpine AS base
 
 # Install runtime dependencies
 RUN apk add --no-cache \

@@ -751,8 +751,6 @@ RSpec.describe Collaboration, type: :model do
 
     before do
       collaboration.update_column(:status, 2)
-      # Stub the actual mailer class method calls
-      stub_const('PlebisCollaborations::CollaborationsMailer', Class.new)
       allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_user).and_return(mailer_double)
       allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_militant).and_return(mailer_double)
       allow(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_user).and_return(mailer_double)

@@ -17,22 +17,22 @@ module PlebisParticipation
 
         it 'redirects to sign in for index' do
           get :index
-          expect(response).to redirect_to(main_app.new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
 
         it 'redirects to sign in for join' do
           post :join
-          expect(response).to redirect_to(main_app.new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
 
         it 'redirects to sign in for leave' do
           post :leave
-          expect(response).to redirect_to(main_app.new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
 
         it 'redirects to sign in for update_user' do
           patch :update_user, params: { user: { old_circle_data: 'data' } }
-          expect(response).to redirect_to(main_app.new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
       end
     end

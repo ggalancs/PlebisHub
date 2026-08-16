@@ -18,31 +18,31 @@ module PlebisVotes
       it 'requires title' do
         election = Election.new(starts_at: Time.zone.now, ends_at: 1.day.from_now, agora_election_id: 1, scope: 0)
         expect(election.valid?).to be_falsey
-        expect(election.errors[:title]).to include("can't be blank")
+        expect(election.errors[:title]).to include('no puede estar en blanco')
       end
 
       it 'requires starts_at' do
         election = Election.new(title: 'Test', ends_at: 1.day.from_now, agora_election_id: 1, scope: 0)
         expect(election.valid?).to be_falsey
-        expect(election.errors[:starts_at]).to include("can't be blank")
+        expect(election.errors[:starts_at]).to include('no puede estar en blanco')
       end
 
       it 'requires ends_at' do
         election = Election.new(title: 'Test', starts_at: Time.zone.now, agora_election_id: 1, scope: 0)
         expect(election.valid?).to be_falsey
-        expect(election.errors[:ends_at]).to include("can't be blank")
+        expect(election.errors[:ends_at]).to include('no puede estar en blanco')
       end
 
       it 'requires agora_election_id' do
         election = Election.new(title: 'Test', starts_at: Time.zone.now, ends_at: 1.day.from_now, scope: 0)
         expect(election.valid?).to be_falsey
-        expect(election.errors[:agora_election_id]).to include("can't be blank")
+        expect(election.errors[:agora_election_id]).to include('no puede estar en blanco')
       end
 
       it 'requires scope' do
         election = Election.new(title: 'Test', starts_at: Time.zone.now, ends_at: 1.day.from_now, agora_election_id: 1)
         expect(election.valid?).to be_falsey
-        expect(election.errors[:scope]).to include("can't be blank")
+        expect(election.errors[:scope]).to include('no puede estar en blanco')
       end
 
       it 'is valid with all required attributes' do

@@ -51,7 +51,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4.4'
+          ruby-version: '3.4.10'
           bundler-cache: true
 
       - name: Install system dependencies
@@ -72,6 +72,11 @@ jobs:
         run: |
           bundle exec rails db:create db:migrate RAILS_ENV=test
 
+      # Detecta que el eager loading esta roto, que es lo que ocurria en Rails
+      # 7.2 sin que nadie lo viera: produccion arranca con eager_load = true.
+      - name: Check Zeitwerk eager loading
+        run: bundle exec rails zeitwerk:check
+
       - name: Run RSpec tests
         run: |
           bundle exec rspec spec/ \
@@ -79,6 +84,18 @@ jobs:
             --format RspecJunitFormatter \
             --out test-results/rspec/results.xml \
             --failure-exit-code 1
+
+      # Las suites de los 9 engines (2188 ejemplos) quedaban fuera de CI y por
+      # eso se pudrieron hasta acumular 447 fallos. Se ejecutan aparte y de
+      # momento sin bloquear el build, mientras se terminan de reparar; en
+      # cuanto lleguen a cero hay que quitar el continue-on-error.
+      - name: Run engine specs (informativo hasta llegar a cero)
+        continue-on-error: true
+        run: |
+          SKIP_COVERAGE_CHECK=1 bundle exec rspec engines/ \
+            --format progress \
+            --format RspecJunitFormatter \
+            --out test-results/rspec/engines.xml
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -104,7 +121,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4.4'
+          ruby-version: '3.4.10'
           bundler-cache: true
 
       - name: Run RuboCop
@@ -122,7 +139,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4.4'
+          ruby-version: '3.4.10'
           bundler-cache: true
 
       - name: Run Brakeman security scanner

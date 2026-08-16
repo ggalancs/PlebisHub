@@ -42,38 +42,38 @@ module PlebisVerification
       describe 'GET #new' do
         it 'requires authentication' do
           get :new
-          expect(response).to redirect_to(main_app.new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
 
         it 'allows authenticated users' do
           sign_in user
           allow(UserVerification).to receive(:for).and_return(UserVerification.new)
           get :new
-          expect(response).not_to redirect_to(main_app.new_user_session_path)
+          expect(response).not_to redirect_to(main_app.new_user_session_url)
         end
       end
 
       describe 'POST #create' do
         it 'requires authentication' do
           post :create, params: { user_verification: valid_attributes }
-          expect(response).to redirect_to(main_app.new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
       end
 
       describe 'report actions' do
         it 'requires admin authentication for report' do
           get :report, params: { report_code: 'test' }
-          expect(response).to redirect_to(new_admin_user_session_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'requires admin authentication for report_town' do
           get :report_town, params: { report_code: 'test' }
-          expect(response).to redirect_to(new_admin_user_session_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'requires admin authentication for report_exterior' do
           get :report_exterior, params: { report_code: 'test' }
-          expect(response).to redirect_to(new_admin_user_session_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
       end
     end

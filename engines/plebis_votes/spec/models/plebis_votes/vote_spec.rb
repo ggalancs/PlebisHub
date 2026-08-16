@@ -13,7 +13,20 @@ module PlebisVotes
         agora_election_id: 12_345,
         scope: 0,
         counter_key: 'test_counter_key_123'
-      )
+      ).tap do |e|
+        # `Vote#save_voter_id` resuelve la sede via
+        # `election_locations.find_by(location: ...)`, asi que sin ninguna sede
+        # cualquier `save` revienta. La factory :vote hace lo mismo en un
+        # after(:build); aqui el voto se construye a mano y hay que replicarlo.
+        #
+        # Se instancia PlebisVotes::ElectionLocation en lugar de usar la factory
+        # :election_location porque esta construye la clase de la aplicacion,
+        # cuyo belongs_to :election rechaza una PlebisVotes::Election.
+        PlebisVotes::ElectionLocation.new(
+          election: e, location: '00', agora_version: 0, new_agora_version: 0,
+          layout: 'simple', theme: 'default'
+        ).save(validate: false)
+      end
     end
 
     let(:vote) do
@@ -78,7 +91,7 @@ module PlebisVotes
         vote_without_id = Vote.new(user: user, election: election)
         vote_without_id.voter_id = nil
         expect(vote_without_id.valid?).to be_falsey
-        expect(vote_without_id.errors[:voter_id]).to include("can't be blank")
+        expect(vote_without_id.errors[:voter_id]).to include('no puede estar en blanco')
       end
 
       it 'requires unique voter_id scoped to user' do

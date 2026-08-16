@@ -330,7 +330,6 @@ RSpec.describe Order, type: :model do
       let(:mailer_double) { double('Mailer', deliver_now: true) }
 
       before do
-        stub_const('PlebisCollaborations::CollaborationsMailer', Class.new)
         allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_user).and_return(mailer_double)
         allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_militant).and_return(mailer_double)
         allow(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_user).and_return(mailer_double)
@@ -780,7 +779,6 @@ RSpec.describe Order, type: :model do
     let(:mailer_double) { double('Mailer', deliver_now: true) }
 
     before do
-      stub_const('PlebisCollaborations::CollaborationsMailer', Class.new)
       allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_user).and_return(mailer_double)
       allow(PlebisCollaborations::CollaborationsMailer).to receive(:order_returned_militant).and_return(mailer_double)
       allow(PlebisCollaborations::CollaborationsMailer).to receive(:collaboration_suspended_user).and_return(mailer_double)
