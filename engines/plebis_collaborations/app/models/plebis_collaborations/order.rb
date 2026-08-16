@@ -278,8 +278,12 @@ module PlebisCollaborations
       # Credit card is valid until the last day of expiration month
       return unless redsys_response && first
 
-      DateTime.strptime(redsys_response['Ds_ExpiryDate'],
-                        '%y%m') + 1.month - 1.second
+      # Si Redsys no devuelve la caducidad, strptime(nil) lanzaba TypeError y
+      # tumbaba el procesado del pago entero.
+      expiry = redsys_response['Ds_ExpiryDate']
+      return if expiry.blank?
+
+      DateTime.strptime(expiry, '%y%m') + 1.month - 1.second
     end
 
     def redsys_order_id
@@ -491,7 +495,10 @@ module PlebisCollaborations
         <ns1:procesaNotificacionSIS xmlns:ns1="InotificacionSIS" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
         <return xsi:type="xsd:string">
       EOL
-      soap[-1].rstrip!
+      # El fichero tiene frozen_string_literal, asi que el heredoc es inmutable:
+      # rstrip! lanzaba FrozenError y la respuesta al callback de Redsys no se
+      # podia generar nunca.
+      soap[-1] = soap[-1].rstrip
       soap << CGI.escapeHTML("<Message>#{response}<Signature>#{signature}</Signature></Message>")
       soap << "</return>\n</ns1:procesaNotificacionSIS>\n</SOAP-ENV:Body>\n</SOAP-ENV:Envelope>"
 

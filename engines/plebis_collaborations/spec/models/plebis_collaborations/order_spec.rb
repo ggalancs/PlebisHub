@@ -464,8 +464,10 @@ RSpec.describe Order, type: :model do
         order.reload
         expiration = order.redsys_expiration
         expect(expiration).to be_a(DateTime)
-        expect(expiration.year).to eq(2026)
-        expect(expiration.month).to eq(1)
+        # '2512' es diciembre de 2025 y la tarjeta vale hasta el ultimo instante
+        # del mes: +1.month -1.second cae en 31/12/2025 23:59:59.
+        expect(expiration.year).to eq(2025)
+        expect(expiration.month).to eq(12)
       end
 
       it 'returns nil when no redsys_response' do
@@ -561,7 +563,10 @@ RSpec.describe Order, type: :model do
           'Ds_Response' => '0000',
           'Ds_Date' => Time.zone.now.in_time_zone(described_class::REDSYS_SERVER_TIME_ZONE).strftime('%d/%m/%Y'),
           'Ds_Hour' => Time.zone.now.in_time_zone(described_class::REDSYS_SERVER_TIME_ZONE).strftime('%H:%M'),
-          'Ds_Merchant_Identifier' => '999999999R'
+          'Ds_Merchant_Identifier' => '999999999R',
+          # Redsys devuelve la caducidad en los pagos con tarjeta; sin ella
+          # redsys_expiration llama a DateTime.strptime(nil) y revienta.
+          'Ds_ExpiryDate' => '2512'
         }
       end
 
@@ -705,7 +710,10 @@ RSpec.describe Order, type: :model do
       collaboration = create(:collaboration, :active)
       order_id = "#{collaboration.id.to_s.rjust(7, '0')}Ctest"
       parent = described_class.parent_from_order_id(order_id)
-      expect(parent).to eq(collaboration)
+      # parent_from_order_id devuelve la clase del engine y la factory construye
+      # la de la aplicacion: ActiveRecord#== exige instance_of?, asi que se
+      # compara la fila.
+      expect(parent.id).to eq(collaboration.id)
     end
   end
 
@@ -733,7 +741,10 @@ RSpec.describe Order, type: :model do
 
     it 'has PARENT_CLASSES constant' do
       expect(described_class::PARENT_CLASSES).to be_a(Hash)
-      expect(described_class::PARENT_CLASSES[Collaboration]).to eq('C')
+      # La clave es la clase del engine; Collaboration de la app es subclase, asi
+      # que la busqueda directa no casa: para eso esta parent_class_code.
+      expect(described_class::PARENT_CLASSES[PlebisCollaborations::Collaboration]).to eq('C')
+      expect(described_class.parent_class_code(Collaboration)).to eq('C')
     end
 
     it 'has SEPA_RETURNED_REASONS constant' do
@@ -825,7 +836,8 @@ RSpec.describe Order, type: :model do
     end
 
     describe 'order lifecycle for bank payments' do
-      let(:collaboration) { create(:collaboration, :active, payment_type: 3) }
+      # payment_type 3 (IBAN) exige una cuenta valida: la aporta :with_spanish_iban.
+      let(:collaboration) { create(:collaboration, :active, :with_spanish_iban) }
       let(:order) { create(:order, :iban, parent: collaboration, user: collaboration.user, payable_at: Time.zone.today) }
 
       it 'processes successful payment flow' do
