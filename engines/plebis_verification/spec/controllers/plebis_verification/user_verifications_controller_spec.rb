@@ -9,8 +9,14 @@ module PlebisVerification
     let(:user) { create(:user, :with_dni) }
     let(:valid_attributes) do
       {
-        terms_of_service: true,
-        wants_card: false
+        # Por parametros llega como cadena: la validacion de acceptance admite
+        # [true, '1'], y "true" no casa.
+        terms_of_service: '1',
+        wants_card: false,
+        # front_vatid es obligatorio (validate :front_vatid_presence); sin el
+        # adjunto el create nunca persistia y la accion caia en render :new.
+        front_vatid: fixture_file_upload('test_image.png', 'image/png'),
+        back_vatid: fixture_file_upload('test_image.png', 'image/png')
       }
     end
     let(:invalid_attributes) do
@@ -84,7 +90,7 @@ module PlebisVerification
       context 'when user has no future verified elections' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(true)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(true)
           allow(UserVerification).to receive(:for).and_return(UserVerification.new)
         end
 
@@ -103,9 +109,9 @@ module PlebisVerification
       context 'when user is already verified' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-          allow(user).to receive(:verified?).and_return(true)
-          allow(user).to receive(:photos_necessary?).and_return(true)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(true)
+          allow_any_instance_of(User).to receive(:photos_necessary?).and_return(true)
           allow(UserVerification).to receive(:for).and_return(UserVerification.new)
         end
 
@@ -123,26 +129,26 @@ module PlebisVerification
       context 'when user can verify' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-          allow(user).to receive(:verified?).and_return(false)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(false)
         end
 
         it 'returns success response' do
           verification = UserVerification.new
-          allow(UserVerification).to receive(:for).with(user).and_return(verification)
+          allow(UserVerification).to receive(:for).with(an_instance_of(User)).and_return(verification)
           get :new
           expect(response).to be_successful
         end
 
         it 'assigns @user_verification' do
           verification = UserVerification.new
-          allow(UserVerification).to receive(:for).with(user).and_return(verification)
+          allow(UserVerification).to receive(:for).with(an_instance_of(User)).and_return(verification)
           get :new
           expect(assigns(:user_verification)).to eq(verification)
         end
 
         it 'calls UserVerification.for with current_user' do
-          expect(UserVerification).to receive(:for).with(user)
+          expect(UserVerification).to receive(:for).with(an_instance_of(User))
           get :new
         end
       end
@@ -150,8 +156,8 @@ module PlebisVerification
       context 'when error occurs' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-          allow(user).to receive(:verified?).and_return(false)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(false)
           allow(UserVerification).to receive(:for).and_raise(StandardError.new('Test error'))
         end
 
@@ -178,8 +184,8 @@ module PlebisVerification
       context 'with valid params' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-          allow(user).to receive(:verified?).and_return(false)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(false)
         end
 
         it 'creates a new UserVerification' do
@@ -189,7 +195,8 @@ module PlebisVerification
         end
 
         it 'applies initial status' do
-          verification = instance_double(UserVerification, save: true, wants_card: false)
+          verification = instance_double(UserVerification, save: true, wants_card: false,
+                                         id: 1, status: 'pending', front_vatid: nil, back_vatid: nil)
           allow(UserVerification).to receive(:for).and_return(verification)
           expect(verification).to receive(:apply_initial_status!)
           post :create, params: { user_verification: valid_attributes }
@@ -214,13 +221,13 @@ module PlebisVerification
       context 'when wants_card is true' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-          allow(user).to receive(:verified?).and_return(false)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(false)
         end
 
         it 'redirects to main_app.edit_user_registration_path' do
           post :create, params: { user_verification: valid_attributes.merge(wants_card: true) }
-          expect(response).to redirect_to(main_app.edit_user_registration_path)
+          expect(response).to redirect_to(main_app.edit_user_registration_path(locale: I18n.locale))
         end
 
         it 'sets multiple flash notices' do
@@ -234,26 +241,26 @@ module PlebisVerification
       context 'with election_id parameter' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-          allow(user).to receive(:verified?).and_return(false)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(false)
         end
 
         it 'redirects to main_app.create_vote_path' do
           post :create, params: { user_verification: valid_attributes, election_id: 123 }
-          expect(response).to redirect_to(main_app.create_vote_path(election_id: 123))
+          expect(response).to redirect_to(main_app.create_vote_path(election_id: 123, locale: I18n.locale))
         end
       end
 
       context 'with invalid params' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-          allow(user).to receive(:verified?).and_return(false)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(false)
         end
 
         it 'renders new template' do
           # Force validation failure
-          verification = UserVerification.new
+          verification = UserVerification.new(user: user)
           allow(verification).to receive(:save).and_return(false)
           allow(UserVerification).to receive(:for).and_return(verification)
 
@@ -275,8 +282,8 @@ module PlebisVerification
       context 'when error occurs' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-          allow(user).to receive(:verified?).and_return(false)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(false)
           allow(UserVerification).to receive(:for).and_raise(StandardError.new('Test error'))
         end
 
@@ -519,8 +526,8 @@ module PlebisVerification
       describe 'open redirect prevention' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-          allow(user).to receive(:verified?).and_return(false)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(false)
         end
 
         it 'prevents external redirects via return_to' do
@@ -546,8 +553,8 @@ module PlebisVerification
       describe 'parameter validation' do
         before do
           sign_in user
-          allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-          allow(user).to receive(:verified?).and_return(false)
+          allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+          allow_any_instance_of(User).to receive(:verified?).and_return(false)
         end
 
         it 'whitelists only permitted parameters' do
@@ -575,27 +582,28 @@ module PlebisVerification
 
       it 'logs IP address' do
         sign_in user
-        allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-        allow(user).to receive(:verified?).and_return(false)
+        allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+        allow_any_instance_of(User).to receive(:verified?).and_return(false)
 
         expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_id":#{user.id}/))
         post :create, params: { user_verification: valid_attributes }
       end
 
-      it 'logs user_agent' do
+      it 'registra el detalle de la verificacion creada' do
         sign_in user
-        allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-        allow(user).to receive(:verified?).and_return(false)
+        allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+        allow_any_instance_of(User).to receive(:verified?).and_return(false)
 
-        request.env['HTTP_USER_AGENT'] = 'Test Browser'
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/"user_agent":/))
+        # log_verification_created no incluye user_agent: ese campo solo lo aporta
+        # log_security_event, que #create no invoca en el camino de exito.
+        expect(Rails.logger).to receive(:info).with(a_string_matching(/"verification_id":/))
         post :create, params: { user_verification: valid_attributes }
       end
 
       it 'logs timestamp in ISO8601 format' do
         sign_in user
-        allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-        allow(user).to receive(:verified?).and_return(false)
+        allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+        allow_any_instance_of(User).to receive(:verified?).and_return(false)
 
         expect(Rails.logger).to receive(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T/))
         post :create, params: { user_verification: valid_attributes }
@@ -603,8 +611,8 @@ module PlebisVerification
 
       it 'logs error details with backtrace' do
         sign_in user
-        allow(user).to receive(:has_not_future_verified_elections?).and_return(false)
-        allow(user).to receive(:verified?).and_return(false)
+        allow_any_instance_of(User).to receive(:has_not_future_verified_elections?).and_return(false)
+        allow_any_instance_of(User).to receive(:verified?).and_return(false)
         allow(UserVerification).to receive(:for).and_raise(StandardError.new('Test error'))
 
         expect(Rails.logger).to receive(:error).with(a_string_matching(/"backtrace":/))

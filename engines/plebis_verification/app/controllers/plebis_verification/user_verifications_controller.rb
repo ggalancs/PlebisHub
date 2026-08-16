@@ -126,7 +126,11 @@ module PlebisVerification
     def handle_successful_verification
       if @user_verification.wants_card
         # Use array for multiple messages, view can handle formatting safely
-        redirect_to edit_user_registration_path, flash: {
+        # main_app: edit_user_registration y create_vote son rutas de la aplicacion.
+        # En un controlador de engine los url helpers se resuelven contra el route
+        # set del engine, que no las define, asi que sin el prefijo esto lanzaba
+        # excepcion y el rescue mandaba al usuario a la raiz con un error generico.
+        redirect_to main_app.edit_user_registration_path, flash: {
           notice: [
             t('plebisbrand.user_verification.documentation_received'),
             t('plebisbrand.user_verification.please_check_details')
@@ -135,7 +139,7 @@ module PlebisVerification
       else
         # Handle election_id redirect if present
         if params[:election_id].present?
-          redirect_to create_vote_path(election_id: params[:election_id])
+          redirect_to main_app.create_vote_path(election_id: params[:election_id])
           return
         end
 
