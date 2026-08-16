@@ -445,8 +445,14 @@ module PlebisCollaborations
     end
 
     def set_warning!(reason)
-      # Rails 7.2: Use update_column instead of deprecated update_attribute
-      update_column :status, 4
+      # check_spanish_bic lo llama desde un before_save, asi que tambien se
+      # ejecuta sobre registros aun sin guardar: update_column ahi lanza
+      # "cannot update a new record". La guarda existia antes de consolidar.
+      if persisted?
+        update_column :status, 4
+      else
+        self.status = 4
+      end
       add_comment reason
     end
 

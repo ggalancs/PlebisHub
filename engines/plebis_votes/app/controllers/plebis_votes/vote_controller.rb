@@ -43,12 +43,13 @@ module PlebisVotes
       return redirect_to(new_user_verification_path(params[:election_id])) unless check_verification
 
       if election.requires_sms_check?
+        # Sin el `return` la accion seguia ejecutandose tras redirigir
         if params[:sms_check_token].nil?
-          redirect_to sms_check_vote_path(params[:election_id])
+          return redirect_to(sms_check_vote_path(params[:election_id]))
         elsif !current_user.valid_sms_check?(params[:sms_check_token])
           log_vote_security_event(:invalid_sms_token, election_id: params[:election_id])
-          redirect_to sms_check_vote_path(params[:election_id]),
-                      flash: { error: I18n.t('vote.sms_check.invalid_token') }
+          return redirect_to(sms_check_vote_path(params[:election_id]),
+                             flash: { error: I18n.t('vote.sms_check.invalid_token') })
         end
       end
       @scoped_agora_election_id = election.scoped_agora_election_id(current_user)
@@ -57,8 +58,17 @@ module PlebisVotes
       redirect_to root_path, flash: { error: I18n.t('vote.errors.create_failed') }
     end
 
+    # SECURITY FIX SEC-036: retardo constante para no filtrar por tiempos que
+    # comprobacion fallo. El cortocircuito de `&&` lo habia perdido.
     def create_token
-      unless election.nvotes? && check_open_election && check_valid_user && check_valid_location && check_verification
+      election_valid = election&.nvotes?
+      election_open = check_open_election
+      user_valid = check_valid_user
+      location_valid = check_valid_location
+      verification_valid = check_verification
+
+      unless election_valid && election_open && user_valid && location_valid && verification_valid
+        sleep(Random.rand(0.05..0.15))
         return send_to_home
       end
 

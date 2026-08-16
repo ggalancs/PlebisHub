@@ -46,13 +46,13 @@ RSpec.describe VoteController, type: :controller do
 
       context 'with valid election_id' do
         it 'accepts numeric election_id' do
-          allow_any_instance_of(Election).to receive(:nvotes?).and_return(true)
-          allow_any_instance_of(Election).to receive(:is_active?).and_return(true)
-          allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(true)
-          allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
-          allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(false)
-          allow_any_instance_of(Election).to receive(:requires_sms_check?).and_return(false)
-          allow_any_instance_of(Election).to receive(:scoped_agora_election_id).and_return('1234')
+          allow_any_instance_of(PlebisVotes::Election).to receive(:nvotes?).and_return(true)
+          allow_any_instance_of(PlebisVotes::Election).to receive(:is_active?).and_return(true)
+          allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_user_created_at?).and_return(true)
+          allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_location_for?).and_return(true)
+          allow_any_instance_of(PlebisVotes::Election).to receive(:requires_vatid_check?).and_return(false)
+          allow_any_instance_of(PlebisVotes::Election).to receive(:requires_sms_check?).and_return(false)
+          allow_any_instance_of(PlebisVotes::Election).to receive(:scoped_agora_election_id).and_return('1234')
 
           get :create, params: { election_id: election.id }
           expect(response).to have_http_status(:success)
@@ -94,7 +94,7 @@ RSpec.describe VoteController, type: :controller do
         # Set referrer for redirect_back to work
         request.env['HTTP_REFERER'] = root_path
         # Mock PaperVoteService to avoid errors
-        allow(PaperVoteService).to receive(:new).and_return(paper_vote_service)
+        allow(PlebisVotes::PaperVoteService).to receive(:new).and_return(paper_vote_service)
         allow(paper_vote_service).to receive(:log_vote_query)
       end
 
@@ -249,11 +249,11 @@ RSpec.describe VoteController, type: :controller do
 
     describe '#create_token' do
       before do
-        allow_any_instance_of(Election).to receive(:nvotes?).and_return(true)
-        allow_any_instance_of(Election).to receive(:is_active?).and_return(true)
-        allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(true)
-        allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
-        allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:nvotes?).and_return(true)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:is_active?).and_return(true)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_user_created_at?).and_return(true)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_location_for?).and_return(true)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:requires_vatid_check?).and_return(false)
         allow(user).to receive(:pass_vatid_check?).and_return(true)
       end
 
@@ -400,12 +400,12 @@ RSpec.describe VoteController, type: :controller do
   # ============================================================================
   describe 'GET #create' do
     before do
-      allow_any_instance_of(Election).to receive(:nvotes?).and_return(true)
-      allow_any_instance_of(Election).to receive(:is_active?).and_return(true)
-      allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(true)
-      allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
-      allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(false)
-      allow_any_instance_of(Election).to receive(:scoped_agora_election_id).and_return('1234')
+      allow_any_instance_of(PlebisVotes::Election).to receive(:nvotes?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:is_active?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_user_created_at?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_location_for?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:requires_vatid_check?).and_return(false)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:scoped_agora_election_id).and_return('1234')
     end
 
     context 'with valid conditions' do
@@ -422,7 +422,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when election is not nvotes' do
       before do
-        allow_any_instance_of(Election).to receive(:nvotes?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:nvotes?).and_return(false)
       end
 
       it 'redirects to home' do
@@ -433,7 +433,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when election is closed' do
       before do
-        allow_any_instance_of(Election).to receive(:is_active?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:is_active?).and_return(false)
       end
 
       it 'redirects to home' do
@@ -450,7 +450,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when user not eligible' do
       before do
-        allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_user_created_at?).and_return(false)
       end
 
       it 'shows error message' do
@@ -467,7 +467,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when SMS check required' do
       before do
-        allow_any_instance_of(Election).to receive(:requires_sms_check?).and_return(true)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:requires_sms_check?).and_return(true)
       end
 
       it 'redirects to SMS check if token not provided' do
@@ -497,11 +497,11 @@ RSpec.describe VoteController, type: :controller do
     let(:vote) { create(:vote, user: user, election: election) }
 
     before do
-      allow_any_instance_of(Election).to receive(:nvotes?).and_return(true)
-      allow_any_instance_of(Election).to receive(:is_active?).and_return(true)
-      allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(true)
-      allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
-      allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(false)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:nvotes?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:is_active?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_user_created_at?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_location_for?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:requires_vatid_check?).and_return(false)
     end
 
     context 'with valid conditions' do
@@ -524,7 +524,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when conditions not met' do
       before do
-        allow_any_instance_of(Election).to receive(:is_active?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:is_active?).and_return(false)
       end
 
       it 'returns gone status' do
@@ -749,10 +749,10 @@ RSpec.describe VoteController, type: :controller do
   # ============================================================================
   describe 'GET #check' do
     before do
-      allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(true)
-      allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
-      allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(false)
-      allow_any_instance_of(Election).to receive(:scoped_agora_election_id).and_return('5678')
+      allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_user_created_at?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_location_for?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:requires_vatid_check?).and_return(false)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:scoped_agora_election_id).and_return('5678')
     end
 
     context 'with valid conditions' do
@@ -765,7 +765,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when user not valid' do
       before do
-        allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_user_created_at?).and_return(false)
       end
 
       it 'redirects to home' do
@@ -776,7 +776,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when location not valid' do
       before do
-        allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_location_for?).and_return(false)
       end
 
       it 'redirects to home' do
@@ -787,7 +787,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when verification required' do
       before do
-        allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(true)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:requires_vatid_check?).and_return(true)
         allow(user).to receive(:pass_vatid_check?).and_return(false)
       end
 
@@ -804,7 +804,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when error occurs' do
       before do
-        allow_any_instance_of(Election).to receive(:scoped_agora_election_id).and_raise(StandardError.new('Test error'))
+        allow_any_instance_of(PlebisVotes::Election).to receive(:scoped_agora_election_id).and_raise(StandardError.new('Test error'))
       end
 
       it 'handles error gracefully' do
@@ -829,16 +829,16 @@ RSpec.describe VoteController, type: :controller do
   # ============================================================================
   describe 'GET #create - additional coverage' do
     before do
-      allow_any_instance_of(Election).to receive(:nvotes?).and_return(true)
-      allow_any_instance_of(Election).to receive(:is_active?).and_return(true)
-      allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(true)
-      allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
-      allow_any_instance_of(Election).to receive(:scoped_agora_election_id).and_return('1234')
+      allow_any_instance_of(PlebisVotes::Election).to receive(:nvotes?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:is_active?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_user_created_at?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_location_for?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:scoped_agora_election_id).and_return('1234')
     end
 
     context 'when verification required' do
       before do
-        allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(true)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:requires_vatid_check?).and_return(true)
         allow(user).to receive(:pass_vatid_check?).and_return(false)
       end
 
@@ -850,7 +850,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when location not valid' do
       before do
-        allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_location_for?).and_return(false)
       end
 
       it 'shows location error' do
@@ -867,7 +867,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when SMS check valid' do
       before do
-        allow_any_instance_of(Election).to receive(:requires_sms_check?).and_return(true)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:requires_sms_check?).and_return(true)
         allow_any_instance_of(User).to receive(:valid_sms_check?).and_return(true)
       end
 
@@ -880,7 +880,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when error occurs' do
       before do
-        allow_any_instance_of(Election).to receive(:scoped_agora_election_id).and_raise(StandardError.new('Test error'))
+        allow_any_instance_of(PlebisVotes::Election).to receive(:scoped_agora_election_id).and_raise(StandardError.new('Test error'))
       end
 
       it 'handles error gracefully' do
@@ -907,16 +907,16 @@ RSpec.describe VoteController, type: :controller do
     let(:vote) { create(:vote, user: user, election: election) }
 
     before do
-      allow_any_instance_of(Election).to receive(:nvotes?).and_return(true)
-      allow_any_instance_of(Election).to receive(:is_active?).and_return(true)
-      allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(true)
-      allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(true)
-      allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(false)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:nvotes?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:is_active?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_user_created_at?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_location_for?).and_return(true)
+      allow_any_instance_of(PlebisVotes::Election).to receive(:requires_vatid_check?).and_return(false)
     end
 
     context 'with timing attack protection' do
       before do
-        allow_any_instance_of(Election).to receive(:is_active?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:is_active?).and_return(false)
       end
 
       it 'adds random delay when conditions not met' do
@@ -937,7 +937,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when nvotes is false' do
       before do
-        allow_any_instance_of(Election).to receive(:nvotes?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:nvotes?).and_return(false)
       end
 
       it 'returns gone status' do
@@ -948,7 +948,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when user not valid' do
       before do
-        allow_any_instance_of(Election).to receive(:has_valid_user_created_at?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_user_created_at?).and_return(false)
       end
 
       it 'returns gone status' do
@@ -959,7 +959,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when location not valid' do
       before do
-        allow_any_instance_of(Election).to receive(:has_valid_location_for?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:has_valid_location_for?).and_return(false)
       end
 
       it 'returns gone status' do
@@ -970,7 +970,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when verification not valid' do
       before do
-        allow_any_instance_of(Election).to receive(:requires_vatid_check?).and_return(true)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:requires_vatid_check?).and_return(true)
         allow(user).to receive(:pass_vatid_check?).and_return(false)
       end
 
@@ -987,7 +987,7 @@ RSpec.describe VoteController, type: :controller do
   describe 'GET #election_votes_count - additional coverage' do
     context 'when error occurs' do
       before do
-        allow_any_instance_of(Election).to receive(:valid_votes_count).and_raise(StandardError.new('Count error'))
+        allow_any_instance_of(PlebisVotes::Election).to receive(:valid_votes_count).and_raise(StandardError.new('Count error'))
       end
 
       it 'handles error gracefully' do
@@ -1034,7 +1034,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when error occurs' do
       before do
-        allow_any_instance_of(ElectionLocation).to receive(:valid_votes_count).and_raise(StandardError.new('Count error'))
+        allow_any_instance_of(PlebisVotes::ElectionLocation).to receive(:valid_votes_count).and_raise(StandardError.new('Count error'))
       end
 
       it 'handles error gracefully' do
@@ -1091,7 +1091,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when election is closed' do
       before do
-        allow_any_instance_of(Election).to receive(:is_active?).and_return(false)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:is_active?).and_return(false)
       end
 
       it 'redirects to home' do
@@ -1137,7 +1137,7 @@ RSpec.describe VoteController, type: :controller do
 
       before do
         # Mock the service and make it raise CSV error
-        allow(PaperVoteService).to receive(:new).and_return(paper_vote_service_mock)
+        allow(PlebisVotes::PaperVoteService).to receive(:new).and_return(paper_vote_service_mock)
         allow(paper_vote_service_mock).to receive(:log_vote_query).and_raise(CSV::MalformedCSVError.new('Bad CSV', 1))
       end
 
@@ -1175,7 +1175,7 @@ RSpec.describe VoteController, type: :controller do
       before do
         allow(controller).to receive(:paper_vote_user).and_return(paper_voter)
         allow(controller).to receive(:check_validation_token).and_return(true)
-        allow(PaperVoteService).to receive(:new).and_return(paper_vote_service)
+        allow(PlebisVotes::PaperVoteService).to receive(:new).and_return(paper_vote_service)
         allow(paper_vote_service).to receive(:log_vote_registered)
         allow(paper_vote_service).to receive(:save_vote_for_user).and_return({ success: 'Vote saved' })
       end
@@ -1236,7 +1236,7 @@ RSpec.describe VoteController, type: :controller do
         allow(controller).to receive(:check_valid_location).and_return(true)
         allow(controller).to receive(:check_verification).and_return(true)
         allow(controller).to receive(:check_not_voted).and_return(false)
-        allow(PaperVoteService).to receive(:new).and_return(instance_double(PaperVoteService, log_vote_query: nil))
+        allow(PlebisVotes::PaperVoteService).to receive(:new).and_return(instance_double(PaperVoteService, log_vote_query: nil))
       end
 
       it 'redirects and does not allow vote' do
@@ -1253,7 +1253,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'general error handling' do
       before do
-        allow_any_instance_of(Election).to receive(:paper?).and_raise(StandardError.new('Test error'))
+        allow_any_instance_of(PlebisVotes::Election).to receive(:paper?).and_raise(StandardError.new('Test error'))
       end
 
       it 'handles errors gracefully' do
@@ -1292,7 +1292,8 @@ RSpec.describe VoteController, type: :controller do
 
       it 'returns election_location when found' do
         controller.params[:election_location_id] = election_location.id
-        expect(controller.send(:election_location)).to eq(election_location)
+        # La consulta devuelve la clase del engine y la factory la de la app
+        expect(controller.send(:election_location).id).to eq(election_location.id)
       end
 
       it 'returns nil when election_location not found' do
@@ -1328,7 +1329,7 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it 'returns 0 when error occurs' do
-        allow(Vote).to receive(:where).and_raise(StandardError.new('DB error'))
+        allow(PlebisVotes::Vote).to receive(:where).and_raise(StandardError.new('DB error'))
         allow(Rails.logger).to receive(:error).and_call_original
         expect(controller.send(:paper_authority_votes_count)).to eq(0)
         expect(Rails.logger).to have_received(:error).with(a_string_matching(/authority_votes_count_failed/))
