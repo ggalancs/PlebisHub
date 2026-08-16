@@ -13,7 +13,9 @@ module BlogHelperTestOverride
       if paraphs.length > max_paraphs
         content = paraphs[0..(max_paraphs - 1)].join("\n")
         # Simplified version without auto_html
-        return simple_format(content) + content_tag(:p, link_to('Seguir leyendo', post))
+        # Use engine routes helper for polymorphic path
+        post_url = plebis_cms.post_path(post)
+        return simple_format(content) + content_tag(:p, link_to('Seguir leyendo', post_url))
       end
     end
 

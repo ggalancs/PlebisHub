@@ -373,4 +373,438 @@ RSpec.describe EngineUser::Militant, type: :model do
       end
     end
   end
+
+  # ============================================================================
+  # INTEGRATION TESTS - These tests use real data without stubs to ensure
+  # actual code paths are covered in the concern
+  # ============================================================================
+
+  describe 'integration tests (without stubs)' do
+    let(:vote_circle) { create(:vote_circle, name: 'Test Circle') }
+    let(:user) do
+      create(:user,
+             vote_circle: vote_circle,
+             vote_circle_changed_at: 2.weeks.ago,
+             document_type: 1,
+             document_vatid: '12345678Z',
+             verified: true)
+    end
+
+    # Helper to create a collaboration with status set properly (bypasses callback)
+    def create_collaboration_with_status(user:, status:, **attrs)
+      collab = create(:collaboration, user: user, **attrs)
+      collab.update_column(:status, status)
+      collab
+    end
+
+    describe '#still_militant? integration' do
+      context 'with verified user in vote circle with collaboration' do
+        before do
+          create(:user_verification, user: user, status: 'accepted')
+          create(:collaboration, :active, user: user, amount: 500, frequency: 1)
+        end
+
+        it 'returns true when all conditions are met' do
+          expect(user.still_militant?).to be true
+        end
+      end
+
+      context 'with verified user in vote circle but no collaboration' do
+        before do
+          create(:user_verification, user: user, status: 'accepted')
+        end
+
+        it 'returns false without collaboration' do
+          expect(user.still_militant?).to be false
+        end
+      end
+
+      context 'with user not in vote circle' do
+        before do
+          user.update(vote_circle_id: nil)
+          create(:user_verification, user: user, status: 'accepted')
+          create(:collaboration, :active, user: user, amount: 500, frequency: 1)
+        end
+
+        it 'returns false without vote circle' do
+          expect(user.still_militant?).to be false
+        end
+      end
+
+      context 'with exempt from payment flag' do
+        before do
+          create(:user_verification, user: user, status: 'accepted')
+          user.update!(exempt_from_payment: true)
+        end
+
+        it 'returns true when exempt from payment' do
+          expect(user.still_militant?).to be true
+        end
+      end
+    end
+
+    describe '#militant_at? integration' do
+      let(:check_date) { Date.current }
+
+      context 'with all historical conditions met' do
+        before do
+          user.update(vote_circle_changed_at: 1.month.ago)
+          create(:user_verification, user: user, status: 'accepted', updated_at: 2.weeks.ago)
+          create_collaboration_with_status(user: user, status: 3, amount: 500, frequency: 1, created_at: 1.week.ago)
+        end
+
+        it 'returns true for current date' do
+          expect(user.militant_at?(check_date)).to be true
+        end
+
+        it 'returns false for date before conditions were met' do
+          expect(user.militant_at?(2.months.ago)).to be false
+        end
+      end
+
+      context 'with pending verification status' do
+        before do
+          user.update(verified: false, vote_circle_changed_at: 1.month.ago)
+          create(:user_verification, user: user, status: 'pending', updated_at: 2.weeks.ago)
+          # Status 0 is acceptable for militant_at? check (status [0, 2, 3])
+          create(:collaboration, user: user, amount: 500, frequency: 1, created_at: 1.week.ago)
+        end
+
+        it 'returns true because pending verification counts' do
+          expect(user.militant_at?(check_date)).to be true
+        end
+      end
+
+      context 'with exempt from payment and militant record' do
+        before do
+          user.update!(vote_circle_changed_at: 1.month.ago, exempt_from_payment: true)
+          create(:user_verification, user: user, status: 'accepted', updated_at: 2.weeks.ago)
+          create(:militant_record, user: user, payment_type: 0, begin_payment: 3.weeks.ago)
+        end
+
+        it 'returns true considering exempt payment date' do
+          expect(user.militant_at?(check_date)).to be true
+        end
+      end
+
+      context 'with status 2 collaboration' do
+        before do
+          user.update(vote_circle_changed_at: 1.month.ago)
+          create(:user_verification, user: user, status: 'accepted', updated_at: 2.weeks.ago)
+          create(:collaboration, :unconfirmed, user: user, amount: 500, frequency: 1, created_at: 1.week.ago)
+        end
+
+        it 'returns true for status 2 (unconfirmed) collaboration' do
+          expect(user.militant_at?(check_date)).to be true
+        end
+      end
+    end
+
+    describe '#get_not_militant_detail integration' do
+      context 'when user is already militant and still meets criteria' do
+        before do
+          user.update(militant: true)
+          create(:user_verification, user: user, status: 'accepted')
+          create(:collaboration, :active, user: user, amount: 500, frequency: 1)
+        end
+
+        it 'returns nil for current militant' do
+          expect(user.get_not_militant_detail).to be_nil
+        end
+      end
+
+      context 'when user is not militant but meets criteria' do
+        before do
+          user.update(militant: false)
+          create(:user_verification, user: user, status: 'accepted')
+          create(:collaboration, :active, user: user, amount: 500, frequency: 1)
+        end
+
+        it 'updates militant flag and returns nil' do
+          result = user.get_not_militant_detail
+          expect(result).to be_nil
+          expect(user.reload.militant).to be true
+        end
+      end
+
+      context 'when user is not verified' do
+        before do
+          user.update(militant: false, verified: false)
+        end
+
+        it 'returns verification error message' do
+          result = user.get_not_militant_detail
+          expect(result).to include('No esta verificado')
+        end
+      end
+
+      context 'when user has no vote circle' do
+        before do
+          user.update(militant: false, vote_circle_id: nil)
+          create(:user_verification, user: user, status: 'accepted')
+        end
+
+        it 'returns circle error message' do
+          result = user.get_not_militant_detail
+          expect(result).to include('No esta inscrito en un circulo')
+        end
+      end
+
+      context 'when user has no collaboration and is not exempt' do
+        before do
+          user.update(militant: false)
+          create(:user_verification, user: user, status: 'accepted')
+        end
+
+        it 'returns collaboration error message' do
+          result = user.get_not_militant_detail
+          expect(result).to include('No tiene colaboración económica periódica')
+        end
+      end
+
+      context 'when multiple conditions are not met' do
+        before do
+          user.update(militant: false, verified: false, vote_circle_id: nil)
+        end
+
+        it 'returns combined error messages' do
+          result = user.get_not_militant_detail
+          expect(result).to include('No esta verificado')
+          expect(result).to include('No esta inscrito en un circulo')
+          expect(result).to include(' y ')
+        end
+      end
+    end
+
+    describe '#process_militant_data integration' do
+      let(:mailer_double) { instance_double(ActionMailer::MessageDelivery, deliver_now: true) }
+
+      before do
+        allow(UsersMailer).to receive(:new_militant_email).and_return(mailer_double)
+      end
+
+      context 'when user becomes militant for the first time' do
+        before do
+          user.militant_records.destroy_all
+          create(:user_verification, user: user, status: 'accepted')
+          create(:collaboration, :active, user: user, amount: 500, frequency: 1)
+        end
+
+        it 'creates militant record and sends email' do
+          expect(UsersMailer).to receive(:new_militant_email).with(user.id)
+          expect { user.process_militant_data }.to change { user.militant_records.count }.by(1)
+        end
+      end
+
+      context 'when user loses militant status' do
+        before do
+          create(:militant_record, user: user, is_militant: true)
+          # User no longer meets requirements (no collaboration)
+          create(:user_verification, user: user, status: 'accepted')
+        end
+
+        it 'creates new record with is_militant false' do
+          user.process_militant_data
+          record = user.militant_records.order(id: :desc).first
+          expect(record.is_militant).to be false
+        end
+      end
+    end
+
+    describe '#militant_records_management integration' do
+      context 'when user is fully verified with vote circle and collaboration' do
+        before do
+          user.update(vote_circle_changed_at: 1.week.ago)
+          create(:user_verification, user: user, status: 'accepted', updated_at: 2.weeks.ago)
+          create(:collaboration, :active, user: user, amount: 500, frequency: 1, created_at: 3.days.ago)
+        end
+
+        it 'creates a complete militant record' do
+          expect { user.militant_records_management(true) }.to change { user.militant_records.count }.by(1)
+          record = user.militant_records.order(id: :desc).first
+
+          expect(record.is_militant).to be true
+          expect(record.begin_verified).not_to be_nil
+          expect(record.begin_in_vote_circle).not_to be_nil
+          expect(record.vote_circle_name).to eq('Test Circle')
+          expect(record.begin_payment).not_to be_nil
+          expect(record.payment_type).to eq(1)
+          expect(record.amount).to eq(500)
+        end
+      end
+
+      context 'when user is exempt from payment' do
+        before do
+          user.update!(exempt_from_payment: true, vote_circle_changed_at: 1.week.ago)
+          create(:user_verification, user: user, status: 'accepted', updated_at: 2.weeks.ago)
+        end
+
+        it 'creates record with payment_type 0 and amount 0' do
+          user.militant_records_management(true)
+          record = user.militant_records.order(id: :desc).first
+
+          expect(record.payment_type).to eq(0)
+          expect(record.amount).to eq(0)
+        end
+      end
+
+      context 'when continuing in the same vote circle' do
+        let!(:existing_record) do
+          create(:militant_record,
+                 user: user,
+                 vote_circle_name: 'Test Circle',
+                 begin_in_vote_circle: 2.weeks.ago,
+                 end_in_vote_circle: nil)
+        end
+
+        before do
+          user.update(vote_circle_changed_at: 1.week.ago)
+          create(:user_verification, user: user, status: 'accepted')
+        end
+
+        it 'preserves the begin_in_vote_circle date' do
+          user.militant_records_management(false)
+          record = user.militant_records.order(id: :desc).first
+
+          expect(record.begin_in_vote_circle).to eq(existing_record.begin_in_vote_circle)
+        end
+      end
+
+      context 'when changing vote circles' do
+        let(:new_circle) { create(:vote_circle, name: 'New Circle') }
+        let!(:existing_record) do
+          create(:militant_record,
+                 user: user,
+                 vote_circle_name: 'Old Circle',
+                 begin_in_vote_circle: 1.month.ago,
+                 end_in_vote_circle: nil)
+        end
+
+        before do
+          user.update(vote_circle: new_circle, vote_circle_changed_at: 1.day.ago)
+          create(:user_verification, user: user, status: 'accepted')
+        end
+
+        it 'updates end_in_vote_circle on previous record and creates new record' do
+          user.militant_records_management(false)
+
+          existing_record.reload
+          expect(existing_record.end_in_vote_circle).not_to be_nil
+
+          new_record = user.militant_records.order(id: :desc).first
+          expect(new_record.vote_circle_name).to eq('New Circle')
+          expect(new_record.begin_in_vote_circle).to eq(user.vote_circle_changed_at)
+        end
+      end
+
+      context 'when losing vote circle membership' do
+        let!(:existing_record) do
+          create(:militant_record,
+                 user: user,
+                 vote_circle_name: 'Test Circle',
+                 begin_in_vote_circle: 1.month.ago,
+                 end_in_vote_circle: nil)
+        end
+
+        before do
+          user.update(vote_circle_id: nil)
+          create(:user_verification, user: user, status: 'accepted')
+        end
+
+        it 'sets end_in_vote_circle on the new record' do
+          user.militant_records_management(false)
+          record = user.militant_records.order(id: :desc).first
+
+          expect(record.end_in_vote_circle).not_to be_nil
+          expect(record.vote_circle_name).to eq('Test Circle')
+        end
+      end
+
+      context 'when user loses verification' do
+        let!(:existing_record) do
+          create(:militant_record,
+                 user: user,
+                 begin_verified: 1.month.ago,
+                 end_verified: nil)
+        end
+
+        before do
+          user.update(verified: false)
+          # No verification or rejected verification
+        end
+
+        it 'sets end_verified on the new record' do
+          user.militant_records_management(false)
+          record = user.militant_records.order(id: :desc).first
+
+          expect(record.end_verified).not_to be_nil
+        end
+      end
+
+      context 'when losing payment (no collaboration, not exempt)' do
+        let!(:existing_record) do
+          create(:militant_record,
+                 user: user,
+                 begin_payment: 1.month.ago,
+                 end_payment: nil,
+                 payment_type: 1,
+                 amount: 500)
+        end
+
+        before do
+          user.update(vote_circle_changed_at: 1.week.ago)
+          create(:user_verification, user: user, status: 'accepted')
+          # No collaboration created
+        end
+
+        it 'sets end_payment on the new record' do
+          user.militant_records_management(false)
+          record = user.militant_records.order(id: :desc).first
+
+          expect(record.end_payment).not_to be_nil
+        end
+      end
+
+      context 'when record has not changed' do
+        let!(:existing_record) do
+          create(:militant_record,
+                 user: user,
+                 is_militant: false,
+                 begin_verified: nil,
+                 end_verified: nil,
+                 begin_in_vote_circle: nil,
+                 end_in_vote_circle: nil,
+                 vote_circle_name: nil,
+                 begin_payment: nil,
+                 end_payment: nil,
+                 payment_type: nil,
+                 amount: nil)
+        end
+
+        before do
+          user.update(vote_circle_id: nil, verified: false)
+        end
+
+        it 'does not create a duplicate record' do
+          expect { user.militant_records_management(false) }.not_to change { user.militant_records.count }
+        end
+      end
+
+      context 'with status 2 collaboration' do
+        before do
+          user.update(vote_circle_changed_at: 1.week.ago)
+          create(:user_verification, user: user, status: 'accepted')
+          create(:collaboration, :unconfirmed, user: user, amount: 400, frequency: 1, created_at: 5.days.ago)
+        end
+
+        it 'finds the collaboration with status 2' do
+          user.militant_records_management(true)
+          record = user.militant_records.order(id: :desc).first
+
+          expect(record.payment_type).to eq(1)
+          expect(record.amount).to eq(400)
+        end
+      end
+    end
+  end
 end

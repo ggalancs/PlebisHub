@@ -65,7 +65,8 @@ RSpec.describe PlebisCms::BlogHelper, type: :helper do
         it 'generates read more link pointing to post' do
           allow(helper).to receive(:link_to).and_call_original
           helper.formatted_content(post, 2)
-          expect(helper).to have_received(:link_to).with(anything, post)
+          # The stub uses plebis_cms.post_path(post) which returns a URL string
+          expect(helper).to have_received(:link_to).with(anything, a_string_matching(%r{/brujula/}))
         end
 
         it 'wraps read more link in paragraph tag' do
