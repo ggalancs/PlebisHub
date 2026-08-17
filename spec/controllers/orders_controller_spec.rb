@@ -239,7 +239,7 @@ RSpec.describe OrdersController, type: :controller do
 
         it 'returns unprocessable entity status' do
           post :callback_redsys, params: {}
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it 'returns KO response' do
@@ -285,7 +285,7 @@ RSpec.describe OrdersController, type: :controller do
 
         it 'returns unprocessable entity status' do
           post :callback_redsys, body: '<xml>test</xml>'
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
 
@@ -298,7 +298,7 @@ RSpec.describe OrdersController, type: :controller do
 
         it 'returns unprocessable entity status' do
           post :callback_redsys, params: { 'Ds_Order' => '999999' }
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it 'returns KO response' do
@@ -331,7 +331,7 @@ RSpec.describe OrdersController, type: :controller do
 
         it 'returns unprocessable entity status' do
           post :callback_redsys, body: 'invalid xml'
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it 'returns KO response' do
@@ -372,7 +372,7 @@ RSpec.describe OrdersController, type: :controller do
 
         it 'returns error response' do
           post :callback_redsys, params: { 'Ds_Order' => '123', 'Ds_Signature' => 'invalid' }
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it 'logs security error' do
@@ -461,7 +461,7 @@ RSpec.describe OrdersController, type: :controller do
 
         it 'returns error response' do
           post :callback_redsys, params: {}
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
 
@@ -483,7 +483,7 @@ RSpec.describe OrdersController, type: :controller do
 
         it 'returns error response' do
           post :callback_redsys, body: ''
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
 
@@ -502,7 +502,7 @@ RSpec.describe OrdersController, type: :controller do
 
         it 'returns error response' do
           post :callback_redsys, body: '<invalid><xml>'
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it 'logs XML parsing error' do
@@ -550,7 +550,7 @@ RSpec.describe OrdersController, type: :controller do
 
         it 'returns error response' do
           post :callback_redsys, params: { 'Ds_Order' => deleted_order.id.to_s }
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
 
         it 'logs not found error' do
@@ -733,7 +733,7 @@ RSpec.describe OrdersController, type: :controller do
         post :callback_redsys, params: { 'Ds_Order' => order.id.to_s }
 
         # Should not raise errors
-        expect(response).to have_http_status(:success).or have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:success).or have_http_status(:unprocessable_content)
       end
     end
   end

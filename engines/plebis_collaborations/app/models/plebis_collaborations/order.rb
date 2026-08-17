@@ -3,6 +3,11 @@
 require 'English'
 module PlebisCollaborations
   class Order < ApplicationRecord
+    # `isolate_namespace` sets table_name_prefix to "plebis_collaborations_",
+    # which would make Rails look for a non-existent plebis_collaborations_orders
+    # table. The data lives in the host application's `orders` table.
+    self.table_name = 'orders'
+
     include Rails.application.routes.url_helpers
 
     acts_as_paranoid
@@ -10,7 +15,7 @@ module PlebisCollaborations
 
     belongs_to :parent, -> { with_deleted }, polymorphic: true
     belongs_to :collaboration, lambda {
-      with_deleted.joins(:order).where(orders: { parent_type: 'PlebisCollaborations::Collaboration' })
+      with_deleted.joins(:orders).where(orders: { parent_type: 'PlebisCollaborations::Collaboration' })
     }, foreign_key: 'parent_id', class_name: 'PlebisCollaborations::Collaboration'
     belongs_to :user, -> { with_deleted }, class_name: '::User'
 
@@ -28,6 +33,12 @@ module PlebisCollaborations
     PARENT_CLASSES = {
       PlebisCollaborations::Collaboration => 'C'
     }.freeze
+
+    # La aplicacion define Collaboration como subclase de la del engine, asi que
+    # parent.class no casa con la clave literal del hash. Se busca por ascendencia.
+    def self.parent_class_code(klass)
+      PARENT_CLASSES.find { |k, _| klass <= k }&.last
+    end
 
     REDSYS_SERVER_TIME_ZONE = ActiveSupport::TimeZone.new('Madrid')
 
@@ -119,7 +130,9 @@ module PlebisCollaborations
     end
 
     def self.payment_day
-      Rails.application.secrets.orders['payment_day'].to_i
+      # Mismo guardado que app/models/order.rb: la clave `orders` puede no estar
+      # definida en un entorno dado y aqui reventaba con NoMethodError.
+      Rails.application.secrets.orders&.[]('payment_day').to_i
     end
 
     def self.by_month_count(date)
@@ -265,8 +278,12 @@ module PlebisCollaborations
       # Credit card is valid until the last day of expiration month
       return unless redsys_response && first
 
-      DateTime.strptime(redsys_response['Ds_ExpiryDate'],
-                        '%y%m') + 1.month - 1.second
+      # Si Redsys no devuelve la caducidad, strptime(nil) lanzaba TypeError y
+      # tumbaba el procesado del pago entero.
+      expiry = redsys_response['Ds_ExpiryDate']
+      return if expiry.blank?
+
+      DateTime.strptime(expiry, '%y%m') + 1.month - 1.second
     end
 
     def redsys_order_id
@@ -276,7 +293,7 @@ module PlebisCollaborations
         elsif persisted?
           id.to_s.rjust(12, '0')
         else
-          parent.id.to_s.rjust(7, '0') + PARENT_CLASSES[parent.class] + Time.now.to_i.to_s(36)[-4..]
+          parent.id.to_s.rjust(7, '0') + self.class.parent_class_code(parent.class).to_s + Time.now.to_i.to_s(36)[-4..]
         end
     end
 
@@ -478,7 +495,10 @@ module PlebisCollaborations
         <ns1:procesaNotificacionSIS xmlns:ns1="InotificacionSIS" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
         <return xsi:type="xsd:string">
       EOL
-      soap[-1].rstrip!
+      # El fichero tiene frozen_string_literal, asi que el heredoc es inmutable:
+      # rstrip! lanzaba FrozenError y la respuesta al callback de Redsys no se
+      # podia generar nunca.
+      soap[-1] = soap[-1].rstrip
       soap << CGI.escapeHTML("<Message>#{response}<Signature>#{signature}</Signature></Message>")
       soap << "</return>\n</ns1:procesaNotificacionSIS>\n</SOAP-ENV:Body>\n</SOAP-ENV:Envelope>"
 

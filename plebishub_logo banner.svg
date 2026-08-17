@@ -1,0 +1,190 @@
+<svg viewBox="0 0 1920 480" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradientes modernos -->
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Sombras suaves -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Fuente personalizada usando solo formas geométricas (sin dependencias externas) -->
+    <style>
+      @font-face {
+        font-family: 'SystemSans';
+        src: local('system-ui'), local('-apple-system'), local('BlinkMacSystemFont'), 
+             local('Segoe UI'), local('Roboto'), local('Helvetica Neue'), local('Arial');
+      }
+      .main-text {
+        font-family: 'SystemSans', sans-serif;
+        font-weight: 900;
+      }
+      .tagline-text {
+        font-family: 'SystemSans', sans-serif;
+        font-weight: 300;
+      }
+      .badge-text {
+        font-family: 'SystemSans', sans-serif;
+        font-weight: 700;
+      }
+    </style>
+  </defs>
+  
+  <!-- Fondo con gradiente moderno -->
+  <rect width="1920" height="480" fill="url(#mainGradient)"/>
+  
+  <!-- Patrón de fondo sutil -->
+  <g opacity="0.08">
+    <circle cx="100" cy="100" r="80" fill="white"/>
+    <circle cx="1820" cy="380" r="100" fill="white"/>
+    <circle cx="1700" cy="100" r="60" fill="white"/>
+    <circle cx="220" cy="380" r="70" fill="white"/>
+  </g>
+  
+  <!-- Líneas decorativas de conexión en el fondo -->
+  <g stroke="white" stroke-width="2" opacity="0.1" fill="none">
+    <path d="M 0 240 Q 480 200, 960 240 T 1920 240"/>
+    <path d="M 0 260 Q 480 280, 960 260 T 1920 260"/>
+  </g>
+  
+  <!-- LOGO ISOTIPO (Izquierda) -->
+  <g transform="translate(240, 240)">
+    <!-- Anillo de conectividad -->
+    <circle cx="0" cy="0" r="140" fill="none" stroke="white" stroke-width="2" opacity="0.3" stroke-dasharray="8 4"/>
+    
+    <!-- Hub central - hexágono -->
+    <g filter="url(#shadow)">
+      <path d="M 0 -80 L 70 -40 L 70 40 L 0 80 L -70 40 L -70 -40 Z" 
+            fill="white" 
+            fill-opacity="0.15"
+            stroke="white" 
+            stroke-width="3"/>
+    </g>
+    
+    <!-- Nodos conectados representando participación -->
+    <g filter="url(#glow)">
+      <!-- Nodo superior -->
+      <circle cx="0" cy="-120" r="18" fill="white"/>
+      <line x1="0" y1="-102" x2="0" y2="-80" stroke="white" stroke-width="2.5"/>
+      
+      <!-- Nodo derecho superior -->
+      <circle cx="105" cy="-60" r="16" fill="white"/>
+      <line x1="88" y1="-52" x2="70" y2="-40" stroke="white" stroke-width="2.5"/>
+      
+      <!-- Nodo derecho inferior -->
+      <circle cx="105" cy="60" r="16" fill="white"/>
+      <line x1="88" y1="52" x2="70" y2="40" stroke="white" stroke-width="2.5"/>
+      
+      <!-- Nodo inferior -->
+      <circle cx="0" cy="120" r="18" fill="white"/>
+      <line x1="0" y1="102" x2="0" y2="80" stroke="white" stroke-width="2.5"/>
+      
+      <!-- Nodo izquierdo inferior -->
+      <circle cx="-105" cy="60" r="16" fill="white"/>
+      <line x1="-88" y1="52" x2="-70" y2="40" stroke="white" stroke-width="2.5"/>
+      
+      <!-- Nodo izquierdo superior -->
+      <circle cx="-105" cy="-60" r="16" fill="white"/>
+      <line x1="-88" y1="-52" x2="-70" y2="-40" stroke="white" stroke-width="2.5"/>
+    </g>
+    
+    <!-- Nodos secundarios -->
+    <g opacity="0.7">
+      <circle cx="40" cy="-140" r="9" fill="white"/>
+      <circle cx="125" cy="-20" r="9" fill="white"/>
+      <circle cx="125" cy="20" r="9" fill="white"/>
+      <circle cx="40" cy="140" r="9" fill="white"/>
+      <circle cx="-40" cy="140" r="9" fill="white"/>
+      <circle cx="-125" cy="20" r="9" fill="white"/>
+      <circle cx="-125" cy="-20" r="9" fill="white"/>
+      <circle cx="-40" cy="-140" r="9" fill="white"/>
+    </g>
+    
+    <!-- Icono central: símbolo de participación -->
+    <g fill="white" filter="url(#glow)" opacity="0.9">
+      <path d="M -25 -15 Q -25 -30, -8 -30 Q 8 -30, 8 -15 L 8 15 Q 8 22, 0 22 Q -8 22, -8 15 Z"/>
+      <circle cx="-15" cy="-22" r="6"/>
+      <circle cx="0" cy="-26" r="6"/>
+    </g>
+  </g>
+  
+  <!-- TIPOGRAFÍA PRINCIPAL (Centro-Derecha) -->
+  <g class="main-text">
+    <!-- PLEBIS -->
+    <text x="550" y="220" font-size="120" fill="white" letter-spacing="8" filter="url(#glow)">
+      PLEBIS
+    </text>
+    
+    <!-- HUB -->
+    <text x="550" y="320" font-size="90" fill="white" letter-spacing="16" opacity="0.9">
+      HUB
+    </text>
+  </g>
+  
+  <!-- TAGLINE -->
+  <text x="550" y="375" font-size="24" fill="white" class="tagline-text"
+        letter-spacing="3" opacity="0.8">
+    PLATAFORMA DE PARTICIPACIÓN CIUDADANA MODERNIZADA
+  </text>
+  
+  <!-- BADGES/ETIQUETAS (Derecha) -->
+  <g transform="translate(1550, 200)">
+    <!-- Badge Docker -->
+    <g>
+      <rect x="0" y="0" width="140" height="40" rx="20" fill="white" fill-opacity="0.2"/>
+      <text x="70" y="27" font-size="16" fill="white" text-anchor="middle" class="badge-text">
+        🐳 DOCKER
+      </text>
+    </g>
+    
+    <!-- Badge Modernizado -->
+    <g transform="translate(0, 50)">
+      <rect x="0" y="0" width="140" height="40" rx="20" fill="white" fill-opacity="0.2"/>
+      <text x="70" y="27" font-size="16" fill="white" text-anchor="middle" class="badge-text">
+        ⚡ v6.0
+      </text>
+    </g>
+    
+    <!-- Badge Open Source -->
+    <g transform="translate(0, 100)">
+      <rect x="0" y="0" width="140" height="40" rx="20" fill="white" fill-opacity="0.2"/>
+      <text x="70" y="27" font-size="16" fill="white" text-anchor="middle" class="badge-text">
+        💎 OPENSOURCE
+      </text>
+    </g>
+  </g>
+  
+  <!-- ELEMENTOS DECORATIVOS ADICIONALES -->
+  <g opacity="0.15">
+    <circle cx="1420" cy="100" r="4" fill="white"/>
+    <circle cx="1440" cy="110" r="3" fill="white"/>
+    <circle cx="1460" cy="95" r="3" fill="white"/>
+    <circle cx="1420" cy="370" r="4" fill="white"/>
+    <circle cx="1440" cy="360" r="3" fill="white"/>
+    <circle cx="1460" cy="375" r="3" fill="white"/>
+  </g>
+</svg>

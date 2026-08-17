@@ -72,7 +72,8 @@ module PlebisCms
 
         it 'redirects to root on error' do
           get :index
-          expect(response).to redirect_to(main_app.root_path)
+          # root_path del controlador lleva prefijo de locale; el del ejemplo no
+          expect(response).to redirect_to(controller.main_app.root_path)
           expect(flash[:alert]).to be_present
         end
 
@@ -92,10 +93,11 @@ module PlebisCms
           expect(assigns(:post)).to eq(published_post)
         end
 
-        it 'returns 404 for draft post' do
-          expect do
-            get :post, params: { id: draft_post.id }
-          end.to raise_error(ActiveRecord::RecordNotFound)
+        it 'redirects to the blog for a draft post' do
+          # El controlador captura RecordNotFound y redirige con aviso, no propaga
+          get :post, params: { id: draft_post.id }
+          expect(response).to redirect_to(blog_path)
+          expect(flash[:alert]).to be_present
         end
 
         it 'logs the view event' do
@@ -122,18 +124,18 @@ module PlebisCms
         before { sign_in user }
 
         it 'redirects to blog index' do
-          get :post, params: { id: 99999 }
+          get :post, params: { id: 99_999 }
           expect(response).to redirect_to(blog_path)
         end
 
         it 'sets alert message' do
-          get :post, params: { id: 99999 }
+          get :post, params: { id: 99_999 }
           expect(flash[:alert]).to be_present
         end
 
         it 'logs the not found event' do
           expect(Rails.logger).to receive(:info).with(a_string_matching(/blog_post_not_found/))
-          get :post, params: { id: 99999 }
+          get :post, params: { id: 99_999 }
         end
       end
 
@@ -185,13 +187,13 @@ module PlebisCms
         before { sign_in user }
 
         it 'redirects to blog index' do
-          get :category, params: { id: 99999 }
+          get :category, params: { id: 99_999 }
           expect(response).to redirect_to(blog_path)
         end
 
         it 'logs the not found event' do
           expect(Rails.logger).to receive(:info).with(a_string_matching(/blog_category_not_found/))
-          get :category, params: { id: 99999 }
+          get :category, params: { id: 99_999 }
         end
       end
 

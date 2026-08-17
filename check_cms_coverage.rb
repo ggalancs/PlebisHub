@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 require 'json'
 
 data = JSON.parse(File.read('/Users/gabriel/ggalancs/PlebisHub/coverage/.resultset.json'))
@@ -8,8 +10,8 @@ coverage = data['RSpec']['coverage']
 cms_models = coverage.select { |path, _| path.include?('engines/plebis_cms/app/models/plebis_cms') && path.end_with?('.rb') }
 
 if cms_models.empty?
-  puts "No plebis_cms engine models found in coverage."
-  puts "Searching for all model files..."
+  puts 'No plebis_cms engine models found in coverage.'
+  puts 'Searching for all model files...'
 
   # Find models that match the CMS models we care about
   models = %w[category notice post notice_registrar page]

@@ -80,7 +80,8 @@ RSpec.describe 'Phase 3 PLEBIS_VOTES Fixes', type: :model do
   describe 'LOW-1: ActiveAdmin menu label' do
     it 'Election admin has correct menu parent' do
       source = Rails.root.join('engines/plebis_votes/app/admin/election.rb').read
-      expect(source).to include('menu :parent => "Votación"')
+      # El fichero usa la sintaxis moderna de hash, no el hashrocket original
+      expect(source).to include("menu parent: 'Votación'")
       expect(source).not_to include('PlebisHubción')
     end
   end

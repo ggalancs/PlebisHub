@@ -27,7 +27,7 @@ RSpec.describe 'Election Admin', type: :request do
   before do
     sign_in_admin admin_user
     # Stub available_servers to avoid secrets dependency
-    allow(Election).to receive(:available_servers).and_return({ 'default' => { 'url' => 'http://test.com' } })
+    allow(PlebisVotes::Election).to receive(:available_servers).and_return({ 'default' => { 'url' => 'http://test.com' } })
   end
 
   describe 'GET /admin/elections' do
@@ -217,13 +217,13 @@ RSpec.describe 'Election Admin', type: :request do
       end
 
       it 'shows active census in sidebar' do
-        allow_any_instance_of(Election).to receive(:current_active_census).and_return(100)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:current_active_census).and_return(100)
         get admin_election_path(election)
         expect(response.body).to include('Censo activos')
       end
 
       it 'shows total census in sidebar' do
-        allow_any_instance_of(Election).to receive(:current_total_census).and_return(200)
+        allow_any_instance_of(PlebisVotes::Election).to receive(:current_total_census).and_return(200)
         get admin_election_path(election)
         expect(response.body).to include('Censo actual')
       end

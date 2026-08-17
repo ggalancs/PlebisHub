@@ -124,9 +124,9 @@ RSpec.describe Election, type: :model do
 
         active_elections = Election.active
 
-        expect(active_elections).to include(active)
-        expect(active_elections).not_to include(past)
-        expect(active_elections).not_to include(future)
+        expect(active_elections.map(&:id)).to include(active.id)
+        expect(active_elections.map(&:id)).not_to include(past.id)
+        expect(active_elections.map(&:id)).not_to include(future.id)
       end
     end
 
@@ -134,13 +134,14 @@ RSpec.describe Election, type: :model do
       it 'returns recent elections' do
         recently_finished = create(:election, :recently_finished)
         upcoming = create(:election, :upcoming)
-        old_finished = create(:election, :finished)
+        # El trait :finished sigue dentro de la ventana del scope (2 dias)
+        old_finished = create(:election, starts_at: 5.days.ago, ends_at: 3.days.ago)
 
         result = Election.upcoming_finished
 
-        expect(result).to include(recently_finished)
-        expect(result).to include(upcoming)
-        expect(result).not_to include(old_finished)
+        expect(result.map(&:id)).to include(recently_finished.id)
+        expect(result.map(&:id)).to include(upcoming.id)
+        expect(result.map(&:id)).not_to include(old_finished.id)
       end
     end
 
@@ -152,9 +153,9 @@ RSpec.describe Election, type: :model do
 
         future_elections = Election.future
 
-        expect(future_elections).to include(future)
-        expect(future_elections).to include(active) # Still has ends_at in future
-        expect(future_elections).not_to include(finished)
+        expect(future_elections.map(&:id)).to include(future.id)
+        expect(future_elections.map(&:id)).to include(active.id) # Still has ends_at in future
+        expect(future_elections.map(&:id)).not_to include(finished.id)
       end
     end
   end
@@ -222,7 +223,9 @@ RSpec.describe Election, type: :model do
       end
 
       it 'returns false for old finished election' do
-        election = create(:election, :finished)
+        # El trait :finished acaba hace 1 dia, que sigue dentro de la ventana de
+        # 2 dias de recently_finished?
+        election = create(:election, starts_at: 5.days.ago, ends_at: 3.days.ago)
         expect(election.recently_finished?).not_to be true
       end
     end
@@ -299,8 +302,9 @@ RSpec.describe Election, type: :model do
   describe 'server configuration methods' do
     describe '.available_servers' do
       it 'returns server list from config' do
+        # Devuelve las claves: se usa como collection de un select
         servers = Election.available_servers
-        expect(servers).to be_a(Hash)
+        expect(servers).to be_an(Array)
       end
     end
 
@@ -819,7 +823,7 @@ RSpec.describe Election, type: :model do
       it 'returns true when user is in CSV with valid circle' do
         election = create(:election, scope: 6, user_created_at_max: nil)
         user = create(:user, id: 1)
-        circle = create(:vote_circle, id: 5)
+        create(:vote_circle, id: 5)
         create(:election_location, election: election, location: '5')
 
         election.census_file.attach(
@@ -1046,7 +1050,7 @@ RSpec.describe Election, type: :model do
 
       it 'executes census query for autonomy scope without errors' do
         election = create(:election, scope: 1, user_created_at_max: nil)
-        user = create(:user, :with_dni, vote_town: 'm_08_079_6')
+        create(:user, :with_dni, vote_town: 'm_08_079_6')
         # Add at least one location so the query doesn't have empty IN clause
         create(:election_location, election: election, location: '09')
 
@@ -1086,8 +1090,8 @@ RSpec.describe Election, type: :model do
       create(:election_location, election: election)
 
       # Create active and inactive users
-      active_user = create(:user, current_sign_in_at: 1.day.ago)
-      inactive_user = create(:user, current_sign_in_at: 2.years.ago)
+      create(:user, current_sign_in_at: 1.day.ago)
+      create(:user, current_sign_in_at: 2.years.ago)
 
       result = election.current_active_census
       # The method should count users based on active_census_range config

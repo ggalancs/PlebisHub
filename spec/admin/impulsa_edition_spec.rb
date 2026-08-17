@@ -29,31 +29,32 @@ RSpec.describe 'ImpulsaEdition Admin', type: :request do
     end
 
     it 'registers ImpulsaEdition resource' do
-      expect(model_resources.map(&:resource_class)).to include(ImpulsaEdition)
+      # El recurso se registra con la clase del engine (as: 'ImpulsaEdition')
+      expect(model_resources.map(&:resource_class)).to include(PlebisImpulsa::ImpulsaEdition)
     end
 
     it 'registers ImpulsaEditionTopic resource' do
-      expect(model_resources.map(&:resource_class)).to include(ImpulsaEditionTopic)
+      expect(model_resources.map(&:resource_class)).to include(PlebisImpulsa::ImpulsaEditionTopic)
     end
 
     it 'has ImpulsaEdition resource configured' do
-      resource = model_resources.find { |r| r.resource_class == ImpulsaEdition }
+      resource = model_resources.find { |r| r.resource_class == PlebisImpulsa::ImpulsaEdition }
       expect(resource).to be_present
     end
 
     it 'has filters disabled for ImpulsaEdition' do
-      resource = model_resources.find { |r| r.resource_class == ImpulsaEdition }
+      resource = model_resources.find { |r| r.resource_class == PlebisImpulsa::ImpulsaEdition }
       expect(resource.filters_enabled?).to be false
     end
 
     it 'has menu false for ImpulsaEditionTopic' do
-      resource = model_resources.find { |r| r.resource_class == ImpulsaEditionTopic }
+      resource = model_resources.find { |r| r.resource_class == PlebisImpulsa::ImpulsaEditionTopic }
       expect(resource.menu_item).to be_nil
     end
 
     it 'has belongs_to impulsa_edition for ImpulsaEditionTopic' do
-      resource = model_resources.find { |r| r.resource_class == ImpulsaEditionTopic }
-      expect(resource.belongs_to_config.target.resource_class).to eq(ImpulsaEdition)
+      resource = model_resources.find { |r| r.resource_class == PlebisImpulsa::ImpulsaEditionTopic }
+      expect(resource.belongs_to_config.target.resource_class).to eq(PlebisImpulsa::ImpulsaEdition)
     end
   end
 
@@ -72,7 +73,7 @@ RSpec.describe 'ImpulsaEdition Admin', type: :request do
 
     it 'has create_election member action route' do
       # Verify custom member action route exists
-      allow_any_instance_of(ImpulsaEdition).to receive(:create_election).and_return(true)
+      allow_any_instance_of(PlebisImpulsa::ImpulsaEdition).to receive(:create_election).and_return(true)
       get create_election_admin_impulsa_edition_path(impulsa_edition)
       expect([200, 302]).to include(response.status)
     end
@@ -201,14 +202,14 @@ RSpec.describe 'ImpulsaEdition Admin', type: :request do
   describe 'custom actions' do
     describe 'GET /admin/impulsa_editions/:id/create_election' do
       it 'redirects to index page' do
-        allow_any_instance_of(ImpulsaEdition).to receive(:create_election).and_return(true)
+        allow_any_instance_of(PlebisImpulsa::ImpulsaEdition).to receive(:create_election).and_return(true)
         get create_election_admin_impulsa_edition_path(impulsa_edition)
         expect(response).to redirect_to(admin_impulsa_editions_path)
       end
 
       context 'when election creation succeeds' do
         it 'sets success flash message' do
-          allow_any_instance_of(ImpulsaEdition).to receive(:create_election).and_return(true)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaEdition).to receive(:create_election).and_return(true)
           get create_election_admin_impulsa_edition_path(impulsa_edition)
           follow_redirect!
           expect(response.body).to include('Se han creado las votaciones para la edición de IMPULSA')
@@ -217,7 +218,7 @@ RSpec.describe 'ImpulsaEdition Admin', type: :request do
 
       context 'when election creation fails' do
         it 'sets error flash message' do
-          allow_any_instance_of(ImpulsaEdition).to receive(:create_election).and_return(false)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaEdition).to receive(:create_election).and_return(false)
           get create_election_admin_impulsa_edition_path(impulsa_edition)
           follow_redirect!
           expect(response.body).to include('Las votaciones para la edición de IMPULSA no se han creado')
@@ -225,7 +226,7 @@ RSpec.describe 'ImpulsaEdition Admin', type: :request do
       end
 
       it 'calls create_election with base_url' do
-        allow_any_instance_of(ImpulsaEdition).to receive(:create_election).and_return(true)
+        allow_any_instance_of(PlebisImpulsa::ImpulsaEdition).to receive(:create_election).and_return(true)
         get create_election_admin_impulsa_edition_path(impulsa_edition)
         expect(response).to have_http_status(:redirect)
       end

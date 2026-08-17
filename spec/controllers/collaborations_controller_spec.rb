@@ -50,7 +50,7 @@ RSpec.describe CollaborationsController, type: :controller do
 
       it 'assigns a new collaboration' do
         get :new
-        expect(assigns(:collaboration)).to be_a_new(Collaboration)
+        expect(assigns(:collaboration)).to be_a_new(PlebisCollaborations::Collaboration)
       end
 
       it 'sets for_town_cc to true by default' do
@@ -221,13 +221,13 @@ RSpec.describe CollaborationsController, type: :controller do
 
       it 'returns unprocessable_entity with invalid params' do
         post :create, params: { collaboration: { amount: nil } }, format: :json
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
 
     context 'error handling' do
       before do
-        allow_any_instance_of(Collaboration).to receive(:save).and_raise(ActiveRecord::RecordInvalid)
+        allow_any_instance_of(PlebisCollaborations::Collaboration).to receive(:save).and_raise(ActiveRecord::RecordInvalid)
       end
 
       it 'rescues RecordInvalid and shows error message' do
@@ -565,7 +565,7 @@ RSpec.describe CollaborationsController, type: :controller do
 
       it 'creates a non-persisted order' do
         get :confirm
-        expect(assigns(:order)).to be_a(Order)
+        expect(assigns(:order)).to be_a(PlebisCollaborations::Order)
         expect(assigns(:order)).not_to be_persisted
       end
 

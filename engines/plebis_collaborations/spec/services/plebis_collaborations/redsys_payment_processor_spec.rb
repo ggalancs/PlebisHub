@@ -160,7 +160,9 @@ module PlebisCollaborations
           invalid_xml = '<invalid>xml'
           expect do
             described_class.new({}, invalid_xml).process
-          end.to raise_error(REXML::ParseException).or raise_error(Nokogiri::XML::SyntaxError)
+            # RSpec no admite componer dos matchers que interrumpen la pila; el
+            # parser en uso es REXML
+          end.to raise_error(REXML::ParseException)
         end
 
         it 'handles missing order parent' do

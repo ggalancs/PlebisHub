@@ -53,6 +53,13 @@ module PlebisVotes
     end
 
     def options=(value)
+      # Sin esta guarda un valor nil (formulario vacio) revienta con NoMethodError
+      # antes de que las validaciones puedan informar del campo obligatorio
+      if value.nil?
+        self[:options] = nil
+        return
+      end
+
       options_headers.length
       opt = []
       value.strip.split("\n").each do |line|

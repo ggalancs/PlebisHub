@@ -26,12 +26,49 @@ module PlebisHub
       @secrets ||= config.secrets
     end
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.2
+    # Every new default introduced by 8.0 and 8.1 was audited against this
+    # codebase before switching; see RAILS_8_UPGRADE_LOG.md for the evidence.
+    config.load_defaults 8.1
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    # Files under lib/ that Zeitwerk must not manage: they either reopen core
+    # classes / define bare methods instead of a matching constant, or use a
+    # constant name that does not match the file name. All of them are loaded
+    # explicitly (config/initializers/date_extensions.rb, sms.rb, or an explicit
+    # `require` at the call site).
+    config.autoload_lib(ignore: %w[
+      assets
+      tasks
+      generators
+      paperclip
+      add_unique_month_to_dates.rb
+      plebisbrand_export.rb
+      plebisbrand_import.rb
+      plebisbrand_import_collaborations.rb
+      plebisbrand_import_collaborations2017.rb
+      sms.rb
+    ])
+
+    # app/workers/plebisbrand_*.rb define PlebisBrand… (capital B) while Zeitwerk
+    # would infer Plebisbrand…. Override the inflection for just those files
+    # rather than registering a global `PlebisBrand` acronym, which would also
+    # change `underscore` everywhere and collide with the PlebisBrand = Podemos
+    # alias in config/initializers/plebis_brand_alias.rb.
+    # Engines expose app/admin as an autoload path, but those files are
+    # ActiveAdmin DSL (`ActiveAdmin.register…`) and define no constants, so
+    # eager loading them raises. ActiveAdmin already excludes the main app's
+    # app/admin for the same reason; do the same for the engines.
+    Rails.autoloaders.main.ignore(Rails.root.glob('engines/*/app/admin'))
+
+    Rails.autoloaders.each do |autoloader|
+      autoloader.inflector.inflect(
+        'plebisbrand_collaboration_worker' => 'PlebisBrandCollaborationWorker',
+        'plebisbrand_import_worker' => 'PlebisBrandImportWorker',
+        'plebisbrand_report_worker' => 'PlebisBrandReportWorker'
+      )
+    end
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -42,8 +79,17 @@ module PlebisHub
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Restore Rails.application.secrets for Rails 7.2+ compatibility
-    # secrets.yml support was removed in Rails 7.2
-    config.secrets = config_for(:secrets)
+    # secrets.yml support was removed in Rails 7.2.
+    #
+    # `config_for` symbolizes keys, but the application reads nested secrets with
+    # string keys everywhere (`secrets.agora['servers']`, `secrets.forms['domain']`,
+    # `secrets.microcredits['brands']`, …), which silently returned nil. Give the
+    # nested hashes indifferent access so both forms work.
+    config.secrets = config_for(:secrets).tap do |secrets|
+      secrets.each do |key, value|
+        secrets[key] = value.with_indifferent_access if value.is_a?(Hash)
+      end
+    end
 
     # Rails 7.2 compatibility: Allow engines to modify autoload_paths
     # Some legacy engines attempt to modify autoload_paths during initialization
@@ -66,7 +112,12 @@ module PlebisHub
 
     # Rack::Attack - Rate limiting and throttling
     # Configuration in config/initializers/rack_attack.rb
-    config.middleware.use Rack::Attack
+    #
+    # BUG: aqui habia un `config.middleware.use Rack::Attack`. La propia gema ya
+    # se inserta desde su railtie ("rack-attack.middleware"), asi que el
+    # middleware quedaba dos veces en la pila y cada peticion incrementaba los
+    # contadores el doble: todos los limites de tasa valian la mitad de lo
+    # configurado. Se deja que lo registre el railtie.
 
     # Note: SecureHeaders configuration is in config/initializers/secure_headers.rb
     # It's automatically applied when the gem is loaded

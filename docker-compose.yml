@@ -2,7 +2,7 @@
 # PlebisHub Docker Compose Configuration
 # ========================================
 # Services:
-#   - app: Rails 7.2 backend application
+#   - app: Rails 8.0 backend application
 #   - frontend: Vue 3 + Vite development server
 #   - db: PostgreSQL 16 database
 #   - redis: Redis 7 (for Resque background jobs)

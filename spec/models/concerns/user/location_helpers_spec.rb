@@ -21,7 +21,7 @@ RSpec.describe User::LocationHelpers, type: :model do
     # Setup Rails secrets for tests
     Rails.application.secrets.users ||= {}
     Rails.application.secrets.users['allows_location_change'] = true
-    Rails.application.secrets.users['blocked_provinces'] = ['51', '52'] # Ceuta and Melilla
+    Rails.application.secrets.users['blocked_provinces'] = %w[51 52] # Ceuta and Melilla
   end
 
   # ====================
@@ -778,7 +778,7 @@ RSpec.describe User::LocationHelpers, type: :model do
 
   describe '.blocked_provinces' do
     it 'returns blocked provinces from secrets' do
-      expect(User.blocked_provinces).to eq(['51', '52'])
+      expect(User.blocked_provinces).to eq(%w[51 52])
     end
   end
 

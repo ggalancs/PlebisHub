@@ -59,7 +59,7 @@ RSpec.describe Gamifiable, type: :model do
       end
 
       it 'destroys gamification_points when user is destroyed' do
-        point = create(:gamification_point, user: user)
+        create(:gamification_point, user: user)
         expect { user.destroy }.to change(Gamification::Point, :count).by(-1)
       end
 

@@ -374,7 +374,7 @@ RSpec.describe RegistrationsHelper, type: :helper do
         # Should be sorted by original_name (Álava, Ñora, Zamora)
         # But SQL ORDER BY might sort differently than we expect
         expect(result.length).to eq(3)
-        expect(result.map(&:original_name)).to match_array(['Álava', 'Ñora', 'Zamora'])
+        expect(result.map(&:original_name)).to match_array(%w[Álava Ñora Zamora])
       end
     end
 

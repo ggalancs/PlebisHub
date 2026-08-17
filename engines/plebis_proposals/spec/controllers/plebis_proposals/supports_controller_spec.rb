@@ -17,7 +17,7 @@ module PlebisProposals
 
         it 'redirects to sign in' do
           post :create, params: { proposal_id: proposal.id }
-          expect(response).to redirect_to(new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
       end
     end
@@ -88,21 +88,24 @@ module PlebisProposals
 
       context 'with invalid proposal id' do
         it 'handles RecordNotFound gracefully' do
-          post :create, params: { proposal_id: 99999 }
+          post :create, params: { proposal_id: 99_999 }
           expect(response).to redirect_to(proposals_path)
           expect(flash[:alert]).to be_present
         end
 
         it 'logs the not found event' do
           expect(Rails.logger).to receive(:info).with(a_string_matching(/support_proposal_not_found/))
-          post :create, params: { proposal_id: 99999 }
+          post :create, params: { proposal_id: 99_999 }
         end
       end
 
       context 'when support creation fails' do
         before do
           allow_any_instance_of(Proposal).to receive(:supportable?).with(user).and_return(true)
-          allow(user.supports).to receive(:create!).and_raise(ActiveRecord::RecordInvalid)
+          # `current_user` es otra instancia distinta de `user`, asi que no vale
+          # stubear `user.supports`: provocamos el fallo real de unicidad
+          # apoyando la propuesta de antemano
+          create(:support, user: user, proposal: proposal)
         end
 
         it 'redirects to proposal path' do

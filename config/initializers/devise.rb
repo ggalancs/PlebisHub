@@ -261,6 +261,6 @@ Devise.setup do |config|
   # Configure responders for Turbo / Hotwire compatibility (Rails 7.0+)
   # For backwards compatibility, Devise keeps error_status as :ok and redirect_status as :found,
   # but for proper Turbo support, they should be set as below:
-  config.responder.error_status = :unprocessable_entity
+  config.responder.error_status = :unprocessable_content
   config.responder.redirect_status = :see_other
 end

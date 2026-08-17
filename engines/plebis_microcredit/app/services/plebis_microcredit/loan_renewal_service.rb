@@ -82,8 +82,15 @@ module PlebisMicrocredit
 end
 
 # Extend OpenStruct to work with formtastic forms
+#
+# BUG: la firma era (name) y Rails llama a human_attribute_name(attribute,
+# options = {}). Al ser un parche sobre OpenStruct global, cualquier sitio que
+# lo invocase con dos argumentos reventaba con ArgumentError; en concreto
+# `attributes_table_for OpenStruct.new(...)` dejaba la ficha de Activaciones de
+# Engines del admin en un 500. En test solo se veia cuando este fichero se
+# cargaba antes, pero en produccion el eager loading lo carga siempre.
 class OpenStruct
-  def self.human_attribute_name(name)
+  def self.human_attribute_name(name, _options = {})
     I18n.t("formtastic.labels.#{name}")
   end
 end

@@ -13,8 +13,8 @@ RSpec.describe 'Dashboard Admin Page', type: :request do
 
     # Stub model methods
     allow(User).to receive(:limit).with(30).and_return(User.none)
-    allow(Notice).to receive(:limit).with(5).and_return([]) if defined?(Notice)
-    allow(Election).to receive(:limit).with(5).and_return([]) if defined?(Election)
+    allow(PlebisCms::Notice).to receive(:limit).with(5).and_return([]) if defined?(Notice)
+    allow(PlebisVotes::Election).to receive(:limit).with(5).and_return([]) if defined?(Election)
   end
 
   describe 'GET /admin' do

@@ -3,7 +3,17 @@
 require 'fileutils'
 module PlebisCollaborations
   class Collaboration < ApplicationRecord
+    # See PlebisCollaborations::Order: isolate_namespace would prefix the table
+    # name with "plebis_collaborations_". The data lives in `collaborations`.
+    self.table_name = 'collaborations'
+
     include Rails.application.routes.url_helpers
+
+    # url_helpers necesita un host; sin esto los enlaces generados desde el
+    # modelo salian sin dominio. Se perdio al consolidar.
+    def default_url_options
+      ActionMailer::Base.default_url_options.presence || { host: 'www.example.com' }
+    end
 
     acts_as_paranoid
     has_paper_trail
@@ -74,7 +84,7 @@ module PlebisCollaborations
     scope :non_user, -> { live.where(user_id: nil) }
     scope :deleted, -> { only_deleted }
 
-    scope :full_view, -> { with_deleted.eager_load(:order) }
+    scope :full_view, -> { with_deleted.eager_load(:orders) }
 
     scope :autonomy_cc, -> { live.where(for_autonomy_cc: true) }
     scope :town_cc, -> { live.where(for_town_cc: true) }
@@ -83,7 +93,10 @@ module PlebisCollaborations
     after_initialize :parse_non_user
     before_save :check_spanish_bic
     before_save :format_non_user
-    after_create :set_initial_status
+    # BUG: era before_create y paso a after_create al consolidar. En after_create
+    # la asignacion no se persiste, asi que toda colaboracion nueva se quedaba con
+    # el valor por defecto de la columna (2, "Sin confirmar") en vez de 0, "Sin pago".
+    before_create :set_initial_status
     before_save do
       iban_account.presence&.upcase!
       if payment_type != 1 && (redsys_identifier.present? || redsys_expiration.present?)
@@ -94,7 +107,9 @@ module PlebisCollaborations
     after_commit :verify_user_militant_status
 
     def only_have_single_collaborations?
-      frequency.zero? || skip_queries_validations
+      # Navegacion segura: esta condicion se evalua antes que la validacion de
+      # presencia, asi que con frequency nil reventaba con NoMethodError.
+      frequency&.zero? || skip_queries_validations
     end
 
     def territorial_assignment=(value)
@@ -251,10 +266,6 @@ module PlebisCollaborations
 
     def has_confirmed_payment?
       status > 2 and deleted_at.nil?
-    end
-
-    def admin_permalink
-      admin_collaboration_path(self)
     end
 
     def first_order
@@ -436,8 +447,14 @@ module PlebisCollaborations
     end
 
     def set_warning!(reason)
-      # Rails 7.2: Use update_column instead of deprecated update_attribute
-      update_column :status, 4
+      # check_spanish_bic lo llama desde un before_save, asi que tambien se
+      # ejecuta sobre registros aun sin guardar: update_column ahi lanza
+      # "cannot update a new record". La guarda existia antes de consolidar.
+      if persisted?
+        update_column :status, 4
+      else
+        self.status = 4
+      end
       add_comment reason
     end
 
@@ -543,13 +560,13 @@ module PlebisCollaborations
 
       col_user = get_user
       [format('%02d%02d%06d', date.year % 100, date.month, order.id % 1_000_000),
-       col_user.full_name.mb_chars.upcase.to_s, col_user.document_vatid.upcase, col_user.email,
-       col_user.address.mb_chars.upcase.to_s, col_user.town_name.mb_chars.upcase.to_s,
+       col_user.full_name.upcase, col_user.document_vatid.upcase, col_user.email,
+       col_user.address.upcase, col_user.town_name.upcase,
        col_user.postal_code, col_user.country.upcase,
        calculate_iban, ccc_full, calculate_bic,
        order.amount / 100, order.due_code, order.url_source, id,
        created_at.strftime('%d-%m-%Y'), order.reference, order.payable_at.strftime('%d-%m-%Y'),
-       frequency_name, col_user.full_name.mb_chars.upcase.to_s,
+       frequency_name, col_user.full_name.upcase,
        col_user.respond_to?(:still_militant?) ? col_user.still_militant? : false]
     end
 
@@ -774,7 +791,7 @@ module PlebisCollaborations
     end
 
     def self.update_paid_unconfirmed_bank_collaborations(orders)
-      PlebisCollaborations::Collaboration.unconfirmed.joins(:order).merge(orders).update_all(status: 3)
+      PlebisCollaborations::Collaboration.unconfirmed.joins(:orders).merge(orders).update_all(status: 3)
     end
 
     def verify_user_militant_status
@@ -792,8 +809,10 @@ module PlebisCollaborations
 
     # Get available frequencies for user based on existing collaborations and parameters
     def self.available_frequencies_for_user(user, force_single: false, only_recurrent: false)
-      return FREQUENCIES.to_a.slice('Puntual') if force_single
-      return FREQUENCIES.to_a.except('Puntual') if user.recurrent_collaboration || only_recurrent
+      # slice/except son de Hash: invertir el orden con to_a rompia con
+      # TypeError y NoMethodError respectivamente.
+      return FREQUENCIES.slice('Puntual').to_a if force_single
+      return FREQUENCIES.except('Puntual').to_a if user.recurrent_collaboration || only_recurrent
 
       FREQUENCIES.to_a
     end

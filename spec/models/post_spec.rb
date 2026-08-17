@@ -110,8 +110,8 @@ RSpec.describe Post, type: :model do
         active_post = create(:post)
         deleted_post = create(:post, :deleted)
 
-        expect(Post.created).to include(active_post)
-        expect(Post.created).not_to include(deleted_post)
+        expect(Post.created.map(&:id)).to include(active_post.id)
+        expect(Post.created.map(&:id)).not_to include(deleted_post.id)
       end
     end
 
@@ -121,8 +121,8 @@ RSpec.describe Post, type: :model do
         published = create(:post, :published)
 
         drafts = Post.drafts
-        expect(drafts).to include(draft)
-        expect(drafts).not_to include(published)
+        expect(drafts.map(&:id)).to include(draft.id)
+        expect(drafts.map(&:id)).not_to include(published.id)
       end
     end
 
@@ -132,8 +132,8 @@ RSpec.describe Post, type: :model do
         published = create(:post, :published)
 
         published_posts = Post.published
-        expect(published_posts).to include(published)
-        expect(published_posts).not_to include(draft)
+        expect(published_posts.map(&:id)).to include(published.id)
+        expect(published_posts.map(&:id)).not_to include(draft.id)
       end
     end
 
@@ -144,8 +144,8 @@ RSpec.describe Post, type: :model do
         deleted_post.destroy
 
         deleted_posts = Post.deleted
-        expect(deleted_posts).to include(deleted_post)
-        expect(deleted_posts).not_to include(active_post)
+        expect(deleted_posts.map(&:id)).to include(deleted_post.id)
+        expect(deleted_posts.map(&:id)).not_to include(active_post.id)
       end
     end
   end
@@ -164,8 +164,8 @@ RSpec.describe Post, type: :model do
       post.categories << category2
 
       expect(post.categories.count).to eq(2)
-      expect(post.categories).to include(category1)
-      expect(post.categories).to include(category2)
+      expect(post.categories.map(&:id)).to include(category1.id)
+      expect(post.categories.map(&:id)).to include(category2.id)
     end
 
     it 'categories association is has_and_belongs_to_many' do
@@ -174,8 +174,8 @@ RSpec.describe Post, type: :model do
 
       post.categories << category
 
-      expect(category.posts).to include(post), 'Category should have post in its posts'
-      expect(post.categories).to include(category), 'Post should have category in its categories'
+      expect(category.posts.map(&:id)).to include(post.id), 'Category should have post in its posts'
+      expect(post.categories.map(&:id)).to include(category.id), 'Post should have category in its categories'
     end
   end
 
@@ -264,8 +264,8 @@ RSpec.describe Post, type: :model do
       deleted_post.destroy
 
       all_posts = Post.with_deleted
-      expect(all_posts).to include(active_post)
-      expect(all_posts).to include(deleted_post)
+      expect(all_posts.map(&:id)).to include(active_post.id)
+      expect(all_posts.map(&:id)).to include(deleted_post.id)
     end
 
     it 'restores soft deleted post' do
@@ -301,8 +301,8 @@ RSpec.describe Post, type: :model do
       # Publish
       post.update(status: 1)
       expect(post).to be_published
-      expect(Post.published).to include(post)
-      expect(Post.drafts).not_to include(post)
+      expect(Post.published.map(&:id)).to include(post.id)
+      expect(Post.drafts.map(&:id)).not_to include(post.id)
 
       # Should be findable by slug
       found_post = Post.find(post.slug)
@@ -317,13 +317,13 @@ RSpec.describe Post, type: :model do
     it 'handles draft to published transition' do
       post = create(:post, :draft)
 
-      expect(Post.drafts).to include(post)
-      expect(Post.published).not_to include(post)
+      expect(Post.drafts.map(&:id)).to include(post.id)
+      expect(Post.published.map(&:id)).not_to include(post.id)
 
       post.update(status: 1)
 
-      expect(Post.drafts.reload).not_to include(post)
-      expect(Post.published.reload).to include(post)
+      expect(Post.drafts.reload.map(&:id)).not_to include(post.id)
+      expect(Post.published.reload.map(&:id)).to include(post.id)
     end
   end
 
@@ -356,7 +356,7 @@ RSpec.describe Post, type: :model do
 
     it 'uses scopes through the alias' do
       published_post = Post.create!(title: 'Published Alias', status: 1)
-      expect(Post.published).to include(published_post)
+      expect(Post.published.map(&:id)).to include(published_post.id)
     end
   end
 end

@@ -114,7 +114,7 @@ RSpec.describe CollaborationsOnPaper do
         allow_any_instance_of(Collaboration).to receive(:errors).and_return(
           double(messages: { amount: ['is invalid'] })
         )
-        processor.instance_variable_set(:@errors_on_save, [['error', 'row']])
+        processor.instance_variable_set(:@errors_on_save, [%w[error row]])
         expect(processor.has_errors_on_save?).to be true
       end
     end
@@ -386,7 +386,7 @@ RSpec.describe CollaborationsOnPaper do
       expect(collaboration.ccc_entity).to eq(1234)
       expect(collaboration.ccc_office).to eq(5678)
       expect(collaboration.ccc_dc).to eq(90)
-      expect(collaboration.ccc_account).to eq(1234567890)
+      expect(collaboration.ccc_account).to eq(1_234_567_890)
     end
 
     it 'calculates IBAN from CCC' do

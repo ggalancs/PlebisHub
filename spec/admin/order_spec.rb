@@ -12,7 +12,7 @@ RSpec.describe 'Order Admin', type: :request do
   before do
     sign_in_admin admin_user
     # Mock helper methods to avoid dependencies
-    allow_any_instance_of(Order).to receive(:generate_target_territory).and_return('Estatal')
+    allow_any_instance_of(PlebisCollaborations::Order).to receive(:generate_target_territory).and_return('Estatal')
   end
 
   describe 'GET /admin/orders' do
@@ -375,21 +375,21 @@ RSpec.describe 'Order Admin', type: :request do
       let(:paid_order) { create(:order, :ok) }
 
       it 'processes the paid order' do
-        expect_any_instance_of(Order).to receive(:is_paid?).and_return(true)
-        expect_any_instance_of(Order).to receive(:processed!).and_return(true)
+        expect_any_instance_of(PlebisCollaborations::Order).to receive(:is_paid?).and_return(true)
+        expect_any_instance_of(PlebisCollaborations::Order).to receive(:processed!).and_return(true)
         get return_order_admin_order_path(id: paid_order.id)
       end
 
       it 'redirects to show page' do
-        allow_any_instance_of(Order).to receive(:is_paid?).and_return(true)
-        allow_any_instance_of(Order).to receive(:processed!).and_return(true)
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:is_paid?).and_return(true)
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:processed!).and_return(true)
         get return_order_admin_order_path(id: paid_order.id)
         expect(response).to redirect_to(admin_order_path(id: paid_order.id))
       end
 
       it 'does not process non-paid orders' do
         unpaid_order = create(:order, :nueva)
-        expect_any_instance_of(Order).to receive(:is_paid?).and_return(false)
+        expect_any_instance_of(PlebisCollaborations::Order).to receive(:is_paid?).and_return(false)
         expect_any_instance_of(Order).not_to receive(:processed!)
         get return_order_admin_order_path(id: unpaid_order.id)
       end
@@ -401,7 +401,7 @@ RSpec.describe 'Order Admin', type: :request do
       end
 
       it 'restores the deleted order' do
-        expect_any_instance_of(Order).to receive(:restore)
+        expect_any_instance_of(PlebisCollaborations::Order).to receive(:restore)
         post recover_admin_order_path(id: order_deleted.id)
       end
 
@@ -450,10 +450,10 @@ RSpec.describe 'Order Admin', type: :request do
 
     before do
       sign_in finances_admin_user
-      allow_any_instance_of(Order).to receive(:generate_target_territory).and_return('Estatal')
-      allow_any_instance_of(Order).to receive(:island_code).and_return(nil)
-      allow_any_instance_of(Order).to receive(:town_code).and_return('m_28_079_6')
-      allow_any_instance_of(Order).to receive(:autonomy_code).and_return('c_01')
+      allow_any_instance_of(PlebisCollaborations::Order).to receive(:generate_target_territory).and_return('Estatal')
+      allow_any_instance_of(PlebisCollaborations::Order).to receive(:island_code).and_return(nil)
+      allow_any_instance_of(PlebisCollaborations::Order).to receive(:town_code).and_return('m_28_079_6')
+      allow_any_instance_of(PlebisCollaborations::Order).to receive(:autonomy_code).and_return('c_01')
     end
 
     it 'exports CSV with correct content type' do
@@ -500,7 +500,7 @@ RSpec.describe 'Order Admin', type: :request do
       end
 
       before do
-        allow_any_instance_of(Collaboration).to receive(:get_user).and_return(collab_order.user)
+        allow_any_instance_of(PlebisCollaborations::Collaboration).to receive(:get_user).and_return(collab_order.user)
         allow_any_instance_of(User).to receive(:full_name).and_return('Test User')
         allow_any_instance_of(User).to receive(:document_vatid).and_return('12345678A')
         allow_any_instance_of(User).to receive(:address).and_return('Test Address')
@@ -550,35 +550,35 @@ RSpec.describe 'Order Admin', type: :request do
 
     context 'with different order types based on territory' do
       it 'exports island order type as I' do
-        island_order = create(:order, :ok)
-        allow_any_instance_of(Order).to receive(:island_code).and_return('i_07_001')
+        create(:order, :ok)
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:island_code).and_return('i_07_001')
         get admin_orders_path(format: :csv)
         # The order_type column in CSV should be 'I' for island orders
         expect(response.body).to include(',I,')
       end
 
       it 'exports town order type as M' do
-        town_order = create(:order, :ok, :with_territory)
+        create(:order, :ok, :with_territory)
         get admin_orders_path(format: :csv)
         # The order_type column in CSV should be 'M' for municipal orders
         expect(response.body).to include(',M,')
       end
 
       it 'exports autonomy order type as A' do
-        autonomy_order = create(:order, :ok)
-        allow_any_instance_of(Order).to receive(:island_code).and_return(nil)
-        allow_any_instance_of(Order).to receive(:town_code).and_return(nil)
-        allow_any_instance_of(Order).to receive(:autonomy_code).and_return('c_01')
+        create(:order, :ok)
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:island_code).and_return(nil)
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:town_code).and_return(nil)
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:autonomy_code).and_return('c_01')
         get admin_orders_path(format: :csv)
         # The order_type column in CSV should be 'A' for autonomy orders
         expect(response.body).to include(',A,')
       end
 
       it 'exports state order type as E' do
-        state_order = create(:order, :ok)
-        allow_any_instance_of(Order).to receive(:island_code).and_return(nil)
-        allow_any_instance_of(Order).to receive(:town_code).and_return(nil)
-        allow_any_instance_of(Order).to receive(:autonomy_code).and_return(nil)
+        create(:order, :ok)
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:island_code).and_return(nil)
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:town_code).and_return(nil)
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:autonomy_code).and_return(nil)
         get admin_orders_path(format: :csv)
         # The order_type column in CSV should be 'E' for state orders
         expect(response.body).to include(',E,')
@@ -589,8 +589,8 @@ RSpec.describe 'Order Admin', type: :request do
       let!(:cc_order) { create(:order, :ok, :credit_card, payment_identifier: '999999999R') }
 
       before do
-        allow_any_instance_of(Order).to receive(:is_credit_card?).and_return(true)
-        allow_any_instance_of(Order).to receive(:redsys_order_id).and_return('000000000001')
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:is_credit_card?).and_return(true)
+        allow_any_instance_of(PlebisCollaborations::Order).to receive(:redsys_order_id).and_return('000000000001')
       end
 
       it 'includes redsys_id for credit card orders' do
@@ -808,7 +808,7 @@ RSpec.describe 'Order Admin', type: :request do
   describe 'show page attributes' do
     it 'shows error_message for failed orders' do
       error_order = create(:order, :error, payment_response: 'Error response')
-      allow_any_instance_of(Order).to receive(:error_message).and_return('Test Error')
+      allow_any_instance_of(PlebisCollaborations::Order).to receive(:error_message).and_return('Test Error')
       get admin_order_path(error_order)
       expect(response.body).to include('Test Error')
     end
@@ -838,7 +838,7 @@ RSpec.describe 'Order Admin', type: :request do
 
     before do
       sign_in finances_admin_user
-      allow_any_instance_of(Collaboration).to receive(:get_user).and_return(complex_order.user)
+      allow_any_instance_of(PlebisCollaborations::Collaboration).to receive(:get_user).and_return(complex_order.user)
     end
 
     it 'includes vote_circle in CSV' do

@@ -7,19 +7,8 @@ RSpec.describe CensusFileParser do
   let(:election) { instance_double('Election', census_file: census_file_attachment) }
   let(:parser) { described_class.new(election) }
 
-  # Helper to mock Paperclip.io_adapters for ActiveStorage compatibility
-  before do
-    # Stub Paperclip.io_adapters if it doesn't exist
-    # We need to define it as a singleton method on the Paperclip module
-    unless Paperclip.respond_to?(:io_adapters)
-      Paperclip.define_singleton_method(:io_adapters) do
-        @io_adapters_mock
-      end
-    end
-    # Create a fresh double for each test to avoid leakage
-    io_adapters_double = double('PaperclipIOAdapters')
-    Paperclip.instance_variable_set(:@io_adapters_mock, io_adapters_double)
-  end
+  # census_file es un adjunto de ActiveStorage: se lee con #download, no con
+  # Paperclip.io_adapters (la gema ya no esta en el Gemfile).
 
   # ==================== INITIALIZATION TESTS ====================
 
@@ -69,13 +58,8 @@ RSpec.describe CensusFileParser do
 
     context 'when census_file exists' do
       let(:csv_data) { "user_id,name\n123,John Doe\n456,Jane Smith" }
-      let(:io_adapter) { double('IOAdapter', read: csv_data) }
-      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
       let(:election) { instance_double('Election', census_file: file_attachment) }
-
-      before do
-        allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-      end
 
       context 'when user is found' do
         before do
@@ -95,13 +79,8 @@ RSpec.describe CensusFileParser do
 
       context 'when user_id does not match' do
         let(:csv_data) { "user_id,name\n456,Jane Smith\n789,Bob Jones" }
-        let(:io_adapter) { double('IOAdapter', read: csv_data) }
-        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
         let(:election) { instance_double('Election', census_file: file_attachment) }
-
-        before do
-          allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-        end
 
         it 'returns nil' do
           result = parser.find_user_by_validation_token(user_id, validation_token)
@@ -127,12 +106,10 @@ RSpec.describe CensusFileParser do
 
       context 'when CSV has multiple rows' do
         let(:csv_data) { "user_id,name\n456,Jane Smith\n123,John Doe\n789,Bob Jones" }
-        let(:io_adapter) { double('IOAdapter', read: csv_data) }
-        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
         let(:election) { instance_double('Election', census_file: file_attachment) }
 
         before do
-          allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
           allow(User).to receive(:find_by).with(id: user_id).and_return(user)
         end
 
@@ -145,25 +122,20 @@ RSpec.describe CensusFileParser do
       context 'when CSV is malformed' do
         # Use unclosed quote to create truly malformed CSV
         let(:csv_data) { "user_id,name\n\"123,John Doe" }
-        let(:io_adapter) { double('IOAdapter', read: csv_data) }
-        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
         let(:election) { instance_double('Election', census_file: file_attachment) }
-
-        before do
-          allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-        end
 
         it 'handles CSV parsing error gracefully' do
           expect { parser.find_user_by_validation_token(user_id, validation_token) }.to raise_error(CSV::MalformedCSVError)
         end
       end
 
-      context 'when Paperclip adapter fails' do
-        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+      context 'when reading the attachment fails' do
+        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
         let(:election) { instance_double('Election', census_file: file_attachment) }
 
         before do
-          allow(Paperclip.io_adapters).to receive(:for).and_raise(StandardError.new('File not found'))
+          allow(file_attachment).to receive(:download).and_raise(StandardError.new('File not found'))
         end
 
         it 'propagates the error' do
@@ -197,14 +169,9 @@ RSpec.describe CensusFileParser do
 
     context 'when census_file exists' do
       let(:csv_data) { "dni,name\n12345678A,John Doe\n87654321B,Jane Smith" }
-      let(:io_adapter) { double('IOAdapter', read: csv_data) }
       let(:user_relation) { double('UserRelation') }
-      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
       let(:election) { instance_double('Election', census_file: file_attachment) }
-
-      before do
-        allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-      end
 
       context 'when document is found (case insensitive)' do
         before do
@@ -230,12 +197,10 @@ RSpec.describe CensusFileParser do
 
       context 'when document is found with different case' do
         let(:csv_data) { "dni,name\n12345678a,John Doe" }
-        let(:io_adapter) { double('IOAdapter', read: csv_data) }
-        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
         let(:election) { instance_double('Election', census_file: file_attachment) }
 
         before do
-          allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
           allow(User).to receive(:where).with('lower(document_vatid) = ?', document_vatid.downcase).and_return(user_relation)
           allow(user_relation).to receive(:find_by).with(document_type: document_type).and_return(user)
         end
@@ -248,13 +213,8 @@ RSpec.describe CensusFileParser do
 
       context 'when document is not found in CSV' do
         let(:csv_data) { "dni,name\n87654321B,Jane Smith" }
-        let(:io_adapter) { double('IOAdapter', read: csv_data) }
-        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
         let(:election) { instance_double('Election', census_file: file_attachment) }
-
-        before do
-          allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-        end
 
         it 'returns nil' do
           result = parser.find_user_by_document(document_vatid, document_type)
@@ -293,12 +253,10 @@ RSpec.describe CensusFileParser do
 
       context 'when CSV has multiple rows' do
         let(:csv_data) { "dni,name\n87654321B,Jane Smith\n12345678A,John Doe\n11111111C,Bob Jones" }
-        let(:io_adapter) { double('IOAdapter', read: csv_data) }
-        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
         let(:election) { instance_double('Election', census_file: file_attachment) }
 
         before do
-          allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
           allow(User).to receive(:where).with('lower(document_vatid) = ?', document_vatid.downcase).and_return(user_relation)
           allow(user_relation).to receive(:find_by).with(document_type: document_type).and_return(user)
         end
@@ -311,13 +269,8 @@ RSpec.describe CensusFileParser do
 
       context 'when dni column is missing' do
         let(:csv_data) { "user_id,name\n123,John Doe" }
-        let(:io_adapter) { double('IOAdapter', read: csv_data) }
-        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
         let(:election) { instance_double('Election', census_file: file_attachment) }
-
-        before do
-          allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-        end
 
         it 'returns nil' do
           result = parser.find_user_by_document(document_vatid, document_type)
@@ -327,13 +280,8 @@ RSpec.describe CensusFileParser do
 
       context 'when dni column has nil value' do
         let(:csv_data) { "dni,name\n,John Doe" }
-        let(:io_adapter) { double('IOAdapter', read: csv_data) }
-        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
         let(:election) { instance_double('Election', census_file: file_attachment) }
-
-        before do
-          allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-        end
 
         it 'handles nil values gracefully' do
           result = parser.find_user_by_document(document_vatid, document_type)
@@ -343,15 +291,13 @@ RSpec.describe CensusFileParser do
     end
 
     context 'with special characters in document' do
-      let(:document_vatid) { "X1234567L" }
+      let(:document_vatid) { 'X1234567L' }
       let(:csv_data) { "dni,name\nX1234567L,Foreigner" }
-      let(:io_adapter) { double('IOAdapter', read: csv_data) }
       let(:user_relation) { double('UserRelation') }
-      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
       let(:election) { instance_double('Election', census_file: file_attachment) }
 
       before do
-        allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
         allow(User).to receive(:where).with('lower(document_vatid) = ?', document_vatid.downcase).and_return(user_relation)
         allow(user_relation).to receive(:find_by).with(document_type: document_type).and_return(user)
       end
@@ -380,13 +326,8 @@ RSpec.describe CensusFileParser do
 
     context 'when CSV is empty' do
       let(:csv_data) { "user_id,name\n" }
-      let(:io_adapter) { double('IOAdapter', read: csv_data) }
-      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
       let(:election) { instance_double('Election', census_file: file_attachment) }
-
-      before do
-        allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-      end
 
       it 'returns nil for find_user_by_validation_token' do
         result = parser.find_user_by_validation_token('123', 'token')
@@ -400,14 +341,9 @@ RSpec.describe CensusFileParser do
     end
 
     context 'when CSV has only headers' do
-      let(:csv_data) { "user_id,name" }
-      let(:io_adapter) { double('IOAdapter', read: csv_data) }
-      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+      let(:csv_data) { 'user_id,name' }
+      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
       let(:election) { instance_double('Election', census_file: file_attachment) }
-
-      before do
-        allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-      end
 
       it 'returns nil for find_user_by_validation_token' do
         result = parser.find_user_by_validation_token('123', 'token')
@@ -422,14 +358,12 @@ RSpec.describe CensusFileParser do
 
     context 'when CSV has UTF-8 characters' do
       let(:csv_data) { "dni,name\n12345678Ñ,José García" }
-      let(:io_adapter) { double('IOAdapter', read: csv_data) }
       let(:user_relation) { double('UserRelation') }
       let(:user) { instance_double('User') }
-      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
       let(:election) { instance_double('Election', census_file: file_attachment) }
 
       before do
-        allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
         allow(User).to receive(:where).with('lower(document_vatid) = ?', '12345678ñ').and_return(user_relation)
         allow(user_relation).to receive(:find_by).with(document_type: '1').and_return(user)
       end
@@ -442,13 +376,8 @@ RSpec.describe CensusFileParser do
 
     context 'when input is nil' do
       let(:csv_data) { "user_id,name\n123,John Doe" }
-      let(:io_adapter) { double('IOAdapter', read: csv_data) }
-      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
       let(:election) { instance_double('Election', census_file: file_attachment) }
-
-      before do
-        allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-      end
 
       it 'handles nil user_id gracefully' do
         result = parser.find_user_by_validation_token(nil, 'token')
@@ -466,20 +395,15 @@ RSpec.describe CensusFileParser do
   describe 'security' do
     let(:csv_data) { "dni,name\n12345678A,John Doe" }
     let(:io_adapter) { double('IOAdapter', read: csv_data) }
-    let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+    let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
     let(:election) { instance_double('Election', census_file: file_attachment) }
-
-    before do
-      allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-    end
 
     describe 'SQL injection prevention' do
       it 'uses parameterized query for document search' do
         # Create CSV with the malicious string
         malicious_dni = "12345678A'; DROP TABLE users;--"
         malicious_csv = "dni,name\n#{malicious_dni},Hacker"
-        malicious_io_adapter = double('IOAdapter', read: malicious_csv)
-        allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(malicious_io_adapter)
+        allow(file_attachment).to receive(:download).and_return(malicious_csv)
 
         user_relation = double('UserRelation')
         allow(User).to receive(:where).with('lower(document_vatid) = ?', malicious_dni.downcase).and_return(user_relation)
@@ -507,13 +431,8 @@ RSpec.describe CensusFileParser do
     describe 'CSV injection prevention' do
       context 'when CSV contains formula injection attempts' do
         let(:csv_data) { "dni,name\n=1+1,Hacker" }
-        let(:io_adapter) { double('IOAdapter', read: csv_data) }
-        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+        let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
         let(:election) { instance_double('Election', census_file: file_attachment) }
-
-        before do
-          allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-        end
 
         it 'treats formula as plain text' do
           result = parser.find_user_by_document('=1+1', '1')
@@ -528,13 +447,8 @@ RSpec.describe CensusFileParser do
   describe 'private methods' do
     describe '#parse_csv' do
       let(:csv_data) { "user_id,name\n123,John Doe\n456,Jane Smith" }
-      let(:io_adapter) { double('IOAdapter', read: csv_data) }
-      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false) }
+      let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
       let(:election) { instance_double('Election', census_file: file_attachment) }
-
-      before do
-        allow(Paperclip.io_adapters).to receive(:for).with(file_attachment).and_return(io_adapter)
-      end
 
       it 'parses CSV with headers' do
         rows = []

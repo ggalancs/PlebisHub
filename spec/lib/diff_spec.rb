@@ -21,12 +21,12 @@ RSpec.describe ActiveRecord::Diff do
   describe '.diff' do
     it 'sets the diff_attrs class attribute' do
       test_model_class.diff(:title, :slug)
-      expect(test_model_class.diff_attrs).to eq([:title, :slug])
+      expect(test_model_class.diff_attrs).to eq(%i[title slug])
     end
 
     it 'can be called with multiple attributes' do
       test_model_class.diff(:title, :slug, :meta_description)
-      expect(test_model_class.diff_attrs).to eq([:title, :slug, :meta_description])
+      expect(test_model_class.diff_attrs).to eq(%i[title slug meta_description])
     end
 
     it 'can be called with a single attribute' do
@@ -174,7 +174,7 @@ RSpec.describe ActiveRecord::Diff do
         hash = { title: 'New Title', slug: 'new-slug', meta_description: 'test' }
         diff = page.diff(hash)
         # All three keys should be present because meta_description is also different
-        expect(diff.keys).to match_array([:title, :slug, :meta_description])
+        expect(diff.keys).to match_array(%i[title slug meta_description])
       end
     end
 
@@ -194,7 +194,7 @@ RSpec.describe ActiveRecord::Diff do
 
       it 'excludes id and timestamp columns automatically' do
         page.title = 'Changed Title'
-        diff = page.diff
+        page.diff
         column_names = Page.content_columns.map { |c| c.name.to_sym }
         expect(column_names).not_to include(:id)
       end
@@ -215,7 +215,7 @@ RSpec.describe ActiveRecord::Diff do
       it 'excludes specified attributes from content columns' do
         Page.class_eval do
           include ActiveRecord::Diff unless ancestors.include?(ActiveRecord::Diff)
-          diff exclude: [:created_at, :updated_at]
+          diff exclude: %i[created_at updated_at]
         end
 
         page.title = 'Changed Title'
@@ -237,7 +237,7 @@ RSpec.describe ActiveRecord::Diff do
 
       it 'processes include and exclude arrays correctly' do
         Page.class_eval do
-          diff include: [], exclude: [:slug, :meta_description]
+          diff include: [], exclude: %i[slug meta_description]
         end
 
         page.title = 'Changed'
@@ -257,19 +257,19 @@ RSpec.describe ActiveRecord::Diff do
     end
 
     it 'iterates through attributes and yields differences' do
-      enum = [:title, :slug]
+      enum = %i[title slug]
       result = page.diff_each(enum) do |attr|
         [attr, 'old_value', 'new_value']
       end
 
       expect(result).to have_key(:title)
       expect(result).to have_key(:slug)
-      expect(result[:title]).to eq(['old_value', 'new_value'])
-      expect(result[:slug]).to eq(['old_value', 'new_value'])
+      expect(result[:title]).to eq(%w[old_value new_value])
+      expect(result[:slug]).to eq(%w[old_value new_value])
     end
 
     it 'only includes changed values' do
-      enum = [:title, :slug]
+      enum = %i[title slug]
       result = page.diff_each(enum) do |attr|
         if attr == :title
           [attr, 'old', 'new']
@@ -303,16 +303,16 @@ RSpec.describe ActiveRecord::Diff do
     end
 
     it 'yields with each_with_object accumulator' do
-      enum = [:title, :slug, :meta_description]
+      enum = %i[title slug meta_description]
       result = page.diff_each(enum) do |attr|
         [attr, 'old', 'new']
       end
 
-      expect(result.keys).to match_array([:title, :slug, :meta_description])
+      expect(result.keys).to match_array(%i[title slug meta_description])
     end
 
     it 'converts attribute names to symbols' do
-      enum = ['title', 'slug']
+      enum = %w[title slug]
       result = page.diff_each(enum) do |attr|
         [attr, 'old', 'new']
       end

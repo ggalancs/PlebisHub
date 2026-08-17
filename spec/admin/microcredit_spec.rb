@@ -17,7 +17,7 @@ RSpec.describe 'Microcredit Admin', type: :request do
            account_number: 'ES7921000813610123456789',
            agreement_link: 'http://example.com/agreement',
            budget_link: 'http://example.com/budget',
-           total_goal: 10000,
+           total_goal: 10_000,
            bank_counted_amount: 0,
            contact_phone: '123456789',
            mailing: false)
@@ -475,7 +475,7 @@ RSpec.describe 'Microcredit Admin', type: :request do
           microcredit: {
             title: 'Updated Campaign',
             priority: 10,
-            total_goal: 15000
+            total_goal: 15_000
           }
         }
       end
@@ -491,7 +491,7 @@ RSpec.describe 'Microcredit Admin', type: :request do
         microcredit.reload
         expect(microcredit.title).to eq('Updated Campaign')
         expect(microcredit.priority).to eq(10)
-        expect(microcredit.total_goal).to eq(15000)
+        expect(microcredit.total_goal).to eq(15_000)
       end
 
       it 'redirects to show page on success' do
@@ -889,10 +889,10 @@ RSpec.describe 'Microcredit Admin', type: :request do
           ends_at: 1.month.from_now,
           limits: '100 5',
           account_number: 'ES1234567890123456789012',
-          total_goal: 25000
+          total_goal: 25_000
         }
       }
-      expect(Microcredit.last.total_goal).to eq(25000)
+      expect(Microcredit.last.total_goal).to eq(25_000)
     end
 
     it 'permits bank_counted_amount' do

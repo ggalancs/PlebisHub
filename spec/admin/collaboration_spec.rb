@@ -12,10 +12,10 @@ RSpec.describe 'Collaboration Admin', type: :request do
   before do
     sign_in_admin admin_user
     # Mock helper methods and dependencies
-    allow_any_instance_of(Collaboration).to receive(:get_orders).and_return([])
-    allow(Collaboration).to receive(:has_bank_file?).and_return([false, false])
-    allow(Order).to receive_message_chain(:banks, :by_date, :to_be_charged, :count).and_return(0)
-    allow(Order).to receive_message_chain(:banks, :by_date, :charging, :count).and_return(0)
+    allow_any_instance_of(PlebisCollaborations::Collaboration).to receive(:get_orders).and_return([])
+    allow(PlebisCollaborations::Collaboration).to receive(:has_bank_file?).and_return([false, false])
+    allow(PlebisCollaborations::Order).to receive_message_chain(:banks, :by_date, :to_be_charged, :count).and_return(0)
+    allow(PlebisCollaborations::Order).to receive_message_chain(:banks, :by_date, :charging, :count).and_return(0)
   end
 
   describe 'GET /admin/collaborations' do
@@ -286,13 +286,13 @@ RSpec.describe 'Collaboration Admin', type: :request do
 
     describe 'GET /admin/collaborations/generate_csv' do
       before do
-        allow(Collaboration).to receive(:bank_file_lock)
+        allow(PlebisCollaborations::Collaboration).to receive(:bank_file_lock)
         allow(PlebisBrandCollaborationWorker).to receive(:perform_async)
       end
 
       it 'locks bank file' do
         get generate_csv_admin_collaborations_path
-        expect(Collaboration).to have_received(:bank_file_lock).with(true)
+        expect(PlebisCollaborations::Collaboration).to have_received(:bank_file_lock).with(true)
       end
 
       it 'queues CSV generation job' do
@@ -313,8 +313,8 @@ RSpec.describe 'Collaboration Admin', type: :request do
         before do
           temp_file.write("test,data\n")
           temp_file.rewind
-          allow(Collaboration).to receive(:has_bank_file?).and_return([false, true])
-          allow(Collaboration).to receive(:bank_filename).and_return(temp_file.path)
+          allow(PlebisCollaborations::Collaboration).to receive(:has_bank_file?).and_return([false, true])
+          allow(PlebisCollaborations::Collaboration).to receive(:bank_filename).and_return(temp_file.path)
         end
 
         after do
@@ -330,7 +330,7 @@ RSpec.describe 'Collaboration Admin', type: :request do
 
       context 'when file does not exist' do
         before do
-          allow(Collaboration).to receive(:has_bank_file?).and_return([false, false])
+          allow(PlebisCollaborations::Collaboration).to receive(:has_bank_file?).and_return([false, false])
         end
 
         it 'shows notice and redirects' do
@@ -343,12 +343,12 @@ RSpec.describe 'Collaboration Admin', type: :request do
 
     describe 'GET /admin/collaborations/mark_as_charged' do
       before do
-        allow(Order).to receive(:mark_bank_orders_as_charged!)
+        allow(PlebisCollaborations::Order).to receive(:mark_bank_orders_as_charged!)
       end
 
       it 'marks orders as charged for given date' do
         get mark_as_charged_admin_collaborations_path, params: { date: Time.zone.today.to_s }
-        expect(Order).to have_received(:mark_bank_orders_as_charged!).with(Time.zone.today)
+        expect(PlebisCollaborations::Order).to have_received(:mark_bank_orders_as_charged!).with(Time.zone.today)
       end
 
       it 'redirects to admin collaborations' do
@@ -359,12 +359,12 @@ RSpec.describe 'Collaboration Admin', type: :request do
 
     describe 'GET /admin/collaborations/mark_as_paid' do
       before do
-        allow(Order).to receive(:mark_bank_orders_as_paid!)
+        allow(PlebisCollaborations::Order).to receive(:mark_bank_orders_as_paid!)
       end
 
       it 'marks orders as paid for given date' do
         get mark_as_paid_admin_collaborations_path, params: { date: Time.zone.today.to_s }
-        expect(Order).to have_received(:mark_bank_orders_as_paid!).with(Time.zone.today)
+        expect(PlebisCollaborations::Order).to have_received(:mark_bank_orders_as_paid!).with(Time.zone.today)
       end
 
       it 'redirects to admin collaborations' do
@@ -377,12 +377,12 @@ RSpec.describe 'Collaboration Admin', type: :request do
   describe 'member actions' do
     describe 'GET /admin/collaborations/:id/charge_order' do
       it 'charges the collaboration' do
-        expect_any_instance_of(Collaboration).to receive(:charge!)
+        expect_any_instance_of(PlebisCollaborations::Collaboration).to receive(:charge!)
         get charge_order_admin_collaboration_path(id: collaboration.id)
       end
 
       it 'redirects to show page' do
-        allow_any_instance_of(Collaboration).to receive(:charge!)
+        allow_any_instance_of(PlebisCollaborations::Collaboration).to receive(:charge!)
         get charge_order_admin_collaboration_path(id: collaboration.id)
         expect(response).to redirect_to(admin_collaboration_path(id: collaboration.id))
       end
@@ -394,7 +394,7 @@ RSpec.describe 'Collaboration Admin', type: :request do
       end
 
       it 'restores the deleted collaboration' do
-        expect_any_instance_of(Collaboration).to receive(:restore)
+        expect_any_instance_of(PlebisCollaborations::Collaboration).to receive(:restore)
         post recover_admin_collaboration_path(id: collaboration_deleted.id)
       end
 
@@ -433,7 +433,7 @@ RSpec.describe 'Collaboration Admin', type: :request do
       let!(:suspect_collab2) { create(:collaboration, :active, :with_iban) }
 
       it 'marks collaborations as errors in batch' do
-        expect_any_instance_of(Collaboration).to receive(:set_error!).at_least(:once).and_return(true)
+        expect_any_instance_of(PlebisCollaborations::Collaboration).to receive(:set_error!).at_least(:once).and_return(true)
         post batch_action_admin_collaborations_path,
              params: {
                batch_action: 'error_batch',
@@ -457,7 +457,7 @@ RSpec.describe 'Collaboration Admin', type: :request do
 
   describe 'territorial downloads' do
     before do
-      allow(Order).to receive_message_chain(:paid, :group, :order, :pluck).and_return([])
+      allow(PlebisCollaborations::Order).to receive_message_chain(:paid, :group, :order, :pluck).and_return([])
     end
 
     # NOTE: Some endpoints may return 500 due to missing helper methods or templates

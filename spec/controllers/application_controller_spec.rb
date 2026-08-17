@@ -672,6 +672,10 @@ RSpec.describe ApplicationController, type: :controller do
     end
 
     before do
+      # Si algun spec anterior recargo las rutas, Devise.mappings queda vacio y aqui
+      # se asignaria nil, provocando "Could not find devise mapping" de forma
+      # dependiente del orden de ejecucion.
+      Rails.application.reload_routes! if Devise.mappings[:user].nil?
       @request.env['devise.mapping'] = Devise.mappings[:user]
     end
 
@@ -772,7 +776,7 @@ RSpec.describe ApplicationController, type: :controller do
       let(:exception) { StandardError.new('Test error') }
 
       before do
-        allow(exception).to receive(:backtrace).and_return(['line1', 'line2', 'line3'])
+        allow(exception).to receive(:backtrace).and_return(%w[line1 line2 line3])
       end
 
       it 'logs error details' do

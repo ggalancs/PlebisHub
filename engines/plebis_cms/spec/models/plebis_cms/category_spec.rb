@@ -16,7 +16,7 @@ module PlebisCms
       it 'validates presence of name' do
         category = Category.new(name: nil)
         expect(category.valid?).to be false
-        expect(category.errors[:name]).to include("no puede estar en blanco")
+        expect(category.errors[:name]).to include('no puede estar en blanco')
       end
 
       describe 'uniqueness validations' do
@@ -24,14 +24,18 @@ module PlebisCms
           create(:category, name: 'Test Name')
           duplicate = Category.new(name: 'TEST NAME')
           expect(duplicate.valid?).to be false
-          expect(duplicate.errors[:name]).to include("ya está en uso")
+          expect(duplicate.errors[:name]).to include('ya está en uso')
         end
 
         it 'validates uniqueness of slug (case insensitive, allows nil)' do
           category1 = create(:category)
-          category2 = Category.new(name: 'Different Name', slug: category1.slug.upcase)
+          category2 = create(:category, name: 'Different Name')
+          # Hay que asignar el slug sobre un registro ya guardado y sin tocar el
+          # nombre: si no, should_generate_new_friendly_id? lo regenera y pisa
+          # el valor duplicado antes de validar
+          category2.slug = category1.slug.upcase
           expect(category2.valid?).to be false
-          expect(category2.errors[:slug]).to include("ya está en uso")
+          expect(category2.errors[:slug]).to include('ya está en uso')
         end
       end
     end
@@ -73,10 +77,15 @@ module PlebisCms
       end
 
       it 'uses slug candidates when slug is taken' do
-        create(:category, name: 'Duplicate')
-        category = create(:category, name: 'Duplicate')
-        expect(category.slug).to include('duplicate')
-        expect(category.slug).to match(/duplicate-\d+/)
+        # El nombre es unico, asi que la colision de slug se provoca con dos
+        # nombres distintos que normalizan igual. El candidato [name, id] no
+        # sirve al crear (id aun es nil), de modo que FriendlyId cae en su
+        # sufijo UUID.
+        first = create(:category, name: 'Duplicate')
+        category = create(:category, name: 'Duplicate!')
+        expect(first.slug).to eq('duplicate')
+        expect(category.slug).to start_with('duplicate-')
+        expect(category.slug).not_to eq(first.slug)
       end
     end
 
@@ -91,7 +100,7 @@ module PlebisCms
         end
 
         it 'returns distinct categories when category has multiple posts' do
-          category = create(:category, :with_posts)
+          create(:category, :with_posts)
           result = Category.active
           expect(result.count).to eq(1)
         end
@@ -121,7 +130,7 @@ module PlebisCms
       describe '.by_post_count' do
         it 'orders categories by post count descending' do
           no_posts = create(:category)
-          few_posts = create(:category, :with_one_post)
+          create(:category, :with_one_post)
           many_posts = create(:category, :with_posts)
 
           result = Category.by_post_count.to_a

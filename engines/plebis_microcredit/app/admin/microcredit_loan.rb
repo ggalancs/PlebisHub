@@ -4,7 +4,7 @@ ActiveAdmin.register PlebisMicrocredit::MicrocreditLoan, as: 'MicrocreditLoan' d
   actions :all, except: [:destroy]
   config.per_page = 100
 
-  permit_params :user_id, :microcredit_id, :document_vatid, :amount, :user_data, :created_at, :confirmed_at,
+  permit_params :user_id, :microcredit_id, :microcredit_option_id, :document_vatid, :amount, :user_data, :created_at, :confirmed_at,
                 :counted_at, :discarded_at, :returned_at, :transferred_to_id, :iban_account, :iban_bic, :wants_information_by_email
 
   config.sort_order = 'updated_at_desc'
@@ -186,8 +186,8 @@ ActiveAdmin.register PlebisMicrocredit::MicrocreditLoan, as: 'MicrocreditLoan' d
   filter :created_at
   filter :counted_at
   filter :amount
-  filter :transferred_to_id_equals, as: :select, collection: PlebisMicrocredit::Microcredit.all
-  filter :original_loans_microcredit_id_eq, as: :select, collection: PlebisMicrocredit::Microcredit.all
+  filter :transferred_to_id, as: :select, collection: -> { PlebisMicrocredit::Microcredit.all }, label: 'Transferred to'
+  filter :original_loans_microcredit_id_eq, as: :select, collection: -> { PlebisMicrocredit::Microcredit.all }
   filter :microcredit_option_name, as: :string
   filter :microcredit_option_intern_code, as: :string
 

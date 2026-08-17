@@ -1,0 +1,121 @@
+<svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradientes modernos -->
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Sombras suaves -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Fondo circular con gradiente sutil -->
+  <circle cx="400" cy="400" r="380" fill="url(#mainGradient)" opacity="0.05"/>
+  
+  <!-- Anillo exterior representando conectividad -->
+  <circle cx="400" cy="400" r="280" fill="none" stroke="url(#mainGradient)" stroke-width="3" opacity="0.3" stroke-dasharray="10 5"/>
+  
+  <!-- Hub central - hexágono (estructura sólida y moderna) -->
+  <g filter="url(#shadow)">
+    <path d="M 400 200 L 500 250 L 500 350 L 400 400 L 300 350 L 300 250 Z" 
+          fill="url(#mainGradient)" 
+          stroke="url(#accentGradient)" 
+          stroke-width="4"/>
+  </g>
+  
+  <!-- Nodos conectados representando "Plebis" (el pueblo) -->
+  <g filter="url(#glow)">
+    <!-- Nodo superior -->
+    <circle cx="400" cy="150" r="25" fill="url(#accentGradient)"/>
+    <line x1="400" y1="175" x2="400" y2="200" stroke="url(#accentGradient)" stroke-width="3"/>
+    
+    <!-- Nodo derecho superior -->
+    <circle cx="520" cy="230" r="22" fill="url(#accentGradient)"/>
+    <line x1="500" y1="240" x2="498" y2="238" stroke="url(#accentGradient)" stroke-width="3"/>
+    
+    <!-- Nodo derecho inferior -->
+    <circle cx="520" cy="370" r="22" fill="url(#accentGradient)"/>
+    <line x1="500" y1="360" x2="498" y2="362" stroke="url(#accentGradient)" stroke-width="3"/>
+    
+    <!-- Nodo inferior -->
+    <circle cx="400" cy="450" r="25" fill="url(#accentGradient)"/>
+    <line x1="400" y1="425" x2="400" y2="400" stroke="url(#accentGradient)" stroke-width="3"/>
+    
+    <!-- Nodo izquierdo inferior -->
+    <circle cx="280" cy="370" r="22" fill="url(#accentGradient)"/>
+    <line x1="300" y1="360" x2="302" y2="362" stroke="url(#accentGradient)" stroke-width="3"/>
+    
+    <!-- Nodo izquierdo superior -->
+    <circle cx="280" cy="230" r="22" fill="url(#accentGradient)"/>
+    <line x1="300" y1="240" x2="302" y2="238" stroke="url(#accentGradient)" stroke-width="3"/>
+  </g>
+  
+  <!-- Nodos secundarios (más participantes) -->
+  <g opacity="0.6">
+    <circle cx="450" cy="120" r="12" fill="#06b6d4"/>
+    <circle cx="580" cy="280" r="12" fill="#06b6d4"/>
+    <circle cx="580" cy="320" r="12" fill="#06b6d4"/>
+    <circle cx="450" cy="480" r="12" fill="#06b6d4"/>
+    <circle cx="350" cy="480" r="12" fill="#06b6d4"/>
+    <circle cx="220" cy="320" r="12" fill="#06b6d4"/>
+    <circle cx="220" cy="280" r="12" fill="#06b6d4"/>
+    <circle cx="350" cy="120" r="12" fill="#06b6d4"/>
+  </g>
+  
+  <!-- Icono central: símbolo de participación (manos unidas formando P) -->
+  <g transform="translate(400, 300)" fill="white" filter="url(#glow)">
+    <path d="M -30 -20 Q -30 -40, -10 -40 Q 10 -40, 10 -20 L 10 20 Q 10 30, 0 30 Q -10 30, -10 20 Z" opacity="0.9"/>
+    <circle cx="-20" cy="-30" r="8"/>
+    <circle cx="0" cy="-35" r="8"/>
+  </g>
+  
+  <!-- Nombre "PlebisHub" -->
+  <g font-family="Arial, sans-serif" font-weight="bold">
+    <!-- PLEBIS en color principal -->
+    <text x="400" y="580" font-size="72" fill="url(#mainGradient)" text-anchor="middle" letter-spacing="2">
+      PLEBIS
+    </text>
+    
+    <!-- HUB en color acento -->
+    <text x="400" y="640" font-size="56" fill="url(#accentGradient)" text-anchor="middle" letter-spacing="8">
+      HUB
+    </text>
+  </g>
+  
+  <!-- Tagline -->
+  <text x="400" y="690" font-size="20" fill="#64748b" text-anchor="middle" font-family="Arial, sans-serif" letter-spacing="1">
+    PARTICIPACIÓN · MODERNIZACIÓN · COMUNIDAD
+  </text>
+  
+  <!-- Elementos decorativos de conexión (puntos) -->
+  <g fill="#3b82f6" opacity="0.2">
+    <circle cx="340" cy="560" r="3"/>
+    <circle cx="360" cy="565" r="3"/>
+    <circle cx="440" cy="565" r="3"/>
+    <circle cx="460" cy="560" r="3"/>
+  </g>
+</svg>

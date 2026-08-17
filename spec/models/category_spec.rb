@@ -209,14 +209,14 @@ RSpec.describe Category, type: :model do
       category = create(:category, name: 'Technology')
       found = Category.find(category.slug)
 
-      expect(found).to eq(category)
+      expect(found.id).to eq(category.id)
     end
 
     it 'finds category by friendly_id' do
       category = create(:category, name: 'Technology')
       found = Category.friendly.find('technology')
 
-      expect(found).to eq(category)
+      expect(found.id).to eq(category.id)
     end
   end
 
@@ -236,8 +236,8 @@ RSpec.describe Category, type: :model do
 
       category.posts << post
 
-      expect(category.posts).to include(post)
-      expect(post.categories).to include(category)
+      expect(category.posts.map(&:id)).to include(post.id)
+      expect(post.categories.map(&:id)).to include(category.id)
     end
 
     it 'removes posts from category' do
@@ -246,8 +246,8 @@ RSpec.describe Category, type: :model do
 
       category.posts.delete(post)
 
-      expect(category.posts).not_to include(post)
-      expect(post.reload.categories).not_to include(category)
+      expect(category.posts.map(&:id)).not_to include(post.id)
+      expect(post.reload.categories.map(&:id)).not_to include(category.id)
     end
 
     it 'has multiple posts' do
@@ -261,8 +261,8 @@ RSpec.describe Category, type: :model do
       post = create(:post, categories: [cat1, cat2])
 
       expect(post.categories.count).to eq(2)
-      expect(post.categories).to include(cat1)
-      expect(post.categories).to include(cat2)
+      expect(post.categories.map(&:id)).to include(cat1.id)
+      expect(post.categories.map(&:id)).to include(cat2.id)
     end
 
     it 'handles category with published and draft posts' do
@@ -271,8 +271,8 @@ RSpec.describe Category, type: :model do
       draft_post = create(:post, :draft, categories: [category])
 
       expect(category.posts.count).to eq(2)
-      expect(category.posts).to include(published_post)
-      expect(category.posts).to include(draft_post)
+      expect(category.posts.map(&:id)).to include(published_post.id)
+      expect(category.posts.map(&:id)).to include(draft_post.id)
     end
   end
 
@@ -288,8 +288,8 @@ RSpec.describe Category, type: :model do
 
         active_categories = Category.active
 
-        expect(active_categories).to include(active_category)
-        expect(active_categories).not_to include(inactive_category)
+        expect(active_categories.map(&:id)).to include(active_category.id)
+        expect(active_categories.map(&:id)).not_to include(inactive_category.id)
       end
 
       it 'returns empty when no categories have posts' do
@@ -315,15 +315,15 @@ RSpec.describe Category, type: :model do
 
         inactive_categories = Category.inactive
 
-        expect(inactive_categories).to include(inactive_category)
-        expect(inactive_categories).not_to include(active_category)
+        expect(inactive_categories.map(&:id)).to include(inactive_category.id)
+        expect(inactive_categories.map(&:id)).not_to include(active_category.id)
       end
 
       it 'handles category after removing all posts' do
         category = create(:category, :with_one_post)
         category.posts.clear
 
-        expect(Category.inactive).to include(category)
+        expect(Category.inactive.map(&:id)).to include(category.id)
       end
     end
 
@@ -335,9 +335,7 @@ RSpec.describe Category, type: :model do
 
         ordered = Category.alphabetical.to_a
 
-        expect(ordered[0]).to eq(cat_a)
-        expect(ordered[1]).to eq(cat_m)
-        expect(ordered[2]).to eq(cat_z)
+        expect(ordered.map(&:id)).to eq([cat_a.id, cat_m.id, cat_z.id])
       end
     end
 
@@ -349,9 +347,7 @@ RSpec.describe Category, type: :model do
 
         ordered = Category.by_post_count.to_a
 
-        expect(ordered[0]).to eq(cat_many)
-        expect(ordered[1]).to eq(cat_few)
-        expect(ordered[2]).to eq(cat_none)
+        expect(ordered.map(&:id)).to eq([cat_many.id, cat_few.id, cat_none.id])
       end
     end
 
@@ -364,9 +360,8 @@ RSpec.describe Category, type: :model do
         result = Category.active.alphabetical.to_a
 
         expect(result.size).to eq(2)
-        expect(result[0]).to eq(cat_a)
-        expect(result[1]).to eq(cat_z)
-        expect(result).not_to include(inactive)
+        expect(result.map(&:id)).to eq([cat_a.id, cat_z.id])
+        expect(result.map(&:id)).not_to include(inactive.id)
       end
     end
   end
@@ -464,7 +459,7 @@ RSpec.describe Category, type: :model do
 
     it 'uses scopes through the alias' do
       active_category = create(:category, :with_posts)
-      expect(Category.active).to include(active_category)
+      expect(Category.active.map(&:id)).to include(active_category.id)
     end
   end
 end

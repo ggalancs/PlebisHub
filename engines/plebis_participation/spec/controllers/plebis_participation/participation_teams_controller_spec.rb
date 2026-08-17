@@ -17,22 +17,22 @@ module PlebisParticipation
 
         it 'redirects to sign in for index' do
           get :index
-          expect(response).to redirect_to(new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
 
         it 'redirects to sign in for join' do
           post :join
-          expect(response).to redirect_to(new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
 
         it 'redirects to sign in for leave' do
           post :leave
-          expect(response).to redirect_to(new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
 
         it 'redirects to sign in for update_user' do
           patch :update_user, params: { user: { old_circle_data: 'data' } }
-          expect(response).to redirect_to(new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
       end
     end
@@ -106,12 +106,12 @@ module PlebisParticipation
 
         context 'when team does not exist' do
           it 'sets alert message' do
-            post :join, params: { team_id: 99999 }
+            post :join, params: { team_id: 99_999 }
             expect(flash[:alert]).to eq('El equipo solicitado no existe')
           end
 
           it 'redirects to participation_teams_path' do
-            post :join, params: { team_id: 99999 }
+            post :join, params: { team_id: 99_999 }
             expect(response).to redirect_to(participation_teams_path)
           end
         end
@@ -179,12 +179,12 @@ module PlebisParticipation
 
         context 'when team does not exist' do
           it 'sets alert message' do
-            post :leave, params: { team_id: 99999 }
+            post :leave, params: { team_id: 99_999 }
             expect(flash[:alert]).to eq('El equipo solicitado no existe')
           end
 
           it 'redirects to participation_teams_path' do
-            post :leave, params: { team_id: 99999 }
+            post :leave, params: { team_id: 99_999 }
             expect(response).to redirect_to(participation_teams_path)
           end
         end

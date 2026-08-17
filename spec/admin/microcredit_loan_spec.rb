@@ -966,7 +966,7 @@ RSpec.describe 'MicrocreditLoan Admin', type: :request do
 
     it 'processes id_not_in filter with split' do
       get admin_microcredit_loans_path, params: {
-        q: { id_not_in: "999 1000" }
+        q: { id_not_in: '999 1000' }
       }
       expect_successful_response_or_server_error
     end
@@ -1233,8 +1233,8 @@ RSpec.describe 'MicrocreditLoan Admin', type: :request do
 
     context 'with member action errors' do
       before do
-        allow_any_instance_of(MicrocreditLoan).to receive(:save).and_return(false)
-        allow_any_instance_of(MicrocreditLoan).to receive(:errors).and_return(
+        allow_any_instance_of(PlebisMicrocredit::MicrocreditLoan).to receive(:save).and_return(false)
+        allow_any_instance_of(PlebisMicrocredit::MicrocreditLoan).to receive(:errors).and_return(
           double(messages: { base: ['Test error'] })
         )
       end

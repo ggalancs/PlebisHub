@@ -6,7 +6,7 @@ module Gamification
   module Listeners
     RSpec.describe ProposalListener do
       let(:user) { create(:user) }
-      let(:proposal) { create(:proposal, author: user) }
+      let(:proposal) { create(:proposal, author: user.full_name) }
       let(:user_stats) { instance_double(UserStats) }
 
       before do
@@ -42,6 +42,10 @@ module Gamification
 
         before do
           event_bus.clear!
+          # register! se suscribe a los cuatro eventos. Sin un stub permisivo por
+          # debajo, cada expectativa acotada con `with` rechaza las otras tres
+          # llamadas como argumentos inesperados.
+          allow(event_bus).to receive(:subscribe)
         end
 
         it 'subscribes to proposal.created event' do
@@ -109,7 +113,7 @@ module Gamification
         end
 
         context 'when user does not exist' do
-          let(:event) { { user_id: 999999, proposal_id: proposal.id } }
+          let(:event) { { user_id: 999_999, proposal_id: proposal.id } }
 
           it 'raises ActiveRecord::RecordNotFound' do
             expect { described_class.on_proposal_created(event) }.to raise_error(ActiveRecord::RecordNotFound)
@@ -117,7 +121,7 @@ module Gamification
         end
 
         context 'when proposal does not exist' do
-          let(:event) { { user_id: user.id, proposal_id: 999999 } }
+          let(:event) { { user_id: user.id, proposal_id: 999_999 } }
 
           it 'raises ActiveRecord::RecordNotFound' do
             expect { described_class.on_proposal_created(event) }.to raise_error(ActiveRecord::RecordNotFound)
@@ -126,15 +130,15 @@ module Gamification
       end
 
       describe '.on_proposal_approved' do
-        let(:event) { { proposal_id: proposal.id } }
+        let(:event) { { proposal_id: proposal.id, user_id: user.id } }
 
         it 'finds the proposal' do
           expect(Proposal).to receive(:find).with(proposal.id).and_return(proposal)
           described_class.on_proposal_approved(event)
         end
 
-        it 'gets user stats for the proposal author' do
-          expect(UserStats).to receive(:for_user).with(proposal.author).and_return(user_stats)
+        it 'gets user stats for the event user' do
+          expect(UserStats).to receive(:for_user).with(user).and_return(user_stats)
           described_class.on_proposal_approved(event)
         end
 
@@ -154,7 +158,7 @@ module Gamification
         end
 
         it 'checks and awards badges' do
-          expect(BadgeAwarder).to receive(:check_and_award!).with(proposal.author)
+          expect(BadgeAwarder).to receive(:check_and_award!).with(user)
           described_class.on_proposal_approved(event)
         end
 
@@ -163,7 +167,7 @@ module Gamification
         end
 
         context 'when proposal does not exist' do
-          let(:event) { { proposal_id: 999999 } }
+          let(:event) { { proposal_id: 999_999, user_id: user.id } }
 
           it 'raises ActiveRecord::RecordNotFound' do
             expect { described_class.on_proposal_approved(event) }.to raise_error(ActiveRecord::RecordNotFound)
@@ -172,15 +176,15 @@ module Gamification
       end
 
       describe '.on_proposal_featured' do
-        let(:event) { { proposal_id: proposal.id } }
+        let(:event) { { proposal_id: proposal.id, user_id: user.id } }
 
         it 'finds the proposal' do
           expect(Proposal).to receive(:find).with(proposal.id).and_return(proposal)
           described_class.on_proposal_featured(event)
         end
 
-        it 'gets user stats for the proposal author' do
-          expect(UserStats).to receive(:for_user).with(proposal.author).and_return(user_stats)
+        it 'gets user stats for the event user' do
+          expect(UserStats).to receive(:for_user).with(user).and_return(user_stats)
           described_class.on_proposal_featured(event)
         end
 
@@ -209,7 +213,7 @@ module Gamification
         end
 
         context 'when proposal does not exist' do
-          let(:event) { { proposal_id: 999999 } }
+          let(:event) { { proposal_id: 999_999, user_id: user.id } }
 
           it 'raises ActiveRecord::RecordNotFound' do
             expect { described_class.on_proposal_featured(event) }.to raise_error(ActiveRecord::RecordNotFound)
@@ -218,15 +222,15 @@ module Gamification
       end
 
       describe '.on_proposal_implemented' do
-        let(:event) { { proposal_id: proposal.id } }
+        let(:event) { { proposal_id: proposal.id, user_id: user.id } }
 
         it 'finds the proposal' do
           expect(Proposal).to receive(:find).with(proposal.id).and_return(proposal)
           described_class.on_proposal_implemented(event)
         end
 
-        it 'gets user stats for the proposal author' do
-          expect(UserStats).to receive(:for_user).with(proposal.author).and_return(user_stats)
+        it 'gets user stats for the event user' do
+          expect(UserStats).to receive(:for_user).with(user).and_return(user_stats)
           described_class.on_proposal_implemented(event)
         end
 
@@ -246,7 +250,7 @@ module Gamification
         end
 
         it 'checks and awards badges' do
-          expect(BadgeAwarder).to receive(:check_and_award!).with(proposal.author)
+          expect(BadgeAwarder).to receive(:check_and_award!).with(user)
           described_class.on_proposal_implemented(event)
         end
 
@@ -255,7 +259,7 @@ module Gamification
         end
 
         context 'when proposal does not exist' do
-          let(:event) { { proposal_id: 999999 } }
+          let(:event) { { proposal_id: 999_999, user_id: user.id } }
 
           it 'raises ActiveRecord::RecordNotFound' do
             expect { described_class.on_proposal_implemented(event) }.to raise_error(ActiveRecord::RecordNotFound)
@@ -271,9 +275,9 @@ module Gamification
 
         it 'handles complete proposal lifecycle' do
           created_event = { user_id: user.id, proposal_id: proposal.id }
-          approved_event = { proposal_id: proposal.id }
-          featured_event = { proposal_id: proposal.id }
-          implemented_event = { proposal_id: proposal.id }
+          approved_event = { proposal_id: proposal.id, user_id: user.id }
+          featured_event = { proposal_id: proposal.id, user_id: user.id }
+          implemented_event = { proposal_id: proposal.id, user_id: user.id }
 
           expect { described_class.on_proposal_created(created_event) }.not_to raise_error
           expect { described_class.on_proposal_approved(approved_event) }.not_to raise_error
@@ -290,9 +294,9 @@ module Gamification
           end
 
           described_class.on_proposal_created({ user_id: user.id, proposal_id: proposal.id })
-          described_class.on_proposal_approved({ proposal_id: proposal.id })
-          described_class.on_proposal_featured({ proposal_id: proposal.id })
-          described_class.on_proposal_implemented({ proposal_id: proposal.id })
+          described_class.on_proposal_approved({ proposal_id: proposal.id, user_id: user.id })
+          described_class.on_proposal_featured({ proposal_id: proposal.id, user_id: user.id })
+          described_class.on_proposal_implemented({ proposal_id: proposal.id, user_id: user.id })
 
           expect(points_awarded).to eq([50, 100, 200, 500])
         end
@@ -302,9 +306,9 @@ module Gamification
           expect(BadgeAwarder).to receive(:check_and_award!).exactly(3).times
 
           described_class.on_proposal_created({ user_id: user.id, proposal_id: proposal.id })
-          described_class.on_proposal_approved({ proposal_id: proposal.id })
-          described_class.on_proposal_featured({ proposal_id: proposal.id })
-          described_class.on_proposal_implemented({ proposal_id: proposal.id })
+          described_class.on_proposal_approved({ proposal_id: proposal.id, user_id: user.id })
+          described_class.on_proposal_featured({ proposal_id: proposal.id, user_id: user.id })
+          described_class.on_proposal_implemented({ proposal_id: proposal.id, user_id: user.id })
         end
       end
 

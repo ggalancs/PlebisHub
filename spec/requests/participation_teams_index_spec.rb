@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Participation Teams Index', type: :request, skip: 'Tests check detailed HTML structure' do
+RSpec.describe 'Participation Teams Index', type: :request do
   let(:user) { create(:user, :with_dni) }
 
   describe 'GET /es/equipos-participacion' do

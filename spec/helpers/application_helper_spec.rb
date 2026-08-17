@@ -483,7 +483,7 @@ RSpec.describe ApplicationHelper, type: :helper do
     end
 
     it 'handles first step as current' do
-      steps = ['Alpha', 'Beta', 'Gamma']
+      steps = %w[Alpha Beta Gamma]
 
       result = helper.steps_nav(1, *steps)
       expect(result).to be_present
@@ -501,7 +501,7 @@ RSpec.describe ApplicationHelper, type: :helper do
     end
 
     it 'handles last step as current' do
-      steps = ['Start', 'Middle', 'End']
+      steps = %w[Start Middle End]
 
       result = helper.steps_nav(3, *steps)
       expect(result).to be_present
@@ -519,7 +519,7 @@ RSpec.describe ApplicationHelper, type: :helper do
     end
 
     it 'passes steps_text array to partial' do
-      steps = ['A', 'B', 'C']
+      steps = %w[A B C]
 
       result = helper.steps_nav(1, *steps)
       expect(result).to be_present
@@ -531,7 +531,7 @@ RSpec.describe ApplicationHelper, type: :helper do
     end
 
     it 'extracts individual steps from array' do
-      steps = ['X', 'Y', 'Z']
+      steps = %w[X Y Z]
 
       result = helper.steps_nav(2, *steps)
       expect(result).to be_present

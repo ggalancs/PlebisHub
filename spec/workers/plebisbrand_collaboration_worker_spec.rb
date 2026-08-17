@@ -35,7 +35,7 @@ RSpec.describe PlebisBrandCollaborationWorker, type: :worker do
       it 'generates bank export file for today' do
         # Create test collaboration with order
         collab = create(:collaboration, :active, :with_iban)
-        order = create(:order, parent: collab, user: collab.user,
+        create(:order, parent: collab, user: collab.user,
                       payment_type: 3, payable_at: today)
 
         allow(Collaboration).to receive(:bank_filename)
@@ -63,7 +63,7 @@ RSpec.describe PlebisBrandCollaborationWorker, type: :worker do
 
         # Create bank transfer collaboration (should be included)
         bank_collab = create(:collaboration, :active, :with_iban)
-        bank_order = create(:order, parent: bank_collab, user: bank_collab.user,
+        create(:order, parent: bank_collab, user: bank_collab.user,
                             payment_type: 3, payable_at: today)
 
         allow(Collaboration).to receive(:bank_filename).and_return("#{Rails.root}/tmp/test.csv")
@@ -84,7 +84,7 @@ RSpec.describe PlebisBrandCollaborationWorker, type: :worker do
 
       it 'includes orders for today' do
         collab = create(:collaboration, :active, :with_iban)
-        order_today = create(:order, parent: collab, user: collab.user,
+        create(:order, parent: collab, user: collab.user,
                             payable_at: today)
 
         allow(Collaboration).to receive(:bank_filename).and_return("#{Rails.root}/tmp/test.csv")

@@ -379,7 +379,7 @@ module PlebisVerification
         service = described_class.new(report_code)
         result = service.send(:provinces)
         expect(result).to be_an(Array)
-        expect(result.first).to eq(['28', 'Madrid'])
+        expect(result.first).to eq(%w[28 Madrid])
       end
 
       it 'formats province codes with zero padding' do

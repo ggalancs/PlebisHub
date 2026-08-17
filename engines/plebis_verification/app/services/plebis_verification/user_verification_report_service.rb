@@ -91,7 +91,7 @@ module PlebisVerification
 
       @data = base_query.joins(:user_verifications)
                         .group(:prov, :status)
-                        .pluck('right(left(vote_town,4),2) as prov', 'status', 'count(distinct users.id)')
+                        .pluck(Arel.sql('right(left(vote_town,4),2) as prov'), 'status', Arel.sql('count(distinct users.id)'))
                         .to_h { |prov, status, count| [[prov, status], count] }
 
       # Add users totals by prov
@@ -102,12 +102,12 @@ module PlebisVerification
       # SECURITY FIX: Use Arel for parameterized query instead of string interpolation
       users_table = User.arel_table
       base_query.group(:prov, :active, :verified).pluck(
-        'right(left(vote_town,4),2) as prov',
+        Arel.sql('right(left(vote_town,4),2) as prov'),
         users_table[:current_sign_in_at].not_eq(nil)
           .and(users_table[:current_sign_in_at].gt(active_date))
-          .to_sql.sub(/^"users"\./, '').concat(' as active'),
-        "#{User.verified_condition} as verified",
-        'count(distinct users.id)'
+          .to_sql.sub(/^"users"\./, '').concat(' as active').then { |sql| Arel.sql(sql) },
+        Arel.sql("#{User.verified_condition} as verified"),
+        Arel.sql('count(distinct users.id)')
       ).each do |prov, active, verified, count|
         @data[[prov, active, verified]] = count
       end

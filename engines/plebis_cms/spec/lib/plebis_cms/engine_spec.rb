@@ -130,12 +130,10 @@ RSpec.describe PlebisCms::Engine, type: :rails_engine do
       stub_const('::EngineActivation', activation_class)
 
       expect do
-        begin
-          ::EngineActivation.enabled?('plebis_cms')
-        rescue StandardError
-          # Engine enabled by default when error occurs
-          true
-        end
+        ::EngineActivation.enabled?('plebis_cms')
+      rescue StandardError
+        # Engine enabled by default when error occurs
+        true
       end.not_to raise_error
     end
   end

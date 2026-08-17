@@ -46,7 +46,7 @@ RSpec.describe RedsysPaymentProcessor do
       end
 
       before do
-        allow(Order).to receive(:parent_from_order_id).with('123456789').and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).with('123456789').and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_return(order)
         allow(order).to receive(:redsys_parse_response!)
       end
@@ -66,7 +66,7 @@ RSpec.describe RedsysPaymentProcessor do
       end
 
       it 'finds parent order by order_id' do
-        expect(Order).to receive(:parent_from_order_id).with('123456789')
+        expect(PlebisCollaborations::Order).to receive(:parent_from_order_id).with('123456789')
         processor.process
       end
 
@@ -117,7 +117,7 @@ RSpec.describe RedsysPaymentProcessor do
       end
 
       before do
-        allow(Order).to receive(:parent_from_order_id).with('987654321').and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).with('987654321').and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_return(order)
         allow(order).to receive(:redsys_parse_response!)
       end
@@ -130,7 +130,7 @@ RSpec.describe RedsysPaymentProcessor do
 
       it 'extracts order_id from XML' do
         processor = described_class.new(request_params, xml_body)
-        expect(Order).to receive(:parent_from_order_id).with('987654321')
+        expect(PlebisCollaborations::Order).to receive(:parent_from_order_id).with('987654321')
         processor.process
       end
 
@@ -178,7 +178,7 @@ RSpec.describe RedsysPaymentProcessor do
 
       before do
         # The empty Ds_Order will be merged and override the XML value, so expect empty string
-        allow(Order).to receive(:parent_from_order_id).with('').and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).with('').and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_return(order)
         allow(order).to receive(:redsys_parse_response!)
       end
@@ -191,14 +191,14 @@ RSpec.describe RedsysPaymentProcessor do
 
       it 'parses XML body but merges blank Ds_Order from params' do
         processor = described_class.new(request_params, xml_body)
-        expect(Order).to receive(:parent_from_order_id).with('')
+        expect(PlebisCollaborations::Order).to receive(:parent_from_order_id).with('')
         processor.process
       end
     end
 
     context 'when order is not first' do
       before do
-        allow(Order).to receive(:parent_from_order_id).and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_return(order)
         allow(order).to receive(:first).and_return(false)
         allow(order).to receive(:is_payable?).and_return(true)
@@ -214,7 +214,7 @@ RSpec.describe RedsysPaymentProcessor do
 
     context 'when order is not payable' do
       before do
-        allow(Order).to receive(:parent_from_order_id).and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_return(order)
         allow(order).to receive(:first).and_return(true)
         allow(order).to receive(:is_payable?).and_return(false)
@@ -230,7 +230,7 @@ RSpec.describe RedsysPaymentProcessor do
 
     context 'when both first and payable' do
       before do
-        allow(Order).to receive(:parent_from_order_id).and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_return(order)
         allow(order).to receive(:first).and_return(true)
         allow(order).to receive(:is_payable?).and_return(true)
@@ -384,13 +384,13 @@ RSpec.describe RedsysPaymentProcessor do
       let(:order) { double('Order', first: true, is_payable?: true) }
 
       before do
-        allow(Order).to receive(:parent_from_order_id).with('123456789').and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).with('123456789').and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_return(order)
         allow(order).to receive(:redsys_parse_response!)
       end
 
       it 'finds parent order' do
-        expect(Order).to receive(:parent_from_order_id).with('123456789')
+        expect(PlebisCollaborations::Order).to receive(:parent_from_order_id).with('123456789')
         processor.send(:find_and_create_order, parsed_params)
       end
 
@@ -468,8 +468,8 @@ RSpec.describe RedsysPaymentProcessor do
 
       it 'attempts to find parent with nil order_id' do
         processor = described_class.new({}, xml_body)
-        expect(Order).to receive(:parent_from_order_id).with(nil)
-        allow(Order).to receive(:parent_from_order_id).and_raise(StandardError)
+        expect(PlebisCollaborations::Order).to receive(:parent_from_order_id).with(nil)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).and_raise(StandardError)
         expect { processor.process }.to raise_error(StandardError)
       end
     end
@@ -478,7 +478,7 @@ RSpec.describe RedsysPaymentProcessor do
       let(:request_params) { { 'Ds_Order' => 'nonexistent' } }
 
       it 'raises error' do
-        allow(Order).to receive(:parent_from_order_id).and_raise(ActiveRecord::RecordNotFound)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).and_raise(ActiveRecord::RecordNotFound)
         expect { processor.process }.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
@@ -488,7 +488,7 @@ RSpec.describe RedsysPaymentProcessor do
       let(:parent_order) { double('ParentCollaboration') }
 
       before do
-        allow(Order).to receive(:parent_from_order_id).and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_raise(ActiveRecord::RecordInvalid)
       end
 
@@ -535,7 +535,7 @@ RSpec.describe RedsysPaymentProcessor do
         processor = described_class.new({}, xml_body)
         parent_order = double('ParentCollaboration')
         order = double('Order', first: true, is_payable?: true)
-        allow(Order).to receive(:parent_from_order_id).with('123&456').and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).with('123&456').and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_return(order)
         allow(order).to receive(:redsys_parse_response!)
 
@@ -576,7 +576,7 @@ RSpec.describe RedsysPaymentProcessor do
         # The entity reference will not be resolved, but we still need to mock the Order lookup
         parent_order = double('ParentCollaboration')
         order = double('Order', first: true, is_payable?: true)
-        allow(Order).to receive(:parent_from_order_id).and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_return(order)
         allow(order).to receive(:redsys_parse_response!)
 
@@ -590,7 +590,7 @@ RSpec.describe RedsysPaymentProcessor do
       let(:order) { double('Order', first: true, is_payable?: true) }
 
       it 'safely passes malicious order_id to ActiveRecord' do
-        allow(Order).to receive(:parent_from_order_id).with("123'; DROP TABLE orders;--").and_return(parent_order)
+        allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).with("123'; DROP TABLE orders;--").and_return(parent_order)
         allow(parent_order).to receive(:create_order).and_return(order)
         allow(order).to receive(:redsys_parse_response!)
 
@@ -606,7 +606,7 @@ RSpec.describe RedsysPaymentProcessor do
     let(:order) { double('Order', first: true, is_payable?: true) }
 
     before do
-      allow(Order).to receive(:parent_from_order_id).and_return(parent_order)
+      allow(PlebisCollaborations::Order).to receive(:parent_from_order_id).and_return(parent_order)
       allow(parent_order).to receive(:create_order).and_return(order)
       allow(order).to receive(:redsys_parse_response!)
     end

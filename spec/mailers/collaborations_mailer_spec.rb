@@ -417,13 +417,13 @@ RSpec.describe CollaborationsMailer, type: :mailer do
     end
 
     it 'can deliver order_returned_militant' do
-      order = create(:order, :devuelta, collaboration: collaboration)
+      create(:order, :devuelta, collaboration: collaboration)
       allow(Order).to receive(:payment_day).and_return(5)
       expect { described_class.order_returned_militant(collaboration).deliver_now }.not_to raise_error
     end
 
     it 'can deliver order_returned_user' do
-      order = create(:order, :devuelta, collaboration: collaboration)
+      create(:order, :devuelta, collaboration: collaboration)
       allow(Order).to receive(:payment_day).and_return(5)
       expect { described_class.order_returned_user(collaboration).deliver_now }.not_to raise_error
     end

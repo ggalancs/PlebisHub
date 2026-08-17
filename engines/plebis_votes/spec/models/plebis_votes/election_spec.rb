@@ -18,31 +18,31 @@ module PlebisVotes
       it 'requires title' do
         election = Election.new(starts_at: Time.zone.now, ends_at: 1.day.from_now, agora_election_id: 1, scope: 0)
         expect(election.valid?).to be_falsey
-        expect(election.errors[:title]).to include("can't be blank")
+        expect(election.errors[:title]).to include('no puede estar en blanco')
       end
 
       it 'requires starts_at' do
         election = Election.new(title: 'Test', ends_at: 1.day.from_now, agora_election_id: 1, scope: 0)
         expect(election.valid?).to be_falsey
-        expect(election.errors[:starts_at]).to include("can't be blank")
+        expect(election.errors[:starts_at]).to include('no puede estar en blanco')
       end
 
       it 'requires ends_at' do
         election = Election.new(title: 'Test', starts_at: Time.zone.now, agora_election_id: 1, scope: 0)
         expect(election.valid?).to be_falsey
-        expect(election.errors[:ends_at]).to include("can't be blank")
+        expect(election.errors[:ends_at]).to include('no puede estar en blanco')
       end
 
       it 'requires agora_election_id' do
         election = Election.new(title: 'Test', starts_at: Time.zone.now, ends_at: 1.day.from_now, scope: 0)
         expect(election.valid?).to be_falsey
-        expect(election.errors[:agora_election_id]).to include("can't be blank")
+        expect(election.errors[:agora_election_id]).to include('no puede estar en blanco')
       end
 
       it 'requires scope' do
         election = Election.new(title: 'Test', starts_at: Time.zone.now, ends_at: 1.day.from_now, agora_election_id: 1)
         expect(election.valid?).to be_falsey
-        expect(election.errors[:scope]).to include("can't be blank")
+        expect(election.errors[:scope]).to include('no puede estar en blanco')
       end
 
       it 'is valid with all required attributes' do
@@ -392,7 +392,7 @@ module PlebisVotes
       end
 
       it 'handles override values' do
-        election.locations = "01,1,override1"
+        election.locations = '01,1,override1'
         election.save
         location = election.election_locations.first
         expect(location.override).to eq('override1')
@@ -422,7 +422,9 @@ module PlebisVotes
 
     describe '.available_servers' do
       it 'returns available server keys' do
-        expect(Election.available_servers).to be_a(Hash)
+        # El engine devuelve las claves: se usa como collection de un select, y el hash
+        # anidado renderizaria los valores como opciones.
+        expect(Election.available_servers).to be_an(Array)
       end
     end
 
@@ -455,11 +457,20 @@ module PlebisVotes
     end
 
     describe '#valid_votes_count' do
+      # Vote#save_voter_id resuelve la sede con election_locations.find_by(...);
+      # sin ninguna sede, crear un voto revienta con NoMethodError sobre nil.
+      before do
+        ElectionLocation.new(
+          election: election, location: '00', agora_version: 0, new_agora_version: 0,
+          layout: 'simple', theme: 'default'
+        ).save(validate: false)
+      end
+
       it 'counts valid votes' do
         user = double('User', id: 1)
         allow(::User).to receive(:find).and_return(user)
-        election.votes.create!(user_id: 1, voter_id: 'test1', agora_id: 1)
-        election.votes.create!(user_id: 2, voter_id: 'test2', agora_id: 1)
+        election.votes.create!(user: create(:user), voter_id: 'test1', agora_id: 1)
+        election.votes.create!(user: create(:user), voter_id: 'test2', agora_id: 1)
         expect(election.valid_votes_count).to eq(2)
       end
     end

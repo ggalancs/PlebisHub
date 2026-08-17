@@ -1,4 +1,6 @@
 # frozen_string_literal: true
 
-class VoteCircleType < ApplicationRecord
+# La funcionalidad vive en el engine PlebisVotes. La aplicacion solo conserva
+# este punto de personalizacion, al estilo de las subclases de Devise.
+class VoteCircleType < PlebisVotes::VoteCircleType
 end

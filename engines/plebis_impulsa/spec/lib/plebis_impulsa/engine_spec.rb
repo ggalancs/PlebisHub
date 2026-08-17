@@ -18,9 +18,18 @@ RSpec.describe PlebisImpulsa::Engine, type: :rails_engine do
   end
 
   describe 'autoload paths configuration' do
-    it 'adds concerns directory to autoload paths' do
-      concerns_path = described_class.root.join('app/models/plebis_impulsa/concerns')
-      expect(described_class.config.autoload_paths).to include(concerns_path)
+    # The concerns live in app/models/concerns/plebis_impulsa, which Rails
+    # already treats as an autoload root, so no extra autoload_paths entry is
+    # needed. What matters is that the constants resolve.
+    it 'keeps the concerns under the conventional app/models/concerns root' do
+      expect(described_class.root.join('app/models/concerns/plebis_impulsa')).to be_directory
+      expect(described_class.root.join('app/models/plebis_impulsa/concerns')).not_to be_directory
+    end
+
+    it 'autoloads the concerns as PlebisImpulsa constants' do
+      expect(PlebisImpulsa::ImpulsaProjectStates).to be_a(Module)
+      expect(PlebisImpulsa::ImpulsaProjectWizard).to be_a(Module)
+      expect(PlebisImpulsa::ImpulsaProjectEvaluation).to be_a(Module)
     end
   end
 
@@ -86,19 +95,20 @@ RSpec.describe PlebisImpulsa::Engine, type: :rails_engine do
       stub_const('::EngineActivation', activation_class)
 
       expect do
-        begin
-          ::EngineActivation.enabled?('plebis_impulsa')
-        rescue StandardError
-          true
-        end
+        ::EngineActivation.enabled?('plebis_impulsa')
+      rescue StandardError
+        true
       end.not_to raise_error
     end
   end
 
-  describe 'before_initialize configuration' do
-    it 'sets up autoload paths before initialization' do
-      concerns_path = described_class.root.join('app/models/plebis_impulsa/concerns')
-      expect(described_class.config.autoload_paths).to include(concerns_path)
+  describe 'concerns wiring' do
+    it 'mixes the concerns into ImpulsaProject' do
+      expect(PlebisImpulsa::ImpulsaProject.ancestors).to include(
+        PlebisImpulsa::ImpulsaProjectStates,
+        PlebisImpulsa::ImpulsaProjectWizard,
+        PlebisImpulsa::ImpulsaProjectEvaluation
+      )
     end
   end
 

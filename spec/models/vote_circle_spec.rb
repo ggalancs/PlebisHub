@@ -135,11 +135,11 @@ RSpec.describe VoteCircle, type: :model do
     end
 
     describe '#in_spain?' do
+      # El modelo comparaba el nombre del enum contra los valores enteros y
+      # siempre devolvia false; corregido, estos son los valores esperados
       it 'returns true for barrial' do
         circle = create(:vote_circle, kind: :barrial)
-        # NOTE: The model has a bug - uses nested array [[...]]
-        # This test documents current behavior
-        expect(circle).not_to be_in_spain # Bug: should be true but returns false
+        expect(circle).to be_in_spain
       end
 
       it 'returns false for interno' do
@@ -152,14 +152,14 @@ RSpec.describe VoteCircle, type: :model do
         expect(circle).not_to be_in_spain
       end
 
-      it 'returns false for municipal' do
+      it 'returns true for municipal' do
         circle = create(:vote_circle, kind: :municipal)
-        expect(circle).not_to be_in_spain
+        expect(circle).to be_in_spain
       end
 
-      it 'returns false for comarcal' do
+      it 'returns true for comarcal' do
         circle = create(:vote_circle, kind: :comarcal)
-        expect(circle).not_to be_in_spain
+        expect(circle).to be_in_spain
       end
     end
 
@@ -203,9 +203,8 @@ RSpec.describe VoteCircle, type: :model do
     describe '#get_type_circle_from_original_code' do
       it 'returns prefix from original_code' do
         circle = create(:vote_circle, kind: :barrial, original_code: 'TB0101001')
-        # Due to in_spain? bug, this will return "00"
         result = circle.get_type_circle_from_original_code
-        expect(result).to eq('00') # Documents current buggy behavior
+        expect(result).to eq('TB')
       end
 
       it 'returns 00 for exterior' do
@@ -594,7 +593,7 @@ RSpec.describe VoteCircle, type: :model do
       end
 
       it 'works with any auth_object' do
-        attrs = VoteCircle.ransackable_attributes("test")
+        attrs = VoteCircle.ransackable_attributes('test')
         expect(attrs).to be_an(Array)
       end
     end

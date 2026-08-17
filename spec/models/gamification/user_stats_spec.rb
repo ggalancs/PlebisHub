@@ -766,4 +766,320 @@ RSpec.describe Gamification::UserStats, type: :model do
       expect(stats).not_to be_valid
     end
   end
+
+  # ====================
+  # INTEGRATION TESTS (WITHOUT STUBS)
+  # ====================
+  # These tests exercise the actual code paths without stubbing methods
+
+  describe 'integration tests (without stubs)' do
+    let(:user) { create(:user) }
+    let(:stats) do
+      Gamification::UserStats.find_or_create_by!(user_id: user.id) do |s|
+        s.total_points = 0
+        s.level = 1
+        s.xp = 0
+        s.current_streak = 0
+        s.longest_streak = 0
+      end
+    end
+
+    describe '#earn_points! full integration' do
+      it 'creates point record, updates stats, checks level up, updates streak' do
+        stats.update!(total_points: 0, xp: 0, level: 1, current_streak: 0, last_active_date: nil)
+
+        # Actually call earn_points! without any stubs
+        result = stats.earn_points!(100, reason: 'Integration test')
+
+        stats.reload
+
+        # Should have created a Point record
+        expect(result).to be_a(Gamification::Point)
+        expect(result.amount).to eq(100)
+        expect(result.reason).to eq('Integration test')
+        expect(result.user_id).to eq(user.id)
+
+        # Should have updated total_points and xp
+        expect(stats.total_points).to eq(100)
+        expect(stats.xp).to eq(100)
+
+        # Should have leveled up to level 2 (requires 100 XP)
+        expect(stats.level).to eq(2)
+
+        # Should have updated streak
+        expect(stats.current_streak).to eq(1)
+        expect(stats.last_active_date).to eq(Time.zone.today)
+      end
+
+      it 'handles multiple level ups in one call' do
+        stats.update!(total_points: 0, xp: 0, level: 1)
+
+        # 500 XP should level up to at least level 4 (requires 500 XP)
+        stats.earn_points!(500, reason: 'Big bonus')
+        stats.reload
+
+        expect(stats.level).to be >= 4
+      end
+
+      it 'saves changes to the database' do
+        stats.update!(total_points: 50, xp: 50, level: 1)
+        stats.earn_points!(150, reason: 'Test')
+
+        fresh_stats = Gamification::UserStats.find(stats.id)
+        expect(fresh_stats.total_points).to eq(200)
+        expect(fresh_stats.xp).to eq(200)
+      end
+    end
+
+    describe '#level_name integration' do
+      it 'returns correct level names for all predefined levels' do
+        Gamification::UserStats::LEVELS.each do |level_num, config|
+          stats.update!(level: level_num)
+          expect(stats.level_name).to eq(config[:name])
+        end
+      end
+
+      it 'returns generic name for levels not in LEVELS hash' do
+        stats.update!(level: 6) # Level 6 is not in LEVELS
+        expect(stats.level_name).to eq('Nivel 6')
+
+        stats.update!(level: 8)
+        expect(stats.level_name).to eq('Nivel 8')
+      end
+    end
+
+    describe '#xp_to_next_level integration' do
+      it 'calculates correctly for level 1' do
+        stats.update!(level: 1, xp: 0)
+        expect(stats.xp_to_next_level).to eq(100)
+
+        stats.update!(level: 1, xp: 50)
+        expect(stats.xp_to_next_level).to eq(50)
+      end
+
+      it 'calculates correctly for mid levels' do
+        stats.update!(level: 2, xp: 100)
+        # Level 3 requires 250 XP
+        expect(stats.xp_to_next_level).to eq(150)
+      end
+
+      it 'returns 0 at max level' do
+        max_level = Gamification::UserStats::LEVELS.keys.max
+        stats.update!(level: max_level, xp: 50_000)
+        expect(stats.xp_to_next_level).to eq(0)
+      end
+    end
+
+    describe '#level_progress_percentage integration' do
+      it 'calculates progress correctly' do
+        # Level 1 (0 XP) to Level 2 (100 XP) - range is 100
+        stats.update!(level: 1, xp: 50)
+        expect(stats.level_progress_percentage).to eq(50.0)
+
+        stats.update!(level: 1, xp: 25)
+        expect(stats.level_progress_percentage).to eq(25.0)
+
+        stats.update!(level: 1, xp: 75)
+        expect(stats.level_progress_percentage).to eq(75.0)
+      end
+
+      it 'returns 100 when at or above next level XP' do
+        stats.update!(level: 1, xp: 100)
+        expect(stats.level_progress_percentage).to eq(100)
+
+        stats.update!(level: 1, xp: 150)
+        expect(stats.level_progress_percentage).to eq(100)
+      end
+    end
+
+    describe '#check_level_up! integration' do
+      it 'levels up and publishes event' do
+        stats.update!(level: 1, xp: 100)
+
+        # Allow all debug calls and verify the level_up event was logged
+        allow(Rails.logger).to receive(:debug).and_call_original
+
+        stats.check_level_up!
+        expect(stats.level).to eq(2)
+
+        # Verify the event was logged (check_level_up! calls publish_event which logs)
+        expect(Rails.logger).to have_received(:debug).with(/gamification\.level_up/).at_least(:once)
+      end
+
+      it 'levels up multiple times' do
+        stats.update!(level: 1, xp: 10_000)
+
+        stats.check_level_up!
+
+        # Should have leveled up to 20 (requires 10,000 XP)
+        expect(stats.level).to be >= 20
+      end
+    end
+
+    describe '#should_level_up? integration' do
+      it 'returns true when ready to level up' do
+        stats.update!(level: 1, xp: 100)
+        expect(stats.should_level_up?).to be true
+      end
+
+      it 'returns false when not ready' do
+        stats.update!(level: 1, xp: 99)
+        expect(stats.should_level_up?).to be false
+      end
+    end
+
+    describe '#next_available_level integration' do
+      it 'finds the next level in LEVELS hash' do
+        stats.update!(level: 1)
+        expect(stats.next_available_level).to eq(2)
+
+        stats.update!(level: 5)
+        expect(stats.next_available_level).to eq(10)
+
+        stats.update!(level: 10)
+        expect(stats.next_available_level).to eq(15)
+      end
+
+      it 'returns nil at max level' do
+        max_level = Gamification::UserStats::LEVELS.keys.max
+        stats.update!(level: max_level)
+        expect(stats.next_available_level).to be_nil
+      end
+    end
+
+    describe '#update_streak! integration' do
+      around do |example|
+        travel_to Time.zone.parse('2024-06-15 12:00:00') do
+          example.run
+        end
+      end
+
+      it 'initializes streak on first activity' do
+        stats.update!(last_active_date: nil, current_streak: 0)
+        stats.update_streak!
+
+        expect(stats.current_streak).to eq(1)
+        expect(stats.last_active_date).to eq(Time.zone.today)
+      end
+
+      it 'continues streak on consecutive days' do
+        stats.update!(last_active_date: Time.zone.yesterday, current_streak: 5, longest_streak: 5)
+        stats.update_streak!
+
+        expect(stats.current_streak).to eq(6)
+        expect(stats.longest_streak).to eq(6)
+      end
+
+      it 'does not change streak if already active today' do
+        stats.update!(last_active_date: Time.zone.today, current_streak: 10)
+        stats.update_streak!
+
+        expect(stats.current_streak).to eq(10)
+      end
+
+      it 'resets streak when broken' do
+        stats.update!(last_active_date: 5.days.ago, current_streak: 20, longest_streak: 25)
+        stats.update_streak!
+
+        expect(stats.current_streak).to eq(1)
+        expect(stats.longest_streak).to eq(25) # Should not change
+      end
+    end
+
+    describe '#award_streak_bonus! integration' do
+      it 'awards bonus points for 7-day streak' do
+        stats.update!(current_streak: 7, total_points: 0, xp: 0, level: 1)
+
+        stats.award_streak_bonus!
+        stats.reload
+
+        # 7 / 7 * 50 = 50 bonus points
+        expect(stats.total_points).to eq(50)
+        expect(stats.xp).to eq(50)
+      end
+
+      it 'awards larger bonus for longer streaks' do
+        stats.update!(current_streak: 21, total_points: 0, xp: 0, level: 1)
+
+        stats.award_streak_bonus!
+        stats.reload
+
+        # 21 / 7 * 50 = 150 bonus points
+        expect(stats.total_points).to eq(150)
+      end
+    end
+
+    describe '#summary integration' do
+      before do
+        create(:gamification_user_badge, user: user)
+      end
+
+      it 'returns complete summary with all fields populated' do
+        stats.update!(
+          level: 5,
+          total_points: 1500,
+          xp: 1500,
+          current_streak: 10,
+          longest_streak: 15
+        )
+
+        summary = stats.summary
+
+        expect(summary[:level]).to eq(5)
+        expect(summary[:level_name]).to eq('Defensor')
+        expect(summary[:total_points]).to eq(1500)
+        expect(summary[:xp]).to eq(1500)
+        expect(summary[:current_streak]).to eq(10)
+        expect(summary[:longest_streak]).to eq(15)
+        expect(summary[:badges_count]).to eq(1)
+        expect(summary[:leaderboard_position]).to be_a(Integer)
+        expect(summary[:xp_to_next_level]).to be_a(Integer)
+        # level_progress can be Float or Integer (100 when at max)
+        expect(summary[:level_progress]).to be_a(Numeric)
+      end
+    end
+
+    describe '.leaderboard integration' do
+      let!(:user2) { create(:user) }
+      let!(:user3) { create(:user) }
+
+      before do
+        stats.update!(total_points: 100, last_active_date: Time.zone.today)
+        Gamification::UserStats.find_by(user_id: user2.id)&.update!(total_points: 500, last_active_date: Time.zone.today)
+        Gamification::UserStats.find_by(user_id: user3.id)&.update!(total_points: 200, last_active_date: 2.weeks.ago)
+      end
+
+      it 'returns properly formatted leaderboard' do
+        leaderboard = Gamification::UserStats.leaderboard(limit: 10)
+
+        expect(leaderboard).to be_an(Array)
+        expect(leaderboard.first[:rank]).to eq(1)
+        expect(leaderboard.first[:user]).to be_a(Hash)
+        expect(leaderboard.first[:stats]).to be_a(Hash)
+      end
+
+      it 'filters by period :today' do
+        leaderboard = Gamification::UserStats.leaderboard(period: :today, limit: 100)
+        user_ids = leaderboard.map { |entry| entry[:user][:id] }
+
+        expect(user_ids).not_to include(user3.id)
+      end
+
+      it 'filters by period :week' do
+        Gamification::UserStats.find_by(user_id: user3.id)&.update!(last_active_date: 3.days.ago)
+        leaderboard = Gamification::UserStats.leaderboard(period: :week, limit: 100)
+        user_ids = leaderboard.map { |entry| entry[:user][:id] }
+
+        expect(user_ids).to include(user3.id)
+      end
+
+      it 'filters by period :month' do
+        Gamification::UserStats.find_by(user_id: user3.id)&.update!(last_active_date: 2.months.ago)
+        leaderboard = Gamification::UserStats.leaderboard(period: :month, limit: 100)
+        user_ids = leaderboard.map { |entry| entry[:user][:id] }
+
+        expect(user_ids).not_to include(user3.id)
+      end
+    end
+  end
 end

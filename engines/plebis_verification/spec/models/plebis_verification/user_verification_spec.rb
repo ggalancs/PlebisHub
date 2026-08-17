@@ -62,7 +62,9 @@ module PlebisVerification
 
     describe 'factory' do
       it 'has a valid factory' do
-        verification = build(:user_verification)
+        # La factory base omite adrede los adjuntos (por eso `to_create` salta las
+        # validaciones); con las fotos puestas el registro si debe ser valido
+        verification = build(:user_verification, :with_photos)
         expect(verification).to be_valid
       end
 
@@ -345,7 +347,7 @@ module PlebisVerification
       end
 
       it 'assigns attributes to existing verification' do
-        existing = create(:user_verification, user: user, status: :pending)
+        create(:user_verification, user: user, status: :pending)
         result = UserVerification.for(user, { status: :issues })
         expect(result.status).to eq('issues')
       end

@@ -16,7 +16,9 @@ module PlebisCollaborations
     helper_method :pending_single_orders
 
     before_action :authenticate_user!
-    before_action :set_collaboration, only: %i[confirm confirm_bank edit modify destroy OK KO]
+    # `confirm_bank` no existe como accion: incluirlo aqui hace que Rails lance
+    # AbstractController::ActionNotFound en *cualquier* peticion al controlador
+    before_action :set_collaboration, only: %i[confirm edit modify destroy OK KO]
 
     def new
       redirect_to edit_collaboration_path and return if current_user.recurrent_collaboration && !force_single?
@@ -170,14 +172,14 @@ module PlebisCollaborations
       PlebisCollaborations::Collaboration.available_payment_types(@collaboration)
     end
 
+    # `cast` devuelve nil cuando el parametro no viene; un predicado debe
+    # devolver siempre un booleano
     def force_single?
-      # Use ActiveModel::Type::Boolean for proper boolean casting
-      ActiveModel::Type::Boolean.new.cast(params[:force_single])
+      ActiveModel::Type::Boolean.new.cast(params[:force_single]) || false
     end
 
     def only_recurrent?
-      # Use ActiveModel::Type::Boolean for proper boolean casting
-      ActiveModel::Type::Boolean.new.cast(params[:only_recurrent])
+      ActiveModel::Type::Boolean.new.cast(params[:only_recurrent]) || false
     end
 
     def active_frequencies

@@ -4,6 +4,10 @@ require 'rails_helper'
 
 RSpec.describe ConfirmationsController, type: :controller do
   before do
+    # Si algun spec anterior recargo las rutas, Devise.mappings queda vacio y aqui
+    # se asignaria nil, provocando "Could not find devise mapping" de forma
+    # dependiente del orden de ejecucion.
+    Rails.application.reload_routes! if Devise.mappings[:user].nil?
     @request.env['devise.mapping'] = Devise.mappings[:user]
     @routes = Rails.application.routes
   end

@@ -325,6 +325,10 @@ es:
       category:
         name: "nombre"
   plebisbrand:
+    errors:
+      generic_error: "Ha ocurrido un error inesperado. Inténtalo de nuevo."
+      report_generation_failed: "No se ha podido generar el informe."
+      invalid_report_code: "El código de informe no es válido."
     election:
       no_location: "No puede participar en esta votación."
       close_message: "Ha llegado la fecha límite para votar. La votación está cerrada."

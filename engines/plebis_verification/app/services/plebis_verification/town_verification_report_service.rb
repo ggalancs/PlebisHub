@@ -146,6 +146,15 @@ module PlebisVerification
       provinces.each do |province_num, province_name|
         process_towns(report, data_town, province_num)
         process_province(report, data, province_num, province_name)
+      rescue StandardError => e
+        # Una provincia sin datos geograficos no debe tumbar el informe entero
+        Rails.logger.error({
+          event: 'town_verification_report_province_skipped',
+          province_num: province_num,
+          error_class: e.class.name,
+          error_message: e.message,
+          timestamp: Time.current.iso8601
+        }.to_json)
       end
 
       report
@@ -161,7 +170,50 @@ module PlebisVerification
       empty_report
     end
 
+    # Helpers publicos para los informes de un unico municipio.
+    # La provincia se busca por su atributo `index`, no por su posicion en el
+    # array: la posicion coincide hoy, pero es un detalle de los datos de Carmen.
+    def town_name
+      return nil unless @town_code
+
+      province = carmen_province(@town_code[2..3])
+      return nil unless province
+
+      province.subregions.coded(@town_code)&.name
+    rescue StandardError
+      nil
+    end
+
+    def province_name
+      return nil unless @town_code
+
+      carmen_province(@town_code[2..3])&.name
+    rescue StandardError
+      nil
+    end
+
+    def collect_data
+      return {} unless @town_code
+
+      @collect_data ||= begin
+        data = base_query.joins(:user_verifications)
+                         .group(:status)
+                         .pluck('status', Arel.sql('count(distinct users.id)'))
+                         .to_h { |status, count| [status, count] }
+
+        # Add user activity data
+        add_user_data_to_hash_simple(data)
+        data
+      end
+    end
+
     private
+
+    def carmen_province(province_code)
+      return nil if province_code.blank?
+
+      Carmen::Country.coded('ES').subregions.find { |p| ('%02d' % +p.index) == province_code }
+    end
 
     def validate_configuration!
       unless Rails.application.secrets.user_verifications &&
@@ -190,7 +242,7 @@ module PlebisVerification
     def collect_province_data
       data = base_query.joins(:user_verifications)
                        .group(:prov, :status)
-                       .pluck('right(left(vote_town,4),2) as prov', 'status', 'count(distinct users.id)')
+                       .pluck(Arel.sql('right(left(vote_town,4),2) as prov'), 'status', Arel.sql('count(distinct users.id)'))
                        .to_h { |prov, status, count| [[prov, status], count] }
 
       add_user_data_to_hash(data, :prov)
@@ -200,7 +252,7 @@ module PlebisVerification
     def collect_town_data
       data_town = base_query.joins(:user_verifications)
                             .group(:vote_town, :status)
-                            .pluck('vote_town', 'status', 'count(distinct users.id)')
+                            .pluck('vote_town', 'status', Arel.sql('count(distinct users.id)'))
                             .to_h { |town, status, count| [[town, status], count] }
 
       add_user_data_to_hash(data_town, :vote_town)
@@ -212,7 +264,7 @@ module PlebisVerification
       active_census_days = parse_active_census_range
       active_date = Time.zone.today - active_census_days.days
 
-      field_name = group_field == :prov ? 'right(left(vote_town,4),2) as prov' : 'vote_town'
+      field_name = group_field == :prov ? Arel.sql('right(left(vote_town,4),2) as prov') : 'vote_town'
 
       # SECURITY FIX: Use Arel for parameterized query instead of string interpolation
       users_table = User.arel_table
@@ -220,9 +272,9 @@ module PlebisVerification
         field_name,
         users_table[:current_sign_in_at].not_eq(nil)
           .and(users_table[:current_sign_in_at].gt(active_date))
-          .to_sql.sub(/^"users"\./, '').concat(' as active'),
-        "#{User.verified_condition} as verified",
-        'count(distinct users.id)'
+          .to_sql.sub(/^"users"\./, '').concat(' as active').then { |sql| Arel.sql(sql) },
+        Arel.sql("#{User.verified_condition} as verified"),
+        Arel.sql('count(distinct users.id)')
       ).each do |field, active, verified, count|
         data_hash[[field, active, verified]] = count
       end
@@ -265,51 +317,6 @@ module PlebisVerification
       @provinces ||= Carmen::Country.coded('ES').subregions.map { |p| ['%02d' % +p.index, p.name] }
     end
 
-    # RAILS 7.2 FIX: Add helper methods expected by specs
-    # These methods provide backward compatibility with older test suite
-    def town_name
-      return nil unless @town_code
-
-      # Extract province code from town code (e.g., "m_01_001" -> "01")
-      province_index = @town_code[2..3].to_i - 1
-      return nil if province_index.negative?
-
-      province = Carmen::Country.coded('ES').subregions[province_index]
-      return nil unless province
-
-      town = province.subregions.coded(@town_code)
-      town&.name
-    rescue StandardError
-      nil
-    end
-
-    def province_name
-      return nil unless @town_code
-
-      # Extract province code from town code (e.g., "m_01_001" -> "01")
-      province_index = @town_code[2..3].to_i - 1
-      return nil if province_index.negative?
-
-      Carmen::Country.coded('ES').subregions[province_index]&.name
-    rescue StandardError
-      nil
-    end
-
-    def collect_data
-      return {} unless @town_code
-
-      @collect_data ||= begin
-        data = base_query.joins(:user_verifications)
-                         .group(:status)
-                         .pluck('status', 'count(distinct users.id)')
-                         .to_h { |status, count| [status, count] }
-
-        # Add user activity data
-        add_user_data_to_hash_simple(data)
-        data
-      end
-    end
-
     def add_user_data_to_hash_simple(data_hash)
       active_census_days = parse_active_census_range
       active_date = Time.zone.today - active_census_days.days
@@ -318,9 +325,9 @@ module PlebisVerification
       base_query.group(:active, :verified).pluck(
         users_table[:current_sign_in_at].not_eq(nil)
           .and(users_table[:current_sign_in_at].gt(active_date))
-          .to_sql.sub(/^"users"\./, '').concat(' as active'),
-        "#{User.verified_condition} as verified",
-        'count(distinct users.id)'
+          .to_sql.sub(/^"users"\./, '').concat(' as active').then { |sql| Arel.sql(sql) },
+        Arel.sql("#{User.verified_condition} as verified"),
+        Arel.sql('count(distinct users.id)')
       ).each do |active, verified, count|
         data_hash[[active, verified]] = count
       end

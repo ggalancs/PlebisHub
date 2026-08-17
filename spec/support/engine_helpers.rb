@@ -110,3 +110,33 @@ RSpec.configure do |config|
   config.include EngineHelpers, type: :request
   config.include EngineHelpers, type: :feature
 end
+
+# Los specs que viven dentro de engines/ referencian rutas de la aplicación
+# anfitriona. No basta con incluir Rails.application.routes.url_helpers: en un
+# controller spec de engine, `_routes` apunta al route set del propio engine y
+# los helpers acabarían generando contra las rutas equivocadas. `main_app`
+# devuelve el proxy de la app principal, igual que en las vistas.
+module MainAppRoutes
+  def main_app
+    Rails.application.routes.url_helpers
+  end
+end
+
+RSpec.configure do |config|
+  %i[model controller request feature view mailer service].each do |type|
+    config.include MainAppRoutes, type: type
+  end
+end
+
+# En Rails 8 `Rails.logger` es un ActiveSupport::BroadcastLogger y el propio
+# framework registra cada petición. Un `expect(Rails.logger).to receive(:info)
+# .with(...)` sin stub previo falla en cuanto llega cualquier log ajeno al que se
+# está comprobando. Dejando un stub permisivo por debajo, rspec-mocks encamina
+# las llamadas que no casan hacia él y la expectativa acotada sigue funcionando.
+RSpec.configure do |config|
+  config.before(:each, file_path: %r{/engines/}) do
+    %i[debug info warn error fatal].each do |level|
+      allow(Rails.logger).to receive(level).and_call_original
+    end
+  end
+end

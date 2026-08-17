@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 
 if File.exist?('coverage/.resultset.json')
@@ -16,5 +18,5 @@ if File.exist?('coverage/.resultset.json')
     puts "#{pct}% (#{covered}/#{total}) - #{f}"
   end
 else
-  puts "No coverage file found"
+  puts 'No coverage file found'
 end

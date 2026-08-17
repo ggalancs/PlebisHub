@@ -18,8 +18,8 @@ ActiveAdmin.register PlebisCms::Post, as: 'Post' do
     end
     column :created_at
     column :status do |post|
-      status_tag('Publicado', :ok) if post.published?
-      status_tag('Borrado', :error) if post.deleted?
+      status_tag('Publicado', class: 'ok') if post.published?
+      status_tag('Borrado', class: 'error') if post.deleted?
     end
     actions
   end
@@ -28,14 +28,14 @@ ActiveAdmin.register PlebisCms::Post, as: 'Post' do
     attributes_table do
       row :id
       row :status do
-        status_tag('Publicado', :ok) if post.published?
-        status_tag('Borrado', :error) if post.deleted?
+        status_tag('Publicado', class: 'ok') if post.published?
+        status_tag('Borrado', class: 'error') if post.deleted?
       end
       row :title
+      # `auto_html` desaparecio al pasar a auto_html 2.x: esta pantalla
+      # contestaba 500. Ver PlebisCms::ContentPipeline.
       row :content do
-        auto_html(post.content) do
-          redcarpet
-        end
+        PlebisCms::ContentPipeline.markdown(post.content)
       end
 
       row :slug

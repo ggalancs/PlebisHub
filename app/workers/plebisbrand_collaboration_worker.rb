@@ -11,7 +11,7 @@ class PlebisBrandCollaborationWorker
     if collaboration_id == -1
       today = Time.zone.today
       folder = File.dirname Collaboration.bank_filename(today, true)
-      export_data Collaboration.bank_filename(today, false), Collaboration.joins(:order).includes(:user).where.not(payment_type: 1).merge(Order.by_date(today, today)),
+      export_data Collaboration.bank_filename(today, false), Collaboration.joins(:orders).includes(:user).where.not(payment_type: 1).merge(Order.by_date(today, today)),
                   folder: folder, col_sep: ',' do |collaboration|
         collaboration.skip_queries_validations = true
         collaboration.get_bank_data today

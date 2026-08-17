@@ -41,7 +41,7 @@ RSpec.describe EngineUser::TeamMember, type: :model do
 
     context 'when team_id does not exist' do
       it 'returns false for non-existent team' do
-        expect(user.in_participation_team?(99999)).to be false
+        expect(user.in_participation_team?(99_999)).to be false
       end
     end
 

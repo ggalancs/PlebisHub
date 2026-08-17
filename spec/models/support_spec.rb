@@ -326,7 +326,7 @@ RSpec.describe Support, type: :model do
       user = create(:user)
       proposal = create(:proposal)
 
-      support1 = create(:support, user: user, proposal: proposal)
+      create(:support, user: user, proposal: proposal)
 
       # Try to create duplicate
       support2 = build(:support, user: user, proposal: proposal)
@@ -484,20 +484,20 @@ RSpec.describe Support, type: :model do
       # Active proposal
       active_proposal = create(:proposal, created_at: 1.month.ago)
       user1 = create(:user)
-      support1 = create(:support, user: user1, proposal: active_proposal, created_at: 2.weeks.ago)
+      create(:support, user: user1, proposal: active_proposal, created_at: 2.weeks.ago)
 
       expect(active_proposal.calculate_supports_count).to be >= 1
 
       # Finished proposal with support before deadline
       finished_proposal = create(:proposal, created_at: 4.months.ago)
       user2 = create(:user)
-      support2 = create(:support, user: user2, proposal: finished_proposal, created_at: (3.months + 15.days).ago)
+      create(:support, user: user2, proposal: finished_proposal, created_at: (3.months + 15.days).ago)
 
       expect(finished_proposal.calculate_supports_count).to eq(1)
 
       # Finished proposal with support after deadline
       user3 = create(:user)
-      support3 = create(:support, user: user3, proposal: finished_proposal, created_at: 1.day.ago)
+      create(:support, user: user3, proposal: finished_proposal, created_at: 1.day.ago)
 
       # Should not count support after deadline
       expect(finished_proposal.calculate_supports_count).to eq(1)

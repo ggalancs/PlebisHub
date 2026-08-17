@@ -16,13 +16,13 @@ module PlebisCms
       it 'validates presence of title' do
         post = Post.new(title: nil)
         expect(post.valid?).to be false
-        expect(post.errors[:title]).to include("no puede estar en blanco")
+        expect(post.errors[:title]).to include('no puede estar en blanco')
       end
 
       it 'validates presence of status' do
         post = Post.new(status: nil)
         expect(post.valid?).to be false
-        expect(post.errors[:status]).to include("no puede estar en blanco")
+        expect(post.errors[:status]).to include('no puede estar en blanco')
       end
     end
 

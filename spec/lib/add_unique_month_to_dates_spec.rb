@@ -13,8 +13,8 @@ RSpec.describe 'AddUniqueMonthToDates' do
     it 'returns different values for different months' do
       date1 = Date.new(2023, 5, 15)
       date2 = Date.new(2023, 6, 15)
-      expect(date1.unique_month).to eq(24281)
-      expect(date2.unique_month).to eq(24282)
+      expect(date1.unique_month).to eq(24_281)
+      expect(date2.unique_month).to eq(24_282)
     end
 
     it 'returns different values for different years' do

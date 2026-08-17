@@ -4,11 +4,10 @@ module PlebisImpulsa
   class Engine < ::Rails::Engine
     isolate_namespace PlebisImpulsa
 
-    # Add concerns directory to autoload paths (Zeitwerk compatibility)
-    # Use before_initialize to avoid modifying frozen arrays in Rails 7.2+
-    config.before_initialize do
-      config.autoload_paths += [root.join('app/models/plebis_impulsa/concerns')]
-    end
+    # NOTE: the concerns used to live in app/models/plebis_impulsa/concerns with
+    # an extra autoload root. They now sit in app/models/concerns/plebis_impulsa,
+    # which Rails already treats as an autoload root and which maps directly to
+    # the PlebisImpulsa::… constants the files define, so no override is needed.
 
     config.generators do |g|
       g.test_framework :rspec

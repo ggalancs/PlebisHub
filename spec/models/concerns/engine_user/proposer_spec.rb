@@ -27,7 +27,7 @@ RSpec.describe EngineUser::Proposer, type: :model do
 
     describe 'dependent options' do
       it 'destroys supports when user is destroyed' do
-        support = create(:support, user: user, proposal: proposal)
+        create(:support, user: user, proposal: proposal)
         expect { user.destroy }.to change(Support, :count).by(-1)
       end
 

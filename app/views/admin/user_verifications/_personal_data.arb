@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 panel 'Detalles del usuario' do
   if user_verification.user.deleted_at.nil?
     attributes_table_for user_verification.user do

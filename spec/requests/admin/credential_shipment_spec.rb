@@ -71,12 +71,7 @@ RSpec.describe 'Admin Credential Shipment', type: :request do
       expect(csv_content).to include('Calle Test 123')
     end
 
-    # NOTE: This test verifies an internal implementation detail.
-    # The admin code updates verification.born_at to mark it as processed.
-    # In request specs, transaction isolation can cause the change to not be
-    # visible when we reload. The core functionality (CSV generation) is tested
-    # by other specs in this file that all pass.
-    it 'updates verification with born_at date', skip: 'Request spec transaction isolation issue - CSV generation works (see other tests)' do
+    it 'updates verification with born_at date' do
       expect {
         get '/admin/envios_de_credenciales/generate_shipment', params: { max_reg: 10 }
       }.to change { verification.reload.born_at }
@@ -90,7 +85,9 @@ RSpec.describe 'Admin Credential Shipment', type: :request do
     it 'respects max_reg parameter' do
       5.times do |i|
         # Create user with born_at set (required for credential code generation)
-        u = create(:user, vote_circle: vote_circle, email: "user#{i}@example.com", born_at: Date.new(1990, 1, 1))
+        # La secuencia de la factory ya usa user<N>@example.com: reutilizar ese
+        # patron chocaba con la validacion de unicidad
+        u = create(:user, vote_circle: vote_circle, email: "shipment#{i}@example.com", born_at: Date.new(1990, 1, 1))
         # Don't set born_at on verification - :not_sended trait sets it to nil (scope requires nil)
         create(:user_verification, :not_sended, user: u)
       end
@@ -104,7 +101,7 @@ RSpec.describe 'Admin Credential Shipment', type: :request do
       old_verification = create(:user_verification, :not_sended,
                                  user: create(:user, vote_circle: vote_circle, email: 'old@test.com'),
                                  created_at: 2.days.ago)
-      new_verification = create(:user_verification, :not_sended,
+      create(:user_verification, :not_sended,
                                  user: create(:user, vote_circle: vote_circle, email: 'new@test.com'),
                                  created_at: 1.day.ago)
 

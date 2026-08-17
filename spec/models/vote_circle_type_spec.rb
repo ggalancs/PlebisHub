@@ -26,7 +26,8 @@ RSpec.describe VoteCircleType, type: :model do
     end
 
     it 'inherits from ApplicationRecord directly' do
-      expect(VoteCircleType.superclass).to eq(ApplicationRecord)
+      # La app hereda de la clase del engine desde la consolidacion
+      expect(VoteCircleType.superclass).to eq(PlebisVotes::VoteCircleType)
     end
 
     it 'is in the global namespace' do
@@ -46,7 +47,9 @@ RSpec.describe VoteCircleType, type: :model do
     end
 
     it 'has expected table name' do
-      expect(VoteCircleType.table_name).to eq('vote_circle_types')
+      # isolate_namespace del engine prefija el nombre; la tabla no existe en
+      # ninguna de las dos formas (ver el ejemplo siguiente)
+      expect(VoteCircleType.table_name).to eq('plebis_votes_vote_circle_types')
     end
 
     it 'table does not exist in database' do

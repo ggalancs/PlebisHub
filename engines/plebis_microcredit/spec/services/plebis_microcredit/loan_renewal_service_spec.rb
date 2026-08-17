@@ -40,7 +40,11 @@ module PlebisMicrocredit
         allow(PlebisMicrocredit::MicrocreditLoan).to receive(:renewables).and_return(renewables_relation)
         allow(PlebisMicrocredit::MicrocreditLoan).to receive(:recently_renewed).and_return(recently_renewed_relation)
         allow(renewables_relation).to receive(:where).and_return(renewables_relation)
+        # el servicio encadena .where.not(microcredit_id: ...)
+        allow(renewables_relation).to receive(:not).and_return(renewables_relation)
         allow(recently_renewed_relation).to receive(:where).and_return(recently_renewed_relation)
+        # el servicio encadena .where.not(microcredit_id: ...)
+        allow(recently_renewed_relation).to receive(:not).and_return(recently_renewed_relation)
         allow(renewables_relation).to receive(:first).and_return(loan)
         allow(recently_renewed_relation).to receive(:first).and_return(nil)
         allow(renewables_relation).to receive(:to_a).and_return([])
@@ -200,7 +204,11 @@ module PlebisMicrocredit
         allow(PlebisMicrocredit::MicrocreditLoan).to receive(:renewables).and_return(renewables_relation)
         allow(PlebisMicrocredit::MicrocreditLoan).to receive(:recently_renewed).and_return(recently_renewed_relation)
         allow(renewables_relation).to receive(:where).and_return(renewables_relation)
+        # el servicio encadena .where.not(microcredit_id: ...)
+        allow(renewables_relation).to receive(:not).and_return(renewables_relation)
         allow(recently_renewed_relation).to receive(:where).and_return(recently_renewed_relation)
+        # el servicio encadena .where.not(microcredit_id: ...)
+        allow(recently_renewed_relation).to receive(:not).and_return(recently_renewed_relation)
         allow(renewables_relation).to receive(:first).and_return(loan)
         allow(recently_renewed_relation).to receive(:first).and_return(nil)
       end
@@ -286,7 +294,7 @@ module PlebisMicrocredit
             renewals: {
               renewal_terms: '1',
               terms_of_service: '1',
-              loan_renewals: ['1', '2']
+              loan_renewals: %w[1 2]
             }
           )
         end
@@ -299,7 +307,7 @@ module PlebisMicrocredit
           expect(result).to be_a(OpenStruct)
           expect(result.renewal_terms).to eq('1')
           expect(result.terms_of_service).to eq('1')
-          expect(result.loan_renewals).to eq(['1', '2'])
+          expect(result.loan_renewals).to eq(%w[1 2])
         end
       end
     end
@@ -314,6 +322,8 @@ module PlebisMicrocredit
         allow(PlebisMicrocredit::MicrocreditLoan).to receive(:renewables).and_return(renewables_relation)
         allow(PlebisMicrocredit::MicrocreditLoan).to receive(:recently_renewed).and_return(renewables_relation)
         allow(renewables_relation).to receive(:where).and_return(renewables_relation)
+        # el servicio encadena .where.not(microcredit_id: ...)
+        allow(renewables_relation).to receive(:not).and_return(renewables_relation)
         allow(renewables_relation).to receive(:to_a).and_return([other_loan])
         allow(renewables_relation).to receive(:uniq).and_return([other_loan])
         allow(renewables_relation).to receive(:first).and_return(loan)
@@ -335,14 +345,19 @@ module PlebisMicrocredit
       end
 
       it 'populates other loans from different microcredits' do
-        allow(renewables_relation).to receive(:where).and_call_original
+        # `and_call_original` no aplica a un doble puro, y ademas el stub siguiente
+        # lo sobrescribia: era una linea muerta.
         allow(renewables_relation).to receive(:where)
           .with(microcredit_id: loan.microcredit_id, document_vatid: loan.document_vatid)
           .and_return(renewables_relation)
 
-        other_relation = double('ActiveRecord::Relation')
+        # as_null_object: el servicio encadena where/not/select/first sobre la
+        # relacion; solo interesan los stubs explicitos de abajo.
+        other_relation = double('ActiveRecord::Relation').as_null_object
         allow(renewables_relation).to receive(:where).and_return(other_relation)
         allow(other_relation).to receive(:where).with(document_vatid: loan.document_vatid).and_return(other_relation)
+        allow(other_relation).to receive(:not).and_return(other_relation)
+        allow(other_relation).to receive(:select).and_return([])
         allow(other_relation).to receive(:to_a).and_return([other_loan])
         allow(other_relation).to receive(:uniq).and_return([other_loan])
 
@@ -355,6 +370,8 @@ module PlebisMicrocredit
         allow(PlebisMicrocredit::MicrocreditLoan).to receive(:recently_renewed)
           .and_return(recently_renewed_relation)
         allow(recently_renewed_relation).to receive(:where).and_return(recently_renewed_relation)
+        # el servicio encadena .where.not(microcredit_id: ...)
+        allow(recently_renewed_relation).to receive(:not).and_return(recently_renewed_relation)
 
         subject.send(:populate_renewal_data, renewal, loan)
         expect(renewal).to respond_to(:recently_renewed_loans)
@@ -449,6 +466,8 @@ module PlebisMicrocredit
         allow(PlebisMicrocredit::MicrocreditLoan).to receive(:recently_renewed).and_return(renewables_relation)
         allow(PlebisMicrocredit::MicrocreditLoan).to receive(:find_by).and_return(loan)
         allow(renewables_relation).to receive(:where).and_return(renewables_relation)
+        # el servicio encadena .where.not(microcredit_id: ...)
+        allow(renewables_relation).to receive(:not).and_return(renewables_relation)
         allow(renewables_relation).to receive(:first).and_return(loan)
         allow(renewables_relation).to receive(:to_a).and_return([])
         allow(renewables_relation).to receive(:uniq).and_return([])

@@ -1,1 +1,14 @@
+# lint-staged solo formatea *.{vue,js,ts,css,scss,json,md}. Si las dependencias
+# de JS no estan instaladas —caso normal de quien solo trabaja en la parte Ruby—
+# el hook fallaba con "Command \"lint-staged\" not found" y bloqueaba cualquier
+# commit, incluidos los que no tocan un solo fichero de los que formatea.
+#
+# CI no ejecuta prettier ni eslint (solo rubocop, brakeman, bundler-audit y
+# rspec), asi que omitirlo no relaja ninguna comprobacion que hoy exista.
+if [ ! -x node_modules/.bin/lint-staged ]; then
+  echo "aviso: lint-staged no esta instalado, se omite el formateo automatico."
+  echo "       Ejecuta 'pnpm install' para activarlo."
+  exit 0
+fi
+
 pnpm lint-staged

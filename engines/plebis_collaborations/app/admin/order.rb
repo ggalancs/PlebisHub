@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ActiveAdmin.register PlebisCollaborations::Order, namespace: :admin do
+ActiveAdmin.register PlebisCollaborations::Order, as: 'Order' do
   scope_to PlebisCollaborations::Order, association_method: :full_view
   config.sort_order = 'updated_at_desc'
 
@@ -133,9 +133,9 @@ ActiveAdmin.register PlebisCollaborations::Order, namespace: :admin do
   end
 
   action_item(:restore_order, only: :show) do
-    if order.deleted?
-      link_to('Recuperar orden borrada', recover_admin_order_path(order), method: :post,
-                                                                          data: { confirm: '¿Estas segura de querer recuperar esta order?' })
+    if resource.deleted?
+      link_to('Recuperar orden borrada', recover_admin_order_path(resource), method: :post,
+                                                                             data: { confirm: '¿Estas segura de querer recuperar esta order?' })
     end
   end
 

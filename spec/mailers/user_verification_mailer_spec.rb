@@ -133,11 +133,11 @@ RSpec.describe UserVerificationMailer, type: :mailer do
 
     context 'when user is not found' do
       it 'raises an error for on_accepted' do
-        expect { described_class.on_accepted(999999).deliver_now }.to raise_error(ActiveRecord::RecordNotFound)
+        expect { described_class.on_accepted(999_999).deliver_now }.to raise_error(ActiveRecord::RecordNotFound)
       end
 
       it 'raises an error for on_rejected' do
-        expect { described_class.on_rejected(999999).deliver_now }.to raise_error(ActiveRecord::RecordNotFound)
+        expect { described_class.on_rejected(999_999).deliver_now }.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
 

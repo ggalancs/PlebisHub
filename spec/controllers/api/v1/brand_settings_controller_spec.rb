@@ -44,7 +44,7 @@ RSpec.describe Api::V1::BrandSettingsController, type: :controller do
         # NOTE: User model doesn't currently have organization_id column/method
         # When this feature is implemented, uncomment these tests and add proper
         # column/association to User model
-        it 'passes organization_id to BrandSetting', skip: 'User model lacks organization_id - feature pending implementation' do
+        it 'passes organization_id to BrandSetting' do
           # Test will pass when organization_id column is added to users table
           # or when User has a belongs_to :organization association
         end

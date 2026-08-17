@@ -46,7 +46,8 @@ RSpec.describe ElectionLocation, type: :model do
       q2 = create(:election_location_question, election_location: location)
 
       location.reload
-      expect(location.election_location_questions.to_a).to eq([q1, q2])
+      # La consulta devuelve la clase del engine y la factory la de la app
+      expect(location.election_location_questions.map(&:id)).to eq([q1.id, q2.id])
     end
 
     it 'destroys questions when location is destroyed' do
@@ -716,12 +717,12 @@ RSpec.describe ElectionLocation, type: :model do
     end
 
     it 'defines all expected layouts' do
-      expect(ElectionLocation::LAYOUTS.keys).to match_array([
-        'simple',
-        'accordion',
-        'pcandidates-election',
-        'simultaneous-questions',
-        '2questions-conditional'
+      expect(ElectionLocation::LAYOUTS.keys).to match_array(%w[
+        simple
+        accordion
+        pcandidates-election
+        simultaneous-questions
+        2questions-conditional
       ])
     end
 

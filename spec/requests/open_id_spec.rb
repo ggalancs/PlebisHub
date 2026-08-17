@@ -16,24 +16,27 @@ RSpec.describe 'OpenId', type: :request do
     Rails.application.secrets.openid.try(:[], 'enabled')
   end
 
-  describe 'GET /es/openid' do
+  # El XRDS de descubrimiento lo sirve /openid/discover; /openid es el endpoint
+  # del protocolo y exige usuario autenticado (redirige a login), que es lo
+  # correcto para una peticion de autenticacion OpenID.
+  describe 'GET /es/openid/discover' do
     describe 'A. DISCOVERY ENDPOINT' do
       before { skip 'OpenID not enabled in test environment' unless openid_enabled? }
 
       it 'returns XRDS document' do
-        get '/es/openid'
+        get '/es/openid/discover'
         expect(response).to have_http_status(:success)
         expect(response.content_type).to include('application/xrds+xml')
       end
 
       it 'contains OpenID type declarations' do
-        get '/es/openid'
+        get '/es/openid/discover'
         expect(response.body).to include('xrds:XRDS')
         expect(response.body).to include('Type')
       end
 
       it 'includes service URI' do
-        get '/es/openid'
+        get '/es/openid/discover'
         expect(response.body).to include('URI')
         expect(response.body).to include('/openid')
       end

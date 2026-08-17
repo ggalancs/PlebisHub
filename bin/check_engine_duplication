@@ -1,0 +1,100 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Detecta código duplicado entre app/ y engines/*/app/.
+#
+# La arquitectura acordada es: los engines son la fuente de la verdad y la
+# aplicación solo contiene personalizaciones, heredando del engine igual que se
+# hace con Devise. Un fichero de app/ que reimplemente uno del engine en lugar
+# de heredar de él es una violación de esa regla.
+#
+# Salida 0 si no hay duplicación; 1 si la hay. Es la condición 9 de la puerta de
+# despliegue (ver RAILS_8_REMAINING_WORK_PLAN.md).
+#
+#   bin/check_engine_duplication          # informe y código de salida
+#   bin/check_engine_duplication --list   # solo las rutas, para scripting
+
+require 'pathname'
+
+ROOT = Pathname.new(__dir__).join('..').expand_path
+list_only = ARGV.include?('--list')
+
+# Un fichero de app/ cumple la regla si hereda de la clase del engine o incluye
+# su módulo. Puede tener cuerpo: ahí es donde viven las personalizaciones, igual
+# que en `class ConfirmationsController < Devise::ConfirmationsController`.
+# Lo que se persigue es la *reimplementación*, no la personalización.
+def delegating?(path, namespace)
+  body = path.read
+  body.match?(/^\s*class\s+\w+\s*<\s*(::)?#{namespace}::/) ||
+    body.match?(/^\s*(include|extend)\s+(::)?#{namespace}::/)
+end
+
+# Falsos positivos: la deteccion casa por nombre de fichero, y hay pares que
+# comparten basename sin ser la misma pieza. Cada excepcion se justifica aqui.
+EXCEPTIONS = {
+  # ApplicationHelper (app) es el helper general de la aplicacion;
+  # PlebisMicrocredit::ApplicationHelper solo reexpone los route helpers de
+  # main_app dentro de las vistas del engine. No son el mismo modulo y la app no
+  # debe incluir el del engine.
+  'app/helpers/application_helper.rb' => 'engines/plebis_microcredit/app/helpers/plebis_microcredit/application_helper.rb'
+}.freeze
+
+duplicates = []
+
+ROOT.glob('engines/*/app/**/*.rb').each do |engine_file|
+  rel = engine_file.relative_path_from(ROOT).to_s
+  # engines/<name>/app/<tipo>/<namespace>/<fichero>.rb -> app/<tipo>/<fichero>.rb
+  m = rel.match(%r{\Aengines/([^/]+)/app/([^/]+)/(.+)\z}) or next
+  engine, kind, tail = m.captures
+  next if kind == 'views' || kind == 'assets'
+
+  namespace = engine.split('_').map(&:capitalize).join
+  basename = File.basename(tail)
+  candidates = [
+    ROOT.join('app', kind, basename),
+    ROOT.join('app', kind, 'concerns', basename)
+  ]
+  app_file = candidates.find(&:exist?) or next
+
+  app_rel = app_file.relative_path_from(ROOT).to_s
+  next if EXCEPTIONS[app_rel] == rel
+
+  duplicates << {
+    app: app_file.relative_path_from(ROOT).to_s,
+    engine: rel,
+    engine_name: engine,
+    namespace: namespace,
+    delegating: delegating?(app_file, namespace),
+    app_lines: app_file.read.lines.size,
+    engine_lines: engine_file.read.lines.size
+  }
+end
+
+pending = duplicates.reject { |d| d[:delegating] }
+
+if list_only
+  pending.each { |d| puts d[:app] }
+  exit(pending.empty? ? 0 : 1)
+end
+
+if pending.empty?
+  puts "Sin duplicacion pendiente (#{duplicates.size} ficheros de app/ delegan correctamente en su engine)."
+  exit 0
+end
+
+by_engine = pending.group_by { |d| d[:engine_name] }.sort_by { |_, v| v.size }
+
+puts "Duplicación pendiente de consolidar: #{pending.size} ficheros " \
+     "(#{duplicates.size - pending.size} ya delegan correctamente)"
+puts
+
+by_engine.each do |engine, items|
+  puts "#{engine} (#{items.size})"
+  items.sort_by { |d| -d[:app_lines] }.each do |d|
+    puts format('  %-52s %4d líneas  ->  engine %4d', d[:app], d[:app_lines], d[:engine_lines])
+  end
+  puts
+end
+
+puts 'Regla: la app solo debe personalizar heredando del engine, al estilo Devise.'
+exit 1

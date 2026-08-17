@@ -2,19 +2,19 @@
 
 source 'https://rubygems.org'
 
-ruby '>= 3.3.6'
+ruby '>= 3.4.10'
 
-# Rails 7.2 - Following official upgrade guide
+# Rails 8.1 - Following official upgrade guide
 gem 'coffee-rails' # Required by Sprockets processor (even without .coffee files)
 gem 'jbuilder', '~> 2.0'
 gem 'jquery-rails' # Legacy - will be removed after full Vue migration
 gem 'json', '>= 2.0' # Ruby 3.3 compatible (old 1.8.6 breaks)
-gem 'rails', '~> 7.2.3'
+gem 'rails', '~> 8.1.3'
 gem 'sass-rails' # Legacy - for Sprockets SASS compilation
 gem 'sdoc', '>= 2.0', group: :doc # Ruby 3.3 / json 2.x compatible
 gem 'spring', group: :development
 gem 'sprockets-rails' # Legacy assets (will be phased out)
-gem 'sqlite3', '~> 1.4'
+gem 'sqlite3', '~> 2.1' # Rails 8 requiere sqlite3 >= 2.1
 gem 'vite_rails', '~> 3.0' # Modern frontend with Vite + Vue 3
 # REMOVED: turbolinks (replaced by Vue Router / native navigation)
 # REMOVED: uglifier (Vite handles JS minification)
@@ -31,7 +31,7 @@ gem 'active_skin'
 gem 'bootstrap-sass', '~> 3.4.1'
 gem 'cancancan', '~> 3.5' # Updated from 1.9 - Rails 7.2 compatible
 gem 'carmen-rails'
-gem 'devise', '~> 4.9' # Rails 7.0+ compatible
+gem 'devise', '~> 5.0' # Rails 7.0+; 5.0.4 cierra CVE-2026-32700 y CVE-2026-40295
 gem 'esendex'
 gem 'formtastic'
 gem 'formtastic-bootstrap'
@@ -51,7 +51,7 @@ gem 'font-awesome-rails', '~> 4.7'
 gem 'friendly_id', '~> 5.2' # Updated for Rails 5
 gem 'iban-tools'
 gem 'kaminari'
-gem 'paper_trail', '~> 15.2' # Rails 7.2+ compatible
+gem 'paper_trail', '~> 17.0' # Rails 8 compatible (15.x avisa de incompatibilidad con AR 8)
 gem 'paranoia', '~> 3.0' # Rails 7.2 compatible
 gem 'phonelib'
 gem 'pushmeup'
@@ -86,7 +86,7 @@ gem 'validate_url'
 gem 'xmlrpc'
 
 # Web server - must be in all environments for Docker/production
-gem 'puma', '~> 6.0'
+gem 'puma', '~> 8.0', '>= 8.0.2' # CVE-2026-*: 6.x vulnerable; solo se usa en desarrollo (produccion va con unicorn/passenger)
 
 group :development, :test do
   gem 'better_errors'
@@ -104,7 +104,7 @@ group :development, :test do
   gem 'factory_bot_rails', '~> 6.2' # Ruby 2.7+ compatible
   gem 'launchy'
   gem 'listen' # Required by Rails 6.0 for file watching
-  gem 'minitest-rails', '~> 7.1' # Rails 7.2 compatible
+  gem 'minitest-rails', '~> 8.1'
   gem 'minitest-reporters'
   gem 'mocha', require: false
   gem 'nokogiri', '~> 1.16' # Required by Rails 7.2, Ruby 3.3 compatible
@@ -116,6 +116,7 @@ group :development, :test do
   gem 'rubocop-rails', require: false
   gem 'ruby-prof'
   gem 'selenium-webdriver' # Modern driver for Capybara
+  gem 'shoulda-matchers', '~> 6.0' # usado por 12 spec files, faltaba en el Gemfile
   gem 'simplecov'
   gem 'webmock'
   # gem 'capybara-webkit' # Commented: deprecated and requires Qt (qmake)

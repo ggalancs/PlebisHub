@@ -24,7 +24,7 @@ RSpec.describe LoanRenewalService do
   describe 'class structure' do
     it 'is frozen string literal' do
       file_content = File.read(Rails.root.join('app/services/loan_renewal_service.rb'))
-      expect(file_content).to start_with("# frozen_string_literal: true")
+      expect(file_content).to start_with('# frozen_string_literal: true')
     end
 
     it 'has no methods defined in itself' do

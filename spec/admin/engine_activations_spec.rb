@@ -143,15 +143,15 @@ RSpec.describe 'EngineActivation Admin', type: :request do
   end
 
   describe 'GET /admin/engine_activations/:id' do
-    # FLAKY: These 6 tests pass individually but fail in full suite due to test pollution.
-    # The PlebisCore::EngineRegistry stub doesn't work correctly when other specs
-    # have loaded the real module. They pass in spec/admin/ alone (0 failures).
-    xit 'displays the show page' do
+    # Estos 6 fallaban solo en la suite completa: no era contaminacion de dobles
+    # sino que loan_renewal_service.rb parchea OpenStruct.human_attribute_name con
+    # una firma incompatible, y solo rompia cuando ese fichero se habia cargado.
+    it 'displays the show page' do
       get admin_engine_activation_path(engine_activation)
       expect(response).to have_http_status(:success)
     end
 
-    xit 'shows engine name in bold' do
+    it 'shows engine name in bold' do
       get admin_engine_activation_path(engine_activation)
       expect(response.body).to match(/<strong>.*plebis_cms.*<\/strong>/m)
     end
@@ -161,7 +161,7 @@ RSpec.describe 'EngineActivation Admin', type: :request do
       expect(response.body).to match(/Active|status_tag/i)
     end
 
-    xit 'displays full description' do
+    it 'displays full description' do
       get admin_engine_activation_path(engine_activation)
       expect(response.body).to include('Test Engine Description')
     end
@@ -177,7 +177,7 @@ RSpec.describe 'EngineActivation Admin', type: :request do
       expect(response.body).to include('value')
     end
 
-    xit 'shows engine details panel' do
+    it 'shows engine details panel' do
       get admin_engine_activation_path(engine_activation)
       expect(response.body).to include('Engine Details')
     end
@@ -187,12 +187,12 @@ RSpec.describe 'EngineActivation Admin', type: :request do
       expect(response.body).to include('1.0')
     end
 
-    xit 'displays models list' do
+    it 'displays models list' do
       get admin_engine_activation_path(engine_activation)
       expect(response.body).to include('Model1')
     end
 
-    xit 'displays controllers list' do
+    it 'displays controllers list' do
       get admin_engine_activation_path(engine_activation)
       expect(response.body).to include('Controller1')
     end

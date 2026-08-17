@@ -255,9 +255,9 @@ RSpec.describe Organization, type: :model do
     end
 
     it 'orders organizations by name' do
-      org_c = create(:organization, name: 'C Organization')
-      org_a = create(:organization, name: 'A Organization')
-      org_b = create(:organization, name: 'B Organization')
+      create(:organization, name: 'C Organization')
+      create(:organization, name: 'A Organization')
+      create(:organization, name: 'B Organization')
 
       ordered = Organization.order(:name).last(3)
 

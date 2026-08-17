@@ -296,11 +296,11 @@ RSpec.describe Gamification::UserBadge, type: :model do
 
       # Verify top-level structure
       expect(json).to be_a(Hash)
-      expect(json.keys).to match_array([:id, :badge, :earned_at, :metadata])
+      expect(json.keys).to match_array(%i[id badge earned_at metadata])
 
       # Verify badge nested structure
       expect(json[:badge]).to be_a(Hash)
-      expect(json[:badge].keys).to match_array([:key, :name, :description, :icon, :tier, :category])
+      expect(json[:badge].keys).to match_array(%i[key name description icon tier category])
     end
 
     it 'converts all badge attributes correctly' do

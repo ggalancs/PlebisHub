@@ -7,10 +7,14 @@ module PlebisProposals
     routes { PlebisProposals::Engine.routes }
 
     let(:user) { create(:user) }
-    let(:proposal) { create(:proposal) }
+    # `#show` busca sobre el scope `reddit`, asi que la propuesta debe superar el umbral
+    let(:proposal) { create(:proposal, :reddit_threshold) }
 
     describe 'GET #index' do
       context 'with default filter' do
+        # El controlador solo lista propuestas que superan el umbral reddit
+        let!(:reddit_proposals) { create_list(:proposal, 2, :reddit_threshold) }
+
         it 'sets filter to popular' do
           get :index
           expect(assigns(:proposals)).to be_present
@@ -35,7 +39,7 @@ module PlebisProposals
       context 'with custom filter' do
         it 'uses the provided filter parameter' do
           get :index, params: { filter: 'hot' }
-          expect(params[:filter]).to eq('hot')
+          expect(controller.params[:filter]).to eq('hot')
         end
       end
 
@@ -74,7 +78,9 @@ module PlebisProposals
       context 'with valid proposal' do
         it 'assigns the requested proposal' do
           get :show, params: { id: proposal.id }
-          expect(assigns(:proposal)).to eq(proposal)
+          # La consulta devuelve PlebisProposals::Proposal y la factory Proposal:
+          # ActiveRecord#== exige instance_of?, asi que comparamos por id
+          expect(assigns(:proposal)&.id).to eq(proposal.id)
         end
 
         it 'renders the show template' do
@@ -95,18 +101,18 @@ module PlebisProposals
 
       context 'with invalid proposal id' do
         it 'redirects to proposals path' do
-          get :show, params: { id: 99999 }
+          get :show, params: { id: 99_999 }
           expect(response).to redirect_to(proposals_path)
         end
 
         it 'sets an alert message' do
-          get :show, params: { id: 99999 }
+          get :show, params: { id: 99_999 }
           expect(flash[:alert]).to be_present
         end
 
         it 'logs the not found event' do
           expect(Rails.logger).to receive(:info).with(a_string_matching(/proposal_not_found/))
-          get :show, params: { id: 99999 }
+          get :show, params: { id: 99_999 }
         end
       end
 

@@ -5,6 +5,14 @@ require 'rails_helper'
 RSpec.describe 'Credential Shipment Admin', type: :request do
   let(:admin_user) { create(:user, :admin, :superadmin) }
 
+  # El fichero de envio es un TSV cuya primera columna es el id de usuario.
+  # Comprobar la ausencia de un id con `body.not_to include(id.to_s)` es fragil:
+  # el id "441" aparece dentro de "1441516" o de un telefono, asi que el test
+  # fallaba de forma intermitente segun los datos acumulados.
+  def shipped_user_ids(body)
+    body.split("\n").drop(1).reject(&:blank?).map { |line| line.split("\t").first }
+  end
+
   before do
     sign_in_admin admin_user
     # Stub User verification methods that may cause issues
@@ -25,16 +33,16 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
 
     it 'has breadcrumb configuration' do
       # The breadcrumb block exists in the admin file
-      expect(File.read(Rails.root.join("app/admin/credential_shipment.rb").to_s)).to include('breadcrumb do')
-      expect(File.read(Rails.root.join("app/admin/credential_shipment.rb").to_s)).to include("['admin', 'Envíos de Credenciales']")
+      expect(File.read(Rails.root.join('app/admin/credential_shipment.rb').to_s)).to include('breadcrumb do')
+      expect(File.read(Rails.root.join('app/admin/credential_shipment.rb').to_s)).to include("['admin', 'Envíos de Credenciales']")
     end
 
     it 'has content block' do
-      expect(File.read(Rails.root.join("app/admin/credential_shipment.rb").to_s)).to include('content do')
+      expect(File.read(Rails.root.join('app/admin/credential_shipment.rb').to_s)).to include('content do')
     end
 
     it 'has generate_shipment page action' do
-      expect(File.read(Rails.root.join("app/admin/credential_shipment.rb").to_s)).to include('page_action :generate_shipment')
+      expect(File.read(Rails.root.join('app/admin/credential_shipment.rb').to_s)).to include('page_action :generate_shipment')
     end
   end
 
@@ -44,7 +52,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
     end
 
     it 'not_sended filters by wants_card true and born_at nil' do
-      scope_conditions = UserVerification.not_sended.where_values_hash
+      UserVerification.not_sended.where_values_hash
       # The scope should filter for wants_card: true, born_at: nil
       # We can't test the exact where clause easily, but we can test behavior
       verification_not_sent = create(:user_verification, wants_card: true, born_at: nil)
@@ -52,9 +60,9 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
       verification_no_card = create(:user_verification, wants_card: false, born_at: nil)
 
       results = UserVerification.not_sended
-      expect(results).to include(verification_not_sent)
-      expect(results).not_to include(verification_sent)
-      expect(results).not_to include(verification_no_card)
+      expect(results.map(&:id)).to include(verification_not_sent.id)
+      expect(results.map(&:id)).not_to include(verification_sent.id)
+      expect(results.map(&:id)).not_to include(verification_no_card.id)
     end
   end
 
@@ -175,9 +183,9 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
     it 'updates verification born_at' do
       expect(verification1.reload.born_at).to be_nil
       get admin_envios_de_credenciales_generate_shipment_path, params: { max_reg: 10 }
-      # The code calls v.update(born_at: r.born_at) for each verification
-      # Check that the update logic exists in the code
-      expect(File.read(Rails.root.join("app/admin/credential_shipment.rb").to_s)).to include('v.update(born_at: r.born_at)')
+      # Se comprueba el efecto, no el texto del fuente: marcar la verificacion
+      # como enviada es lo que la saca del scope not_sended
+      expect(verification1.reload.born_at).to eq(verification1.user.born_at)
     end
 
     it 'uses tab separator in CSV' do
@@ -230,7 +238,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
                                           wants_card: true,
                                           born_at: 20.years.ago)
       get admin_envios_de_credenciales_generate_shipment_path, params: { max_reg: 100 }
-      expect(response.body).not_to include(verification_already_sent.user.id.to_s)
+      expect(shipped_user_ids(response.body)).not_to include(verification_already_sent.user.id.to_s)
     end
 
     it 'excludes verifications where wants_card is false' do
@@ -238,7 +246,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
                                      wants_card: false,
                                      born_at: nil)
       get admin_envios_de_credenciales_generate_shipment_path, params: { max_reg: 100 }
-      expect(response.body).not_to include(verification_no_card.user.id.to_s)
+      expect(shipped_user_ids(response.body)).not_to include(verification_no_card.user.id.to_s)
     end
 
     it 'sends data as attachment' do
@@ -252,7 +260,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
       expect(response.content_type).to include('charset=utf-8')
       # header=present is defined in code but may not appear in response content_type header
       # Verify it's in the code
-      expect(File.read(Rails.root.join("app/admin/credential_shipment.rb").to_s)).to include('header=present')
+      expect(File.read(Rails.root.join('app/admin/credential_shipment.rb').to_s)).to include('header=present')
     end
 
     it 'includes town and province names' do
@@ -285,7 +293,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
     end
 
     # FLAKY: This test passes individually but fails in full suite due to test pollution
-    xit 'uses CRC16 digest in credential code generation' do
+    it 'uses CRC16 digest in credential code generation' do
       # Test that the code generation logic works
       get admin_envios_de_credenciales_generate_shipment_path, params: { max_reg: 1 }
       expect(response).to have_http_status(:success)
@@ -350,17 +358,17 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
 
   describe 'CSV generation logic' do
     it 'creates CSV with tab separator' do
-      content = File.read(Rails.root.join("app/admin/credential_shipment.rb").to_s)
-      expect(content).to include("col_sep: \"\\t\"")
+      content = File.read(Rails.root.join('app/admin/credential_shipment.rb').to_s)
+      expect(content).to include('col_sep: "\\t"')
     end
 
     it 'encodes as UTF-8' do
-      content = File.read(Rails.root.join("app/admin/credential_shipment.rb").to_s)
+      content = File.read(Rails.root.join('app/admin/credential_shipment.rb').to_s)
       expect(content).to include("encoding: 'utf-8'")
     end
 
     it 'sends data with send_data' do
-      content = File.read(Rails.root.join("app/admin/credential_shipment.rb").to_s)
+      content = File.read(Rails.root.join('app/admin/credential_shipment.rb').to_s)
       expect(content).to include('send_data csv.encode')
     end
   end

@@ -5,7 +5,7 @@ module PlebisCms
     self.table_name = 'notices'
 
     validates :title, :body, presence: true
-    validates :link, allow_blank: true, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: 'must be a valid URL' }
+    validates :link, allow_blank: true, format: { with: URI::RFC2396_PARSER.make_regexp(%w[http https]), message: 'must be a valid URL' }
 
     default_scope { order(created_at: :desc) }
     paginates_per 5
@@ -31,7 +31,9 @@ module PlebisCms
 
       data = { title: title, message: message, url: link, msgcnt: '1', soundname: 'beep.wav' }
       # for every 1000 devices we send only a notification
-      PlebisCms::NoticeRegistrar.pluck(:registration_id).in_groups_of(1000) do |destination|
+      # BUG: in_groups_of rellena el ultimo grupo con nil salvo que se le diga
+      # que no, asi que se enviaban a GCM cientos de destinatarios nil
+      PlebisCms::NoticeRegistrar.pluck(:registration_id).in_groups_of(1000, false) do |destination|
         GCM.send_notification(destination, data)
       end
     end

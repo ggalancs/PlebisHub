@@ -4,6 +4,10 @@ require 'rails_helper'
 
 RSpec.describe PasswordsController, type: :controller do
   before do
+    # Si algun spec anterior recargo las rutas, Devise.mappings queda vacio y aqui
+    # se asignaria nil, provocando "Could not find devise mapping" de forma
+    # dependiente del orden de ejecucion.
+    Rails.application.reload_routes! if Devise.mappings[:user].nil?
     @request.env['devise.mapping'] = Devise.mappings[:user]
 
     # Use main app routes instead of custom route set
@@ -820,7 +824,7 @@ RSpec.describe PasswordsController, type: :controller do
       let(:test_error) { StandardError.new('Test error') }
 
       before do
-        test_error.set_backtrace(['line1', 'line2', 'line3', 'line4', 'line5', 'line6'])
+        test_error.set_backtrace(%w[line1 line2 line3 line4 line5 line6])
       end
 
       it 'logs error class name' do

@@ -35,10 +35,13 @@ class CensusFileParser
   private
 
   def parse_csv
-    data = CSV.parse(
-      Paperclip.io_adapters.for(@election.census_file).read,
-      headers: true
-    )
+    # BUG: la gema paperclip ya no esta en el Gemfile y `Paperclip` no existe en
+    # runtime, asi que esto lanzaba NameError y el parseo del censo estaba roto
+    # por completo (voto en papel y elecciones con censo por CSV).
+    # `census_file` es un adjunto de ActiveStorage desde la migracion.
+    return nil unless @election.census_file.attached?
+
+    data = CSV.parse(@election.census_file.download, headers: true)
 
     data.each do |row|
       result = yield(row)

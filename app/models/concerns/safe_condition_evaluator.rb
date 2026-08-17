@@ -40,6 +40,9 @@ module SafeConditionEvaluator
   # Whitelisted operators for boolean logic
   SAFE_OPERATORS = %w[&& || ! ( )].freeze
 
+  # Unica forma valida de una condicion: metodos predicado y operadores booleanos
+  TOKEN_PATTERN = /\w+\?|&&|\|\||!|\(|\)/
+
   module ClassMethods
     # Evaluate a condition string safely without eval()
     #
@@ -66,9 +69,16 @@ module SafeConditionEvaluator
 
     private
 
-    # Tokenize the condition string into method names and operators
+    # Tokenize the condition string into method names and operators.
+    # Cualquier texto que no encaje con la gramatica se rechaza: si se ignorase
+    # en silencio, una condicion mal escrita ("invalid_method") se quedaria sin
+    # tokens y se evaluaria como verdadera.
     def tokenize(condition_string)
-      condition_string.scan(/\w+\?|&&|\|\||!|\(|\)/)
+      tokens = condition_string.scan(TOKEN_PATTERN)
+      leftover = condition_string.gsub(TOKEN_PATTERN, '').gsub(/\s+/, '')
+      raise SecurityError, "Unsafe method in condition: #{leftover}" unless leftover.empty?
+
+      tokens
     end
 
     # Validate that all tokens are in the whitelist

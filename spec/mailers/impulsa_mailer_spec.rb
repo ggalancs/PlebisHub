@@ -87,7 +87,6 @@ RSpec.describe ImpulsaMailer, type: :mailer do
     end
 
     it 'formats the deadline date correctly' do
-      deadline = project.impulsa_edition.review_projects_until.to_date - 1.second
       expect(mail.body.encoded).to be_present
     end
 

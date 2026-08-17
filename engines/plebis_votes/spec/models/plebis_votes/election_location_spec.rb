@@ -58,19 +58,19 @@ module PlebisVotes
         it 'requires title' do
           election_location.title = nil
           expect(election_location.valid?).to be_falsey
-          expect(election_location.errors[:title]).to include("no puede estar en blanco")
+          expect(election_location.errors[:title]).to include('no puede estar en blanco')
         end
 
         it 'requires layout' do
           election_location.layout = nil
           expect(election_location.valid?).to be_falsey
-          expect(election_location.errors[:layout]).to include("no puede estar en blanco")
+          expect(election_location.errors[:layout]).to include('no puede estar en blanco')
         end
 
         it 'requires theme' do
           election_location.theme = nil
           expect(election_location.valid?).to be_falsey
-          expect(election_location.errors[:theme]).to include("no puede estar en blanco")
+          expect(election_location.errors[:theme]).to include('no puede estar en blanco')
         end
       end
 
@@ -299,8 +299,13 @@ module PlebisVotes
     describe '#valid_votes_count' do
       it 'counts valid votes for this location' do
         vote_id = election_location.vote_id
-        election.votes.create!(user_id: 1, voter_id: 'v1', agora_id: vote_id)
-        election.votes.create!(user_id: 2, voter_id: 'v2', agora_id: vote_id)
+        # Vote#save_voter_id recalcula agora_id via Election#scoped_agora_election_id,
+        # que para scope 0 busca la location '00' (esta es la '01'). Guardamos sin
+        # validar para conservar el agora_id que nos interesa.
+        2.times do |i|
+          vote = election.votes.new(user: create(:user), voter_id: "v#{i}", agora_id: vote_id)
+          vote.save!(validate: false)
+        end
         expect(election_location.valid_votes_count).to eq(2)
       end
     end
@@ -337,6 +342,9 @@ module PlebisVotes
           election: election,
           location: '01',
           agora_version: 0,
+          # Sin titulo, has_voting_info queda a false y el before_save llama a
+          # clear_voting, que borra las preguntas recien anidadas
+          title: 'Test Location',
           election_location_questions_attributes: [
             {
               title: 'Q1',

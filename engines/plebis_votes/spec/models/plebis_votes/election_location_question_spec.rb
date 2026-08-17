@@ -48,43 +48,43 @@ module PlebisVotes
       it 'requires title' do
         question.title = nil
         expect(question.valid?).to be_falsey
-        expect(question.errors[:title]).to include("can't be blank")
+        expect(question.errors[:title]).to include('no puede estar en blanco')
       end
 
       it 'requires voting_system' do
         question.voting_system = nil
         expect(question.valid?).to be_falsey
-        expect(question.errors[:voting_system]).to include("can't be blank")
+        expect(question.errors[:voting_system]).to include('no puede estar en blanco')
       end
 
       it 'requires winners' do
         question.winners = nil
         expect(question.valid?).to be_falsey
-        expect(question.errors[:winners]).to include("can't be blank")
+        expect(question.errors[:winners]).to include('no puede estar en blanco')
       end
 
       it 'requires minimum' do
         question.minimum = nil
         expect(question.valid?).to be_falsey
-        expect(question.errors[:minimum]).to include("can't be blank")
+        expect(question.errors[:minimum]).to include('no puede estar en blanco')
       end
 
       it 'requires maximum' do
         question.maximum = nil
         expect(question.valid?).to be_falsey
-        expect(question.errors[:maximum]).to include("can't be blank")
+        expect(question.errors[:maximum]).to include('no puede estar en blanco')
       end
 
       it 'requires totals' do
         question.totals = nil
         expect(question.valid?).to be_falsey
-        expect(question.errors[:totals]).to include("can't be blank")
+        expect(question.errors[:totals]).to include('no puede estar en blanco')
       end
 
       it 'requires options' do
         question.options = nil
         expect(question.valid?).to be_falsey
-        expect(question.errors[:options]).to include("can't be blank")
+        expect(question.errors[:options]).to include('no puede estar en blanco')
       end
 
       it 'is valid with all required attributes' do
@@ -154,8 +154,8 @@ module PlebisVotes
 
     describe '#options_headers' do
       it 'returns headers from column when set' do
-        question.options_headers = ['Header1', 'Header2']
-        expect(question.options_headers).to eq(['Header1', 'Header2'])
+        question.options_headers = %w[Header1 Header2]
+        expect(question.options_headers).to eq(%w[Header1 Header2])
       end
 
       it 'returns default headers when not set' do
@@ -167,7 +167,7 @@ module PlebisVotes
 
       it 'parses tab-separated headers' do
         question[:options_headers] = "Name\tDescription"
-        expect(question.options_headers).to eq(['Name', 'Description'])
+        expect(question.options_headers).to eq(%w[Name Description])
       end
     end
 

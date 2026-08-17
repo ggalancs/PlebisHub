@@ -275,9 +275,9 @@ RSpec.describe ElectionLocationQuestion, type: :model do
       it 'handles single option' do
         question = build(:election_location_question)
         question.options_headers = ['Text']
-        question.options = "Single Option"
+        question.options = 'Single Option'
 
-        expect(question[:options]).to eq("Single Option")
+        expect(question[:options]).to eq('Single Option')
       end
 
       it 'handles options with mixed whitespace' do
@@ -314,6 +314,15 @@ RSpec.describe ElectionLocationQuestion, type: :model do
 
   describe 'class methods' do
     describe '.headers' do
+      # `.headers` memoiza en la variable de clase @@headers. Estos ejemplos la
+      # pisan con un doble de los secrets y, sin esta limpieza, el valor falso
+      # sobrevive al ejemplo y lo hereda toda la suite: cualquier spec posterior
+      # que llame a #options_headers recibia ['cached'] en vez de ['text'].
+      # Solo saltaba con ciertas semillas, segun el orden de ejecucion.
+      after do
+        ElectionLocationQuestion.class_variable_set(:@@headers, nil)
+      end
+
       it 'returns agora options headers from Rails secrets' do
         # Mock the Rails secrets
         mock_secrets = double('secrets', agora: { 'options_headers' => { 'text' => 'Text', 'url' => 'URL' } })

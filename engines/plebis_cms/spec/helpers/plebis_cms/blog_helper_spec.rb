@@ -53,7 +53,7 @@ RSpec.describe PlebisCms::BlogHelper, type: :helper do
 
         it 'includes read more link when content is truncated' do
           allow(helper).to receive(:link_to).and_call_original
-          result = helper.formatted_content(post, 2)
+          helper.formatted_content(post, 2)
           expect(helper).to have_received(:link_to)
         end
 
@@ -65,7 +65,8 @@ RSpec.describe PlebisCms::BlogHelper, type: :helper do
         it 'generates read more link pointing to post' do
           allow(helper).to receive(:link_to).and_call_original
           helper.formatted_content(post, 2)
-          expect(helper).to have_received(:link_to).with(anything, post)
+          # The stub uses plebis_cms.post_path(post) which returns a URL string
+          expect(helper).to have_received(:link_to).with(anything, a_string_matching(%r{/brujula/}))
         end
 
         it 'wraps read more link in paragraph tag' do
@@ -380,8 +381,13 @@ RSpec.describe PlebisCms::BlogHelper, type: :helper do
   end
 
   describe 'module structure' do
-    it 'includes AutoHtml module' do
-      expect(PlebisCms::BlogHelper.included_modules).to include(AutoHtml)
+    # Antes se comprobaba `include AutoHtml`. En auto_html 2.x ese modulo es
+    # solo un espacio de nombres sin metodos de instancia, asi que incluirlo no
+    # aportaba nada: el que de verdad transforma el texto es ContentPipeline.
+    it 'delega la transformacion del texto en ContentPipeline' do
+      post = create(:post, content: 'Texto')
+      expect(PlebisCms::ContentPipeline).to receive(:content).with('Texto').and_return('<p>Texto</p>')
+      helper.formatted_content(post)
     end
 
     it 'is a module' do

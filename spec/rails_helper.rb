@@ -9,28 +9,12 @@ SimpleCov.start 'rails' do
   add_filter '/config/'
   add_filter '/vendor/'
 
-  # Exclude dead code files - these are duplicates of engine concerns that are not loaded
-  # The actual implementations live in engines/plebis_impulsa/app/models/plebis_impulsa/concerns/
-  add_filter 'app/models/concerns/impulsa_project_wizard.rb'
-  add_filter 'app/models/concerns/impulsa_project_states.rb'
-  add_filter 'app/models/concerns/impulsa_project_evaluation.rb'
-
   # Exclude backward compatibility alias controllers - they just inherit from engine controllers
   # The actual implementations are tested via the engine controller specs
   add_filter 'app/controllers/microcredit_controller.rb'
 
-  # Exclude disabled/legacy controllers - routes are commented out or conditionally disabled
-  # SupportsController: route commented out, functionality moved to PlebisProposals engine
-  add_filter 'app/controllers/supports_controller.rb'
-  # ProposalsController: routes commented out, functionality moved to PlebisProposals engine
-  add_filter 'app/controllers/proposals_controller.rb'
   # OpenIdController: conditionally enabled via secrets.openid["enabled"], disabled in test
   add_filter 'app/controllers/open_id_controller.rb'
-
-  # Exclude helpers that are intentionally stubbed in tests
-  # BlogHelper: uses auto_html gem which doesn't work in test environment
-  # The stub in spec/support/blog_helper_stub.rb replicates the same logic and is tested instead
-  add_filter 'engines/plebis_cms/app/helpers/plebis_cms/blog_helper.rb'
 
   # Exclude dead concern - methods are overridden by direct definitions in User model
   # The User model (app/models/user.rb) defines still_militant?, militant_at?, etc. directly
@@ -52,8 +36,12 @@ SimpleCov.start 'rails' do
   # Current: 65.01% - excellent progress!
   # Adjusted to current level to allow passing CI
   # Next target: 70%, then 80%, then 90%
-  minimum_coverage 65
-  minimum_coverage_by_file 40
+  # Skipped when running partial suites (e.g. during a Rails upgrade), where a
+  # subset of specs naturally reports low global coverage.
+  unless ENV['SKIP_COVERAGE_CHECK']
+    minimum_coverage 65
+    minimum_coverage_by_file 40
+  end
 end
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
@@ -182,4 +170,12 @@ RSpec.configure do |config|
   # Webmock configuration - allow connections to localhost for Capybara
   require 'webmock/rspec'
   WebMock.disable_net_connect!(allow_localhost: true)
+end
+
+# shoulda-matchers: usado por los specs de modelos de la app y de los engines.
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+    with.library :rails
+  end
 end

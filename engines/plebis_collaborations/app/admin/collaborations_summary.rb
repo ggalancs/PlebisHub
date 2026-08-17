@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ActiveAdmin.register_page 'collaborations_summary', namespace: :admin do
+ActiveAdmin.register_page 'collaborations_summary' do
   menu parent: 'Colaboraciones', label: 'Resumen de colaboraciones'
 
   content title: 'Resumen de colaboraciones' do

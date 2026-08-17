@@ -112,14 +112,14 @@ RSpec.describe 'ImpulsaProject Admin', type: :request do
       end
 
       it 'marks project for review when markable' do
-        allow_any_instance_of(ImpulsaProject).to receive(:markable_for_review?).and_return(true)
+        allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:markable_for_review?).and_return(true)
         expect do
           post review_admin_impulsa_edition_impulsa_project_path(impulsa_edition, impulsa_project)
         end.to change { impulsa_project.reload.state }.to('review')
       end
 
       it 'sets flash notice' do
-        allow_any_instance_of(ImpulsaProject).to receive(:markable_for_review?).and_return(true)
+        allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:markable_for_review?).and_return(true)
         post review_admin_impulsa_edition_impulsa_project_path(impulsa_edition, impulsa_project)
         expect(flash[:notice]).to eq('El proyecto ha sido marcado para revisión.')
       end
@@ -147,7 +147,7 @@ RSpec.describe 'ImpulsaProject Admin', type: :request do
       before do
         FileUtils.mkdir_p(File.dirname(test_file_path))
         File.write(test_file_path, 'test content')
-        allow_any_instance_of(ImpulsaProject).to receive(:wizard_path).with('group1', 'field4').and_return(test_file_path.to_s)
+        allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:wizard_path).with('group1', 'field4').and_return(test_file_path.to_s)
       end
 
       after do
@@ -300,8 +300,8 @@ RSpec.describe 'ImpulsaProject Admin', type: :request do
         end
 
         it 'marks as validable when no errors and sends email' do
-          allow_any_instance_of(ImpulsaProject).to receive(:reviewable?).and_return(true)
-          allow_any_instance_of(ImpulsaProject).to receive(:wizard_has_errors?).and_return(false)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:reviewable?).and_return(true)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:wizard_has_errors?).and_return(false)
           allow(ImpulsaMailer).to receive_message_chain(:on_validable, :deliver_now)
 
           put admin_impulsa_edition_impulsa_project_path(impulsa_edition, impulsa_project),
@@ -311,8 +311,8 @@ RSpec.describe 'ImpulsaProject Admin', type: :request do
         end
 
         it 'marks as fixes when has errors and sends email' do
-          allow_any_instance_of(ImpulsaProject).to receive(:reviewable?).and_return(true)
-          allow_any_instance_of(ImpulsaProject).to receive(:wizard_has_errors?).with(ignore_state: true).and_return(true)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:reviewable?).and_return(true)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:wizard_has_errors?).with(ignore_state: true).and_return(true)
           allow(ImpulsaMailer).to receive_message_chain(:on_fixes, :deliver_now)
 
           put admin_impulsa_edition_impulsa_project_path(impulsa_edition, impulsa_project),
@@ -328,8 +328,8 @@ RSpec.describe 'ImpulsaProject Admin', type: :request do
         end
 
         it 'marks as validated when evaluation_action_ok and sends email' do
-          allow_any_instance_of(ImpulsaProject).to receive(:validable?).and_return(true)
-          allow_any_instance_of(ImpulsaProject).to receive(:evaluation_result?).and_return(true)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:validable?).and_return(true)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:evaluation_result?).and_return(true)
           allow(ImpulsaMailer).to receive_message_chain(:on_validated, :deliver_now)
 
           put admin_impulsa_edition_impulsa_project_path(impulsa_edition, impulsa_project),
@@ -339,8 +339,8 @@ RSpec.describe 'ImpulsaProject Admin', type: :request do
         end
 
         it 'marks as invalidated when evaluation_action_ko and sends email' do
-          allow_any_instance_of(ImpulsaProject).to receive(:validable?).and_return(true)
-          allow_any_instance_of(ImpulsaProject).to receive(:evaluation_result?).and_return(true)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:validable?).and_return(true)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:evaluation_result?).and_return(true)
           allow(ImpulsaMailer).to receive_message_chain(:on_invalidated, :deliver_now)
 
           put admin_impulsa_edition_impulsa_project_path(impulsa_edition, impulsa_project),
@@ -356,8 +356,8 @@ RSpec.describe 'ImpulsaProject Admin', type: :request do
         end
 
         it 'assigns evaluator to current user' do
-          allow_any_instance_of(ImpulsaProject).to receive(:validable?).and_return(true)
-          allow_any_instance_of(ImpulsaProject).to receive(:current_evaluator).with(admin_user.id).and_return(1)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:validable?).and_return(true)
+          allow_any_instance_of(PlebisImpulsa::ImpulsaProject).to receive(:current_evaluator).with(admin_user.id).and_return(1)
 
           put admin_impulsa_edition_impulsa_project_path(impulsa_edition, impulsa_project),
               params: { impulsa_project: { name: 'Updated' }, validable: 'true' }

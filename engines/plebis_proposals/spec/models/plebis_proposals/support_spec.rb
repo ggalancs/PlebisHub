@@ -11,7 +11,10 @@ module PlebisProposals
 
     describe 'validations' do
       subject { create(:support) }
-      it { is_expected.to validate_uniqueness_of(:user_id).scoped_to(:proposal_id) }
+      it {
+        is_expected.to validate_uniqueness_of(:user_id).scoped_to(:proposal_id)
+                                                       .with_message('has already supported this proposal')
+      }
     end
 
     describe 'table name' do

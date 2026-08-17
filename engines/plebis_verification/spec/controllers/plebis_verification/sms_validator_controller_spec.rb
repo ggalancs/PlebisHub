@@ -6,11 +6,17 @@ module PlebisVerification
   RSpec.describe SmsValidatorController, type: :controller do
     routes { PlebisVerification::Engine.routes }
 
-    let(:user) { create(:user) }
+    # El telefono debe estar confirmado hace mas de 3 meses:
+    #  - con sms_confirmed_at reciente, can_change_phone? es false y el
+    #    before_action can_change_phone corta la peticion
+    #  - con sms_confirmed_at nil, ApplicationController#unresolved_issues detecta
+    #    el telefono sin confirmar y redirige a paso1 antes de llegar a la accion
+    # Antes se stubeaba can_change_phone? sobre `user`, pero current_user es otra
+    # instancia cargada de la sesion, asi que el stub nunca aplicaba.
+    let(:user) { create(:user, sms_confirmed_at: 4.months.ago) }
 
     before do
       sign_in user
-      allow(user).to receive(:can_change_phone?).and_return(true)
       # Stub route helpers that reference main app
       allow(controller).to receive(:root_path).and_return('/')
       allow(controller).to receive(:new_user_session_path).and_return('/users/sign_in')
@@ -22,23 +28,25 @@ module PlebisVerification
 
         it 'redirects to sign in for step1' do
           get :step1
-          expect(response).to redirect_to(new_user_session_path)
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
 
         it 'redirects to sign in for phone' do
-          post :phone, params: { user: { unconfirmed_phone: '123456789' } }
-          expect(response).to redirect_to(new_user_session_path)
+          post :phone, params: { user: { unconfirmed_phone: '612345678' } }
+          expect(response).to redirect_to(main_app.new_user_session_url)
         end
       end
     end
 
     describe 'rate limiting' do
       context 'when user cannot change phone' do
-        before { allow(user).to receive(:can_change_phone?).and_return(false) }
+        # can_change_phone? es false cuando el telefono se confirmo hace menos de
+        # 3 meses. Stubearlo sobre `user` no servia: current_user es otra instancia.
+        let(:user) { create(:user, sms_confirmed_at: 1.day.ago) }
 
         it 'redirects to root' do
           get :step1
-          expect(response).to redirect_to(root_path)
+          expect(response).to redirect_to(main_app.root_path)
         end
 
         it 'sets error flash' do
@@ -82,7 +90,7 @@ module PlebisVerification
 
     describe 'GET #step2' do
       context 'with unconfirmed phone' do
-        before { user.update(unconfirmed_phone: '123456789') }
+        before { user.update(unconfirmed_phone: '612345678') }
 
         it 'renders step2 template' do
           get :step2
@@ -114,7 +122,7 @@ module PlebisVerification
 
       context 'error handling' do
         before do
-          user.update(unconfirmed_phone: '123456789')
+          user.update(unconfirmed_phone: '612345678')
           allow(controller).to receive(:render).and_raise(StandardError)
         end
 
@@ -127,7 +135,7 @@ module PlebisVerification
     describe 'GET #step3' do
       context 'with unconfirmed phone and token' do
         before do
-          user.update(unconfirmed_phone: '123456789', sms_confirmation_token: '123456')
+          user.update(unconfirmed_phone: '612345678', sms_confirmation_token: '123456')
         end
 
         it 'renders step3 template' do
@@ -159,7 +167,7 @@ module PlebisVerification
       end
 
       context 'without sms token' do
-        before { user.update(unconfirmed_phone: '123456789') }
+        before { user.update(unconfirmed_phone: '612345678') }
 
         it 'redirects to step2' do
           get :step3
@@ -174,12 +182,13 @@ module PlebisVerification
     end
 
     describe 'POST #phone' do
-      let(:phone_number) { '123456789' }
+      let(:phone_number) { '612345678' }
 
       context 'with valid phone number' do
         it 'updates unconfirmed_phone' do
           post :phone, params: { user: { unconfirmed_phone: phone_number } }
-          expect(user.reload.unconfirmed_phone).to eq(phone_number)
+          # El modelo normaliza el numero al formato internacional.
+          expect(user.reload.unconfirmed_phone).to eq('00+34612345678')
         end
 
         it 'sets sms token' do
@@ -236,7 +245,7 @@ module PlebisVerification
 
     describe 'POST #captcha' do
       before do
-        user.update(unconfirmed_phone: '123456789')
+        user.update(unconfirmed_phone: '612345678')
         allow(controller).to receive(:current_user).and_return(user)
       end
 
@@ -308,18 +317,18 @@ module PlebisVerification
 
     describe 'POST #valid' do
       before do
-        user.update(unconfirmed_phone: '123456789', sms_confirmation_token: '123456')
+        user.update(unconfirmed_phone: '612345678', sms_confirmation_token: '123456')
         allow(controller).to receive(:current_user).and_return(user)
       end
 
       context 'with valid token' do
         before do
-          allow(user).to receive(:check_sms_token).and_return(true)
+          allow_any_instance_of(User).to receive(:check_sms_token).and_return(true)
         end
 
-        it 'redirects to authenticated_root_path' do
+        it 'redirects to main_app.authenticated_root_path' do
           post :valid, params: { user: { sms_user_token_given: '123456' } }
-          expect(response).to redirect_to(authenticated_root_path)
+          expect(response).to redirect_to(main_app.authenticated_root_path(locale: I18n.locale))
         end
 
         it 'sets success notice' do
@@ -335,7 +344,7 @@ module PlebisVerification
 
       context 'with invalid token' do
         before do
-          allow(user).to receive(:check_sms_token).and_return(false)
+          allow_any_instance_of(User).to receive(:check_sms_token).and_return(false)
         end
 
         it 'renders step3' do

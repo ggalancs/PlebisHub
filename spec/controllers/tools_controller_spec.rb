@@ -510,7 +510,7 @@ RSpec.describe ToolsController, type: :controller do
 
     it 'uses frozen_string_literal for performance and security' do
       file_content = File.read(Rails.root.join('app/controllers/tools_controller.rb'))
-      expect(file_content).to start_with("# frozen_string_literal: true")
+      expect(file_content).to start_with('# frozen_string_literal: true')
     end
   end
 

@@ -21,7 +21,7 @@ module Gamification
     describe 'scopes' do
       describe '.recent' do
         it 'orders by earned_at descending' do
-          old_badge = create(:gamification_user_badge, earned_at: 2.days.ago)
+          create(:gamification_user_badge, earned_at: 2.days.ago)
           new_badge = create(:gamification_user_badge, earned_at: 1.hour.ago)
 
           result = UserBadge.recent.pluck(:id)

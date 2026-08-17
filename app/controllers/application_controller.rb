@@ -196,12 +196,18 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # NOTA: los redirects de esta clase usan `main_app.root_url` y no `root_url`.
+  # Los 8 engines montados heredan de ApplicationController, y en un controlador
+  # de engine los url helpers se resuelven contra el route set del propio engine,
+  # que no define `root`. Con `root_url` a secas estos redirects lanzaban
+  # ActionController::UrlGenerationError en lugar de redirigir.
+
   # Handle CanCan authorization failures
   rescue_from CanCan::AccessDenied do |exception|
     log_security_event('access_denied_cancan',
                        user_id: current_user&.id,
                        exception_message: exception.message)
-    redirect_to root_url, alert: exception.message
+    redirect_to main_app.root_url, alert: exception.message
   end
 
   # Generic access denied handler
@@ -209,7 +215,7 @@ class ApplicationController < ActionController::Base
     log_security_event('access_denied',
                        user_id: current_user&.id,
                        exception_message: exception.message)
-    redirect_to root_url, alert: exception.message
+    redirect_to main_app.root_url, alert: exception.message
   end
 
   # Authenticate admin users
@@ -223,7 +229,7 @@ class ApplicationController < ActionController::Base
     )
       log_security_event('admin_authentication_failed',
                          user_id: current_user&.id)
-      redirect_to root_url, flash: { error: t('plebisbrand.unauthorized') }
+      redirect_to main_app.root_url, flash: { error: t('plebisbrand.unauthorized') }
     end
   end
 

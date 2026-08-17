@@ -28,7 +28,7 @@ class ErrorsController < ApplicationController
     '408' => :request_timeout,
     '409' => :conflict,
     '410' => :gone,
-    '422' => :unprocessable_entity,
+    '422' => :unprocessable_content,
     '429' => :too_many_requests,
 
     # 5xx Server Errors

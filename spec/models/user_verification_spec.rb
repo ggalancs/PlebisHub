@@ -75,11 +75,11 @@ RSpec.describe UserVerification, type: :model do
 
         results = UserVerification.verifying
 
-        expect(results).to include(pending)
-        expect(results).to include(issues)
-        expect(results).to include(paused)
-        expect(results).not_to include(accepted)
-        expect(results).not_to include(rejected)
+        expect(results.map(&:id)).to include(pending.id)
+        expect(results.map(&:id)).to include(issues.id)
+        expect(results.map(&:id)).to include(paused.id)
+        expect(results.map(&:id)).not_to include(accepted.id)
+        expect(results.map(&:id)).not_to include(rejected.id)
       end
     end
 
@@ -90,8 +90,8 @@ RSpec.describe UserVerification, type: :model do
 
         results = UserVerification.not_discarded
 
-        expect(results).to include(pending)
-        expect(results).not_to include(discarded)
+        expect(results.map(&:id)).to include(pending.id)
+        expect(results.map(&:id)).not_to include(discarded.id)
       end
     end
 
@@ -103,9 +103,9 @@ RSpec.describe UserVerification, type: :model do
 
         results = UserVerification.discardable
 
-        expect(results).to include(pending)
-        expect(results).to include(issues)
-        expect(results).not_to include(accepted)
+        expect(results.map(&:id)).to include(pending.id)
+        expect(results.map(&:id)).to include(issues.id)
+        expect(results.map(&:id)).not_to include(accepted.id)
       end
     end
 
@@ -117,9 +117,9 @@ RSpec.describe UserVerification, type: :model do
 
         results = UserVerification.not_sended
 
-        expect(results).to include(not_sent)
-        expect(results).not_to include(sent)
-        expect(results).not_to include(no_card)
+        expect(results.map(&:id)).to include(not_sent.id)
+        expect(results.map(&:id)).not_to include(sent.id)
+        expect(results.map(&:id)).not_to include(no_card.id)
       end
     end
   end
@@ -134,7 +134,7 @@ RSpec.describe UserVerification, type: :model do
     describe 'terms_of_service' do
       # Rails 7.2: Acceptance validations expect string "1" (like HTML checkbox behavior)
       it 'accepts "1" string value for acceptance validation' do
-        verification = UserVerification.new(user: user, terms_of_service: "1")
+        verification = UserVerification.new(user: user, terms_of_service: '1')
         allow(verification).to receive(:not_require_photos?).and_return(true)
         expect(verification.valid?).to be true
         expect(verification.errors[:terms_of_service]).to be_empty
@@ -391,13 +391,14 @@ RSpec.describe UserVerification, type: :model do
       it 'returns current status when pending' do
         verification = create(:user_verification, user: user, status: :pending)
         allow(user).to receive(:photos_unnecessary?).and_return(false)
-        expect(verification.determine_initial_status).to eq('pending')
+        # determine_initial_status normaliza a simbolo en todas sus ramas
+        expect(verification.determine_initial_status).to eq(:pending)
       end
 
       it 'returns current status when accepted' do
         verification = create(:user_verification, user: user, status: :accepted)
         allow(user).to receive(:photos_unnecessary?).and_return(false)
-        expect(verification.determine_initial_status).to eq('accepted')
+        expect(verification.determine_initial_status).to eq(:accepted)
       end
     end
 

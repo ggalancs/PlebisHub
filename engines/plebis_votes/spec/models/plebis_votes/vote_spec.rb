@@ -13,7 +13,20 @@ module PlebisVotes
         agora_election_id: 12_345,
         scope: 0,
         counter_key: 'test_counter_key_123'
-      )
+      ).tap do |e|
+        # `Vote#save_voter_id` resuelve la sede via
+        # `election_locations.find_by(location: ...)`, asi que sin ninguna sede
+        # cualquier `save` revienta. La factory :vote hace lo mismo en un
+        # after(:build); aqui el voto se construye a mano y hay que replicarlo.
+        #
+        # Se instancia PlebisVotes::ElectionLocation en lugar de usar la factory
+        # :election_location porque esta construye la clase de la aplicacion,
+        # cuyo belongs_to :election rechaza una PlebisVotes::Election.
+        PlebisVotes::ElectionLocation.new(
+          election: e, location: '00', agora_version: 0, new_agora_version: 0,
+          layout: 'simple', theme: 'default'
+        ).save(validate: false)
+      end
     end
 
     let(:vote) do
@@ -74,11 +87,15 @@ module PlebisVotes
         vote.save!
       end
 
-      it 'requires voter_id' do
+      it 'regenera voter_id cuando se deja en blanco' do
+        # `before_validation :save_voter_id` lo rellena siempre, asi que nunca puede
+        # quedar en blanco: al regenerarlo de forma determinista para el mismo par
+        # (usuario, eleccion) choca con el voto ya existente del before.
         vote_without_id = Vote.new(user: user, election: election)
         vote_without_id.voter_id = nil
         expect(vote_without_id.valid?).to be_falsey
-        expect(vote_without_id.errors[:voter_id]).to include("can't be blank")
+        expect(vote_without_id.voter_id).to be_present
+        expect(vote_without_id.errors[:voter_id]).to include('ya está en uso')
       end
 
       it 'requires unique voter_id scoped to user' do
@@ -88,7 +105,7 @@ module PlebisVotes
           voter_id: vote.voter_id
         )
         expect(duplicate_vote.valid?).to be_falsey
-        expect(duplicate_vote.errors[:voter_id]).to include('has already been taken')
+        expect(duplicate_vote.errors[:voter_id]).to include('ya está en uso')
       end
 
       it 'allows same voter_id for different users' do

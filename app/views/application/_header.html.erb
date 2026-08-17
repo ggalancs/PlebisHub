@@ -23,13 +23,13 @@
             </a>
           </li>
           <li>
-            <%= nav_menu_link_to "Inicio", "home", root_path, [root_path], title: "Inicio" %>
+            <%= nav_menu_link_to "Inicio", "home", main_app.root_path, [main_app.root_path], title: "Inicio" %>
           </li>
           <li>
-            <%= nav_menu_link_to "Datos personales", "user", edit_user_registration_path, [edit_user_registration_path], title: "Datos personales" %>
+            <%= nav_menu_link_to "Datos personales", "user", main_app.edit_user_registration_path, [main_app.edit_user_registration_path], title: "Datos personales" %>
           </li>
           <li>
-            <%= nav_menu_link_to "Carnet digital con QR", "qrcode", qr_code_path, [qr_code_path], title: "Código QR", layout: false if current_user.can_show_qr?%>
+            <%= nav_menu_link_to "Carnet digital con QR", "qrcode", main_app.qr_code_path, [main_app.qr_code_path], title: "Código QR", layout: false if current_user.can_show_qr?%>
           </li>
           <li>
             <%= nav_menu_link_to "Colabora", "euro", plebis_collaborations.new_collaboration_path, [plebis_collaborations.new_collaboration_path], title: "Colabora"  %>
@@ -38,7 +38,7 @@
             <%= nav_menu_link_to "Microcréditos", "leaf", plebis_microcredit.microcredit_path, [plebis_microcredit.microcredit_path], title: "Microcréditos"  %>
           </li>
           <li>
-            <%= nav_menu_link_to "Salir", "sign-out", destroy_user_session_path, [destroy_user_session_path], method: :delete, data: { turbo_method: :delete }, title: "Cerrar sesión" %>
+            <%= nav_menu_link_to "Salir", "sign-out", main_app.destroy_user_session_path, [main_app.destroy_user_session_path], method: :delete, data: { turbo_method: :delete }, title: "Cerrar sesión" %>
           </li>
         </ul>
       </nav><%#.menu%>
