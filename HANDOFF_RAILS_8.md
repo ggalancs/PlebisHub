@@ -44,23 +44,26 @@ recrearla: `RAILS_ENV=test DATABASE_NAME=plebis_eng bundle exec rails db:create 
 
 ## 2. Lo que falta
 
-### 2.1 Cobertura no verificada
+### 2.1 Cobertura reactivada
 
-Las condiciones 1 y 2 dan 0 fallos sobre 12.416 ejemplos, pero hay **509
-pendientes** (preexistentes, de diciembre de 2025, ninguno introducido en este
-trabajo). Son casi todos ficheros de request/view saltados enteros:
+La suite tenía **509 ejemplos saltados**. Se revisaron todos y se reactivaron los
+que no tenían motivo real. El saldo:
 
-```
-81  spec/requests/notice_spec.rb          "Tests check specific HTML structure and content"
-77  spec/controllers/open_id_controller_spec.rb  "OpenID feature is conditionally disabled in test"
-76  spec/requests/blog_spec.rb            "Tests check specific blog HTML structure"
-63  spec/requests/page_faq_spec.rb        "Tests check specific FAQ content that changes"
-...
-```
+| Fichero saltado                                             | Ejemplos | ¿Estaba justificado?                                                    |
+| ----------------------------------------------------------- | -------: | ----------------------------------------------------------------------- |
+| `spec/requests/blog_spec.rb` y otros 8 de request           |      280 | **No.** Pasaban tal cual                                                |
+| `spec/requests/notice_spec.rb`                              |       81 | **No.** 79 pasaban; 2 eran specs mal escritos                           |
+| `spec/controllers/open_id_controller_spec.rb`               |       77 | **No.** Bastaba activar OpenID en los secrets de test                   |
+| `spec/controllers/api/v1/brand_settings_controller_spec.rb` |       21 | **No.** Pasaba entero                                                   |
+| 16 `xit` sueltos                                            |       16 | **No** en 10 de ellos                                                   |
+| `spec/requests/devise_unlocks_new_spec.rb` + mailer         |       18 | **Sí**: `unlock_strategy = :time`, Devise no genera rutas de desbloqueo |
 
-O sea: **la renderización de esas páginas no la verifica la suite**. Si algo se
-rompió ahí durante el upgrade, el «0 fallos» no lo diría. Reactivarlas es un
-bloque de trabajo aparte.
+O sea: de 509 pendientes quedan **18**, y los 18 con el motivo verificado, no
+supuesto. Reactivarlos destapó 7 bugs de producción (los números 32 a 38).
+
+La lección para futuras revisiones: **un `skip` con un motivo plausible no es un
+motivo verificado**. Casi todos decían «comprueban estructura HTML concreta» y
+casi ninguno era cierto.
 
 ### 2.2 Despliegue
 
@@ -109,12 +112,24 @@ Corregir los bugs cambia lo que hace la aplicación. Lo relevante para producci�
    `Post`, `ParticipationTeam`): sus ficheros vivían solo en los engines, que
    ActiveAdmin nunca cargaba. Ahora aparecen en el menú.
 6. **Los códigos de credencial** de ~11 % de los usuarios cambian (bug 4).
-7. **Los teléfonos válidos se rechazaban y los inválidos se aceptaban** en los
-   formularios de Impulsa: los datos ya guardados pueden ser inválidos.
+   Además, el envío de credenciales marcaba la verificación como enviada con un
+   `update` que corría las validaciones: si fallaban, el guardado fallaba en
+   silencio y **ese usuario volvía a entrar en el siguiente envío** (bug 32 de la
+   tanda anterior). Conviene revisar si hay usuarios que hayan recibido la
+   credencial impresa más de una vez.
+7. **OpenID vuelve a funcionar.** Estaba completamente roto (bugs 32-35). Si
+   había partes confiadas integradas contra él, llevaban tiempo sin poder
+   autenticar. Ojo: es OpenID 2.0, **deprecado desde 2014**; el propio
+   controlador recomienda migrar a OIDC.
+8. **El censo por CSV y el voto en papel vuelven a funcionar** (bug 36).
+9. **Los informes de verificación dejan de salir vacíos** (bug 37): pasan a
+   devolver 52 provincias y 227 municipios.
+10. **Los teléfonos válidos se rechazaban y los inválidos se aceptaban** en los
+    formularios de Impulsa: los datos ya guardados pueden ser inválidos.
 
 ---
 
-## 4. Los 31 bugs de PRODUCCIÓN encontrados
+## 4. Los 38 bugs de PRODUCCIÓN encontrados
 
 Ninguno lo causó el cambio de versión. El upgrade los destapó al obligar a
 ejecutar código y tests que nadie ejecutaba.
@@ -190,6 +205,35 @@ ejecutar código y tests que nadie ejecutaba.
 16. **`Collaboration#set_warning!`** perdió la guarda `persisted?`:
     `check_spanish_bic` lo llama desde un `before_save`.
 17. **`Collaboration#default_url_options`** desapareció: enlaces sin dominio.
+
+### OpenID (todos destapados al activarlo en los secrets de test)
+
+32. **El proveedor OpenID no funcionaba en absoluto** — `decode_request` recibía
+    `params`, que desde Rails 5 es `ActionController::Parameters` y no un Hash:
+    ruby-openid le llamaba a `length` y **toda** petición contestaba 500.
+33. **`/user/xrds` era inalcanzable** — `/user/:id` se declaraba antes y la
+    capturaba con `id="xrds"`, así que quien pedía el documento XRDS recibía la
+    página HTML de identidad.
+34. **Una petición sin parámetros devolvía 500** en vez de la página informativa
+    que el propio código construye: `render_response` llamaba a `needs_signing`
+    sobre un `WebResponse`, que no lo tiene.
+35. **`is_authorized` devolvía `nil`** en vez de `false` cuando no hay usuario.
+
+### Censo, informes y admin
+
+36. **El parseo del censo por CSV estaba roto** —
+    `app/services/census_file_parser.rb` usaba `Paperclip.io_adapters`, pero la
+    gema ya no está en el Gemfile y la constante **no existe en runtime**:
+    `NameError`. Afectaba al voto en papel y a las elecciones con censo CSV.
+    `census_file` ya es un adjunto de ActiveStorage.
+37. **Los tres informes de verificación devolvían vacío en silencio** — pasaban
+    SQL crudo a `pluck`, que Rails 8 rechaza con `UnknownAttributeReference`, y
+    el `rescue` se lo tragaba. Tras el arreglo: 52 provincias y 227 municipios.
+38. **`OpenStruct.human_attribute_name` con firma incompatible** —
+    `loan_renewal_service.rb` reabre `OpenStruct` (clase global) y la definía con
+    un solo argumento cuando Rails la llama con `(attribute, options = {})`.
+    Dejaba en **500 permanente** la ficha de Activaciones de Engines del admin.
+    En producción el eager loading carga siempre ese fichero.
 
 ### Otros
 
