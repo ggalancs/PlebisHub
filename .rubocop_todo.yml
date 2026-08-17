@@ -1240,6 +1240,7 @@ Rails/ShortI18n:
 Rails/SkipsModelValidations:
   Exclude:
     - 'app/admin/credential_shipment.rb'
+    - 'lib/tasks/plebisbrand/collaboration_status.rake'
     - 'app/admin/theme_settings.rb'
     - 'app/controllers/api/v1/themes_controller.rb'
     - 'app/controllers/legacy_password_controller.rb'

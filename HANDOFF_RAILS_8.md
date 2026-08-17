@@ -79,25 +79,21 @@ Antes de desplegar conviene leer §3: hay cambios de comportamiento visibles.
 Corregir los bugs cambia lo que hace la aplicación. Lo relevante para producción:
 
 1. **Toda colaboración nueva nacía con estado 2 («Sin confirmar») en vez de 0
-   («Sin pago»).** Al investigarlo resultó no ser una regresión de la fase B sino
-   un bug que **estuvo años en producción**:
-   - hasta el **2020-11-10** el valor por defecto de la columna era 0, así que el
-     `after_create` con `self.status = 0` (que no persiste) era inocuo;
-   - la migración `20201110125929` cambió el defecto a **2**, y desde entonces
-     toda colaboración nueva quedó con 2;
-   - el **2025-11-30** (`d4820c38`, ya en master) se cambió a `before_create` y
-     dejó de ocurrir;
-   - la consolidación de la fase B lo reintrodujo **solo en esta rama**, que nunca
-     se desplegó.
+   («Sin pago»)** entre el 2020-11-10 y el 2025-11-30. Comprobado sobre la
+   aplicación: con estado 2, `/colabora/confirmar` redirige a `/colabora/ver`, así
+   que **el usuario nunca llegaba a la pantalla de pago**.
 
-   Importa porque `has_payment?` es `status.positive?`: una colaboración con 2
-   afirma tener pago sin tenerlo, y de ahí dependen las ramas de `edit` y
-   `confirm`. **Los registros de esa ventana de 5 años no se han migrado.** Para
-   medir el alcance antes de decidir, hay una tarea de solo lectura:
+   En **este** repositorio no hay datos afectados: es un fork que nunca se ha
+   llevado a producción. Para una instalación que sí venga de Participa, hay
+   herramienta y guía:
 
    ```bash
-   bundle exec rake plebisbrand:diagnose_collaboration_status
+   bundle exec rake plebisbrand:collaboration_status:analyze              # solo lectura
+   bundle exec rake plebisbrand:collaboration_status:migrate              # simulacro
+   bundle exec rake plebisbrand:collaboration_status:migrate CONFIRM=SI   # aplica
    ```
+
+   Ver `docs/MIGRACION_PARTICIPA_A_PLEBISHUB.md`.
 
 2. **La sección `/colabora` entera devolvía error 500** (`ActionNotFound`). Al
    arreglarla vuelve a estar accesible.
