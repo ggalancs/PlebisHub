@@ -2,6 +2,8 @@
 
 require 'rails_helper'
 
+# `config.unlock_strategy = :time` en config/initializers/devise.rb: Devise no
+# genera rutas de desbloqueo. Verificado al reactivarlo: 12 de 16 fallan por eso.
 RSpec.describe 'Devise Unlocks New', type: :request, skip: 'Unlock routes not enabled' do
   describe 'GET /es/unlock/nuevo' do
     describe 'A. RENDERING BÁSICO' do

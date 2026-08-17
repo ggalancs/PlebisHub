@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Notice Index', type: :request, skip: 'Tests check specific HTML structure and content' do
+RSpec.describe 'Notice Index', type: :request do
   include Capybara::RSpecMatchers
 
   let(:user) { create(:user) }
@@ -379,8 +379,10 @@ RSpec.describe 'Notice Index', type: :request, skip: 'Tests check specific HTML 
         end
 
         it 'no permite atributos onerror' do
+          # Acotado a los avisos: el layout tiene su propio <img onerror> para
+          # ocultar el logo si no carga, y buscarlo en toda la pagina lo casaba
           parsed = Nokogiri::HTML(response.body)
-          elements_with_onerror = parsed.css('[onerror]')
+          elements_with_onerror = parsed.css('.box-notif [onerror]')
           expect(elements_with_onerror).to be_empty
         end
       end
@@ -504,7 +506,9 @@ RSpec.describe 'Notice Index', type: :request, skip: 'Tests check specific HTML 
         end
 
         it 'muestra cuerpos con espacios extra' do
-          expect(response.body).to have_content('Body with   extra   spaces')
+          # have_content normaliza los espacios, asi que nunca podria casar un
+          # texto con espacios repetidos: se comprueba sobre el HTML crudo
+          expect(response.body).to include('Body with   extra   spaces')
         end
       end
 

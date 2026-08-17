@@ -52,8 +52,12 @@ ActiveAdmin.register_page 'Envios de Credenciales' do
 
       # save data
 
+      # Marcar como enviada es contabilidad interna, no debe depender de que el
+      # registro pase hoy las validaciones (adjuntos, terminos...): con `update`
+      # el guardado fallaba en silencio y esos usuarios volvian a entrar en el
+      # siguiente envio, porque el scope `not_sended` exige born_at nil.
       v = UserVerification.find(r.id)
-      v.update(born_at: r.born_at)
+      v.update_column(:born_at, r.born_at)
     end
 
     csv = CSV.generate(encoding: 'utf-8', col_sep: "\t") do |csv|

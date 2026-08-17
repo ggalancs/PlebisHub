@@ -183,9 +183,9 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
     it 'updates verification born_at' do
       expect(verification1.reload.born_at).to be_nil
       get admin_envios_de_credenciales_generate_shipment_path, params: { max_reg: 10 }
-      # The code calls v.update(born_at: r.born_at) for each verification
-      # Check that the update logic exists in the code
-      expect(File.read(Rails.root.join("app/admin/credential_shipment.rb").to_s)).to include('v.update(born_at: r.born_at)')
+      # Se comprueba el efecto, no el texto del fuente: marcar la verificacion
+      # como enviada es lo que la saca del scope not_sended
+      expect(verification1.reload.born_at).to eq(verification1.user.born_at)
     end
 
     it 'uses tab separator in CSV' do
