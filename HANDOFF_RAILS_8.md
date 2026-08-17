@@ -22,7 +22,7 @@ Estado tras cerrar el plan completo. Documento de referencia para retomar.
 |---|---|---|---|
 | 1 | Suite raíz | `bundle exec rspec spec` | ✅ 10.185 ejemplos, 0 fallos |
 | 2 | Suites de engines | `bundle exec rspec engines` | ✅ 2.231 ejemplos, 0 fallos |
-| 3 | Sin dependencia del orden | 3 semillas, ambas suites juntas | ✅ |
+| 3 | Sin dependencia del orden | 3 semillas, ambas suites juntas | ✅ 12.416 ejemplos, 0 fallos en las 3 (1234 / 4321 / 9876) |
 | 4 | Eager loading | `bin/rails zeitwerk:check` | ✅ *All is good* |
 | 5 | Arranque en producción | `RAILS_ENV=production bin/rails runner` | ✅ |
 | 6 | Vulnerabilidades | `bundle exec bundler-audit check` | ✅ 0 hallazgos |
@@ -43,6 +43,26 @@ recrearla: `RAILS_ENV=test DATABASE_NAME=plebis_eng bundle exec rails db:create 
 ---
 
 ## 2. Lo que falta
+
+### 2.1 Cobertura no verificada
+
+Las condiciones 1 y 2 dan 0 fallos sobre 12.416 ejemplos, pero hay **509
+pendientes** (preexistentes, de diciembre de 2025, ninguno introducido en este
+trabajo). Son casi todos ficheros de request/view saltados enteros:
+
+```
+81  spec/requests/notice_spec.rb          "Tests check specific HTML structure and content"
+77  spec/controllers/open_id_controller_spec.rb  "OpenID feature is conditionally disabled in test"
+76  spec/requests/blog_spec.rb            "Tests check specific blog HTML structure"
+63  spec/requests/page_faq_spec.rb        "Tests check specific FAQ content that changes"
+...
+```
+
+O sea: **la renderización de esas páginas no la verifica la suite**. Si algo se
+rompió ahí durante el upgrade, el «0 fallos» no lo diría. Reactivarlas es un
+bloque de trabajo aparte.
+
+### 2.2 Despliegue
 
 **Solo el despliegue.** Requiere saber el entorno destino y si hay credenciales en
 la máquina; es la única decisión que no se puede tomar desde aquí.
