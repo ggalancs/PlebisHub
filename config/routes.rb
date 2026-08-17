@@ -65,20 +65,22 @@ Rails.application.routes.draw do
     # Receives automatic reports from browsers when Content Security Policy is violated
     post 'csp-violations', to: 'csp_violations#create'
   end
-  scope "/(:locale)", locale: /es|ca|eu/ do
-
-    if Rails.application.secrets.openid.try(:[], "enabled")
+  scope '/(:locale)', locale: /es|ca|eu/ do
+    if Rails.application.secrets.openid.try(:[], 'enabled')
       # WARNING!!
       # Enable this only for internal traffic
       # add the following line in secrets.yml to enable this:
       # openid:
       #   enabled: true
 
-      get '/openid/discover', to: 'open_id#discover', as: "open_id_discover"
-      get '/openid', to: 'open_id#index', as: "open_id_index"
-      post '/openid', to: 'open_id#create', as: "open_id_create"
-      get '/user/:id', to: 'open_id#user', as: "open_id_user"
-      get '/user/xrds', to: 'open_id#xrds', as: "open_id_xrds"
+      get '/openid/discover', to: 'open_id#discover', as: 'open_id_discover'
+      get '/openid', to: 'open_id#index', as: 'open_id_index'
+      post '/openid', to: 'open_id#create', as: 'open_id_create'
+      # BUG: '/user/:id' iba primero y capturaba '/user/xrds' con id="xrds", asi
+      # que el documento XRDS del usuario era inalcanzable y las partes que lo
+      # pedian recibian la pagina HTML de identidad. La ruta concreta va antes.
+      get '/user/xrds', to: 'open_id#xrds', as: 'open_id_xrds'
+      get '/user/:id', to: 'open_id#user', as: 'open_id_user'
     end
 
     get '/audio_captcha', to: 'audio_captcha#index', as: 'audio_captcha'
@@ -92,7 +94,7 @@ Rails.application.routes.draw do
     get '/vote/send_sms_check/:election_id', to: 'vote#send_sms_check', as: :send_sms_check_vote
     get '/votos/:election_id/:token', to: 'vote#election_votes_count', as: 'election_votes_count'
     get '/votos/:election_id/:election_location_id/:token', to: 'vote#election_location_votes_count', as: 'election_location_votes_count'
-    match '/paper_vote/:election_id/:election_location_id/:token', to: 'vote#paper_vote', as: 'election_location_paper_vote', via: %w(get post)
+    match '/paper_vote/:election_id/:election_location_id/:token', to: 'vote#paper_vote', as: 'election_location_paper_vote', via: %w[get post]
 
     # Mount PlebisCMS Engine - handles blog, pages, and notices
     # Routes are only loaded when engine is activated via EngineActivation
@@ -111,17 +113,17 @@ Rails.application.routes.draw do
     # Legacy redirect
     get '/gente-por-el-cambio', to: redirect('/equipos-de-accion-participativa')
 
-    #get '/propuestas', to: 'proposals#index', as: 'proposals'
-    #get '/propuestas/info', to: 'proposals#info', as: 'proposals_info'
-    #get '/propuestas/:id', to: 'proposals#show', as: 'proposal'
-    #post '/apoyar/:proposal_id', to: 'supports#create', as: 'proposal_supports'
+    # get '/propuestas', to: 'proposals#index', as: 'proposals'
+    # get '/propuestas/info', to: 'proposals#info', as: 'proposals_info'
+    # get '/propuestas/:id', to: 'proposals#show', as: 'proposal'
+    # post '/apoyar/:proposal_id', to: 'supports#create', as: 'proposal_supports'
 
-    get '/tools/militant_request/get_external_info', to:'militant#get_militant_info', as: 'user_get_militant_info'
+    get '/tools/militant_request/get_external_info', to: 'militant#get_militant_info', as: 'user_get_militant_info'
     devise_for :users, controllers: {
       registrations: 'registrations',
-      passwords:     'passwords',
+      passwords: 'passwords',
       confirmations: 'confirmations',
-      sessions:      'sessions'
+      sessions: 'sessions'
     }
 
     # RAILS 7.2 FIX: Microcredit routes moved to PlebisMicrocredit::Engine
@@ -168,9 +170,9 @@ Rails.application.routes.draw do
       delete 'proyecto/borrar', to: 'impulsa#delete', as: 'delete_impulsa'
       post 'modificar', to: 'impulsa#update', as: 'update_impulsa'
       post 'modificar/:step', to: 'impulsa#update_step', as: 'update_step_impulsa'
-      post 'subir/:step/:field', to: 'impulsa#upload', as: 'upload_impulsa', constraints: { field: /[^\/]*/ }
-      delete 'borrar/:step/:field', to: 'impulsa#delete_file', as: 'delete_file_impulsa', constraints: { field: /[^\/]*/ }
-      get 'descargar/:field', to: 'impulsa#download', as: 'download_impulsa', constraints: { field: /[^\/]*/ }
+      post 'subir/:step/:field', to: 'impulsa#upload', as: 'upload_impulsa', constraints: { field: %r{[^/]*} }
+      delete 'borrar/:step/:field', to: 'impulsa#delete_file', as: 'delete_file_impulsa', constraints: { field: %r{[^/]*} }
+      get 'descargar/:field', to: 'impulsa#download', as: 'download_impulsa', constraints: { field: %r{[^/]*} }
     end
 
     # http://stackoverflow.com/a/8884605/319241
@@ -192,7 +194,7 @@ Rails.application.routes.draw do
       end
     end
 
-    %w(404 422 500).each do |code|
+    %w[404 422 500].each do |code|
       get code, to: 'errors#show', code: code
     end
 
@@ -219,7 +221,7 @@ Rails.application.routes.draw do
   # RACK 3.x FIX: Add explicit route for /registro (legacy test compatibility)
   # Tests expect /es/registro to work, but actual Devise path is /es/users/sign_up
   # This redirects the old path to the new path for backward compatibility
-  scope "/:locale", locale: /es|ca|eu/ do
+  scope '/:locale', locale: /es|ca|eu/ do
     get 'registro', to: redirect { |params, _| "/#{params[:locale]}/users/sign_up" }
   end
 
@@ -235,5 +237,5 @@ Rails.application.routes.draw do
   # Routes to the errors controller which renders a proper 404 page
   # Note: Exclude /rails/active_storage paths to allow ActiveStorage to handle them
   match '*path', to: 'errors#show', defaults: { code: '404' }, via: :all,
-        constraints: ->(req) { !req.path.start_with?('/rails/active_storage') }
+                 constraints: ->(req) { !req.path.start_with?('/rails/active_storage') }
 end

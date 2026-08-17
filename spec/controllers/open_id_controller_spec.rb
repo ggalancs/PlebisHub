@@ -2,13 +2,9 @@
 
 require 'rails_helper'
 
-# NOTE: Skipped because OpenID routes are conditionally loaded only when secrets.openid["enabled"] is true
-# See: config/routes.rb line 56: if Rails.application.secrets.openid.try(:[], "enabled")
-# To run these tests, enable OpenID in test secrets
-# OpenID esta deshabilitado en el entorno de test, asi que el controlador no
-# responde. Verificado al reactivarlo: 76 de 77 ejemplos fallan por eso.
-RSpec.describe OpenIdController, type: :controller,
-                                 skip: 'OpenID feature is conditionally disabled in test environment' do
+# Las rutas de OpenID solo se cargan si secrets.openid["enabled"] es true
+# (config/routes.rb). Activado en la seccion test de config/secrets.yml.
+RSpec.describe OpenIdController, type: :controller do
   let(:user) { create(:user, :with_dni) }
   let(:openid_store) { instance_double(OpenID::Store::Filesystem) }
   let(:openid_server) { instance_double(OpenID::Server::Server) }
@@ -41,7 +37,7 @@ RSpec.describe OpenIdController, type: :controller,
     it 'returns XRDS document' do
       get :discover
       expect(response).to have_http_status(:success)
-      expect(response.content_type).to eq('application/xrds+xml')
+      expect(response.content_type).to include('application/xrds+xml')
     end
 
     it 'includes OpenID 2.0 IDP type' do
@@ -87,7 +83,7 @@ RSpec.describe OpenIdController, type: :controller,
     it 'returns XRDS document' do
       get :xrds
       expect(response).to have_http_status(:success)
-      expect(response.content_type).to eq('application/xrds+xml')
+      expect(response.content_type).to include('application/xrds+xml')
     end
 
     it 'includes OpenID 2.0 type' do
@@ -126,41 +122,41 @@ RSpec.describe OpenIdController, type: :controller,
     context 'with XRDS content negotiation' do
       it 'returns XRDS when requested' do
         request.env['HTTP_ACCEPT'] = 'application/xrds+xml'
-        get :user
-        expect(response.content_type).to eq('application/xrds+xml')
+        get :user, params: { id: user.id }
+        expect(response.content_type).to include('application/xrds+xml')
       end
 
       it 'includes XRDS content types' do
         request.env['HTTP_ACCEPT'] = 'application/xrds+xml'
-        get :user
+        get :user, params: { id: user.id }
         expect(response.body).to include(OpenID::OPENID_2_0_TYPE)
       end
     end
 
     context 'without XRDS content negotiation' do
       it 'returns identity HTML page' do
-        get :user
+        get :user, params: { id: user.id }
         expect(response).to have_http_status(:success)
         expect(response.content_type).to eq('text/plain; charset=utf-8')
       end
 
       it 'includes X-XRDS-Location meta tag' do
-        get :user
+        get :user, params: { id: user.id }
         expect(response.body).to include('X-XRDS-Location')
       end
 
       it 'includes X-XRDS-Location header' do
-        get :user
+        get :user, params: { id: user.id }
         expect(response.headers['X-XRDS-Location']).to be_present
       end
 
       it 'includes openid.server link' do
-        get :user
+        get :user, params: { id: user.id }
         expect(response.body).to include('openid.server')
       end
 
       it 'renders minimal HTML structure' do
-        get :user
+        get :user, params: { id: user.id }
         expect(response.body).to include('<html>')
         expect(response.body).to include('</html>')
       end
@@ -170,7 +166,7 @@ RSpec.describe OpenIdController, type: :controller,
       it 'handles errors gracefully' do
         allow(controller).to receive(:open_id_xrds_url).and_raise(StandardError.new('Error'))
         allow(Rails.logger).to receive(:error).and_call_original
-        get :user
+        get :user, params: { id: user.id }
         expect(Rails.logger).to have_received(:error).with(a_string_matching(/openid_user_error/)).at_least(:once)
         expect(response).to have_http_status(:internal_server_error)
       end
@@ -182,10 +178,14 @@ RSpec.describe OpenIdController, type: :controller,
   describe 'POST #create' do
     let(:checkid_request) { instance_double(OpenID::Server::CheckIDRequest) }
     let(:web_response) { instance_double(OpenID::Server::WebResponse, code: 200, body: 'OK', headers: {}) }
+    # handle_request/answer devuelven un OpenIDResponse (es el que se firma);
+    # encode_response devuelve el WebResponse. El spec los confundia y por eso
+    # stubeaba needs_signing sobre una clase que no lo tiene.
+    let(:openid_response) { instance_double(OpenID::Server::OpenIDResponse, needs_signing: false) }
 
     before do
       allow(openid_server).to receive(:decode_request).and_return(checkid_request)
-      allow(openid_server).to receive(:handle_request).and_return(web_response)
+      allow(openid_server).to receive(:handle_request).and_return(openid_response)
       allow(openid_server).to receive(:signatory).and_return(double(sign: true))
       allow(openid_server).to receive(:encode_response).and_return(web_response)
     end
@@ -197,7 +197,8 @@ RSpec.describe OpenIdController, type: :controller,
       end
 
       it 'calls server decode_request' do
-        expect(openid_server).to receive(:decode_request).with(hash_including(controller: 'open_id'))
+        # El controlador filtra a openid.*: una peticion pelada no lleva nada
+        expect(openid_server).to receive(:decode_request).with({})
         post :create
       end
 
@@ -223,12 +224,16 @@ RSpec.describe OpenIdController, type: :controller,
       before do
         sign_in user
         allow(controller).to receive(:open_id_user_url).with(user.id).and_return("http://test.host/user/#{user.id}")
+        # Stub permisivo debajo: sin el, cualquier otra llamada a is_a? falla
+        allow(checkid_request).to receive(:is_a?).and_return(false)
         allow(checkid_request).to receive(:is_a?).with(OpenID::Server::CheckIDRequest).and_return(true)
         allow(checkid_request).to receive(:id_select).and_return(false)
         allow(checkid_request).to receive(:identity).and_return("http://test.host/user/#{user.id}")
         allow(checkid_request).to receive(:trust_root).and_return('https://example.com')
-        allow(checkid_request).to receive(:answer).and_return(web_response)
-        allow(web_response).to receive(:needs_signing).and_return(false)
+        allow(checkid_request).to receive(:answer).and_return(openid_response)
+        # add_pape llama a PAPE::Request.from_openid_request(oidreq), que lee
+        # oidreq.message: sin este stub el doble recibe :message inesperado
+        allow(checkid_request).to receive(:message).and_return(OpenID::Message.new)
       end
 
       it 'handles authorized identity' do
@@ -252,13 +257,17 @@ RSpec.describe OpenIdController, type: :controller,
     context 'with id_select mode' do
       before do
         sign_in user
+        # Stub permisivo debajo: sin el, cualquier otra llamada a is_a? falla
+        allow(checkid_request).to receive(:is_a?).and_return(false)
         allow(checkid_request).to receive(:is_a?).with(OpenID::Server::CheckIDRequest).and_return(true)
         allow(checkid_request).to receive(:id_select).and_return(true)
         allow(checkid_request).to receive(:immediate).and_return(false)
         allow(checkid_request).to receive(:identity).and_return(nil)
         allow(checkid_request).to receive(:trust_root).and_return('https://example.com')
-        allow(checkid_request).to receive(:answer).and_return(web_response)
-        allow(web_response).to receive(:needs_signing).and_return(false)
+        allow(checkid_request).to receive(:answer).and_return(openid_response)
+        # add_pape llama a PAPE::Request.from_openid_request(oidreq), que lee
+        # oidreq.message: sin este stub el doble recibe :message inesperado
+        allow(checkid_request).to receive(:message).and_return(OpenID::Message.new)
       end
 
       it 'uses current user identity' do
@@ -269,11 +278,18 @@ RSpec.describe OpenIdController, type: :controller,
 
     context 'with immediate mode request' do
       before do
+        # Stub permisivo debajo: sin el, cualquier otra llamada a is_a? falla
+        allow(checkid_request).to receive(:is_a?).and_return(false)
         allow(checkid_request).to receive(:is_a?).with(OpenID::Server::CheckIDRequest).and_return(true)
         allow(checkid_request).to receive(:id_select).and_return(true)
         allow(checkid_request).to receive(:immediate).and_return(true)
-        allow(checkid_request).to receive(:answer).and_return(web_response)
-        allow(web_response).to receive(:needs_signing).and_return(false)
+        # handle_check_id_request lee identity en la primera linea
+        allow(checkid_request).to receive(:identity).and_return('https://example.com/id')
+        allow(checkid_request).to receive(:trust_root).and_return('https://example.com')
+        allow(checkid_request).to receive(:answer).and_return(openid_response)
+        # add_pape llama a PAPE::Request.from_openid_request(oidreq), que lee
+        # oidreq.message: sin este stub el doble recibe :message inesperado
+        allow(checkid_request).to receive(:message).and_return(OpenID::Message.new)
       end
 
       it 'denies immediate requests' do
@@ -285,8 +301,13 @@ RSpec.describe OpenIdController, type: :controller,
 
     context 'with unauthenticated id_select request' do
       before do
+        # Stub permisivo debajo: sin el, cualquier otra llamada a is_a? falla
+        allow(checkid_request).to receive(:is_a?).and_return(false)
         allow(checkid_request).to receive(:is_a?).with(OpenID::Server::CheckIDRequest).and_return(true)
         allow(checkid_request).to receive(:id_select).and_return(true)
+        # handle_check_id_request lee identity/trust_root
+        allow(checkid_request).to receive(:identity).and_return('https://example.com/id')
+        allow(checkid_request).to receive(:trust_root).and_return('https://example.com')
         allow(checkid_request).to receive(:immediate).and_return(false)
       end
 
@@ -301,12 +322,16 @@ RSpec.describe OpenIdController, type: :controller,
     context 'with unauthorized identity' do
       before do
         sign_in user
+        # Stub permisivo debajo: sin el, cualquier otra llamada a is_a? falla
+        allow(checkid_request).to receive(:is_a?).and_return(false)
         allow(checkid_request).to receive(:is_a?).with(OpenID::Server::CheckIDRequest).and_return(true)
         allow(checkid_request).to receive(:id_select).and_return(false)
         allow(checkid_request).to receive(:identity).and_return('https://other-user.example.com')
         allow(checkid_request).to receive(:trust_root).and_return('https://example.com')
-        allow(checkid_request).to receive(:answer).and_return(web_response)
-        allow(web_response).to receive(:needs_signing).and_return(false)
+        allow(checkid_request).to receive(:answer).and_return(openid_response)
+        # add_pape llama a PAPE::Request.from_openid_request(oidreq), que lee
+        # oidreq.message: sin este stub el doble recibe :message inesperado
+        allow(checkid_request).to receive(:message).and_return(OpenID::Message.new)
       end
 
       it 'denies authentication' do
@@ -318,7 +343,10 @@ RSpec.describe OpenIdController, type: :controller,
 
     context 'with ProtocolError' do
       before do
-        allow(openid_server).to receive(:decode_request).and_raise(OpenID::Server::ProtocolError.new('Invalid request'))
+        # ProtocolError.new(message, text): el primer argumento debe ser un Message,
+        # si no ruby-openid lanza AssertionError al construir la excepcion
+        allow(openid_server).to receive(:decode_request)
+          .and_raise(OpenID::Server::ProtocolError.new(OpenID::Message.new, 'Invalid request'))
       end
 
       it 'handles protocol errors' do
@@ -360,11 +388,15 @@ RSpec.describe OpenIdController, type: :controller,
   describe 'GET #index' do
     let(:checkid_request) { instance_double(OpenID::Server::CheckIDRequest) }
     let(:web_response) { instance_double(OpenID::Server::WebResponse, code: 200, body: 'OK', headers: {}) }
+    # handle_request/answer devuelven un OpenIDResponse (es el que se firma);
+    # encode_response devuelve el WebResponse. El spec los confundia y por eso
+    # stubeaba needs_signing sobre una clase que no lo tiene.
+    let(:openid_response) { instance_double(OpenID::Server::OpenIDResponse, needs_signing: false) }
 
     before do
       sign_in user
       allow(openid_server).to receive(:decode_request).and_return(checkid_request)
-      allow(openid_server).to receive(:handle_request).and_return(web_response)
+      allow(openid_server).to receive(:handle_request).and_return(openid_response)
       allow(openid_server).to receive(:signatory).and_return(double(sign: true))
       allow(openid_server).to receive(:encode_response).and_return(web_response)
     end
@@ -372,7 +404,9 @@ RSpec.describe OpenIdController, type: :controller,
     it 'requires authentication' do
       sign_out user
       get :index
-      expect(response).to redirect_to(new_user_session_path)
+      # Devise construye la URL de fallo con action_controller.default_url_options
+      # (host www.example.com, sin locale); comparamos la ruta
+      expect(response.location).to end_with('/users/sign_in')
     end
 
     it 'processes authenticated requests' do
@@ -381,7 +415,7 @@ RSpec.describe OpenIdController, type: :controller,
     end
 
     it 'handles protocol errors' do
-      allow(openid_server).to receive(:decode_request).and_raise(OpenID::Server::ProtocolError.new('Error'))
+      allow(openid_server).to receive(:decode_request).and_raise(OpenID::Server::ProtocolError.new(OpenID::Message.new, 'Error'))
       allow(Rails.logger).to receive(:error).and_call_original
       get :index
       expect(Rails.logger).to have_received(:error).with(a_string_matching(/openid_protocol_error/)).at_least(:once)
@@ -398,15 +432,22 @@ RSpec.describe OpenIdController, type: :controller,
   # ==================== RESPONSE RENDERING TESTS ====================
 
   describe 'response rendering' do
+    # Para llegar a render_response con una respuesta codificada hace falta que
+    # decode_request devuelva algo: con nil el controlador contesta la pagina
+    # informativa y no pasa por encode_response.
+    let(:checkid_request) { instance_double(OpenID::Server::CheckIDRequest) }
+    let(:openid_response) { instance_double(OpenID::Server::OpenIDResponse, needs_signing: false) }
     let(:web_response) { instance_double(OpenID::Server::WebResponse, code: code, body: body, headers: headers) }
+    let(:code) { 200 }
     let(:body) { 'Response body' }
     let(:headers) { {} }
 
     before do
-      allow(openid_server).to receive(:decode_request).and_return(nil)
+      allow(checkid_request).to receive(:is_a?).and_return(false)
+      allow(openid_server).to receive(:decode_request).and_return(checkid_request)
+      allow(openid_server).to receive(:handle_request).and_return(openid_response)
       allow(openid_server).to receive(:signatory).and_return(double(sign: true))
       allow(openid_server).to receive(:encode_response).and_return(web_response)
-      allow(web_response).to receive(:needs_signing).and_return(false)
     end
 
     context 'with HTTP_OK response' do
@@ -450,10 +491,13 @@ RSpec.describe OpenIdController, type: :controller,
 
     context 'with nil response' do
       before do
+        allow(checkid_request).to receive(:is_a?).and_return(false)
         allow(checkid_request).to receive(:is_a?).with(OpenID::Server::CheckIDRequest).and_return(true)
         allow(checkid_request).to receive(:id_select).and_return(true)
+        # handle_check_id_request lee identity/trust_root
+        allow(checkid_request).to receive(:identity).and_return('https://example.com/id')
+        allow(checkid_request).to receive(:trust_root).and_return('https://example.com')
         allow(checkid_request).to receive(:immediate).and_return(false)
-        allow(openid_server).to receive(:decode_request).and_return(checkid_request)
       end
 
       it 'redirects to root when response is nil' do
@@ -475,14 +519,23 @@ RSpec.describe OpenIdController, type: :controller,
     let(:oidresp) { instance_double(OpenID::Server::OpenIDResponse) }
     let(:sregreq) { instance_double(OpenID::SReg::Request, required: [], optional: %i[email fullname]) }
     let(:web_response) { instance_double(OpenID::Server::WebResponse, code: 200, body: 'OK', headers: {}) }
+    # handle_request/answer devuelven un OpenIDResponse (es el que se firma);
+    # encode_response devuelve el WebResponse. El spec los confundia y por eso
+    # stubeaba needs_signing sobre una clase que no lo tiene.
+    let(:openid_response) { instance_double(OpenID::Server::OpenIDResponse, needs_signing: false) }
 
     before do
       sign_in user
+      # Stub permisivo debajo: sin el, cualquier otra llamada a is_a? falla
+      allow(checkid_request).to receive(:is_a?).and_return(false)
       allow(checkid_request).to receive(:is_a?).with(OpenID::Server::CheckIDRequest).and_return(true)
       allow(checkid_request).to receive(:id_select).and_return(false)
       allow(checkid_request).to receive(:identity).and_return(open_id_user_url(user.id))
       allow(checkid_request).to receive(:trust_root).and_return('https://example.com')
       allow(checkid_request).to receive(:answer).and_return(oidresp)
+      # add_pape llama a PAPE::Request.from_openid_request(oidreq), que lee
+      # oidreq.message: sin este stub el doble recibe :message inesperado
+      allow(checkid_request).to receive(:message).and_return(OpenID::Message.new)
       allow(oidresp).to receive(:needs_signing).and_return(false)
       allow(oidresp).to receive(:add_extension)
       allow(OpenID::SReg::Request).to receive(:from_openid_request).and_return(sregreq)
@@ -548,14 +601,23 @@ RSpec.describe OpenIdController, type: :controller,
     let(:oidresp) { instance_double(OpenID::Server::OpenIDResponse) }
     let(:papereq) { instance_double(OpenID::PAPE::Request) }
     let(:web_response) { instance_double(OpenID::Server::WebResponse, code: 200, body: 'OK', headers: {}) }
+    # handle_request/answer devuelven un OpenIDResponse (es el que se firma);
+    # encode_response devuelve el WebResponse. El spec los confundia y por eso
+    # stubeaba needs_signing sobre una clase que no lo tiene.
+    let(:openid_response) { instance_double(OpenID::Server::OpenIDResponse, needs_signing: false) }
 
     before do
       sign_in user
+      # Stub permisivo debajo: sin el, cualquier otra llamada a is_a? falla
+      allow(checkid_request).to receive(:is_a?).and_return(false)
       allow(checkid_request).to receive(:is_a?).with(OpenID::Server::CheckIDRequest).and_return(true)
       allow(checkid_request).to receive(:id_select).and_return(false)
       allow(checkid_request).to receive(:identity).and_return(open_id_user_url(user.id))
       allow(checkid_request).to receive(:trust_root).and_return('https://example.com')
       allow(checkid_request).to receive(:answer).and_return(oidresp)
+      # add_pape llama a PAPE::Request.from_openid_request(oidreq), que lee
+      # oidreq.message: sin este stub el doble recibe :message inesperado
+      allow(checkid_request).to receive(:message).and_return(OpenID::Message.new)
       allow(oidresp).to receive(:needs_signing).and_return(false)
       allow(oidresp).to receive(:add_extension)
       allow(OpenID::PAPE::Request).to receive(:from_openid_request).and_return(papereq)
@@ -589,28 +651,49 @@ RSpec.describe OpenIdController, type: :controller,
   # ==================== SECURITY LOGGING TESTS ====================
 
   describe 'security logging' do
+    # `discover` no emite eventos de seguridad: los unicos log_security_event
+    # estan en handle_check_id_request, asi que hay que pasar por #create con una
+    # peticion de autenticacion.
+    let(:checkid_request) { instance_double(OpenID::Server::CheckIDRequest) }
+    let(:openid_response) { instance_double(OpenID::Server::OpenIDResponse, needs_signing: false) }
+    let(:web_response) { instance_double(OpenID::Server::WebResponse, code: 200, body: 'OK', headers: {}) }
+
+    before do
+      allow(checkid_request).to receive(:is_a?).and_return(false)
+      allow(checkid_request).to receive(:is_a?).with(OpenID::Server::CheckIDRequest).and_return(true)
+      allow(checkid_request).to receive(:id_select).and_return(true)
+      allow(checkid_request).to receive(:immediate).and_return(true)
+      allow(checkid_request).to receive(:identity).and_return('https://example.com/id')
+      allow(checkid_request).to receive(:trust_root).and_return('https://example.com')
+      allow(checkid_request).to receive(:answer).and_return(openid_response)
+      allow(checkid_request).to receive(:message).and_return(OpenID::Message.new)
+      allow(openid_server).to receive(:decode_request).and_return(checkid_request)
+      allow(openid_server).to receive(:signatory).and_return(double(sign: true))
+      allow(openid_server).to receive(:encode_response).and_return(web_response)
+    end
+
     it 'logs IP address in security events' do
       allow(Rails.logger).to receive(:info).and_call_original
-      get :discover
+      post :create
       expect(Rails.logger).to have_received(:info).with(a_string_matching(/"ip_address":/)).at_least(:once)
     end
 
     it 'logs user agent in security events' do
       request.env['HTTP_USER_AGENT'] = 'Test Browser'
       allow(Rails.logger).to receive(:info).and_call_original
-      get :discover
+      post :create
       expect(Rails.logger).to have_received(:info).with(a_string_matching(/"user_agent":"Test Browser"/)).at_least(:once)
     end
 
     it 'logs timestamp in ISO8601 format' do
       allow(Rails.logger).to receive(:info).and_call_original
-      get :discover
+      post :create
       expect(Rails.logger).to have_received(:info).with(a_string_matching(/"timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)).at_least(:once)
     end
 
     it 'logs controller name' do
       allow(Rails.logger).to receive(:info).and_call_original
-      get :discover
+      post :create
       expect(Rails.logger).to have_received(:info).with(a_string_matching(/"controller":"open_id"/)).at_least(:once)
     end
 
@@ -662,7 +745,9 @@ RSpec.describe OpenIdController, type: :controller,
 
     it 'requires authentication for index' do
       get :index
-      expect(response).to redirect_to(new_user_session_path)
+      # Devise construye la URL de fallo con action_controller.default_url_options
+      # (host www.example.com, sin locale); comparamos la ruta
+      expect(response.location).to end_with('/users/sign_in')
     end
   end
 
@@ -674,7 +759,7 @@ RSpec.describe OpenIdController, type: :controller,
       allow(openid_server).to receive(:decode_request).and_return(nil)
       allow(openid_server).to receive(:signatory).and_return(double(sign: true))
       allow(openid_server).to receive(:encode_response).and_return(
-        instance_double(OpenID::Server::WebResponse, code: 200, body: 'OK', headers: {}, needs_signing: false)
+        instance_double(OpenID::Server::WebResponse, code: 200, body: 'OK', headers: {})
       )
       post :create
       expect(response).to have_http_status(:success)

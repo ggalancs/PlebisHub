@@ -198,7 +198,7 @@ module PlebisVerification
       @collect_data ||= begin
         data = base_query.joins(:user_verifications)
                          .group(:status)
-                         .pluck('status', 'count(distinct users.id)')
+                         .pluck('status', Arel.sql('count(distinct users.id)'))
                          .to_h { |status, count| [status, count] }
 
         # Add user activity data
@@ -242,7 +242,7 @@ module PlebisVerification
     def collect_province_data
       data = base_query.joins(:user_verifications)
                        .group(:prov, :status)
-                       .pluck('right(left(vote_town,4),2) as prov', 'status', 'count(distinct users.id)')
+                       .pluck(Arel.sql('right(left(vote_town,4),2) as prov'), 'status', Arel.sql('count(distinct users.id)'))
                        .to_h { |prov, status, count| [[prov, status], count] }
 
       add_user_data_to_hash(data, :prov)
@@ -252,7 +252,7 @@ module PlebisVerification
     def collect_town_data
       data_town = base_query.joins(:user_verifications)
                             .group(:vote_town, :status)
-                            .pluck('vote_town', 'status', 'count(distinct users.id)')
+                            .pluck('vote_town', 'status', Arel.sql('count(distinct users.id)'))
                             .to_h { |town, status, count| [[town, status], count] }
 
       add_user_data_to_hash(data_town, :vote_town)
@@ -264,7 +264,7 @@ module PlebisVerification
       active_census_days = parse_active_census_range
       active_date = Time.zone.today - active_census_days.days
 
-      field_name = group_field == :prov ? 'right(left(vote_town,4),2) as prov' : 'vote_town'
+      field_name = group_field == :prov ? Arel.sql('right(left(vote_town,4),2) as prov') : 'vote_town'
 
       # SECURITY FIX: Use Arel for parameterized query instead of string interpolation
       users_table = User.arel_table
@@ -272,9 +272,9 @@ module PlebisVerification
         field_name,
         users_table[:current_sign_in_at].not_eq(nil)
           .and(users_table[:current_sign_in_at].gt(active_date))
-          .to_sql.sub(/^"users"\./, '').concat(' as active'),
-        "#{User.verified_condition} as verified",
-        'count(distinct users.id)'
+          .to_sql.sub(/^"users"\./, '').concat(' as active').then { |sql| Arel.sql(sql) },
+        Arel.sql("#{User.verified_condition} as verified"),
+        Arel.sql('count(distinct users.id)')
       ).each do |field, active, verified, count|
         data_hash[[field, active, verified]] = count
       end
@@ -325,9 +325,9 @@ module PlebisVerification
       base_query.group(:active, :verified).pluck(
         users_table[:current_sign_in_at].not_eq(nil)
           .and(users_table[:current_sign_in_at].gt(active_date))
-          .to_sql.sub(/^"users"\./, '').concat(' as active'),
-        "#{User.verified_condition} as verified",
-        'count(distinct users.id)'
+          .to_sql.sub(/^"users"\./, '').concat(' as active').then { |sql| Arel.sql(sql) },
+        Arel.sql("#{User.verified_condition} as verified"),
+        Arel.sql('count(distinct users.id)')
       ).each do |active, verified, count|
         data_hash[[active, verified]] = count
       end

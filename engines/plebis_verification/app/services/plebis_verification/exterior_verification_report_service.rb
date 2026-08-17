@@ -77,7 +77,7 @@ module PlebisVerification
 
       @data = base_query.joins(:user_verifications)
                         .group(:country, :status)
-                        .pluck('country', 'status', 'count(distinct users.id)')
+                        .pluck('country', 'status', Arel.sql('count(distinct users.id)'))
                         .to_h { |country, status, count| [[country, status], count] }
 
       add_user_data(@data)
@@ -95,9 +95,9 @@ module PlebisVerification
         'country',
         users_table[:current_sign_in_at].not_eq(nil)
           .and(users_table[:current_sign_in_at].gt(active_date))
-          .to_sql.sub(/^"users"\./, '').concat(' as active'),
-        "#{User.verified_condition} as verified",
-        'count(distinct users.id)'
+          .to_sql.sub(/^"users"\./, '').concat(' as active').then { |sql| Arel.sql(sql) },
+        Arel.sql("#{User.verified_condition} as verified"),
+        Arel.sql('count(distinct users.id)')
       ).each do |country, active, verified, count|
         data[[country, active, verified]] = count
       end

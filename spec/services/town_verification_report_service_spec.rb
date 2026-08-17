@@ -258,7 +258,9 @@ RSpec.describe TownVerificationReportService do
       let(:service) { described_class.new('c_00', 'm_01_001') }
 
       it 'returns empty report' do
-        allow(service).to receive(:collect_data).and_raise(StandardError.new('Database error'))
+        # generate llama a collect_province_data/collect_town_data, no a collect_data
+        # (ese es el helper de municipio unico): el stub anterior no se activaba
+        allow(service).to receive(:collect_province_data).and_raise(StandardError.new('Database error'))
 
         report = service.generate
 
@@ -266,7 +268,9 @@ RSpec.describe TownVerificationReportService do
       end
 
       it 'logs error with context' do
-        allow(service).to receive(:collect_data).and_raise(StandardError.new('Database error'))
+        # generate llama a collect_province_data/collect_town_data, no a collect_data
+        # (ese es el helper de municipio unico): el stub anterior no se activaba
+        allow(service).to receive(:collect_province_data).and_raise(StandardError.new('Database error'))
         allow(Rails.logger).to receive(:error).and_call_original
 
         service.generate
@@ -275,7 +279,9 @@ RSpec.describe TownVerificationReportService do
       end
 
       it 'includes backtrace in error log' do
-        allow(service).to receive(:collect_data).and_raise(StandardError.new('Database error'))
+        # generate llama a collect_province_data/collect_town_data, no a collect_data
+        # (ese es el helper de municipio unico): el stub anterior no se activaba
+        allow(service).to receive(:collect_province_data).and_raise(StandardError.new('Database error'))
         allow(Rails.logger).to receive(:error).and_call_original
 
         service.generate

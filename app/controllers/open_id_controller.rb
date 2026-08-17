@@ -59,7 +59,7 @@ class OpenIdController < ApplicationController
 
   # Alternative OpenID endpoint
   def index
-    oidreq = server.decode_request(params)
+    oidreq = server.decode_request(openid_params)
     oidresp = process_openid_request(oidreq)
     render_response(oidresp)
   rescue ProtocolError => e
@@ -72,7 +72,7 @@ class OpenIdController < ApplicationController
 
   # Main OpenID authentication endpoint
   def create
-    oidreq = server.decode_request(params)
+    oidreq = server.decode_request(openid_params)
     oidresp = process_openid_request(oidreq)
     render_response(oidresp)
   rescue ProtocolError => e
@@ -181,8 +181,11 @@ class OpenIdController < ApplicationController
     # Could implement trust_root whitelist: SERVER_APPROVALS.member?(trust_root)
   end
 
+  # Devuelve siempre un booleano: sin usuario, `current_user && ...` daba nil.
   def is_authorized(identity_url, trust_root)
-    current_user && (identity_url == url_for_user) && approved(trust_root)
+    return false if current_user.nil?
+
+    (identity_url == url_for_user) && approved(trust_root)
   end
 
   def render_xrds(types)
@@ -248,8 +251,16 @@ class OpenIdController < ApplicationController
   def render_response(oidresp)
     return redirect_to root_path, notice: I18n.t('devise.failure.unauthenticated') if oidresp.nil?
 
-    server.signatory.sign(oidresp) if oidresp.needs_signing
-    web_response = server.encode_response(oidresp)
+    # BUG: para una peticion sin parametros OpenID, process_openid_request ya
+    # devuelve un WebResponse ("This is an OpenID server endpoint."), que no
+    # responde a needs_signing. Eso lanzaba NoMethodError y el endpoint contestaba
+    # 500 a cualquier visita simple en vez del 200 informativo que se pretendia.
+    web_response = if oidresp.is_a?(OpenID::Server::WebResponse)
+                     oidresp
+                   else
+                     server.signatory.sign(oidresp) if oidresp.needs_signing
+                     server.encode_response(oidresp)
+                   end
 
     case web_response.code
     when HTTP_OK
@@ -259,6 +270,18 @@ class OpenIdController < ApplicationController
     else
       render plain: web_response.body, status: :bad_request
     end
+  end
+
+  # BUG: desde Rails 5 `params` es ActionController::Parameters, no un Hash;
+  # ruby-openid le llamaba a `length` y reventaba con NoMethodError, asi que
+  # *toda* peticion OpenID contestaba 500 y el proveedor no funcionaba.
+  #
+  # Ademas hay que pasarle solo los argumentos openid.*: con `controller`,
+  # `action` y `locale` dentro, la libreria creia recibir una peticion OpenID
+  # sin `mode` y lanzaba ProtocolError en vez de tomar el camino de "peticion
+  # sin parametros", que es el que devuelve la pagina informativa.
+  def openid_params
+    params.to_unsafe_h.select { |k, _v| k.to_s.start_with?('openid.') }
   end
 
   # SECURITY LOGGING
