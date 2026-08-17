@@ -143,20 +143,11 @@ RSpec.describe 'EngineActivation Admin', type: :request do
   end
 
   describe 'GET /admin/engine_activations/:id' do
-    # FLAKY: These 6 tests pass individually but fail in full suite due to test pollution.
-    # The PlebisCore::EngineRegistry stub doesn't work correctly when other specs
-    # have loaded the real module. They pass in spec/admin/ alone (0 failures).
+    # Estos 6 fallaban solo en la suite completa: no era contaminacion de dobles
+    # sino que loan_renewal_service.rb parchea OpenStruct.human_attribute_name con
+    # una firma incompatible, y solo rompia cuando ese fichero se habia cargado.
     it 'displays the show page' do
-      captured = nil
-      sub = ActiveSupport::Notifications.subscribe('process_action.action_controller') do |*, payload|
-        captured ||= payload[:exception_object]
-      end
       get admin_engine_activation_path(engine_activation)
-      ActiveSupport::Notifications.unsubscribe(sub)
-      if captured
-        puts "PROBE_EXC >>> #{captured.class}: #{captured.message}"
-        puts captured.backtrace.grep_v(%r{/gems/}).first(6).join("\n")
-      end
       expect(response).to have_http_status(:success)
     end
 
