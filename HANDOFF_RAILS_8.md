@@ -76,9 +76,26 @@ Antes de desplegar conviene leer §3: hay cambios de comportamiento visibles.
 Corregir los bugs cambia lo que hace la aplicación. Lo relevante para producción:
 
 1. **Toda colaboración nueva nacía con estado 2 («Sin confirmar») en vez de 0
-   («Sin pago»)** por un `before_create` convertido en `after_create`. Los
-   registros ya creados con estado incorrecto **no se han migrado**: hay que
-   decidir si se corrigen y cómo.
+   («Sin pago»).** Al investigarlo resultó no ser una regresión de la fase B sino
+   un bug que **estuvo años en producción**:
+
+   - hasta el **2020-11-10** el valor por defecto de la columna era 0, así que el
+     `after_create` con `self.status = 0` (que no persiste) era inocuo;
+   - la migración `20201110125929` cambió el defecto a **2**, y desde entonces
+     toda colaboración nueva quedó con 2;
+   - el **2025-11-30** (`d4820c38`, ya en master) se cambió a `before_create` y
+     dejó de ocurrir;
+   - la consolidación de la fase B lo reintrodujo **solo en esta rama**, que nunca
+     se desplegó.
+
+   Importa porque `has_payment?` es `status.positive?`: una colaboración con 2
+   afirma tener pago sin tenerlo, y de ahí dependen las ramas de `edit` y
+   `confirm`. **Los registros de esa ventana de 5 años no se han migrado.** Para
+   medir el alcance antes de decidir, hay una tarea de solo lectura:
+
+   ```bash
+   bundle exec rake plebisbrand:diagnose_collaboration_status
+   ```
 2. **La sección `/colabora` entera devolvía error 500** (`ActionNotFound`). Al
    arreglarla vuelve a estar accesible.
 3. **La aplicación no arrancaba con `RAILS_ENV=production`** (`FrozenError` en la
