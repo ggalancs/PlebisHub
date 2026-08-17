@@ -13,7 +13,7 @@ Estado tras cerrar el plan completo. Documento de referencia para retomar.
 | **Rails** | **8.1.3.1** con `config.load_defaults 8.1` |
 | **Ruby** | **3.4.10** (3.5 solo existe como `preview1`) |
 | **Devise** | **5.0.4** |
-| Commits desde el baseline | 40, cada uno revertible por separado |
+| Commits desde el baseline | 43, cada uno revertible por separado |
 | Despliegue | **NO ejecutado** — es la única decisión humana que queda |
 
 ### Puerta de despliegue (las 9 condiciones de `RAILS_8_REMAINING_WORK_PLAN.md` §2)
