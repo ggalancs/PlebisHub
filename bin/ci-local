@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+# Ejecuta el mismo pipeline que .github/workflows/ci.yml, pero en local y dentro
+# de un contenedor Linux.
+#
+# POR QUE EN LINUX Y NO DIRECTAMENTE EN LA MAQUINA
+# ------------------------------------------------
+# En macOS `Time.now` devuelve siempre microsegundos redondos; en Linux hay
+# nanosegundos reales. Un spec que comparaba un timestamp en memoria con el mismo
+# valor leido de PostgreSQL (que solo guarda microsegundos) pasaba siempre en
+# local y fallaba en CI. Ejecutar el pipeline en macOS no da ninguna garantia
+# sobre esa clase de fallo, asi que se ejecuta donde de verdad corre.
+#
+# POR QUE linux/amd64 Y NO LA ARQUITECTURA NATIVA
+# -----------------------------------------------
+# El runner de CI es ubuntu-latest (x86_64) y Gemfile.lock tiene x86_64-linux en
+# PLATFORMS. En arm64 bundler no encuentra gemas validas para todas las
+# plataformas resueltas y querria reescribir el lockfile. Se emula amd64: mas
+# lento, pero es la unica forma de correr exactamente lo que corre en CI sin
+# tocar el lockfile.
+#
+# POR QUE SE COPIA EL ARBOL EN VEZ DE MONTARLO
+# --------------------------------------------
+# El pipeline sobrescribe config/database.yml y config/secrets.yml con las
+# variantes .ci. Con un bind mount de escritura eso destruye la configuracion
+# local de desarrollo (paso de verdad la primera vez). El arbol se copia dentro
+# del contenedor, asi que ningun paso puede escribir fuera de el.
+#
+#   bin/ci-local            # pipeline completo
+#   bin/ci-local test       # solo un paso: setup|lint|security|zeitwerk|test|engines
+#   bin/ci-local spec X     # solo un fichero o directorio de specs
+#   bin/ci-local --shell    # abre una shell en el contenedor, sobre la copia
+set -uo pipefail
+
+RUBY_IMAGE="ruby:3.4.10"          # mismo minor que ruby-version en el workflow
+PG_IMAGE="postgres:14"            # mismo que services.postgres
+REDIS_IMAGE="redis:7"             # mismo que services.redis
+PLATAFORMA="linux/amd64"          # ubuntu-latest
+# Los nombres van con guion medio: Ruby URI rechaza guiones bajos en el host,
+# y estos nombres acaban dentro de DATABASE_URL y REDIS_URL.
+PG="plebishub-ci-pg"
+REDIS="plebishub-ci-redis"
+APP="plebishub-ci-app"
+BUNDLE_VOL="plebishub_ci_bundle_amd64"  # cache de gemas entre ejecuciones
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Misma ruta que usa actions/checkout. Con /app, RuboCop hacia coincidir los
+# patrones Include de los cops de Rails (app/**/*.rb) con TODO el arbol, y
+# marcaba ficheros de la raiz que en CI no se inspeccionan.
+WORKDIR="/home/runner/work/PlebisHub/PlebisHub"
+
+verde() { printf '\033[32m%s\033[0m\n' "$1"; }
+rojo()  { printf '\033[31m%s\033[0m\n' "$1"; }
+gris()  { printf '\033[90m%s\033[0m\n' "$1"; }
+
+limpiar() {
+  docker rm -f "$PG" "$REDIS" "$APP" >/dev/null 2>&1 || true
+}
+trap limpiar EXIT
+
+levantar_servicios() {
+  gris "Levantando PostgreSQL y Redis..."
+  docker rm -f "$PG" "$REDIS" "$APP" >/dev/null 2>&1 || true
+  # PostgreSQL sostiene el namespace de red; Redis y la app se enganchan a el.
+  # Asi los tres comparten localhost, igual que los `services:` del workflow, y
+  # DATABASE_URL apunta a localhost: DatabaseCleaner aborta si detecta un host
+  # remoto, que es lo que veia con el nombre del contenedor.
+  docker run -d --name "$PG" --platform "$PLATAFORMA" \
+    -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=plebis_hub_test \
+    "$PG_IMAGE" >/dev/null
+  docker run -d --name "$REDIS" --platform "$PLATAFORMA" --network "container:$PG" "$REDIS_IMAGE" >/dev/null
+
+  # Se comprueba por TCP y no por socket Unix a proposito: durante el init la
+  # imagen levanta un servidor temporal escuchando solo en el socket, y despues
+  # lo para para el arranque definitivo. Con `pg_isready` a secas se da por listo
+  # en esa ventana y la comprobacion siguiente cae con el servidor ya parado.
+  # Se exigen ademas 3 aciertos seguidos para no colarse en el hueco del reinicio.
+  aciertos=0
+  for _ in $(seq 1 120); do
+    if docker exec "$PG" pg_isready -U postgres -h 127.0.0.1 >/dev/null 2>&1; then
+      aciertos=$((aciertos + 1))
+      [ "$aciertos" -ge 3 ] && break
+    else
+      aciertos=0
+    fi
+    sleep 1
+  done
+  if [ "$aciertos" -lt 3 ]; then
+    rojo "PostgreSQL no arranco"
+    docker logs "$PG" 2>&1 | tail -20
+    exit 1
+  fi
+
+  gris "Levantando el contenedor de Ruby y copiando el arbol de trabajo..."
+  docker volume create "$BUNDLE_VOL" >/dev/null 2>&1 || true
+  docker run -d --name "$APP" --platform "$PLATAFORMA" --network "container:$PG" -w "$WORKDIR" \
+    -v "$BUNDLE_VOL":/usr/local/bundle \
+    -e RAILS_ENV=test \
+    -e DATABASE_URL="postgres://postgres:postgres@localhost:5432/plebis_hub_test" \
+    -e REDIS_URL="redis://localhost:6379/1" \
+    -e SECRET_KEY_BASE=test_secret_key_base_for_ci_local_only_1234567890 \
+    -e RUBYOPT=-W0 \
+    -e BUNDLE_PATH=/usr/local/bundle \
+    -e BUNDLE_FROZEN=true \
+    "$RUBY_IMAGE" sleep infinity >/dev/null
+
+  docker exec "$APP" mkdir -p "$WORKDIR"
+  # Solo lo que CI necesita. Sin .git ni artefactos, que son GB y no se usan.
+  tar -C "$ROOT" -cf - \
+    --exclude='./.git' --exclude='./node_modules' --exclude='./tmp' \
+    --exclude='./log' --exclude='./coverage' --exclude='./public/assets' \
+    --exclude='./public/packs' --exclude='./storage' --exclude='./.bundle' \
+    --exclude='./vendor/bundle' . | docker exec -i "$APP" tar -C "$WORKDIR" -xf -
+}
+
+# Ejecuta un comando dentro del contenedor de Ruby, sobre la copia del arbol
+en_linux() { docker exec -w "$WORKDIR" "$APP" bash -lc "$1"; }
+
+fallos=0
+paso() {
+  local nombre="$1" cmd="$2"
+  printf '\n\033[1m▸ %s\033[0m\n' "$nombre"
+  if en_linux "$cmd"; then
+    verde "  ✔ $nombre"
+  else
+    rojo "  ✘ $nombre"
+    fallos=$((fallos + 1))
+  fi
+}
+
+# Mismos ficheros de configuracion que prepara el workflow
+PREP='cp -f config/secrets.yml.ci config/secrets.yml && cp -f config/database.yml.ci config/database.yml'
+# nodejs va aqui porque ubuntu-latest lo trae de serie y la imagen de ruby no:
+# sin runtime de JS, ExecJS revienta al compilar los assets y toda vista con
+# javascript_include_tag devuelve error. Daba 671 fallos que en CI no existen.
+DEPS='apt-get update -qq >/dev/null && apt-get install -y -qq postgresql-client libpq-dev nodejs git chromium chromium-driver >/dev/null'
+SETUP="$DEPS && $PREP && bundle install --quiet && bundle exec rails db:create db:migrate"
+
+ejecutar_todo() {
+  paso 'Setup'                   "$SETUP"
+  paso 'Style: RuboCop'          "bundle exec rubocop --parallel --except Layout/LineLength,Metrics/MethodLength,Metrics/AbcSize,Metrics/BlockLength,Metrics/ClassLength"
+  paso 'Security: Brakeman'      "bundle exec brakeman --no-pager -q"
+  paso 'Security: bundler-audit' "bundle exec bundler-audit check --update"
+  paso 'Zeitwerk eager loading'  "bundle exec rails zeitwerk:check"
+  paso 'RSpec: suite raiz'       "bundle exec rspec spec/ --format progress"
+  paso 'RSpec: engines'          "SKIP_COVERAGE_CHECK=1 bundle exec rspec engines/ --format progress"
+}
+
+case "${1:-todo}" in
+  --shell)  levantar_servicios; en_linux "$SETUP" >/dev/null 2>&1; docker exec -it -w "$WORKDIR" "$APP" bash; exit 0 ;;
+  setup)    levantar_servicios; paso 'Setup' "$SETUP" ;;
+  lint)     levantar_servicios; paso 'Style: RuboCop' "$PREP && bundle install --quiet && bundle exec rubocop --parallel --except Layout/LineLength,Metrics/MethodLength,Metrics/AbcSize,Metrics/BlockLength,Metrics/ClassLength" ;;
+  security) levantar_servicios
+            paso 'Security: Brakeman'      "$PREP && bundle install --quiet && bundle exec brakeman --no-pager -q"
+            paso 'Security: bundler-audit' "bundle exec bundler-audit check --update" ;;
+  zeitwerk) levantar_servicios; paso 'Zeitwerk eager loading' "$SETUP && bundle exec rails zeitwerk:check" ;;
+  test)     levantar_servicios; paso 'RSpec: suite raiz' "$SETUP && bundle exec rspec spec/ --format progress" ;;
+  # Sin SKIP_COVERAGE_CHECK el umbral global de SimpleCov (65%) marca en rojo
+  # cualquier subconjunto aunque todos los ejemplos pasen. Este modo es para
+  # iterar sobre un fichero, no para dar por bueno el pipeline.
+  spec)     levantar_servicios; paso "RSpec: ${2:-spec/}" "$SETUP && SKIP_COVERAGE_CHECK=1 bundle exec rspec ${2:-spec/} --format progress" ;;
+  engines)  levantar_servicios; paso 'RSpec: engines' "$SETUP && SKIP_COVERAGE_CHECK=1 bundle exec rspec engines/ --format progress" ;;
+  todo)     levantar_servicios; ejecutar_todo ;;
+  *) echo "uso: bin/ci-local [todo|setup|lint|security|zeitwerk|test|engines|--shell] | spec <ruta>"; exit 2 ;;
+esac
+
+echo
+if [ "$fallos" -eq 0 ]; then
+  verde "CI local en verde. Ahora si tiene sentido pedir permiso para ejecutarlo en remoto."
+  exit 0
+else
+  rojo "CI local con $fallos paso(s) en rojo. No subir."
+  exit 1
+fi
