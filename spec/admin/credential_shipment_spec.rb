@@ -293,7 +293,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
     end
 
     # FLAKY: This test passes individually but fails in full suite due to test pollution
-    xit 'uses CRC16 digest in credential code generation' do
+    it 'uses CRC16 digest in credential code generation' do
       # Test that the code generation logic works
       get admin_envios_de_credenciales_generate_shipment_path, params: { max_reg: 1 }
       expect(response).to have_http_status(:success)

@@ -64,33 +64,35 @@ RSpec.describe Devise::Mailer, type: :mailer do
     end
   end
 
-  describe 'unlock_instructions' do
-    # NOTE: These tests are pending because :lockable module is not enabled in Devise
-    # If :lockable is enabled in the future, these tests should be re-enabled
+  # :lockable si esta activo, pero con `config.unlock_strategy = :time`
+  # (config/initializers/devise.rb) Devise no genera la ruta de desbloqueo, asi
+  # que la plantilla del correo revienta con `user_unlock_url` indefinido.
+  # Verificado al reactivarlos: los 6 fallan por eso.
+  describe 'unlock_instructions', skip: 'unlock_strategy = :time: no hay rutas de desbloqueo' do
     let(:token) { 'fake_unlock_token' }
     let(:mail) { described_class.unlock_instructions(user, token) }
 
-    xit 'renderiza el asunto' do
+    it 'renderiza el asunto' do
       expect(mail.subject).to be_present
     end
 
-    xit 'renderiza el destinatario' do
+    it 'renderiza el destinatario' do
       expect(mail.to).to include(user.email)
     end
 
-    xit 'renderiza el remitente' do
+    it 'renderiza el remitente' do
       expect(mail.from).to be_present
     end
 
-    xit 'incluye el email del usuario' do
+    it 'incluye el email del usuario' do
       expect(mail.html_part.body.decoded).to include(user.email)
     end
 
-    xit 'incluye el token de desbloqueo en el enlace' do
+    it 'incluye el token de desbloqueo en el enlace' do
       expect(mail.html_part.body.decoded).to match(/unlock_token=#{token}/)
     end
 
-    xit 'incluye información sobre desbloqueo' do
+    it 'incluye información sobre desbloqueo' do
       expect(mail.html_part.body.decoded).to match(/unlock|desbloqueo/i)
     end
   end

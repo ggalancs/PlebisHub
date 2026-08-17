@@ -122,7 +122,7 @@ RSpec.describe 'PlebisBrand Export' do
 
     # TODO: This test has complex interactions with database transactions and find_each
     # Skip until fix can properly handle case-insensitive email matching in test environment
-    xit 'fills missing data from database' do
+    it 'fills missing data from database' do
       csv_incomplete = "email\tfirst_name\n#{user.email}\t"
       result = fill_data(csv_incomplete, User.where(id: user.id))
       expect(result['results']).to include(user.first_name)

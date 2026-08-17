@@ -114,15 +114,32 @@ class ReportGroup < ApplicationRecord
     end
   end
 
+  # El formulario del admin deja escribir texto libre en Report#main_group y
+  # Report#groups, asi que aqui puede llegar cualquier cosa, no solo lo que
+  # produjo `serialize`. Antes eso lanzaba Psych::SyntaxError o ArgumentError y
+  # dejaba la ficha del informe en un 500 permanente.
   def self.unserialize(value)
     # SECURITY: Use safe_load with permitted classes instead of unsafe_load
     permitted = [Symbol, Date, Time, DateTime]
     data = YAML.safe_load(value, permitted_classes: permitted, aliases: true)
-    if data.is_a? Array
-      data.map { |d| ReportGroup.new YAML.safe_load(d, permitted_classes: permitted, aliases: true) }
-    else
-      ReportGroup.new data
+    case data
+    when Array
+      data.filter_map { |d| build_group(d, permitted) }
+    when Hash
+      ReportGroup.new(data)
     end
+  rescue Psych::Exception, ArgumentError, ActiveModel::UnknownAttributeError => e
+    Rails.logger.warn("[ReportGroup] no se pudo interpretar el grupo almacenado: #{e.class}: #{e.message}")
+    nil
+  end
+
+  def self.build_group(entry, permitted)
+    attrs = entry.is_a?(String) ? YAML.safe_load(entry, permitted_classes: permitted, aliases: true) : entry
+    return unless attrs.is_a?(Hash)
+
+    ReportGroup.new(attrs)
+  rescue Psych::Exception, ArgumentError, ActiveModel::UnknownAttributeError
+    nil
   end
 
   private

@@ -56,7 +56,9 @@ def fill_data_file(filename, query, options = {})
   end
   query.where(headers[0] => data.map { |k, _h| [k.upcase, k.downcase] }.flatten.uniq).find_each do |item|
     row = data[item.send(headers[0]).upcase]
-    if row && row.length > 1
+    # BUG: `> 1` dejaba fuera los CSV con una sola columna de datos, que es
+    # justo el caso de "completar este campo desde la base de datos"
+    if row.present?
       headers[1..].map do |h|
         if item.respond_to? h
           value = item.send(h)
@@ -88,7 +90,9 @@ def fill_data(csvdata, query, options = {})
   headers[0]
   query.where(headers[0] => data.map { |k, _h| [k.to_s.upcase, k.to_s.downcase] }.flatten.uniq).find_each do |item|
     row = data[item.send(headers[0]).to_s.upcase]
-    if row && row.length > 1
+    # BUG: `> 1` dejaba fuera los CSV con una sola columna de datos, que es
+    # justo el caso de "completar este campo desde la base de datos"
+    if row.present?
       headers[1..].map do |h|
         if item.respond_to? h
           value = item.send(h)

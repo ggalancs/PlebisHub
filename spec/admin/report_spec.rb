@@ -197,12 +197,12 @@ RSpec.describe 'Report Admin', type: :request do
   describe 'GET /admin/reports/:id/edit' do
     # FIXME: These tests consistently fail with 500 errors in the edit action
     # Needs investigation of the admin resource configuration
-    xit 'displays the edit form' do
+    it 'displays the edit form' do
       get edit_admin_report_path(report)
       expect(response).to have_http_status(:success)
     end
 
-    xit 'pre-populates form with existing data' do
+    it 'pre-populates form with existing data' do
       get edit_admin_report_path(report)
       expect(response.body).to include('Test Report')
     end
