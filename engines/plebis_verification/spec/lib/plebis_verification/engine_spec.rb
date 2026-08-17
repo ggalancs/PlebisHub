@@ -128,11 +128,9 @@ RSpec.describe PlebisVerification::Engine, type: :rails_engine do
       stub_const('::EngineActivation', activation_class)
 
       expect do
-        begin
-          ::EngineActivation.enabled?('plebis_verification')
-        rescue StandardError
-          true
-        end
+        ::EngineActivation.enabled?('plebis_verification')
+      rescue StandardError
+        true
       end.not_to raise_error
     end
   end

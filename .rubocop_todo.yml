@@ -1631,35 +1631,6 @@ Style/NonNilCheck:
   Exclude:
     - 'app/validators/email_validator.rb'
 
-# Offense count: 71
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: MinDigits, Strict, AllowedNumbers, AllowedPatterns.
-Style/NumericLiterals:
-  Exclude:
-    - 'engines/plebis_cms/spec/controllers/plebis_cms/blog_controller_spec.rb'
-    - 'engines/plebis_cms/spec/controllers/plebis_cms/page_controller_spec.rb'
-    - 'engines/plebis_collaborations/spec/models/plebis_collaborations/collaboration_spec.rb'
-    - 'engines/plebis_gamification/spec/listeners/gamification/proposal_listener_spec.rb'
-    - 'engines/plebis_impulsa/spec/models/plebis_impulsa/concerns/impulsa_project_wizard_spec.rb'
-    - 'engines/plebis_participation/spec/controllers/plebis_participation/participation_teams_controller_spec.rb'
-    - 'engines/plebis_proposals/spec/controllers/plebis_proposals/proposals_controller_spec.rb'
-    - 'engines/plebis_proposals/spec/controllers/plebis_proposals/supports_controller_spec.rb'
-    - 'generate_valid_ids.rb'
-    - 'spec/admin/microcredit_spec.rb'
-    - 'spec/admin/user_verification_spec.rb'
-    - 'spec/controllers/errors_controller_spec.rb'
-    - 'spec/controllers/vote_controller_spec.rb'
-    - 'spec/helpers/collaborations_helper_spec.rb'
-    - 'spec/lib/add_unique_month_to_dates_spec.rb'
-    - 'spec/lib/collaborations_on_paper_spec.rb'
-    - 'spec/mailers/user_verification_mailer_spec.rb'
-    - 'spec/mailers/users_mailer_spec.rb'
-    - 'spec/models/concerns/engine_user/team_member_spec.rb'
-    - 'spec/models/concerns/territory_details_spec.rb'
-    - 'spec/models/spam_filter_spec.rb'
-    - 'spec/services/paper_vote_service_spec.rb'
-    - 'spec/validators/valid_nie_validator_spec.rb'
-    - 'spec/validators/valid_nif_validator_spec.rb'
 
 # Offense count: 19
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -1693,20 +1664,6 @@ Style/OptionalBooleanParameter:
     - 'engines/plebis_votes/app/models/concerns/plebis_votes/territory_details.rb'
     - 'lib/tasks/plebisbrand/election_stats.rake'
 
-# Offense count: 14
-# This cop supports safe autocorrection (--autocorrect).
-Style/RedundantBegin:
-  Exclude:
-    - 'engines/plebis_cms/spec/lib/plebis_cms/engine_spec.rb'
-    - 'engines/plebis_collaborations/spec/lib/plebis_collaborations/engine_spec.rb'
-    - 'engines/plebis_gamification/spec/lib/plebis_gamification/engine_spec.rb'
-    - 'engines/plebis_impulsa/spec/lib/plebis_impulsa/engine_spec.rb'
-    - 'engines/plebis_microcredit/spec/lib/plebis_microcredit/engine_spec.rb'
-    - 'engines/plebis_participation/spec/lib/plebis_participation/engine_spec.rb'
-    - 'engines/plebis_proposals/spec/lib/plebis_proposals/engine_spec.rb'
-    - 'engines/plebis_verification/spec/lib/plebis_verification/engine_spec.rb'
-    - 'engines/plebis_votes/spec/lib/plebis_votes/engine_spec.rb'
-    - 'spec/controllers/errors_controller_spec.rb'
 
 # Offense count: 37
 # This cop supports safe autocorrection (--autocorrect).
@@ -1793,55 +1750,8 @@ Style/SlicingWithRange:
   Exclude:
     - 'spec/admin/credential_shipment_spec.rb'
 
-# Offense count: 1
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: Mode.
-Style/StringConcatenation:
-  Exclude:
-    - 'engines/plebis_collaborations/spec/mailers/plebis_collaborations/collaborations_mailer_spec.rb'
 
-# Offense count: 71
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle, ConsistentQuotesInMultiline.
-# SupportedStyles: single_quotes, double_quotes
-Style/StringLiterals:
-  Exclude:
-    - 'analyze_file_coverage.rb'
-    - 'check_cms_coverage.rb'
-    - 'check_engine_coverage.rb'
-    - 'engines/plebis_cms/spec/models/plebis_cms/category_spec.rb'
-    - 'engines/plebis_cms/spec/models/plebis_cms/notice_spec.rb'
-    - 'engines/plebis_cms/spec/models/plebis_cms/post_spec.rb'
-    - 'engines/plebis_votes/spec/models/plebis_votes/election_location_spec.rb'
-    - 'engines/plebis_votes/spec/models/plebis_votes/election_spec.rb'
-    - 'final_report.rb'
-    - 'find_coverage.rb'
-    - 'generate_valid_ids.rb'
-    - 'spec/admin/credential_shipment_spec.rb'
-    - 'spec/admin/microcredit_loan_spec.rb'
-    - 'spec/admin/spam_filter_spec.rb'
-    - 'spec/controllers/tools_controller_spec.rb'
-    - 'spec/controllers/user_verifications_controller_spec.rb'
-    - 'spec/helpers/plebis_cms/blog_helper_spec.rb'
-    - 'spec/models/collaboration_payment_methods_spec.rb'
-    - 'spec/models/election_location_question_spec.rb'
-    - 'spec/models/report_spec.rb'
-    - 'spec/models/spam_filter_spec.rb'
-    - 'spec/models/user_verification_spec.rb'
-    - 'spec/models/vote_circle_spec.rb'
-    - 'spec/services/census_file_parser_spec.rb'
-    - 'spec/services/loan_renewal_service_spec.rb'
-    - 'spec/services/paper_vote_service_spec.rb'
-    - 'spec/services/url_signature_service_spec.rb'
-    - 'spec/workers/plebisbrand_report_worker_spec.rb'
 
-# Offense count: 12
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: .
-# SupportedStyles: percent, brackets
-Style/SymbolArray:
-  EnforcedStyle: percent
-  MinSize: 7
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -1851,51 +1761,7 @@ Style/SymbolProc:
   Exclude:
     - 'engines/plebis_collaborations/spec/models/plebis_collaborations/collaboration_spec.rb'
 
-# Offense count: 2
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyleForMultiline.
-# SupportedStylesForMultiline: comma, consistent_comma, diff_comma, no_comma
-Style/TrailingCommaInArrayLiteral:
-  Exclude:
-    - 'spec/validators/valid_nie_validator_spec.rb'
-    - 'spec/validators/valid_nif_validator_spec.rb'
 
-# Offense count: 67
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle, MinSize, WordRegex.
-# SupportedStyles: percent, brackets
-Style/WordArray:
-  Exclude:
-    - 'analyze_file_coverage.rb'
-    - 'engines/plebis_cms/spec/models/plebis_cms/notice_spec.rb'
-    - 'engines/plebis_impulsa/spec/models/plebis_impulsa/concerns/impulsa_project_wizard_spec.rb'
-    - 'engines/plebis_microcredit/spec/services/plebis_microcredit/loan_renewal_service_spec.rb'
-    - 'engines/plebis_verification/spec/services/plebis_verification/town_verification_report_service_spec.rb'
-    - 'engines/plebis_verification/spec/services/plebis_verification/user_verification_report_service_spec.rb'
-    - 'engines/plebis_votes/spec/models/plebis_votes/election_location_question_spec.rb'
-    - 'generate_valid_ids.rb'
-    - 'spec/admin/engine_activations_spec.rb'
-    - 'spec/controllers/application_controller_spec.rb'
-    - 'spec/controllers/errors_controller_spec.rb'
-    - 'spec/controllers/passwords_controller_spec.rb'
-    - 'spec/helpers/application_helper_spec.rb'
-    - 'spec/helpers/registrations_helper_spec.rb'
-    - 'spec/lib/collaborations_on_paper_spec.rb'
-    - 'spec/lib/diff_spec.rb'
-    - 'spec/lib/plebisbrand_export_spec.rb'
-    - 'spec/models/concerns/engine_user_spec.rb'
-    - 'spec/models/concerns/impulsa_project_wizard_spec.rb'
-    - 'spec/models/concerns/user/location_helpers_spec.rb'
-    - 'spec/models/election_location_spec.rb'
-    - 'spec/models/order_spec.rb'
-    - 'spec/models/participation_team_spec.rb'
-    - 'spec/models/report_group_spec.rb'
-    - 'spec/models/spam_filter_spec.rb'
-    - 'spec/services/url_signature_service_spec.rb'
-    - 'spec/support/workers_helper.rb'
-    - 'spec/validators/valid_nie_validator_spec.rb'
-    - 'spec/validators/valid_nif_validator_spec.rb'
-    - 'spec/workers/plebisbrand_import_worker_spec.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).

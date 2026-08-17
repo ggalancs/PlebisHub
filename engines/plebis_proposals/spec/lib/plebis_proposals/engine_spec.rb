@@ -79,11 +79,9 @@ RSpec.describe PlebisProposals::Engine, type: :rails_engine do
       stub_const('::EngineActivation', activation_class)
 
       expect do
-        begin
-          ::EngineActivation.enabled?('plebis_proposals')
-        rescue StandardError
-          true
-        end
+        ::EngineActivation.enabled?('plebis_proposals')
+      rescue StandardError
+        true
       end.not_to raise_error
     end
   end

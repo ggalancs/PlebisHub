@@ -231,7 +231,7 @@ RSpec.describe SpamFilter, type: :model do
         filter = SpamFilter.new(
           rules_json: {
             conditions: [
-              { field: 'postal_code', operator: 'less_than', value: 20000 }
+              { field: 'postal_code', operator: 'less_than', value: 20_000 }
             ],
             logic: 'AND'
           }.to_json
@@ -250,7 +250,7 @@ RSpec.describe SpamFilter, type: :model do
         filter = SpamFilter.new(
           rules_json: {
             conditions: [
-              { field: 'postal_code', operator: 'greater_than', value: 50000 }
+              { field: 'postal_code', operator: 'greater_than', value: 50_000 }
             ],
             logic: 'AND'
           }.to_json
@@ -801,12 +801,12 @@ RSpec.describe SpamFilter, type: :model do
   describe '#data_list' do
     it 'splits data by Unix line endings' do
       filter = SpamFilter.new(data: "line1\nline2\nline3")
-      expect(filter.send(:data_list)).to eq(['line1', 'line2', 'line3'])
+      expect(filter.send(:data_list)).to eq(%w[line1 line2 line3])
     end
 
     it 'splits data by Windows line endings' do
       filter = SpamFilter.new(data: "line1\r\nline2\r\nline3")
-      expect(filter.send(:data_list)).to eq(['line1', 'line2', 'line3'])
+      expect(filter.send(:data_list)).to eq(%w[line1 line2 line3])
     end
 
     it 'handles empty data' do
@@ -997,7 +997,7 @@ RSpec.describe SpamFilter, type: :model do
 
     it 'initializes data array from data field' do
       filter = SpamFilter.new(
-        code: "data.include?(user.email)",
+        code: 'data.include?(user.email)',
         data: "spam@test.com\ntest@spam.com"
       )
       filter.id = 1
@@ -1046,7 +1046,7 @@ RSpec.describe SpamFilter, type: :model do
         rules_json: {
           conditions: [
             { field: 'country', operator: 'equals', value: 'ES' },
-            { field: 'postal_code', operator: 'less_than', value: 10000 }
+            { field: 'postal_code', operator: 'less_than', value: 10_000 }
           ],
           logic: 'AND'
         }.to_json

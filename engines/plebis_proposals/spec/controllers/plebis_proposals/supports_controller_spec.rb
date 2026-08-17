@@ -88,14 +88,14 @@ module PlebisProposals
 
       context 'with invalid proposal id' do
         it 'handles RecordNotFound gracefully' do
-          post :create, params: { proposal_id: 99999 }
+          post :create, params: { proposal_id: 99_999 }
           expect(response).to redirect_to(proposals_path)
           expect(flash[:alert]).to be_present
         end
 
         it 'logs the not found event' do
           expect(Rails.logger).to receive(:info).with(a_string_matching(/support_proposal_not_found/))
-          post :create, params: { proposal_id: 99999 }
+          post :create, params: { proposal_id: 99_999 }
         end
       end
 

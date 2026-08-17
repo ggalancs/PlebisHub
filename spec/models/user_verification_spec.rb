@@ -134,7 +134,7 @@ RSpec.describe UserVerification, type: :model do
     describe 'terms_of_service' do
       # Rails 7.2: Acceptance validations expect string "1" (like HTML checkbox behavior)
       it 'accepts "1" string value for acceptance validation' do
-        verification = UserVerification.new(user: user, terms_of_service: "1")
+        verification = UserVerification.new(user: user, terms_of_service: '1')
         allow(verification).to receive(:not_require_photos?).and_return(true)
         expect(verification.valid?).to be true
         expect(verification.errors[:terms_of_service]).to be_empty

@@ -960,7 +960,7 @@ RSpec.describe Order, type: :model do
 
       it 'handles recurring order response format' do
         order.first = false
-        order.payment_response = ['RSisReciboOK', 'other'].to_json
+        order.payment_response = %w[RSisReciboOK other].to_json
         status = order.redsys_text_status
 
         expect(status).to be_a(String)
@@ -1153,7 +1153,7 @@ RSpec.describe Order, type: :model do
       end
 
       it 'handles SIS error codes' do
-        sis_codes = ['SIS0298', 'SIS0319', 'SIS0322', 'SIS0325']
+        sis_codes = %w[SIS0298 SIS0319 SIS0322 SIS0325]
 
         sis_codes.each do |code|
           order = create(:order, :credit_card, :first_order, payment_identifier: nil)

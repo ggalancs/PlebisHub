@@ -154,7 +154,7 @@ RSpec.describe Collaboration, type: :model do
       it 'validates CCC account' do
         collaboration = build(:collaboration, :with_ccc, user: user,
                              ccc_entity: 2100, ccc_office: 1234,
-                             ccc_dc: 99, ccc_account: 1234567890)
+                             ccc_dc: 99, ccc_account: 1_234_567_890)
         expect(collaboration).not_to be_valid
         expect(collaboration.errors[:ccc_dc]).to be_present
       end

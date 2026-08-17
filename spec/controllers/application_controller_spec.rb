@@ -776,7 +776,7 @@ RSpec.describe ApplicationController, type: :controller do
       let(:exception) { StandardError.new('Test error') }
 
       before do
-        allow(exception).to receive(:backtrace).and_return(['line1', 'line2', 'line3'])
+        allow(exception).to receive(:backtrace).and_return(%w[line1 line2 line3])
       end
 
       it 'logs error details' do

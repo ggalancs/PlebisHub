@@ -532,7 +532,7 @@ RSpec.describe PlebisCollaborations::CollaborationsMailer, type: :mailer do
 
     it 'handles very long email addresses' do
       long_email_user = create(:user, :with_dni)
-      long_email_user.email = 'a' * 50 + '@' + 'b' * 50 + '.com'
+      long_email_user.email = "#{'a' * 50}@#{'b' * 50}.com"
       long_email_user.save(validate: false)
 
       mail = described_class.creditcard_error_email(long_email_user)

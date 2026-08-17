@@ -291,7 +291,7 @@ RSpec.describe CensusFileParser do
     end
 
     context 'with special characters in document' do
-      let(:document_vatid) { "X1234567L" }
+      let(:document_vatid) { 'X1234567L' }
       let(:csv_data) { "dni,name\nX1234567L,Foreigner" }
       let(:user_relation) { double('UserRelation') }
       let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
@@ -341,7 +341,7 @@ RSpec.describe CensusFileParser do
     end
 
     context 'when CSV has only headers' do
-      let(:csv_data) { "user_id,name" }
+      let(:csv_data) { 'user_id,name' }
       let(:file_attachment) { double('ActiveStorage::Attached::One', blank?: false, attached?: true, download: csv_data) }
       let(:election) { instance_double('Election', census_file: file_attachment) }
 

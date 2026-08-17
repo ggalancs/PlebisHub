@@ -335,11 +335,11 @@ RSpec.describe UsersMailer, type: :mailer do
 
     context 'when user is not found' do
       it 'raises an error for new_militant_email' do
-        expect { described_class.new_militant_email(999999).deliver_now }.to raise_error(ActiveRecord::RecordNotFound)
+        expect { described_class.new_militant_email(999_999).deliver_now }.to raise_error(ActiveRecord::RecordNotFound)
       end
 
       it 'raises an error for cancel_account_email' do
-        expect { described_class.cancel_account_email(999999).deliver_now }.to raise_error(ActiveRecord::RecordNotFound)
+        expect { described_class.cancel_account_email(999_999).deliver_now }.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
 

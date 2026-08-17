@@ -40,45 +40,45 @@ def generate_valid_ccc(entity, office, account)
   "#{entity.to_s.rjust(4, '0')}#{office.to_s.rjust(4, '0')}#{first_control}#{second_control}#{account.to_s.rjust(10, '0')}"
 end
 
-puts "=== Valid NIFs ==="
-[
-  '00000000', '00000001', '00000002', '00000003', '00000004',
-  '00000005', '00000006', '00000007', '00000008', '00000009',
-  '00000010', '00000011', '00000012', '00000013', '00000014',
-  '00000015', '00000016', '00000017', '00000018', '00000019',
-  '00000020', '00000021', '00000022',
-  '11111111', '22222222', '33333333', '44444444', '55555555',
-  '66666666', '77777777', '88888888', '99999999', '12345678'
+puts '=== Valid NIFs ==='
+%w[
+  00000000 00000001 00000002 00000003 00000004
+  00000005 00000006 00000007 00000008 00000009
+  00000010 00000011 00000012 00000013 00000014
+  00000015 00000016 00000017 00000018 00000019
+  00000020 00000021 00000022
+  11111111 22222222 33333333 44444444 55555555
+  66666666 77777777 88888888 99999999 12345678
 ].each do |num|
   letter = nif_check_letter(num)
   puts "#{num}#{letter}"
 end
 
 puts "\n=== Valid NIEs (X prefix) ==="
-['0000000', '1111111', '2222222', '3333333', '9999999', '1234567', '0000022'].each do |num|
+%w[0000000 1111111 2222222 3333333 9999999 1234567 0000022].each do |num|
   letter = nie_check_letter('X', num)
   puts "X#{num}#{letter}"
 end
 
 puts "\n=== Valid NIEs (Y prefix) ==="
-['0000000', '1111111', '2222222', '3333333', '1234567'].each do |num|
+%w[0000000 1111111 2222222 3333333 1234567].each do |num|
   letter = nie_check_letter('Y', num)
   puts "Y#{num}#{letter}"
 end
 
 puts "\n=== Valid NIEs (Z prefix) ==="
-['0000000', '1111111', '2222222', '3333333', '1234567'].each do |num|
+%w[0000000 1111111 2222222 3333333 1234567].each do |num|
   letter = nie_check_letter('Z', num)
   puts "Z#{num}#{letter}"
 end
 
 puts "\n=== Valid Bank CCCs ==="
 # Test the known examples from the spec
-puts "Example 1: #{generate_valid_ccc(2100, 418, 200051332)}"
-puts "Example 2: #{generate_valid_ccc(182, 1666, 201503283)}"
+puts "Example 1: #{generate_valid_ccc(2100, 418, 200_051_332)}"
+puts "Example 2: #{generate_valid_ccc(182, 1666, 201_503_283)}"
 
 # Generate some more examples
 puts "All zeros: #{generate_valid_ccc(0, 0, 0)}"
-puts "Entity 9999: #{generate_valid_ccc(9999, 418, 200051332)}"
-puts "Office 9999: #{generate_valid_ccc(2100, 9999, 200051332)}"
-puts "Account 9999999999: #{generate_valid_ccc(2100, 418, 9999999999)}"
+puts "Entity 9999: #{generate_valid_ccc(9999, 418, 200_051_332)}"
+puts "Office 9999: #{generate_valid_ccc(2100, 9999, 200_051_332)}"
+puts "Account 9999999999: #{generate_valid_ccc(2100, 418, 9_999_999_999)}"

@@ -41,7 +41,7 @@ RSpec.describe PaperVoteService do
     end
 
     it 'logs query with user info and document details' do
-      expect(tracking_logger).to receive(:info).with("** 1 Admin User ** QUERY: DNI 12345678A")
+      expect(tracking_logger).to receive(:info).with('** 1 Admin User ** QUERY: DNI 12345678A')
       service.log_vote_query(document_type, document_vatid)
     end
 
@@ -74,7 +74,7 @@ RSpec.describe PaperVoteService do
 
     context 'with special characters in document' do
       it 'logs documents with special characters' do
-        expect(tracking_logger).to receive(:info).with(a_string_including("12345678-A"))
+        expect(tracking_logger).to receive(:info).with(a_string_including('12345678-A'))
         service.log_vote_query('DNI', '12345678-A')
       end
     end
@@ -91,7 +91,7 @@ RSpec.describe PaperVoteService do
     end
 
     it 'logs registered vote with user info and voter id' do
-      expect(tracking_logger).to receive(:info).with("** 1 Admin User ** VOTE: 99")
+      expect(tracking_logger).to receive(:info).with('** 1 Admin User ** VOTE: 99')
       service.log_vote_registered(paper_vote_user)
     end
 
@@ -112,7 +112,7 @@ RSpec.describe PaperVoteService do
 
     context 'with different user ids' do
       it 'logs various user ids correctly' do
-        user1 = instance_double('User', id: 12345)
+        user1 = instance_double('User', id: 12_345)
         expect(tracking_logger).to receive(:info).with(a_string_including('VOTE: 12345'))
         service.log_vote_registered(user1)
       end
@@ -370,11 +370,11 @@ RSpec.describe PaperVoteService do
     end
 
     describe 'SQL injection prevention via ActiveRecord' do
-      let(:user) { instance_double('User', id: "1 OR 1=1") }
+      let(:user) { instance_double('User', id: '1 OR 1=1') }
       let(:vote) { instance_double('Vote') }
 
       it 'safely passes malicious user_id to ActiveRecord' do
-        expect(votes_relation).to receive(:create).with(user_id: "1 OR 1=1", paper_authority: current_user).and_return(vote)
+        expect(votes_relation).to receive(:create).with(user_id: '1 OR 1=1', paper_authority: current_user).and_return(vote)
         service.save_vote_for_user(user)
       end
     end

@@ -126,7 +126,7 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
     context 'with NIE document type' do
       let(:nie_row) do
         row = sample_row.map(&:dup) # Deep copy
-        row[3] = ['document_vatid', 'X1234567Y']
+        row[3] = %w[document_vatid X1234567Y]
         row[6] = ['email', 'nie_test@example.com'] # Different email
         row[7] = ['phone', '+34622111222'] # Different phone
         row
@@ -143,8 +143,8 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
     context 'with Passport document type' do
       let(:passport_row) do
         row = sample_row.map(&:dup) # Deep copy
-        row[2] = ['doc_type', 'Pasaporte']
-        row[3] = ['document_vatid', 'ABC123456']
+        row[2] = %w[doc_type Pasaporte]
+        row[3] = %w[document_vatid ABC123456]
         row[6] = ['email', 'passport_test@example.com'] # Different email
         row[7] = ['phone', '+34633222333'] # Different phone
         row
@@ -250,10 +250,10 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
     context 'with country normalization' do
       let(:country_row) do
         row = sample_row.map(&:dup) # Deep copy
-        row[3] = ['document_vatid', '22222222J'] # Different document
+        row[3] = %w[document_vatid 22222222J] # Different document
         row[6] = ['email', 'country_test@example.com'] # Different email
         row[7] = ['phone', '+34611333444'] # Different phone
-        row[13] = ['country', 'Spain']
+        row[13] = %w[country Spain]
         row
       end
 
@@ -296,7 +296,7 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
       context 'when user data is invalid' do
         let(:invalid_row) do
           row = sample_row.dup
-          row[6] = ['email', 'invalid-email'] # Invalid email format
+          row[6] = %w[email invalid-email] # Invalid email format
           row
         end
 
@@ -316,8 +316,8 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
       context 'when row has missing required fields' do
         let(:incomplete_row) do
           [
-            ['first_name', 'Test'],
-            ['last_name', 'User']
+            %w[first_name Test],
+            %w[last_name User]
             # Missing all other required fields
           ]
         end
@@ -343,10 +343,10 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
       it 'processes multiple rows sequentially' do
         row1 = sample_row
         row2 = sample_row.map(&:dup) # Deep copy
-        row2[3] = ['document_vatid', '98765432B']
+        row2[3] = %w[document_vatid 98765432B]
         row2[6] = ['email', 'test2@example.com']
         row2[7] = ['phone', '+34666888999'] # Different phone number
-        row2[8] = ['sms_token', 'TestPass654321'] # Different SMS token
+        row2[8] = %w[sms_token TestPass654321] # Different SMS token
 
         expect do
           worker.perform(row1)
@@ -396,7 +396,7 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
       context 'with very long town name' do
         let(:long_town_row) do
           row = sample_row.map(&:dup) # Deep copy
-          row[3] = ['document_vatid', '33333333K'] # Different document
+          row[3] = %w[document_vatid 33333333K] # Different document
           row[6] = ['email', 'longtown_test@example.com'] # Different email
           row[7] = ['phone', '+34644333444'] # Different phone
           row[10] = ['town', 'A' * 300] # Very long town name
@@ -414,7 +414,7 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
       context 'with NIE starting with Z' do
         let(:nie_z_row) do
           row = sample_row.map(&:dup) # Deep copy
-          row[3] = ['document_vatid', 'Z9876543R']
+          row[3] = %w[document_vatid Z9876543R]
           row[6] = ['email', 'nie_z_test@example.com'] # Different email
           row[7] = ['phone', '+34655444555'] # Different phone
           row
@@ -431,7 +431,7 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
       context 'with NIE starting with Y' do
         let(:nie_y_row) do
           row = sample_row.map(&:dup) # Deep copy
-          row[3] = ['document_vatid', 'Y1122334F']
+          row[3] = %w[document_vatid Y1122334F]
           row[6] = ['email', 'nie_y_test@example.com'] # Different email
           row[7] = ['phone', '+34666555666'] # Different phone
           row
@@ -466,7 +466,7 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
   describe 'method delegation' do
     it 'delegates processing to PlebisBrandImport.process_row' do
       worker = described_class.new
-      row = [['first_name', 'Test']]
+      row = [%w[first_name Test]]
 
       expect(PlebisBrandImport).to receive(:process_row).with(row).once
 
@@ -475,7 +475,7 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
 
     it 'directly calls PlebisBrandImport.process_row in perform method' do
       worker = described_class.new
-      row = [['test_key', 'test_value']]
+      row = [%w[test_key test_value]]
 
       # Ensure the actual method line is executed
       expect(PlebisBrandImport).to receive(:process_row).with(row).and_return(true)
@@ -487,7 +487,7 @@ RSpec.describe PlebisBrandImportWorker, type: :worker do
 
   describe 'return value' do
     let(:worker) { described_class.new }
-    let(:test_row) { [['first_name', 'Test'], ['last_name', 'User']] }
+    let(:test_row) { [%w[first_name Test], %w[last_name User]] }
 
     it 'returns the result from PlebisBrandImport.process_row' do
       allow(PlebisBrandImport).to receive(:process_row).with(test_row).and_return('test_result')

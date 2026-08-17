@@ -46,7 +46,7 @@ RSpec.describe 'PlebisBrand Export' do
     end
 
     it 'includes headers when provided' do
-      export_data(test_file, query, folder: temp_folder, headers: ['ID', 'Email']) do |user|
+      export_data(test_file, query, folder: temp_folder, headers: %w[ID Email]) do |user|
         [user.id, user.email]
       end
 
@@ -90,7 +90,7 @@ RSpec.describe 'PlebisBrand Export' do
     end
 
     it 'processes each item in data array' do
-      export_raw_data(test_file, data, folder: temp_folder, headers: ['ID', 'Name']) do |item|
+      export_raw_data(test_file, data, folder: temp_folder, headers: %w[ID Name]) do |item|
         [item[:id], item[:name]]
       end
 

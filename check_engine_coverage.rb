@@ -20,8 +20,8 @@ total_lines = 0
 models_count = 0
 models_below_95 = []
 
-puts "Coverage for PlebisCms engine models:"
-puts "=" * 60
+puts 'Coverage for PlebisCms engine models:'
+puts '=' * 60
 
 paths.each do |path|
   if coverage[path]
@@ -46,7 +46,7 @@ paths.each do |path|
   end
 end
 
-puts "=" * 60
+puts '=' * 60
 avg_coverage = total_lines > 0 ? (total_covered * 100.0 / total_lines).round(2) : 0
 puts "Average Coverage: #{avg_coverage}%"
 puts "Total: #{models_count} models, #{total_lines} lines, #{total_covered} covered"

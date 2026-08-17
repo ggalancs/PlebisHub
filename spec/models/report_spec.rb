@@ -76,7 +76,7 @@ RSpec.describe Report, type: :model do
 
   describe '#batch_process' do
     let!(:users) { create_list(:user, 5) }
-    let(:report) { create(:report, query: "SELECT * FROM users") }
+    let(:report) { create(:report, query: 'SELECT * FROM users') }
 
     it 'processes records in batches' do
       count = 0

@@ -3,7 +3,7 @@
 require 'json'
 
 if ARGV.length < 1
-  puts "Usage: ruby analyze_file_coverage.rb <file_path>"
+  puts 'Usage: ruby analyze_file_coverage.rb <file_path>'
   exit 1
 end
 
@@ -29,7 +29,7 @@ if File.exist?('coverage/.resultset.json')
     lines = coverage[full_path]['lines']
 
     puts "Coverage for: #{full_path}"
-    puts "=" * 80
+    puts '=' * 80
 
     # Read the actual file
     if File.exist?(full_path)
@@ -43,7 +43,7 @@ if File.exist?('coverage/.resultset.json')
           # Skip empty lines, comments, and certain keywords
           next if line_content.empty?
           next if line_content.start_with?('#')
-          next if ['end', 'else', 'elsif', 'when', 'rescue', 'ensure', 'private', 'public', 'protected'].include?(line_content)
+          next if %w[end else elsif when rescue ensure private public protected].include?(line_content)
 
           uncovered_lines << [line_num, source_lines[idx].chomp]
         end
@@ -57,7 +57,7 @@ if File.exist?('coverage/.resultset.json')
       puts "Covered lines: #{covered}"
       puts "Coverage: #{pct}%"
       puts "\nUncovered lines (#{uncovered_lines.size}):"
-      puts "-" * 80
+      puts '-' * 80
 
       uncovered_lines.each do |line_num, content|
         puts "Line #{line_num}: #{content}"
@@ -69,5 +69,5 @@ if File.exist?('coverage/.resultset.json')
     puts "\n"
   end
 else
-  puts "No coverage file found at coverage/.resultset.json"
+  puts 'No coverage file found at coverage/.resultset.json'
 end

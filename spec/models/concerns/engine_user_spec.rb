@@ -150,7 +150,7 @@ RSpec.describe EngineUser, type: :model do
           end
 
           it 'skips User dependency check' do
-            allow(PlebisCore::EngineRegistry).to receive(:dependencies_for).with('test_engine').and_return(['User', 'other_engine'])
+            allow(PlebisCore::EngineRegistry).to receive(:dependencies_for).with('test_engine').and_return(%w[User other_engine])
             allow(EngineActivation).to receive(:enabled?).with('other_engine').and_return(true)
 
             test_class = Class.new do

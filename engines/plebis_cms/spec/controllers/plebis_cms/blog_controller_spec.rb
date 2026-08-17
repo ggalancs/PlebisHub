@@ -124,18 +124,18 @@ module PlebisCms
         before { sign_in user }
 
         it 'redirects to blog index' do
-          get :post, params: { id: 99999 }
+          get :post, params: { id: 99_999 }
           expect(response).to redirect_to(blog_path)
         end
 
         it 'sets alert message' do
-          get :post, params: { id: 99999 }
+          get :post, params: { id: 99_999 }
           expect(flash[:alert]).to be_present
         end
 
         it 'logs the not found event' do
           expect(Rails.logger).to receive(:info).with(a_string_matching(/blog_post_not_found/))
-          get :post, params: { id: 99999 }
+          get :post, params: { id: 99_999 }
         end
       end
 
@@ -187,13 +187,13 @@ module PlebisCms
         before { sign_in user }
 
         it 'redirects to blog index' do
-          get :category, params: { id: 99999 }
+          get :category, params: { id: 99_999 }
           expect(response).to redirect_to(blog_path)
         end
 
         it 'logs the not found event' do
           expect(Rails.logger).to receive(:info).with(a_string_matching(/blog_category_not_found/))
-          get :category, params: { id: 99999 }
+          get :category, params: { id: 99_999 }
         end
       end
 

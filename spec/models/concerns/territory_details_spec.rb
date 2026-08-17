@@ -12,7 +12,7 @@ RSpec.describe TerritoryDetails, type: :model do
 
   describe '#calc_muni_dc' do
     it 'calculates digit control for 5-digit municipality code' do
-      result = instance.calc_muni_dc(28079)
+      result = instance.calc_muni_dc(28_079)
       expect(result).to be_a(Integer)
       expect(result).to be_between(0, 9)
     end
@@ -25,7 +25,7 @@ RSpec.describe TerritoryDetails, type: :model do
 
   describe '#get_valid_town_code' do
     it 'returns valid town code for numeric input' do
-      result = instance.get_valid_town_code(28079, 'ES', true)
+      result = instance.get_valid_town_code(28_079, 'ES', true)
       expect(result).to match(/m_\d\d_\d\d\d_\d/)
     end
 
@@ -45,7 +45,7 @@ RSpec.describe TerritoryDetails, type: :model do
     end
 
     it 'validates town code with Carmen if available' do
-      result = instance.get_valid_town_code(28079, 'ES', true)
+      result = instance.get_valid_town_code(28_079, 'ES', true)
       if defined?(Carmen)
         expect(result).not_to be_nil
       end
@@ -55,7 +55,7 @@ RSpec.describe TerritoryDetails, type: :model do
   describe '#territory_details' do
     context 'with valid numeric town code' do
       it 'returns territory details hash' do
-        result = instance.territory_details(28079)
+        result = instance.territory_details(28_079)
         if result
           expect(result).to have_key(:town_code)
           expect(result).to have_key(:town_name)
@@ -69,14 +69,14 @@ RSpec.describe TerritoryDetails, type: :model do
 
     context 'with hash options' do
       it 'accepts hash with town_code' do
-        result = instance.territory_details(town_code: 28079, country_code: 'ES')
+        result = instance.territory_details(town_code: 28_079, country_code: 'ES')
         if result
           expect(result).to be_a(Hash)
         end
       end
 
       it 'accepts hash with result_as option' do
-        result = instance.territory_details(town_code: 28079, result_as: :struct)
+        result = instance.territory_details(town_code: 28_079, result_as: :struct)
         if result && defined?(OpenStruct)
           expect(result).to respond_to(:town_code)
         end

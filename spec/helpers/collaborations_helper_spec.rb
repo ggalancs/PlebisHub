@@ -109,7 +109,7 @@ RSpec.describe CollaborationsHelper, type: :helper do
     end
 
     it 'converts cents to euros with 3 decimal places' do
-      expect(helper.number_to_euro(12345, 3)).to eq('123,450€')
+      expect(helper.number_to_euro(12_345, 3)).to eq('123,450€')
     end
 
     it 'handles zero amount' do
@@ -137,7 +137,7 @@ RSpec.describe CollaborationsHelper, type: :helper do
     end
 
     it 'handles precision of 4' do
-      expect(helper.number_to_euro(123456, 4)).to eq('1.234,5600€')
+      expect(helper.number_to_euro(123_456, 4)).to eq('1.234,5600€')
     end
 
     it 'divides by 100.0 correctly for integer amounts' do

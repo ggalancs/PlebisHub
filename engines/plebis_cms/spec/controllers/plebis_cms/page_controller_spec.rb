@@ -72,13 +72,13 @@ module PlebisCms
 
       context 'with non-existent page' do
         it 'returns not found' do
-          get :show_form, params: { id: 99999 }
+          get :show_form, params: { id: 99_999 }
           expect(response).to have_http_status(:not_found)
         end
 
         it 'logs page not found' do
           expect(Rails.logger).to receive(:warn).with(a_string_matching(/Page not found/))
-          get :show_form, params: { id: 99999 }
+          get :show_form, params: { id: 99_999 }
         end
       end
 

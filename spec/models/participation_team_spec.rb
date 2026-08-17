@@ -486,7 +486,7 @@ RSpec.describe ParticipationTeam, type: :model do
       create(:participation_team, name: 'Bravo')
 
       ordered = ParticipationTeam.order(:name).pluck(:name)
-      expect(ordered).to eq(['Alpha', 'Bravo', 'Zulu'])
+      expect(ordered).to eq(%w[Alpha Bravo Zulu])
     end
 
     it 'supports limit queries' do

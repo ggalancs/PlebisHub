@@ -350,7 +350,7 @@ RSpec.describe PlebisBrandReportWorker, type: :worker do
         before do
           # Note: Report model already has security measures in place
           # We're testing that malicious queries are handled appropriately
-          report.query = "SELECT * FROM users WHERE id = 1; DROP TABLE users; --"
+          report.query = 'SELECT * FROM users WHERE id = 1; DROP TABLE users; --'
           report.save(validate: false)
         end
 

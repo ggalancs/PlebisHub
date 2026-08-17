@@ -16,7 +16,7 @@ module PlebisCms
       it 'validates presence of name' do
         category = Category.new(name: nil)
         expect(category.valid?).to be false
-        expect(category.errors[:name]).to include("no puede estar en blanco")
+        expect(category.errors[:name]).to include('no puede estar en blanco')
       end
 
       describe 'uniqueness validations' do
@@ -24,7 +24,7 @@ module PlebisCms
           create(:category, name: 'Test Name')
           duplicate = Category.new(name: 'TEST NAME')
           expect(duplicate.valid?).to be false
-          expect(duplicate.errors[:name]).to include("ya está en uso")
+          expect(duplicate.errors[:name]).to include('ya está en uso')
         end
 
         it 'validates uniqueness of slug (case insensitive, allows nil)' do

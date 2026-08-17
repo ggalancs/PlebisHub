@@ -169,7 +169,7 @@ RSpec.describe ReportGroup, type: :model do
 
       result = group.process(row)
 
-      expect(result[0]).to eq(['NAME', 'john'])
+      expect(result[0]).to eq(%w[NAME john])
     end
 
     it 'processes with to_s transformation' do
@@ -237,7 +237,7 @@ RSpec.describe ReportGroup, type: :model do
 
       result = group.process(row)
 
-      expect(result[0]).to eq(['LAST_CHAR', 'n'])
+      expect(result[0]).to eq(%w[LAST_CHAR n])
     end
 
     it 'processes with percentage format' do

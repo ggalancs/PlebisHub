@@ -95,11 +95,9 @@ RSpec.describe PlebisImpulsa::Engine, type: :rails_engine do
       stub_const('::EngineActivation', activation_class)
 
       expect do
-        begin
-          ::EngineActivation.enabled?('plebis_impulsa')
-        rescue StandardError
-          true
-        end
+        ::EngineActivation.enabled?('plebis_impulsa')
+      rescue StandardError
+        true
       end.not_to raise_error
     end
   end

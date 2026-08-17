@@ -309,11 +309,9 @@ RSpec.describe ErrorsController, type: :controller do
       it 'logs security event when error page is displayed' do
         logged_events = []
         allow(Rails.logger).to receive(:info) do |log_entry|
-          begin
-            logged_events << JSON.parse(log_entry)
-          rescue JSON::ParserError
-            # Skip non-JSON log entries
-          end
+          logged_events << JSON.parse(log_entry)
+        rescue JSON::ParserError
+          # Skip non-JSON log entries
         end
 
         get :show, params: { code: '404' }
@@ -331,11 +329,9 @@ RSpec.describe ErrorsController, type: :controller do
       it 'logs security event for invalid error code attempt' do
         logged_events = []
         allow(Rails.logger).to receive(:info) do |log_entry|
-          begin
-            logged_events << JSON.parse(log_entry)
-          rescue JSON::ParserError
-            # Skip non-JSON log entries
-          end
+          logged_events << JSON.parse(log_entry)
+        rescue JSON::ParserError
+          # Skip non-JSON log entries
         end
 
         get :show, params: { code: '999' }
@@ -350,11 +346,9 @@ RSpec.describe ErrorsController, type: :controller do
         allow(controller).to receive(:current_user).and_return(user)
         logged_events = []
         allow(Rails.logger).to receive(:info) do |log_entry|
-          begin
-            logged_events << JSON.parse(log_entry)
-          rescue JSON::ParserError
-            # Skip non-JSON log entries
-          end
+          logged_events << JSON.parse(log_entry)
+        rescue JSON::ParserError
+          # Skip non-JSON log entries
         end
 
         get :show, params: { code: '404' }
@@ -368,11 +362,9 @@ RSpec.describe ErrorsController, type: :controller do
         allow(controller).to receive(:current_user).and_return(nil)
         logged_events = []
         allow(Rails.logger).to receive(:info) do |log_entry|
-          begin
-            logged_events << JSON.parse(log_entry)
-          rescue JSON::ParserError
-            # Skip non-JSON log entries
-          end
+          logged_events << JSON.parse(log_entry)
+        rescue JSON::ParserError
+          # Skip non-JSON log entries
         end
 
         get :show, params: { code: '404' }
@@ -385,11 +377,9 @@ RSpec.describe ErrorsController, type: :controller do
       it 'logs IP address and user agent' do
         logged_events = []
         allow(Rails.logger).to receive(:info) do |log_entry|
-          begin
-            logged_events << JSON.parse(log_entry)
-          rescue JSON::ParserError
-            # Skip non-JSON log entries
-          end
+          logged_events << JSON.parse(log_entry)
+        rescue JSON::ParserError
+          # Skip non-JSON log entries
         end
 
         get :show, params: { code: '404' }
@@ -458,7 +448,7 @@ RSpec.describe ErrorsController, type: :controller do
       end
 
       it 'handles very large code numbers' do
-        get :show, params: { code: 99999999 }
+        get :show, params: { code: 99_999_999 }
         expect(assigns(:code)).to eq('500')
         expect(response).to have_http_status(:internal_server_error)
       end
@@ -470,7 +460,7 @@ RSpec.describe ErrorsController, type: :controller do
       end
 
       it 'handles code as array (Rails strong params)' do
-        get :show, params: { code: ['404', '500'] }
+        get :show, params: { code: %w[404 500] }
         expect(assigns(:code)).to eq('500')
         expect(response).to have_http_status(:internal_server_error)
       end

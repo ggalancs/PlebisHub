@@ -121,7 +121,7 @@ RSpec.describe 'SpamFilter Admin', type: :request do
         spam_filter: {
           name: 'New Filter',
           code: 'user.email.include?("test")',
-          data: "test@example.com",
+          data: 'test@example.com',
           query: 'confirmed_at IS NULL',
           active: false,
           rules_json: {

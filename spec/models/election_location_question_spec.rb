@@ -275,9 +275,9 @@ RSpec.describe ElectionLocationQuestion, type: :model do
       it 'handles single option' do
         question = build(:election_location_question)
         question.options_headers = ['Text']
-        question.options = "Single Option"
+        question.options = 'Single Option'
 
-        expect(question[:options]).to eq("Single Option")
+        expect(question[:options]).to eq('Single Option')
       end
 
       it 'handles options with mixed whitespace' do

@@ -40,9 +40,12 @@ class Rack::Attack
     # Production: Use Redis with lazy connection and robust error handling
     Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(
       url: redis_url,
-      reconnect_attempts: 5,         # Increased from 3
-      reconnect_delay: 1.5,          # Wait 1.5s before first retry
-      reconnect_delay_max: 10,       # Max delay between retries
+      # BUG: reconnect_delay y reconnect_delay_max son opciones de redis 4.x. Con
+      # redis 5.x / redis-client el cliente lanza ArgumentError al conectar, y
+      # como la conexion es perezosa el fallo no aparecia al arrancar sino en
+      # *cada peticion*: produccion contestaba 500 a todo.
+      # En redis-client el escalonado se expresa como array de esperas.
+      reconnect_attempts: [0, 1.5, 3, 6, 10],
       error_handler: lambda { |method:, returning:, exception:|
         Rails.logger.error("[Rack::Attack] Redis error in #{method}: #{exception.message}")
         # Notify monitoring service
@@ -56,7 +59,12 @@ class Rack::Attack
     Thread.new do
       sleep 2 # Give Redis time to initialize in orchestrated environments
       begin
-        Rack::Attack.cache.store.redis.ping
+        # BUG: con redis 5.x, `.redis` devuelve un ConnectionPool, no un cliente,
+        # asi que `.ping` lanzaba NoMethodError y la verificacion fallaba
+        # *siempre*: produccion registraba un ERROR en cada arranque y daba por
+        # hecho que el limitador se habia degradado a memoria.
+        pool = Rack::Attack.cache.store.redis
+        pool.respond_to?(:with) ? pool.with { |c| c.ping } : pool.ping
         Rails.logger.info("[Rack::Attack] Redis connection verified successfully")
       rescue => e
         Rails.logger.error("[Rack::Attack] Redis verification failed: #{e.message}")

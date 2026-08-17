@@ -2,10 +2,10 @@
 # frozen_string_literal: true
 
 # Final report for plebis_cms model test coverage
-puts "=" * 80
-puts "PLEBIS_CMS MODEL TEST COVERAGE REPORT"
-puts "=" * 80
-puts ""
+puts '=' * 80
+puts 'PLEBIS_CMS MODEL TEST COVERAGE REPORT'
+puts '=' * 80
+puts ''
 
 models = {
   'category.rb' => {
@@ -56,12 +56,12 @@ total_lines = 0
 total_covered = 0
 models_below_95 = []
 
-puts "Individual Model Coverage:"
-puts "-" * 80
+puts 'Individual Model Coverage:'
+puts '-' * 80
 
 models.each do |name, info|
   status = info[:coverage] >= 95.0 ? '✓' : '✗'
-  puts sprintf("  %s %-25s %6.2f%% (%3d/%3d lines, %3d examples)",
+  puts sprintf('  %s %-25s %6.2f%% (%3d/%3d lines, %3d examples)',
                status, name, info[:coverage], info[:covered_lines], info[:total_lines], info[:spec_examples])
 
   total_examples += info[:spec_examples]
@@ -70,27 +70,27 @@ models.each do |name, info|
   models_below_95 << name if info[:coverage] < 95.0
 end
 
-puts "-" * 80
+puts '-' * 80
 avg_coverage = total_lines > 0 ? (total_covered * 100.0 / total_lines).round(2) : 0
 
-puts ""
-puts "Summary:"
+puts ''
+puts 'Summary:'
 puts "  Total Models: #{total_models}"
 puts "  Total RSpec Examples: #{total_examples}"
 puts "  Total Lines: #{total_lines}"
 puts "  Covered Lines: #{total_covered}"
 puts "  Average Coverage: #{avg_coverage}%"
 puts "  Models with >=95% coverage: #{total_models - models_below_95.size}/#{total_models}"
-puts ""
+puts ''
 
 if models_below_95.empty?
-  puts "✓ SUCCESS: All models have >= 95% coverage!"
+  puts '✓ SUCCESS: All models have >= 95% coverage!'
 else
-  puts "✗ Models below 95% coverage:"
+  puts '✗ Models below 95% coverage:'
   models_below_95.each { |m| puts "    - #{m}" }
 end
 
-puts ""
-puts "=" * 80
+puts ''
+puts '=' * 80
 puts "DONE: #{total_models} models, #{total_examples} total examples, 0 failures, #{avg_coverage}% avg coverage"
-puts "=" * 80
+puts '=' * 80

@@ -824,7 +824,7 @@ RSpec.describe PasswordsController, type: :controller do
       let(:test_error) { StandardError.new('Test error') }
 
       before do
-        test_error.set_backtrace(['line1', 'line2', 'line3', 'line4', 'line5', 'line6'])
+        test_error.set_backtrace(%w[line1 line2 line3 line4 line5 line6])
       end
 
       it 'logs error class name' do

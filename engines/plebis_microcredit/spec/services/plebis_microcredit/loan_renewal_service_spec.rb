@@ -294,7 +294,7 @@ module PlebisMicrocredit
             renewals: {
               renewal_terms: '1',
               terms_of_service: '1',
-              loan_renewals: ['1', '2']
+              loan_renewals: %w[1 2]
             }
           )
         end
@@ -307,7 +307,7 @@ module PlebisMicrocredit
           expect(result).to be_a(OpenStruct)
           expect(result.renewal_terms).to eq('1')
           expect(result.terms_of_service).to eq('1')
-          expect(result.loan_renewals).to eq(['1', '2'])
+          expect(result.loan_renewals).to eq(%w[1 2])
         end
       end
     end

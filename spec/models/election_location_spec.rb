@@ -717,12 +717,12 @@ RSpec.describe ElectionLocation, type: :model do
     end
 
     it 'defines all expected layouts' do
-      expect(ElectionLocation::LAYOUTS.keys).to match_array([
-        'simple',
-        'accordion',
-        'pcandidates-election',
-        'simultaneous-questions',
-        '2questions-conditional'
+      expect(ElectionLocation::LAYOUTS.keys).to match_array(%w[
+        simple
+        accordion
+        pcandidates-election
+        simultaneous-questions
+        2questions-conditional
       ])
     end
 

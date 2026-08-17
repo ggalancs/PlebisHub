@@ -1,19 +1,19 @@
 <div id="sidr-menu" class="invisible">
 <ul>
   <li>
-    <%= link_to "Inicio", root_path %>
+    <%= link_to "Inicio", main_app.root_path %>
   </li>
   <li>
-    <%= link_to "Datos personales", edit_user_registration_path %>
+    <%= link_to "Datos personales", main_app.edit_user_registration_path %>
   </li>
   <li>
-    <%= link_to "Carnet digital con QR", qr_code_path if current_user.can_show_qr? %>
+    <%= link_to "Carnet digital con QR", main_app.qr_code_path if current_user.can_show_qr? %>
   </li>
   <li>
     <%= link_to "Financiación", plebis_cms.funding_path %>
   </li>
   <li>
-    <%= link_to "Salir", destroy_user_session_path, method: :delete, data: { turbo_method: :delete } %>
+    <%= link_to "Salir", main_app.destroy_user_session_path, method: :delete, data: { turbo_method: :delete } %>
   </li>
 </ul>
 </div>

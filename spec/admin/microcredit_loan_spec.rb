@@ -966,7 +966,7 @@ RSpec.describe 'MicrocreditLoan Admin', type: :request do
 
     it 'processes id_not_in filter with split' do
       get admin_microcredit_loans_path, params: {
-        q: { id_not_in: "999 1000" }
+        q: { id_not_in: '999 1000' }
       }
       expect_successful_response_or_server_error
     end

@@ -113,7 +113,7 @@ module Gamification
         end
 
         context 'when user does not exist' do
-          let(:event) { { user_id: 999999, proposal_id: proposal.id } }
+          let(:event) { { user_id: 999_999, proposal_id: proposal.id } }
 
           it 'raises ActiveRecord::RecordNotFound' do
             expect { described_class.on_proposal_created(event) }.to raise_error(ActiveRecord::RecordNotFound)
@@ -121,7 +121,7 @@ module Gamification
         end
 
         context 'when proposal does not exist' do
-          let(:event) { { user_id: user.id, proposal_id: 999999 } }
+          let(:event) { { user_id: user.id, proposal_id: 999_999 } }
 
           it 'raises ActiveRecord::RecordNotFound' do
             expect { described_class.on_proposal_created(event) }.to raise_error(ActiveRecord::RecordNotFound)
@@ -167,7 +167,7 @@ module Gamification
         end
 
         context 'when proposal does not exist' do
-          let(:event) { { proposal_id: 999999, user_id: user.id } }
+          let(:event) { { proposal_id: 999_999, user_id: user.id } }
 
           it 'raises ActiveRecord::RecordNotFound' do
             expect { described_class.on_proposal_approved(event) }.to raise_error(ActiveRecord::RecordNotFound)
@@ -213,7 +213,7 @@ module Gamification
         end
 
         context 'when proposal does not exist' do
-          let(:event) { { proposal_id: 999999, user_id: user.id } }
+          let(:event) { { proposal_id: 999_999, user_id: user.id } }
 
           it 'raises ActiveRecord::RecordNotFound' do
             expect { described_class.on_proposal_featured(event) }.to raise_error(ActiveRecord::RecordNotFound)
@@ -259,7 +259,7 @@ module Gamification
         end
 
         context 'when proposal does not exist' do
-          let(:event) { { proposal_id: 999999, user_id: user.id } }
+          let(:event) { { proposal_id: 999_999, user_id: user.id } }
 
           it 'raises ActiveRecord::RecordNotFound' do
             expect { described_class.on_proposal_implemented(event) }.to raise_error(ActiveRecord::RecordNotFound)

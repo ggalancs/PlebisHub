@@ -27,10 +27,10 @@ unless defined?(PlebisBrandImport)
 end
 
 # Load worker classes
-[
-  'plebisbrand_collaboration_worker',
-  'plebisbrand_import_worker',
-  'plebisbrand_report_worker'
+%w[
+  plebisbrand_collaboration_worker
+  plebisbrand_import_worker
+  plebisbrand_report_worker
 ].each do |worker_file|
   worker_class = worker_file.camelize.constantize rescue nil
   unless worker_class

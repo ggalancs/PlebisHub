@@ -593,7 +593,7 @@ RSpec.describe VoteCircle, type: :model do
       end
 
       it 'works with any auth_object' do
-        attrs = VoteCircle.ransackable_attributes("test")
+        attrs = VoteCircle.ransackable_attributes('test')
         expect(attrs).to be_an(Array)
       end
     end

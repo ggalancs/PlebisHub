@@ -1009,7 +1009,7 @@ RSpec.describe VoteController, type: :controller do
 
     context 'when election not found' do
       it 'redirects to home' do
-        get :election_votes_count, params: { election_id: 999999, token: 'test' }
+        get :election_votes_count, params: { election_id: 999_999, token: 'test' }
         expect(response).to redirect_to(root_path)
       end
     end
@@ -1066,7 +1066,7 @@ RSpec.describe VoteController, type: :controller do
       it 'redirects to home' do
         get :election_location_votes_count, params: {
           election_id: election.id,
-          election_location_id: 999999,
+          election_location_id: 999_999,
           token: 'test'
         }
         expect(response).to redirect_to(root_path)
@@ -1122,7 +1122,7 @@ RSpec.describe VoteController, type: :controller do
       it 'redirects to home' do
         get :paper_vote, params: {
           election_id: paper_election.id,
-          election_location_id: 999999,
+          election_location_id: 999_999,
           token: paper_token
         }
         expect(response).to redirect_to(root_path)
@@ -1297,19 +1297,19 @@ RSpec.describe VoteController, type: :controller do
       end
 
       it 'returns nil when election_location not found' do
-        controller.params[:election_location_id] = 999999
+        controller.params[:election_location_id] = 999_999
         expect(controller.send(:election_location)).to be_nil
       end
 
       it 'logs error when election_location not found' do
-        controller.params[:election_location_id] = 999999
+        controller.params[:election_location_id] = 999_999
         allow(Rails.logger).to receive(:error).and_call_original
         controller.send(:election_location)
         expect(Rails.logger).to have_received(:error).with(a_string_matching(/election_location_not_found/))
       end
 
       it 'returns nil when election is nil' do
-        controller.params[:election_id] = 999999
+        controller.params[:election_id] = 999_999
         controller.params[:election_location_id] = election_location.id
         expect(controller.send(:election_location)).to be_nil
       end

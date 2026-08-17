@@ -18,5 +18,5 @@ if File.exist?('coverage/.resultset.json')
     puts "#{pct}% (#{covered}/#{total}) - #{f}"
   end
 else
-  puts "No coverage file found"
+  puts 'No coverage file found'
 end

@@ -53,7 +53,7 @@ class BrandImage < ApplicationRecord
   validates :name, presence: true
   validates :key, presence: true
   validates :category, presence: true, inclusion: { in: CATEGORIES }
-  validates :key, uniqueness: { scope: [:brand_setting_id, :organization_id] } # rubocop:disable Rails/UniqueValidationWithoutIndex
+  validates :key, uniqueness: { scope: %i[brand_setting_id organization_id] } # rubocop:disable Rails/UniqueValidationWithoutIndex
 
   validate :image_format_validation
   validate :image_size_validation

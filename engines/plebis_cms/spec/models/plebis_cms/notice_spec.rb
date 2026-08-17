@@ -8,13 +8,13 @@ module PlebisCms
       it 'validates presence of title' do
         notice = Notice.new(title: nil)
         expect(notice.valid?).to be false
-        expect(notice.errors[:title]).to include("no puede estar en blanco")
+        expect(notice.errors[:title]).to include('no puede estar en blanco')
       end
 
       it 'validates presence of body' do
         notice = Notice.new(body: nil)
         expect(notice.valid?).to be false
-        expect(notice.errors[:body]).to include("no puede estar en blanco")
+        expect(notice.errors[:body]).to include('no puede estar en blanco')
       end
 
       describe 'link validation' do
@@ -207,7 +207,7 @@ module PlebisCms
       end
 
       it 'sends notification with correct data structure' do
-        allow(PlebisCms::NoticeRegistrar).to receive(:pluck).and_return(['device1', 'device2'])
+        allow(PlebisCms::NoticeRegistrar).to receive(:pluck).and_return(%w[device1 device2])
         
         expected_data = {
           title: 'Title',
@@ -217,7 +217,7 @@ module PlebisCms
           soundname: 'beep.wav'
         }
         
-        expect(GCM).to receive(:send_notification).with(['device1', 'device2'], expected_data)
+        expect(GCM).to receive(:send_notification).with(%w[device1 device2], expected_data)
         notice.broadcast_gcm('Title', 'Message', 'Link')
       end
 

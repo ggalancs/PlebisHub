@@ -106,12 +106,12 @@ module PlebisParticipation
 
         context 'when team does not exist' do
           it 'sets alert message' do
-            post :join, params: { team_id: 99999 }
+            post :join, params: { team_id: 99_999 }
             expect(flash[:alert]).to eq('El equipo solicitado no existe')
           end
 
           it 'redirects to participation_teams_path' do
-            post :join, params: { team_id: 99999 }
+            post :join, params: { team_id: 99_999 }
             expect(response).to redirect_to(participation_teams_path)
           end
         end
@@ -179,12 +179,12 @@ module PlebisParticipation
 
         context 'when team does not exist' do
           it 'sets alert message' do
-            post :leave, params: { team_id: 99999 }
+            post :leave, params: { team_id: 99_999 }
             expect(flash[:alert]).to eq('El equipo solicitado no existe')
           end
 
           it 'redirects to participation_teams_path' do
-            post :leave, params: { team_id: 99999 }
+            post :leave, params: { team_id: 99_999 }
             expect(response).to redirect_to(participation_teams_path)
           end
         end

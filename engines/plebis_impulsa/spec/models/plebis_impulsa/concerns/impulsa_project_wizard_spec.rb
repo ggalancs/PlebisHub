@@ -60,7 +60,7 @@ module PlebisImpulsa
             files: {
               fields: {
                 document: { type: 'file', filetype: 'document', optional: true },
-                sheet: { type: 'file', filetype: 'sheet', maxsize: 500000, optional: true },
+                sheet: { type: 'file', filetype: 'sheet', maxsize: 500_000, optional: true },
                 scan: { type: 'file', filetype: 'scan', optional: true }
               }
             }
@@ -165,7 +165,7 @@ module PlebisImpulsa
       it 'returns status for all steps' do
         status = project.wizard_status
         expect(status).to be_a(Hash)
-        expect(status.keys).to match_array(['step1', 'step2', 'step3'])
+        expect(status.keys).to match_array(%w[step1 step2 step3])
       end
 
       it 'tracks field counts' do
@@ -587,7 +587,7 @@ module PlebisImpulsa
       it 'assigns check_boxes value and compacts blanks' do
         result = project.assign_wizard_value(:project, :tags, ['tag1', '', 'tag2', nil])
         expect(result).to eq(:ok)
-        expect(project.wizard_values['project.tags']).to eq(['tag1', 'tag2'])
+        expect(project.wizard_values['project.tags']).to eq(%w[tag1 tag2])
       end
 
       it 'returns :wrong_field for invalid field' do
@@ -777,7 +777,7 @@ module PlebisImpulsa
       end
 
       it 'exports check_boxes with collection values' do
-        project.wizard_values = { 'project.tags' => ['tag1', 'tag2'] }
+        project.wizard_values = { 'project.tags' => %w[tag1 tag2] }
         export = project.wizard_export
         expect(export['wizard_project_tags']).to eq(['Tag 1', 'Tag 2'])
       end

@@ -101,18 +101,18 @@ module PlebisProposals
 
       context 'with invalid proposal id' do
         it 'redirects to proposals path' do
-          get :show, params: { id: 99999 }
+          get :show, params: { id: 99_999 }
           expect(response).to redirect_to(proposals_path)
         end
 
         it 'sets an alert message' do
-          get :show, params: { id: 99999 }
+          get :show, params: { id: 99_999 }
           expect(flash[:alert]).to be_present
         end
 
         it 'logs the not found event' do
           expect(Rails.logger).to receive(:info).with(a_string_matching(/proposal_not_found/))
-          get :show, params: { id: 99999 }
+          get :show, params: { id: 99_999 }
         end
       end
 

@@ -154,8 +154,8 @@ module PlebisVotes
 
     describe '#options_headers' do
       it 'returns headers from column when set' do
-        question.options_headers = ['Header1', 'Header2']
-        expect(question.options_headers).to eq(['Header1', 'Header2'])
+        question.options_headers = %w[Header1 Header2]
+        expect(question.options_headers).to eq(%w[Header1 Header2])
       end
 
       it 'returns default headers when not set' do
@@ -167,7 +167,7 @@ module PlebisVotes
 
       it 'parses tab-separated headers' do
         question[:options_headers] = "Name\tDescription"
-        expect(question.options_headers).to eq(['Name', 'Description'])
+        expect(question.options_headers).to eq(%w[Name Description])
       end
     end
 

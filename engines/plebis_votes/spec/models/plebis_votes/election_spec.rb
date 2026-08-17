@@ -392,7 +392,7 @@ module PlebisVotes
       end
 
       it 'handles override values' do
-        election.locations = "01,1,override1"
+        election.locations = '01,1,override1'
         election.save
         location = election.election_locations.first
         expect(location.override).to eq('override1')
