@@ -6,29 +6,29 @@ Estado tras cerrar el plan completo. Documento de referencia para retomar.
 
 ## 1. Estado actual
 
-| | |
-|---|---|
-| Rama | `rails-8-upgrade` |
-| Punto de retorno | tag `pre-rails8-baseline` (commit `74ead484`) |
-| **Rails** | **8.1.3.1** con `config.load_defaults 8.1` |
-| **Ruby** | **3.4.10** (3.5 solo existe como `preview1`) |
-| **Devise** | **5.0.4** |
-| Commits desde el baseline | 43, cada uno revertible por separado |
-| Despliegue | **NO ejecutado** — es la única decisión humana que queda |
+|                           |                                                          |
+| ------------------------- | -------------------------------------------------------- |
+| Rama                      | `rails-8-upgrade`                                        |
+| Punto de retorno          | tag `pre-rails8-baseline` (commit `74ead484`)            |
+| **Rails**                 | **8.1.3.1** con `config.load_defaults 8.1`               |
+| **Ruby**                  | **3.4.10** (3.5 solo existe como `preview1`)             |
+| **Devise**                | **5.0.4**                                                |
+| Commits desde el baseline | 43, cada uno revertible por separado                     |
+| Despliegue                | **NO ejecutado** — es la única decisión humana que queda |
 
 ### Puerta de despliegue (las 9 condiciones de `RAILS_8_REMAINING_WORK_PLAN.md` §2)
 
-| # | Condición | Comando | Estado |
-|---|---|---|---|
-| 1 | Suite raíz | `bundle exec rspec spec` | ✅ 10.185 ejemplos, 0 fallos |
-| 2 | Suites de engines | `bundle exec rspec engines` | ✅ 2.231 ejemplos, 0 fallos |
-| 3 | Sin dependencia del orden | 3 semillas, ambas suites juntas | ✅ 12.416 ejemplos, 0 fallos en las 3 (1234 / 4321 / 9876) |
-| 4 | Eager loading | `bin/rails zeitwerk:check` | ✅ *All is good* |
-| 5 | Arranque en producción | `RAILS_ENV=production bin/rails runner` | ✅ |
-| 6 | Vulnerabilidades | `bundle exec bundler-audit check` | ✅ 0 hallazgos |
-| 7 | Análisis estático | `bundle exec brakeman -q` | ✅ 0 avisos, 0 entradas obsoletas |
-| 8 | Estilo | `rubocop` con la config de CI | ✅ 0 ofensas |
-| 9 | Sin duplicación pendiente | `bin/check_engine_duplication` | ✅ 0 ficheros (40 delegan) |
+| #   | Condición                 | Comando                                 | Estado                                                     |
+| --- | ------------------------- | --------------------------------------- | ---------------------------------------------------------- |
+| 1   | Suite raíz                | `bundle exec rspec spec`                | ✅ 10.185 ejemplos, 0 fallos                               |
+| 2   | Suites de engines         | `bundle exec rspec engines`             | ✅ 2.231 ejemplos, 0 fallos                                |
+| 3   | Sin dependencia del orden | 3 semillas, ambas suites juntas         | ✅ 12.416 ejemplos, 0 fallos en las 3 (1234 / 4321 / 9876) |
+| 4   | Eager loading             | `bin/rails zeitwerk:check`              | ✅ _All is good_                                           |
+| 5   | Arranque en producción    | `RAILS_ENV=production bin/rails runner` | ✅                                                         |
+| 6   | Vulnerabilidades          | `bundle exec bundler-audit check`       | ✅ 0 hallazgos                                             |
+| 7   | Análisis estático         | `bundle exec brakeman -q`               | ✅ 0 avisos, 0 entradas obsoletas                          |
+| 8   | Estilo                    | `rubocop` con la config de CI           | ✅ 0 ofensas                                               |
+| 9   | Sin duplicación pendiente | `bin/check_engine_duplication`          | ✅ 0 ficheros (40 delegan)                                 |
 
 La config de CI para rubocop:
 
@@ -78,7 +78,6 @@ Corregir los bugs cambia lo que hace la aplicación. Lo relevante para producci�
 1. **Toda colaboración nueva nacía con estado 2 («Sin confirmar») en vez de 0
    («Sin pago»).** Al investigarlo resultó no ser una regresión de la fase B sino
    un bug que **estuvo años en producción**:
-
    - hasta el **2020-11-10** el valor por defecto de la columna era 0, así que el
      `after_create` con `self.status = 0` (que no persiste) era inocuo;
    - la migración `20201110125929` cambió el defecto a **2**, y desde entonces
@@ -96,6 +95,7 @@ Corregir los bugs cambia lo que hace la aplicación. Lo relevante para producci�
    ```bash
    bundle exec rake plebisbrand:diagnose_collaboration_status
    ```
+
 2. **La sección `/colabora` entera devolvía error 500** (`ActionNotFound`). Al
    arreglarla vuelve a estar accesible.
 3. **La aplicación no arrancaba con `RAILS_ENV=production`** (`FrozenError` en la
@@ -127,12 +127,12 @@ ejecutar código y tests que nadie ejecutaba.
    `zeitwerk:check` fallaba. 7 capas corregidas.
 3. **`root_url` en engines montados** — los 8 engines heredan `ApplicationController`;
    sus 3 redirects de acceso denegado lanzaban `UrlGenerationError`.
-29. **La aplicación no arrancaba en producción** — `asset_caching.rb` registraba
-    `Rack::Deflater` dentro de un `after_initialize`, con la pila ya congelada.
-30. **Las cabeceras de caché `immutable` no se aplicaban nunca** — se fijaban
-    después de construir `ActionDispatch::Static`.
-31. **`Rack::Attack` registrado dos veces** — en `application.rb` y por el railtie
-    de la gema: todos los límites de tasa valían la mitad.
+4. **La aplicación no arrancaba en producción** — `asset_caching.rb` registraba
+   `Rack::Deflater` dentro de un `after_initialize`, con la pila ya congelada.
+5. **Las cabeceras de caché `immutable` no se aplicaban nunca** — se fijaban
+   después de construir `ActionDispatch::Static`.
+6. **`Rack::Attack` registrado dos veces** — en `application.rb` y por el railtie
+   de la gema: todos los límites de tasa valían la mitad.
 
 ### Verificación e identidad
 
@@ -144,21 +144,21 @@ ejecutar código y tests que nadie ejecutaba.
 6. **`authenticated_root_path` sin `main_app`** — un código SMS **correcto**
    acababa en la pantalla de error.
 7. **`edit_user_registration_path` / `create_vote_path` sin `main_app`**.
-20. **`UserVerification` reventaba con `NoMethodError` sobre `nil`** al validar un
-    registro sin usuario (`require_back?` / `not_require_photos?`).
-21. **`UserVerification#determine_initial_status`** devolvía String en una rama y
-    símbolos en las otras.
+8. **`UserVerification` reventaba con `NoMethodError` sobre `nil`** al validar un
+   registro sin usuario (`require_back?` / `not_require_photos?`).
+9. **`UserVerification#determine_initial_status`** devolvía String en una rama y
+   símbolos en las otras.
 
 ### Territorio y votaciones
 
 15. **`VoteCircle#in_spain?`** comparaba el nombre del enum (String) contra los
     valores enteros: **siempre false**. Afectaba al formulario de colaboraciones,
     a la exportación de órdenes y a una rake task.
-22. **`ElectionLocationQuestion#options=`** reventaba con `nil` antes de que la
+16. **`ElectionLocationQuestion#options=`** reventaba con `nil` antes de que la
     validación pudiera informar del campo obligatorio.
-27. **`VoteController#create`** perdió los `return` antes de los redirect del
+17. **`VoteController#create`** perdió los `return` antes de los redirect del
     control por SMS: la acción seguía ejecutándose tras redirigir.
-28. **`VoteController#create_token`** perdió la mitigación SEC-036: el
+18. **`VoteController#create_token`** perdió la mitigación SEC-036: el
     cortocircuito de `&&` volvía a filtrar por tiempos qué comprobación falló.
 
 ### Impulsa
@@ -170,33 +170,33 @@ ejecutar código y tests que nadie ejecutaba.
     `NoMethodError` y los grupos condicionados del wizard nunca se validaban.
 18. **El tokenizador de `SafeConditionEvaluator`** descartaba en silencio el texto
     que no encajaba: una condición mal escrita se evaluaba como **verdadera**.
-9.  **`available_frequencies_for_user`** hacía `FREQUENCIES.to_a.slice(...)`.
+19. **`available_frequencies_for_user`** hacía `FREQUENCIES.to_a.slice(...)`.
 
 ### Colaboraciones y pagos
 
 10. **`PARENT_CLASSES[parent.class]`** dejó de casar al heredar. Resuelto por
     ascendencia.
-12. **4 validaciones de `MicrocreditLoan`** accedían a `microcredit` sin comprobar
+11. **4 validaciones de `MicrocreditLoan`** accedían a `microcredit` sin comprobar
     que existiera.
-13. **`redsys_callback_response` lanzaba `FrozenError`** — `rstrip!` sobre un
+12. **`redsys_callback_response` lanzaba `FrozenError`** — `rstrip!` sobre un
     heredoc con `frozen_string_literal`.
-14. **`redsys_expiration` lanzaba `TypeError`** si Redsys no devolvía
+13. **`redsys_expiration` lanzaba `TypeError`** si Redsys no devolvía
     `Ds_ExpiryDate`.
-23. **`CollaborationsController` listaba `confirm_bank`** en el `only:` de un
+14. **`CollaborationsController` listaba `confirm_bank`** en el `only:` de un
     `before_action` y esa acción no existe: `ActionNotFound` en **cualquier**
     petición al controlador.
-24. **`Collaboration#set_initial_status`** pasó de `before_create` a
+15. **`Collaboration#set_initial_status`** pasó de `before_create` a
     `after_create`: la asignación no se persistía.
-25. **`Collaboration#set_warning!`** perdió la guarda `persisted?`:
+16. **`Collaboration#set_warning!`** perdió la guarda `persisted?`:
     `check_spanish_bic` lo llama desde un `before_save`.
-26. **`Collaboration#default_url_options`** desapareció: enlaces sin dominio.
+17. **`Collaboration#default_url_options`** desapareció: enlaces sin dominio.
 
 ### Otros
 
 8.  **Traducciones ausentes** `plebisbrand.errors.*`.
-11. **`Gamification::ProposalListener`** resolvía el usuario con `proposal.author`,
+9.  **`Gamification::ProposalListener`** resolvía el usuario con `proposal.author`,
     que es una **columna de texto**, no una asociación.
-19. **`Notice#broadcast_gcm`** usaba `in_groups_of(1000)` sin desactivar el
+10. **`Notice#broadcast_gcm`** usaba `in_groups_of(1000)` sin desactivar el
     relleno: enviaba a GCM cientos de destinatarios `nil` por lote.
 
 ---
