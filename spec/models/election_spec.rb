@@ -823,7 +823,7 @@ RSpec.describe Election, type: :model do
       it 'returns true when user is in CSV with valid circle' do
         election = create(:election, scope: 6, user_created_at_max: nil)
         user = create(:user, id: 1)
-        circle = create(:vote_circle, id: 5)
+        create(:vote_circle, id: 5)
         create(:election_location, election: election, location: '5')
 
         election.census_file.attach(
@@ -1050,7 +1050,7 @@ RSpec.describe Election, type: :model do
 
       it 'executes census query for autonomy scope without errors' do
         election = create(:election, scope: 1, user_created_at_max: nil)
-        user = create(:user, :with_dni, vote_town: 'm_08_079_6')
+        create(:user, :with_dni, vote_town: 'm_08_079_6')
         # Add at least one location so the query doesn't have empty IN clause
         create(:election_location, election: election, location: '09')
 
@@ -1090,8 +1090,8 @@ RSpec.describe Election, type: :model do
       create(:election_location, election: election)
 
       # Create active and inactive users
-      active_user = create(:user, current_sign_in_at: 1.day.ago)
-      inactive_user = create(:user, current_sign_in_at: 2.years.ago)
+      create(:user, current_sign_in_at: 1.day.ago)
+      create(:user, current_sign_in_at: 2.years.ago)
 
       result = election.current_active_census
       # The method should count users based on active_census_range config

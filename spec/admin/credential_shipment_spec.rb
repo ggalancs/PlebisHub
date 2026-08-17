@@ -52,7 +52,7 @@ RSpec.describe 'Credential Shipment Admin', type: :request do
     end
 
     it 'not_sended filters by wants_card true and born_at nil' do
-      scope_conditions = UserVerification.not_sended.where_values_hash
+      UserVerification.not_sended.where_values_hash
       # The scope should filter for wants_card: true, born_at: nil
       # We can't test the exact where clause easily, but we can test behavior
       verification_not_sent = create(:user_verification, wants_card: true, born_at: nil)

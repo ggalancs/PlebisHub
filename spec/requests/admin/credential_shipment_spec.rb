@@ -101,7 +101,7 @@ RSpec.describe 'Admin Credential Shipment', type: :request do
       old_verification = create(:user_verification, :not_sended,
                                  user: create(:user, vote_circle: vote_circle, email: 'old@test.com'),
                                  created_at: 2.days.ago)
-      new_verification = create(:user_verification, :not_sended,
+      create(:user_verification, :not_sended,
                                  user: create(:user, vote_circle: vote_circle, email: 'new@test.com'),
                                  created_at: 1.day.ago)
 

@@ -44,7 +44,7 @@ module Gamification
     describe 'scopes' do
       describe '.recent' do
         it 'orders by created_at descending' do
-          old_point = create(:gamification_point, created_at: 2.days.ago)
+          create(:gamification_point, created_at: 2.days.ago)
           new_point = create(:gamification_point, created_at: 1.hour.ago)
 
           result = Point.recent.pluck(:id)

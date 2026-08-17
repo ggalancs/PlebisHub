@@ -194,7 +194,7 @@ RSpec.describe ActiveRecord::Diff do
 
       it 'excludes id and timestamp columns automatically' do
         page.title = 'Changed Title'
-        diff = page.diff
+        page.diff
         column_names = Page.content_columns.map { |c| c.name.to_sym }
         expect(column_names).not_to include(:id)
       end

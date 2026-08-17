@@ -29,7 +29,7 @@ RSpec.describe EngineUser::Votable, type: :model do
 
     describe 'dependent options' do
       it 'destroys votes when user is destroyed' do
-        vote = create(:vote, user: user, election: election)
+        create(:vote, user: user, election: election)
         expect { user.destroy }.to change(Vote, :count).by(-1)
       end
 

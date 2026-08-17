@@ -394,7 +394,7 @@ RSpec.describe 'SpamFilter Admin', type: :request do
 
   describe 'index display' do
     it 'truncates data display' do
-      long_filter = SpamFilter.create!(
+      SpamFilter.create!(
         name: 'Long Data Filter',
         data: "line1\r\nline2\r\nline3\r\nline4",
         query: 'true',

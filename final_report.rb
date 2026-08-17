@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 # Final report for plebis_cms model test coverage
 puts "=" * 80

@@ -423,40 +423,6 @@ Lint/UnusedMethodArgument:
     - 'spec/controllers/concerns/redirectable_spec.rb'
     - 'spec/services/url_signature_service_spec.rb'
 
-# Offense count: 58
-# This cop supports safe autocorrection (--autocorrect).
-Lint/UselessAssignment:
-  Exclude:
-    - 'engines/plebis_cms/spec/helpers/plebis_cms/blog_helper_spec.rb'
-    - 'engines/plebis_cms/spec/models/plebis_cms/category_spec.rb'
-    - 'engines/plebis_collaborations/spec/mailers/plebis_collaborations/collaborations_mailer_spec.rb'
-    - 'engines/plebis_collaborations/spec/models/plebis_collaborations/collaboration_spec.rb'
-    - 'engines/plebis_gamification/spec/models/gamification/point_spec.rb'
-    - 'engines/plebis_gamification/spec/models/gamification/user_badge_spec.rb'
-    - 'engines/plebis_proposals/spec/models/plebis_proposals/proposal_spec.rb'
-    - 'engines/plebis_verification/spec/models/plebis_verification/user_verification_spec.rb'
-    - 'engines/plebis_verification/spec/services/plebis_verification/exterior_verification_report_service_spec.rb'
-    - 'engines/plebis_verification/spec/services/plebis_verification/url_signature_service_spec.rb'
-    - 'spec/admin/credential_shipment_spec.rb'
-    - 'spec/admin/impulsa_project_spec.rb'
-    - 'spec/admin/order_spec.rb'
-    - 'spec/admin/spam_filter_spec.rb'
-    - 'spec/helpers/plebis_cms/blog_helper_spec.rb'
-    - 'spec/lib/diff_spec.rb'
-    - 'spec/mailers/collaborations_mailer_spec.rb'
-    - 'spec/mailers/impulsa_mailer_spec.rb'
-    - 'spec/models/concerns/engine_user/proposer_spec.rb'
-    - 'spec/models/concerns/engine_user/votable_spec.rb'
-    - 'spec/models/concerns/gamifiable_spec.rb'
-    - 'spec/models/election_spec.rb'
-    - 'spec/models/order_spec.rb'
-    - 'spec/models/organization_spec.rb'
-    - 'spec/models/participation_team_spec.rb'
-    - 'spec/models/spam_filter_spec.rb'
-    - 'spec/models/support_spec.rb'
-    - 'spec/requests/admin/credential_shipment_spec.rb'
-    - 'spec/validators/email_validator_spec.rb'
-    - 'spec/workers/plebisbrand_collaboration_worker_spec.rb'
 
 # Offense count: 3
 Lint/UselessConstantScoping:

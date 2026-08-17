@@ -550,7 +550,7 @@ RSpec.describe 'Order Admin', type: :request do
 
     context 'with different order types based on territory' do
       it 'exports island order type as I' do
-        island_order = create(:order, :ok)
+        create(:order, :ok)
         allow_any_instance_of(PlebisCollaborations::Order).to receive(:island_code).and_return('i_07_001')
         get admin_orders_path(format: :csv)
         # The order_type column in CSV should be 'I' for island orders
@@ -558,14 +558,14 @@ RSpec.describe 'Order Admin', type: :request do
       end
 
       it 'exports town order type as M' do
-        town_order = create(:order, :ok, :with_territory)
+        create(:order, :ok, :with_territory)
         get admin_orders_path(format: :csv)
         # The order_type column in CSV should be 'M' for municipal orders
         expect(response.body).to include(',M,')
       end
 
       it 'exports autonomy order type as A' do
-        autonomy_order = create(:order, :ok)
+        create(:order, :ok)
         allow_any_instance_of(PlebisCollaborations::Order).to receive(:island_code).and_return(nil)
         allow_any_instance_of(PlebisCollaborations::Order).to receive(:town_code).and_return(nil)
         allow_any_instance_of(PlebisCollaborations::Order).to receive(:autonomy_code).and_return('c_01')
@@ -575,7 +575,7 @@ RSpec.describe 'Order Admin', type: :request do
       end
 
       it 'exports state order type as E' do
-        state_order = create(:order, :ok)
+        create(:order, :ok)
         allow_any_instance_of(PlebisCollaborations::Order).to receive(:island_code).and_return(nil)
         allow_any_instance_of(PlebisCollaborations::Order).to receive(:town_code).and_return(nil)
         allow_any_instance_of(PlebisCollaborations::Order).to receive(:autonomy_code).and_return(nil)

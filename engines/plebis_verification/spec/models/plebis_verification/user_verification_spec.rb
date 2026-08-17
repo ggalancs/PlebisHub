@@ -347,7 +347,7 @@ module PlebisVerification
       end
 
       it 'assigns attributes to existing verification' do
-        existing = create(:user_verification, user: user, status: :pending)
+        create(:user_verification, user: user, status: :pending)
         result = UserVerification.for(user, { status: :issues })
         expect(result.status).to eq('issues')
       end

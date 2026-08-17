@@ -629,7 +629,7 @@ RSpec.describe SpamFilter, type: :model do
       end
 
       it 'skips inactive filters' do
-        inactive_filter = create(:spam_filter, :email_contains_spam, active: false)
+        create(:spam_filter, :email_contains_spam, active: false)
 
         spam_user = build(:user, email: 'test@spam.com')
 
@@ -1062,7 +1062,7 @@ RSpec.describe SpamFilter, type: :model do
     end
 
     it 'works with all date fields' do
-      now = Time.current
+      Time.current
 
       filter_created = SpamFilter.new(
         rules_json: {

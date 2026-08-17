@@ -100,7 +100,7 @@ module PlebisCms
         end
 
         it 'returns distinct categories when category has multiple posts' do
-          category = create(:category, :with_posts)
+          create(:category, :with_posts)
           result = Category.active
           expect(result.count).to eq(1)
         end
@@ -130,7 +130,7 @@ module PlebisCms
       describe '.by_post_count' do
         it 'orders categories by post count descending' do
           no_posts = create(:category)
-          few_posts = create(:category, :with_one_post)
+          create(:category, :with_one_post)
           many_posts = create(:category, :with_posts)
 
           result = Category.by_post_count.to_a

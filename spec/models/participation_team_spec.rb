@@ -419,7 +419,6 @@ RSpec.describe ParticipationTeam, type: :model do
                     active: false)
 
       team_id = team.id
-      team = nil
 
       reloaded = ParticipationTeam.find(team_id)
       expect(reloaded.name).to eq('Persist Test')

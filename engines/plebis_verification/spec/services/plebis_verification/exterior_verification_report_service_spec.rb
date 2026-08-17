@@ -375,7 +375,6 @@ module PlebisVerification
                                                                                                             ])
 
           # Mock user activity data
-          active_date = Time.zone.today - active_census_days.days
           allow(users).to receive(:pluck).with(
             'country',
             anything,

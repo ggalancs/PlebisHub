@@ -53,7 +53,7 @@ RSpec.describe PlebisCms::BlogHelper, type: :helper do
 
         it 'includes read more link when content is truncated' do
           allow(helper).to receive(:link_to).and_call_original
-          result = helper.formatted_content(post, 2)
+          helper.formatted_content(post, 2)
           expect(helper).to have_received(:link_to)
         end
 

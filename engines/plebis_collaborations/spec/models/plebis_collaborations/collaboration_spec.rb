@@ -1064,7 +1064,7 @@ RSpec.describe Collaboration, type: :model do
       it 'returns first payable or paid order' do
         order1 = create(:order, :paid, parent: collaboration, user: collaboration.user,
                         payable_at: 2.months.ago, status: 2, payed_at: 2.months.ago)
-        order2 = create(:order, :paid, parent: collaboration, user: collaboration.user,
+        create(:order, :paid, parent: collaboration, user: collaboration.user,
                         payable_at: 1.month.ago, status: 2, payed_at: 1.month.ago)
         collaboration.reload
         expect(collaboration.first_order.id).to eq(order1.id)
@@ -1079,7 +1079,7 @@ RSpec.describe Collaboration, type: :model do
       let(:date) { Time.zone.today }
 
       it 'returns most recent order before or on date' do
-        order1 = create(:order, :paid, parent: collaboration, user: collaboration.user,
+        create(:order, :paid, parent: collaboration, user: collaboration.user,
                         payable_at: 2.months.ago, status: 2, payed_at: 2.months.ago)
         order2 = create(:order, :paid, parent: collaboration, user: collaboration.user,
                         payable_at: 1.month.ago, status: 2, payed_at: 1.month.ago)
@@ -1154,7 +1154,7 @@ RSpec.describe Collaboration, type: :model do
       let(:date) { Time.zone.today }
 
       it 'returns bank data array when order is chargeable' do
-        order = create(:order, :nueva, parent: collaboration, user: collaboration.user,
+        create(:order, :nueva, parent: collaboration, user: collaboration.user,
                       payable_at: date, amount: 1000)
         collaboration.reload
         collaboration.update(payment_type: 3, iban_account: 'ES9121000418450200051332')

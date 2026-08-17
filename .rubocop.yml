@@ -64,6 +64,11 @@ Style/Documentation:
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
+  # Las plantillas .arb las compila Arbre envolviendo el fuente, asi que la
+  # pragma nunca queda al principio del fichero compilado: Ruby la ignora y
+  # avisa en cada render. Pedirla ahi es contraproducente.
+  Exclude:
+    - '**/*.arb'
 
 Style/StringLiterals:
   Enabled: true

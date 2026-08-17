@@ -104,7 +104,7 @@ module PlebisVerification
         end
 
         it 'returns canonical data' do
-          result, data = subject.verify_signed_url(signed_url)
+          _, data = subject.verify_signed_url(signed_url)
           expect(data).to be_a(String)
           expect(data).to include('example.com')
         end
@@ -130,17 +130,17 @@ module PlebisVerification
         let(:signed_url) { subject.sign_url(url_with_params) }
 
         it 'includes allowed parameters in verification' do
-          result, data = subject.verify_signed_url(signed_url, %w[user_id])
+          _, data = subject.verify_signed_url(signed_url, %w[user_id])
           expect(data).to include('user_id=123')
         end
 
         it 'excludes non-allowed parameters' do
-          result, data = subject.verify_signed_url(signed_url, %w[user_id])
+          _, data = subject.verify_signed_url(signed_url, %w[user_id])
           expect(data).not_to include('token=')
         end
 
         it 'verifies with multiple allowed parameters' do
-          result, data = subject.verify_signed_url(signed_url, %w[user_id token])
+          _, data = subject.verify_signed_url(signed_url, %w[user_id token])
           expect(data).to include('user_id=123')
           expect(data).to include('token=abc')
         end
@@ -148,7 +148,7 @@ module PlebisVerification
 
       context 'with empty allowed parameters' do
         it 'excludes all parameters from canonical URL' do
-          result, data = subject.verify_signed_url(signed_url, [])
+          _, data = subject.verify_signed_url(signed_url, [])
           expect(data).not_to include('param=')
           expect(data).to match(%r{^https://example\.com/page$})
         end
@@ -177,7 +177,7 @@ module PlebisVerification
       end
 
       it 'includes participa_user_id in canonical data' do
-        result, data = subject.verify_militant_url(signed_militant_url)
+        _, data = subject.verify_militant_url(signed_militant_url)
         expect(data).to include('participa_user_id=123')
       end
 
@@ -193,7 +193,7 @@ module PlebisVerification
         end
 
         it 'includes exemption parameter' do
-          result, data = subject.verify_militant_url(signed_militant_url)
+          _, data = subject.verify_militant_url(signed_militant_url)
           expect(data).to include('exemption=true')
         end
       end
@@ -210,7 +210,7 @@ module PlebisVerification
         end
 
         it 'includes collaborate parameter' do
-          result, data = subject.verify_militant_url(signed_militant_url)
+          _, data = subject.verify_militant_url(signed_militant_url)
           expect(data).to include('collaborate=yes')
         end
       end
@@ -227,14 +227,14 @@ module PlebisVerification
         end
 
         it 'includes both parameters' do
-          result, data = subject.verify_militant_url(signed_militant_url)
+          _, data = subject.verify_militant_url(signed_militant_url)
           expect(data).to include('exemption=false')
           expect(data).to include('collaborate=yes')
         end
       end
 
       it 'uses configured host from Rails secrets' do
-        result, data = subject.verify_militant_url(signed_militant_url)
+        _, data = subject.verify_militant_url(signed_militant_url)
         expect(data).to include(host)
       end
 
@@ -443,7 +443,7 @@ module PlebisVerification
 
         it 'succeeds with same secret key between services' do
           shared_secret = 'shared_secret'
-          service1 = described_class.new(shared_secret)
+          described_class.new(shared_secret)
           service2 = described_class.new(shared_secret)
 
           # Create signature using shared secret

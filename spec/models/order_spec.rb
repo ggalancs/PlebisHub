@@ -1209,7 +1209,7 @@ RSpec.describe Order, type: :model do
         order.update_column(:parent_type, nil)
         order.reload
 
-        result = order.processed!('MS03')
+        order.processed!('MS03')
 
         # Result may be false if save fails, but status should still be set
         expect(order.status).to eq(5)
