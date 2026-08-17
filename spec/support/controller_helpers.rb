@@ -96,9 +96,24 @@ RSpec.configure do |config|
 
   # For request specs, stub out problematic ApplicationController before_actions
   # This prevents redirects caused by user validation issues
+  config.after(:each, type: :request) do
+    if @previous_routes_locale
+      Rails.application.routes.default_url_options[:locale] = @previous_routes_locale.first
+    else
+      Rails.application.routes.default_url_options.delete(:locale)
+    end
+  end
+
   config.before(:each, type: :request) do
     # Set default URL options to include locale
     # This ensures all route helpers generate URLs with the correct locale
+    #
+    # FUGA ENTRE SUITES: esto se fijaba y no se restauraba nunca, asi que en
+    # cuanto corria un spec de tipo :request todos los ejemplos posteriores —de
+    # cualquier tipo y de cualquier engine— generaban URLs con esa locale. Las
+    # suites pasaban por separado y fallaban juntas (condicion 3 de la puerta de
+    # despliegue). Se guarda el valor previo y se restaura en el after.
+    @previous_routes_locale = Rails.application.routes.default_url_options.key?(:locale) ? [Rails.application.routes.default_url_options[:locale]] : nil
     Rails.application.routes.default_url_options[:locale] = I18n.locale
 
     # Stub the problematic before_actions to prevent redirects
