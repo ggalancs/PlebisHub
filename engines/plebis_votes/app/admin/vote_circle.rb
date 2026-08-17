@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ActiveAdmin.register PlebisVotes::VoteCircle, namespace: :admin do
+ActiveAdmin.register PlebisVotes::VoteCircle, as: 'VoteCircle' do
   DEFAULT_VOTE_CIRCLE = 'IP000000001'
   menu parent: 'Users'
   permit_params :original_code, :original_name, :code, :name, :island_code, :town, :vote_circle_autonomy, :kind
@@ -37,7 +37,7 @@ ActiveAdmin.register PlebisVotes::VoteCircle, namespace: :admin do
     f.inputs 'Details' do
       input :kind, as: :select, collection: PlebisVotes::VoteCircle.kinds.map { |k, v|
         [k.capitalize, PlebisVotes::VoteCircle.kinds.key(v)]
-      }, selected: resource.kind, include_blank: false, label: 'tipo de círculo'
+      }, selected: resource.kind, prompt: 'Select type', label: 'tipo de círculo'
       input :original_name
       label 'Dejar en blanco el código para que se calcule automáticamente'
       input :original_code
@@ -134,8 +134,8 @@ ActiveAdmin.register PlebisVotes::VoteCircle, namespace: :admin do
       region_type = 3
       exterior_type = 4
 
-      [['TB%', neighborhood_type], ['TM%', town_type], ['TC%', region_type]]
-      ['IP%', internal_type]
+      _spain_types = [['TB%', neighborhood_type], ['TM%', town_type], ['TC%', region_type]]
+      _internal = ['IP%', internal_type]
       known_types = ['TB%', 'TM%', 'TC%', 'IP%']
       spain_code = 'ES'
 
@@ -167,9 +167,8 @@ ActiveAdmin.register PlebisVotes::VoteCircle, namespace: :admin do
       vc.island_code = island_code
       vc.country_code = country_code
 
-      exterior_circles = PlebisVotes::VoteCircle.where('code not like all(array[?])', known_types).where(
-        country_code: nil, autonomy_code: nil, province_code: nil
-      )
+      exterior_circles = PlebisVotes::VoteCircle.where('code not like all(array[?])', known_types).where(country_code: nil,
+                                                                                            autonomy_code: nil, province_code: nil)
       exterior_circles.find_each do |vc|
         vc.kind = exterior_type
         vc.town = nil

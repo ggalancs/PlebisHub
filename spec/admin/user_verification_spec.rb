@@ -61,8 +61,8 @@ RSpec.describe 'UserVerification Admin', type: :request do
         allow(verifier_user).to receive(:verifier?).and_return(true)
         # Stub ability to grant all permissions for UserVerification
         allow_any_instance_of(Ability).to receive(:can?).and_call_original
-        allow_any_instance_of(Ability).to receive(:can?).with(:read, UserVerification).and_return(true)
-        allow_any_instance_of(Ability).to receive(:can?).with(:index, UserVerification).and_return(true)
+        allow_any_instance_of(Ability).to receive(:can?).with(:read, PlebisVerification::UserVerification).and_return(true)
+        allow_any_instance_of(Ability).to receive(:can?).with(:index, PlebisVerification::UserVerification).and_return(true)
         allow_any_instance_of(Ability).to receive(:can?).with(:read, anything).and_return(true)
       end
 
@@ -174,10 +174,10 @@ RSpec.describe 'UserVerification Admin', type: :request do
       allow(verifier_user).to receive(:verifier?).and_return(true)
       # Stub ability to grant all permissions for UserVerification
       allow_any_instance_of(Ability).to receive(:can?).and_call_original
-      allow_any_instance_of(Ability).to receive(:can?).with(:read, UserVerification).and_return(true)
-      allow_any_instance_of(Ability).to receive(:can?).with(:edit, UserVerification).and_return(true)
-      allow_any_instance_of(Ability).to receive(:can?).with(:update, UserVerification).and_return(true)
-      allow_any_instance_of(Ability).to receive(:can?).with(anything, an_instance_of(UserVerification)).and_return(true)
+      allow_any_instance_of(Ability).to receive(:can?).with(:read, PlebisVerification::UserVerification).and_return(true)
+      allow_any_instance_of(Ability).to receive(:can?).with(:edit, PlebisVerification::UserVerification).and_return(true)
+      allow_any_instance_of(Ability).to receive(:can?).with(:update, PlebisVerification::UserVerification).and_return(true)
+      allow_any_instance_of(Ability).to receive(:can?).with(anything, an_instance_of(PlebisVerification::UserVerification)).and_return(true)
       allow_any_instance_of(Ability).to receive(:can?).with(:read, anything).and_return(true)
       get edit_admin_user_verification_path(pending_verification)
       expect(response).to have_http_status(:success)
@@ -192,11 +192,11 @@ RSpec.describe 'UserVerification Admin', type: :request do
           "{author_id=>#{admin_user.id}, locked_at=>\"#{DateTime.now.utc.strftime('%d/%m/%Y %H|%M')}\"}"
         )
         # Stub on any instance since controller loads fresh record from DB
-        allow_any_instance_of(UserVerification).to receive(:active?).and_return(true)
-        allow_any_instance_of(UserVerification).to receive(:get_current_verifier).and_return(admin_user)
-        allow(UserVerification).to receive(:pending).and_return(UserVerification.none)
+        allow_any_instance_of(PlebisVerification::UserVerification).to receive(:active?).and_return(true)
+        allow_any_instance_of(PlebisVerification::UserVerification).to receive(:get_current_verifier).and_return(admin_user)
+        allow(PlebisVerification::UserVerification).to receive(:pending).and_return(UserVerification.none)
         # Skip model validations since test records don't have required attachments
-        allow_any_instance_of(UserVerification).to receive(:valid?).and_return(true)
+        allow_any_instance_of(PlebisVerification::UserVerification).to receive(:valid?).and_return(true)
       end
 
       context 'when accepting verification' do
@@ -247,7 +247,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
 
       context 'when verification is not active' do
         before do
-          allow_any_instance_of(UserVerification).to receive(:active?).and_return(false)
+          allow_any_instance_of(PlebisVerification::UserVerification).to receive(:active?).and_return(false)
         end
 
         let(:update_params) do
@@ -273,7 +273,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
     context 'when pending verifications exist' do
       before do
         allow(redis_double).to receive(:hkeys).with(:processing).and_return([])
-        allow(UserVerification).to receive(:pending).and_return(UserVerification.where(id: pending_verification.id))
+        allow(PlebisVerification::UserVerification).to receive(:pending).and_return(UserVerification.where(id: pending_verification.id))
         allow(User).to receive(:exists?).with(id: test_user.id).and_return(true)
       end
 
@@ -291,7 +291,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
     context 'when no pending verifications exist' do
       before do
         allow(redis_double).to receive(:hkeys).with(:processing).and_return([])
-        allow(UserVerification).to receive(:pending).and_return(UserVerification.none)
+        allow(PlebisVerification::UserVerification).to receive(:pending).and_return(UserVerification.none)
       end
 
       it 'redirects to index with warning' do
@@ -307,7 +307,7 @@ RSpec.describe 'UserVerification Admin', type: :request do
         # Complex mock scenario - verify endpoint handles gracefully
         # The behavior is: if verification.user doesn't exist, set status to discarded (5)
         allow(redis_double).to receive(:hkeys).with(:processing).and_return([])
-        allow(UserVerification).to receive(:pending).and_return(UserVerification.none)
+        allow(PlebisVerification::UserVerification).to receive(:pending).and_return(UserVerification.none)
         get get_first_free_admin_user_verifications_path
         expect([200, 302]).to include(response.status)
       end
@@ -416,9 +416,9 @@ RSpec.describe 'UserVerification Admin', type: :request do
       context 'when verification exists and is not active' do
         before do
           allow(redis_double).to receive(:hkeys).with(:processing).and_return([pending_verification.id.to_s])
-          allow(UserVerification).to receive(:find_by).with(id: pending_verification.id.to_s).and_return(pending_verification)
+          allow(PlebisVerification::UserVerification).to receive(:find_by).with(id: pending_verification.id.to_s).and_return(pending_verification)
           allow(pending_verification).to receive(:active?).and_return(false)
-          allow(UserVerification).to receive(:pending).and_return(UserVerification.none)
+          allow(PlebisVerification::UserVerification).to receive(:pending).and_return(UserVerification.none)
         end
 
         it 'removes from redis' do
@@ -430,8 +430,8 @@ RSpec.describe 'UserVerification Admin', type: :request do
       context 'when verification does not exist' do
         before do
           allow(redis_double).to receive(:hkeys).with(:processing).and_return([pending_verification.id.to_s])
-          allow(UserVerification).to receive(:find_by).with(id: pending_verification.id.to_s).and_return(nil)
-          allow(UserVerification).to receive(:pending).and_return(UserVerification.none)
+          allow(PlebisVerification::UserVerification).to receive(:find_by).with(id: pending_verification.id.to_s).and_return(nil)
+          allow(PlebisVerification::UserVerification).to receive(:pending).and_return(UserVerification.none)
         end
 
         it 'removes from redis' do
@@ -450,14 +450,14 @@ RSpec.describe 'UserVerification Admin', type: :request do
           "{author_id=>#{admin_user.id}, locked_at=>\"#{DateTime.now.utc.strftime('%d/%m/%Y %H|%M')}\"}"
         )
         # Stub on any instance since controller loads fresh record from DB
-        allow_any_instance_of(UserVerification).to receive(:active?).and_return(true)
-        allow_any_instance_of(UserVerification).to receive(:get_current_verifier).and_return(admin_user)
-        allow(UserVerification).to receive(:pending).and_return(UserVerification.none)
+        allow_any_instance_of(PlebisVerification::UserVerification).to receive(:active?).and_return(true)
+        allow_any_instance_of(PlebisVerification::UserVerification).to receive(:get_current_verifier).and_return(admin_user)
+        allow(PlebisVerification::UserVerification).to receive(:pending).and_return(UserVerification.none)
         # Stub mailers and user updates
         allow(UserVerificationMailer).to receive(:on_accepted).and_return(double(deliver_now: true))
         allow_any_instance_of(User).to receive(:update_flag!)
         # Skip model validations since test records don't have required attachments
-        allow_any_instance_of(UserVerification).to receive(:valid?).and_return(true)
+        allow_any_instance_of(PlebisVerification::UserVerification).to receive(:valid?).and_return(true)
       end
 
       it 'permits status for admin' do
@@ -520,11 +520,11 @@ RSpec.describe 'UserVerification Admin', type: :request do
         "{author_id=>#{admin_user.id}, locked_at=>\"#{DateTime.now.utc.strftime('%d/%m/%Y %H|%M')}\"}"
       )
       # Stub on any instance since controller loads fresh record from DB
-      allow_any_instance_of(UserVerification).to receive(:active?).and_return(true)
-      allow_any_instance_of(UserVerification).to receive(:get_current_verifier).and_return(admin_user)
-      allow(UserVerification).to receive(:pending).and_return(UserVerification.none)
+      allow_any_instance_of(PlebisVerification::UserVerification).to receive(:active?).and_return(true)
+      allow_any_instance_of(PlebisVerification::UserVerification).to receive(:get_current_verifier).and_return(admin_user)
+      allow(PlebisVerification::UserVerification).to receive(:pending).and_return(UserVerification.none)
       # Skip model validations since test records don't have required attachments
-      allow_any_instance_of(UserVerification).to receive(:valid?).and_return(true)
+      allow_any_instance_of(PlebisVerification::UserVerification).to receive(:valid?).and_return(true)
 
       put admin_user_verification_path(pending_verification), params: {
         user_verification: { status: 'pending' }

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
+ActiveAdmin.register PlebisVotes::Election, as: 'Election' do
   menu parent: 'Votación'
 
   permit_params :title, :info_url, :election_type, :agora_election_id, :scope, :census_file, :server, :starts_at, :ends_at, :close_message, :locations,
@@ -32,22 +32,22 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
     attributes_table do
       if election.requires_sms_check
         row :requires_sms_check do
-          status_tag('SMS CHECK', :ok)
+          status_tag('SMS CHECK', class: 'ok', label: 'SMS CHECK')
         end
       end
       if election.requires_vatid_check
         row :requires_vatid_check do
-          status_tag('DNI CHECK', :ok)
+          status_tag('DNI CHECK', class: 'ok', label: 'DNI CHECK')
         end
       end
       if election.show_on_index
         row :show_on_index do
-          status_tag('SHOW ON INDEX', :ok)
+          status_tag('SHOW ON INDEX', class: 'ok', label: 'SHOW ON INDEX')
         end
       end
       if election.ignore_multiple_territories
         row :ignore_multiple_territories do
-          status_tag('IGNORE MULTIPLE TERRITORIES', :ok)
+          status_tag('IGNORE MULTIPLE TERRITORIES', class: 'ok', label: 'IGNORE MULTIPLE TERRITORIES')
         end
       end
       row :title
@@ -71,9 +71,11 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
       row :close_message do
         raw election.close_message
       end
-      row 'Crear Aviso' do
-        link_to 'Crear aviso para móviles para esta votación',
-                new_admin_notice_path(notice: { link: create_vote_url(election_id: election.id), title: 'PlebisBrand', body: "Nueva votación disponible: #{election.title}" }), class: 'button'
+      if respond_to?(:new_admin_notice_path)
+        row 'Crear Aviso' do
+          link_to 'Crear aviso para móviles para esta votación',
+                  new_admin_notice_path(notice: { link: create_vote_url(election_id: election.id), title: 'PlebisBrand', body: "Nueva votación disponible: #{election.title}" }), class: 'button'
+        end
       end
     end
 
@@ -109,7 +111,7 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
               span link_to 'TSV',
                            download_voting_definition_admin_election_path(el)
             end
-            status_tag('VERSION NUEVA', :error) if el.new_version_pending
+            status_tag('VERSION NUEVA', class: 'error') if el.new_version_pending
           end
         end
       end
@@ -158,8 +160,7 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
       f.input :priority
 
       f.input :agora_election_id, label: 'Prefijo del identificador'
-      f.input :election_type, as: :radio, collection: PlebisVotes::Election.election_types.keys,
-                              label: 'Tipo de elección'
+      f.input :election_type, as: :radio, collection: PlebisVotes::Election.election_types.keys, label: 'Tipo de elección'
       f.input :server, as: :select, collection: PlebisVotes::Election.available_servers, label: 'Servidor de nVotes'
       f.input :voter_id_template
       f.input :external_link
@@ -215,7 +216,7 @@ ActiveAdmin.register PlebisVotes::Election, namespace: :admin do
   end
 end
 
-ActiveAdmin.register PlebisVotes::ElectionLocation, namespace: :admin do
+ActiveAdmin.register PlebisVotes::ElectionLocation, as: 'ElectionLocation' do
   menu false
   belongs_to :election
   # Don't use navigation_menu :default - it causes URL generation errors when rendering other admin pages

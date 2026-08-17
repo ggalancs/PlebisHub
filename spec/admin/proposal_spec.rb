@@ -14,7 +14,7 @@ RSpec.describe 'Proposal Admin', type: :request do
   before do
     sign_in_admin admin_user
     # Stub the reddit scope on Proposal
-    allow(Proposal).to receive(:reddit).and_return(Proposal.all)
+    allow(PlebisProposals::Proposal).to receive(:reddit).and_return(Proposal.all)
   end
 
   describe 'GET /admin/proposals' do
@@ -51,7 +51,7 @@ RSpec.describe 'Proposal Admin', type: :request do
 
     it 'uses reddit scope' do
       get admin_proposals_path
-      expect(Proposal).to have_received(:reddit)
+      expect(PlebisProposals::Proposal).to have_received(:reddit)
     end
   end
 
@@ -104,9 +104,11 @@ RSpec.describe 'Proposal Admin', type: :request do
       expect(response.body).to include('proposal[image_url]')
     end
 
-    it 'has Election label in form' do
+    it 'has Proposal label in form' do
+      # El formulario decia 'Election' por un copiar-pegar; la copia del engine
+      # ya lo tenia corregido
       get new_admin_proposal_path
-      expect(response.body).to include('Election')
+      expect(response.body).to include('Proposal')
     end
   end
 
@@ -233,7 +235,7 @@ RSpec.describe 'Proposal Admin', type: :request do
   describe 'controller customizations' do
     it 'scopes collection to reddit proposals' do
       get admin_proposals_path
-      expect(Proposal).to have_received(:reddit)
+      expect(PlebisProposals::Proposal).to have_received(:reddit)
     end
   end
 end

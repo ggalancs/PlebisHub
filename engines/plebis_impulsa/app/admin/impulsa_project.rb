@@ -38,9 +38,9 @@ ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: 'ImpulsaProject' do
     column :state do |impulsa_project|
       div impulsa_project.state
       if impulsa_project.wizard_has_errors?
-        status_tag("#{impulsa_project.wizard_count_errors} errores", :error)
+        status_tag("#{impulsa_project.wizard_count_errors} errores", class: 'error')
       else
-        status_tag('OK', :ok)
+        status_tag('OK', class: 'ok')
       end
     end
     column :evaluation_result
@@ -60,7 +60,7 @@ ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: 'ImpulsaProject' do
     p.mark_as_spam
     p.save
     flash[:notice] = 'El proyecto ha sido marcado como spam.'
-    redirect_back_or_to(admin_impulsa_projects_path)
+    redirect_back_or_to(admin_impulsa_edition_impulsa_projects_path(p.impulsa_edition_category.impulsa_edition))
   end
 
   action_item(:review, only: :show) do
@@ -75,7 +75,7 @@ ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: 'ImpulsaProject' do
     p.mark_for_review
     p.save
     flash[:notice] = 'El proyecto ha sido marcado para revisión.'
-    redirect_back_or_to(admin_impulsa_projects_path)
+    redirect_back_or_to(admin_impulsa_edition_impulsa_projects_path(p.impulsa_edition_category.impulsa_edition))
   end
 
   member_action :download_attachment do
@@ -95,7 +95,7 @@ ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: 'ImpulsaProject' do
     p.reset_evaluator(current_active_admin_user.id)
     p.save
     flash[:notice] = 'Has abandonado la evaluación del proyecto, cualquier usuario podrá realizarla en tu lugar.'
-    redirect_back_or_to(admin_impulsa_projects_path)
+    redirect_back_or_to(admin_impulsa_edition_impulsa_projects_path(p.impulsa_edition_category.impulsa_edition))
   end
 
   sidebar 'Subir resultados de votación', 'data-panel' => :collapsed, :only => :index, priority: 1 do
@@ -119,7 +119,7 @@ ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: 'ImpulsaProject' do
           if impulsa_project.user
             attributes_table_for impulsa_project.user do
               row :status do
-                impulsa_project.user.deleted? ? status_tag('BORRADO', :error) : ''
+                impulsa_project.user.deleted? ? status_tag('BORRADO', class: 'error') : ''
               end
               row :full_name do
                 if can?(:read, impulsa_project.user)
@@ -453,7 +453,7 @@ ActiveAdmin.register PlebisImpulsa::ImpulsaProject, as: 'ImpulsaProject' do
     def update_scopes
       resource = active_admin_config
 
-      PlebisImpulsa::ImpulsaProject.state_machine.states.each_key do |state|
+      PlebisImpulsa::ImpulsaProject.state_machine.states.keys.each do |state| # rubocop:disable Style/HashEachMethods
         next unless resource.scopes.none? { |scope| scope.id.to_s == state.to_s }
 
         resource.scopes << ActiveAdmin::Scope.new(state) do |projects|

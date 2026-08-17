@@ -12,7 +12,7 @@ ActiveAdmin.register PlebisVerification::UserVerification, as: 'UserVerification
 
   actions :index, :show, :edit, :update
   action_item :procesar, only: :index do
-    link_to 'Procesar', params.merge(action: :get_first_free)
+    link_to 'Procesar', params.to_unsafe_h.merge(action: :get_first_free)
   end
 
   scope 'Todas', :all, if: proc { current_user.is_admin? }
@@ -48,8 +48,7 @@ ActiveAdmin.register PlebisVerification::UserVerification, as: 'UserVerification
                   data: { confirm: 'Parece ser que ya tienes abierto el registro en otra pestaña, ¿realmente deseas editarlo en esta?' })
     else
       loop do
-        verification = PlebisVerification::UserVerification.pending.where.not(id: ids).order(priority: :desc,
-                                                                                             created_at: :asc).first
+        verification = PlebisVerification::UserVerification.pending.where.not(id: ids).order(priority: :desc, created_at: :asc).first
         if verification
           user_exist = User.exists?(id: verification.user_id)
           verification.update(status: 5) unless user_exist
@@ -82,19 +81,19 @@ ActiveAdmin.register PlebisVerification::UserVerification, as: 'UserVerification
     column 'estado' do |verification|
       case PlebisVerification::UserVerification.statuses[verification.status]
       when PlebisVerification::UserVerification.statuses[:pending]
-        status_tag('Pendiente', :warning)
+        status_tag('Pendiente', class: 'warning')
       when PlebisVerification::UserVerification.statuses[:accepted]
-        status_tag('Verificada', :ok)
+        status_tag('Verificada', class: 'ok')
       when PlebisVerification::UserVerification.statuses[:accepted_by_email]
-        status_tag('Verificada por Email', :ok)
+        status_tag('Verificada por Email', class: 'ok')
       when PlebisVerification::UserVerification.statuses[:issues]
-        status_tag('con Problemas', :important)
+        status_tag('con Problemas', class: 'important')
       when PlebisVerification::UserVerification.statuses[:rejected]
-        status_tag('Rechazada', :error)
+        status_tag('Rechazada', class: 'error')
       when PlebisVerification::UserVerification.statuses[:discarded]
-        status_tag('Descartada', :error)
+        status_tag('Descartada', class: 'error')
       when PlebisVerification::UserVerification.statuses[:paused]
-        status_tag('Pausada', :error)
+        status_tag('Pausada', class: 'error')
       end
     end
     column 'Quiere tarjeta', :wants_card if current_user.is_admin?
@@ -233,22 +232,33 @@ ActiveAdmin.register PlebisVerification::UserVerification, as: 'UserVerification
     verification = PlebisVerification::UserVerification.find(params[:id])
     attachment = "#{params[:attachment]}_vatid"
     degrees = params[:degrees].to_i
+    # Store rotation value (used by variant transformation)
     verification.rotate[attachment] = degrees
-    verification.send(attachment).reprocess!
+    # NOTE: In ActiveStorage, rotation is applied at variant generation time,
+    # so we don't need to reprocess - the variant will be generated with rotation on next access
     redirect_back_or_to(admin_user_verifications_path)
   end
 
   member_action :view_image do
-    return unless params[:attachment].present? && params[:size].present? && params[:id].present?
+    return head(:no_content) unless params[:attachment].present? && params[:size].present? && params[:id].present?
 
     verification = PlebisVerification::UserVerification.find(params[:id])
     attachment = "#{params[:attachment]}_vatid"
-    filename = verification.send("#{params[:attachment]}_vatid_file_name")
-    return unless filename
+    attachment_obj = verification.send(attachment)
+
+    return head(:no_content) unless attachment_obj.attached?
 
     size = params[:size].to_sym
-    file = verification.send(attachment).path(size)
-    send_file file, disposition: 'inline' if file
+
+    # ActiveStorage: Use variant for thumbnail or redirect to blob for original
+    if size == :thumb
+      # Use the model's variant method or create a variant
+      variant = attachment_obj.variant(resize_to_limit: [450, 300], format: :png)
+      redirect_to rails_representation_url(variant), allow_other_host: true
+    else
+      # For original, redirect to the blob URL
+      redirect_to rails_blob_url(attachment_obj), allow_other_host: true
+    end
   end
 
   controller do
@@ -258,7 +268,7 @@ ActiveAdmin.register PlebisVerification::UserVerification, as: 'UserVerification
 
     def remove_redis_hash(id)
       $redis = $redis || Redis::Namespace.new('plebisbrand_queue_validator', redis: Redis.new)
-      $redis.hget(:processing, id)
+      _current = $redis.hget(:processing, id)
       $redis.hdel(:processing, id)
     end
 

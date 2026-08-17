@@ -1,5 +1,13 @@
 ActiveAdmin.setup do |config|
 
+  # == Load Paths
+  #
+  # Por defecto ActiveAdmin solo carga Rails.root/app/admin, asi que los
+  # app/admin de los engines nunca se registraban. Los recursos de cada engine
+  # viven ahi (arquitectura: el engine es la fuente de la verdad y la app solo
+  # personaliza), de modo que hay que anadirlos explicitamente.
+  config.load_paths = ([Rails.root.join('app/admin')] + Rails.root.glob('engines/*/app/admin')).map(&:to_s)
+
   # == Site Title
   #
   # Set the title that is displayed on the main layout

@@ -1233,8 +1233,8 @@ RSpec.describe 'MicrocreditLoan Admin', type: :request do
 
     context 'with member action errors' do
       before do
-        allow_any_instance_of(MicrocreditLoan).to receive(:save).and_return(false)
-        allow_any_instance_of(MicrocreditLoan).to receive(:errors).and_return(
+        allow_any_instance_of(PlebisMicrocredit::MicrocreditLoan).to receive(:save).and_return(false)
+        allow_any_instance_of(PlebisMicrocredit::MicrocreditLoan).to receive(:errors).and_return(
           double(messages: { base: ['Test error'] })
         )
       end

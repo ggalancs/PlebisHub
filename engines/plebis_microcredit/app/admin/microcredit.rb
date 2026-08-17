@@ -95,7 +95,8 @@ ActiveAdmin.register PlebisMicrocredit::Microcredit, as: 'Microcredit' do
       else
         f.inputs 'Importes de los microcréditos' do
           f.input :phase_limit_amount, label: 'Total por fase', input_html: { disabled: true }
-          f.object.limits.each_key do |amount|
+          # RAILS 7.2 FIX: Handle nil limits for new objects
+          (f.object.limits || {}).each_key do |amount|
             f.input "single_limit_#{amount}", label: number_to_euro(amount * 100, 0).to_s, as: :number,
                                               min: f.object.phase_current_for_amount(amount), input_html: { class: 'single_limits', data: { amount: amount } }
           end
@@ -182,7 +183,7 @@ ActiveAdmin.register PlebisMicrocredit::Microcredit, as: 'Microcredit' do
          )})"].join('<br/>').html_safe
       end
       row :mailing do
-        status_tag('es Mailing', :ok)
+        status_tag('es Mailing', class: 'ok')
       end
       row :reset_at
       row :created_at

@@ -29,6 +29,16 @@ def delegating?(path, namespace)
     body.match?(/^\s*(include|extend)\s+(::)?#{namespace}::/)
 end
 
+# Falsos positivos: la deteccion casa por nombre de fichero, y hay pares que
+# comparten basename sin ser la misma pieza. Cada excepcion se justifica aqui.
+EXCEPTIONS = {
+  # ApplicationHelper (app) es el helper general de la aplicacion;
+  # PlebisMicrocredit::ApplicationHelper solo reexpone los route helpers de
+  # main_app dentro de las vistas del engine. No son el mismo modulo y la app no
+  # debe incluir el del engine.
+  'app/helpers/application_helper.rb' => 'engines/plebis_microcredit/app/helpers/plebis_microcredit/application_helper.rb'
+}.freeze
+
 duplicates = []
 
 ROOT.glob('engines/*/app/**/*.rb').each do |engine_file|
@@ -45,6 +55,9 @@ ROOT.glob('engines/*/app/**/*.rb').each do |engine_file|
     ROOT.join('app', kind, 'concerns', basename)
   ]
   app_file = candidates.find(&:exist?) or next
+
+  app_rel = app_file.relative_path_from(ROOT).to_s
+  next if EXCEPTIONS[app_rel] == rel
 
   duplicates << {
     app: app_file.relative_path_from(ROOT).to_s,
@@ -64,8 +77,8 @@ if list_only
   exit(pending.empty? ? 0 : 1)
 end
 
-if duplicates.empty?
-  puts 'Sin ficheros equivalentes entre app/ y engines/.'
+if pending.empty?
+  puts "Sin duplicacion pendiente (#{duplicates.size} ficheros de app/ delegan correctamente en su engine)."
   exit 0
 end
 
