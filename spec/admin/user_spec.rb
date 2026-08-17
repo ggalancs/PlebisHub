@@ -116,8 +116,14 @@ RSpec.describe 'User Admin', type: :request do
     it 'filters by created scope (default)' do
       get admin_users_path(scope: 'created')
       expect(response).to have_http_status(:success)
-      expect(response.body).to include(user.id.to_s)
-      expect(response.body).not_to include(deleted_user.id.to_s)
+
+      # Se busca el enlace exacto de la fila, no el id suelto dentro del HTML:
+      # `include("2216")` tambien casa con el id 22167, con un contador o con
+      # cualquier cifra de una fecha, asi que el spec fallaba o pasaba segun los
+      # ids que hubiera repartido la secuencia en esa ejecucion.
+      enlaces = Nokogiri::HTML(response.body).css('a').pluck('href')
+      expect(enlaces).to include(admin_user_path(user))
+      expect(enlaces).not_to include(admin_user_path(deleted_user))
     end
 
     it 'filters by confirmed scope' do
