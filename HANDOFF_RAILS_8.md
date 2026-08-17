@@ -18,17 +18,17 @@ Estado tras cerrar el plan completo. Documento de referencia para retomar.
 
 ### Puerta de despliegue (las 9 condiciones de `RAILS_8_REMAINING_WORK_PLAN.md` §2)
 
-| #   | Condición                 | Comando                                 | Estado                                                     |
-| --- | ------------------------- | --------------------------------------- | ---------------------------------------------------------- |
-| 1   | Suite raíz                | `bundle exec rspec spec`                | ✅ 10.185 ejemplos, 0 fallos (51 pendientes)               |
-| 2   | Suites de engines         | `bundle exec rspec engines`             | ✅ 2.231 ejemplos, 0 fallos, 0 pendientes                  |
-| 3   | Sin dependencia del orden | 3 semillas, ambas suites juntas         | ✅ 12.416 ejemplos, 0 fallos en las 3 (1234 / 4321 / 9876) |
-| 4   | Eager loading             | `bin/rails zeitwerk:check`              | ✅ _All is good_                                           |
-| 5   | Arranque en producción    | `RAILS_ENV=production bin/rails runner` | ✅                                                         |
-| 6   | Vulnerabilidades          | `bundle exec bundler-audit check`       | ✅ 0 hallazgos                                             |
-| 7   | Análisis estático         | `bundle exec brakeman -q`               | ✅ 0 avisos, 0 entradas obsoletas                          |
-| 8   | Estilo                    | `rubocop` con la config de CI           | ✅ 0 ofensas                                               |
-| 9   | Sin duplicación pendiente | `bin/check_engine_duplication`          | ✅ 0 ficheros (40 delegan)                                 |
+| #   | Condición                 | Comando                                 | Estado                                       |
+| --- | ------------------------- | --------------------------------------- | -------------------------------------------- |
+| 1   | Suite raíz                | `bundle exec rspec spec`                | ✅ 10.190 ejemplos, 0 fallos (51 pendientes) |
+| 2   | Suites de engines         | `bundle exec rspec engines`             | ✅ 2.231 ejemplos, 0 fallos, 0 pendientes    |
+| 3   | Sin dependencia del orden | 3 semillas, ambas suites juntas         | ✅ 12.421 ejemplos, 0 fallos                 |
+| 4   | Eager loading             | `bin/rails zeitwerk:check`              | ✅ _All is good_                             |
+| 5   | Arranque en producción    | `RAILS_ENV=production bin/rails runner` | ✅                                           |
+| 6   | Vulnerabilidades          | `bundle exec bundler-audit check`       | ✅ 0 hallazgos                               |
+| 7   | Análisis estático         | `bundle exec brakeman -q`               | ✅ 0 avisos, 0 entradas obsoletas            |
+| 8   | Estilo                    | `rubocop` con la config de CI           | ✅ 0 ofensas                                 |
+| 9   | Sin duplicación pendiente | `bin/check_engine_duplication`          | ✅ 0 ficheros (40 delegan)                   |
 
 La config de CI para rubocop:
 
@@ -125,7 +125,7 @@ Corregir los bugs cambia lo que hace la aplicación. Lo relevante para producci�
 
 ---
 
-## 4. Los 38 bugs de PRODUCCIÓN encontrados
+## 4. Los 41 bugs de PRODUCCIÓN encontrados
 
 Ninguno lo causó el cambio de versión. El upgrade los destapó al obligar a
 ejecutar código y tests que nadie ejecutaba.
@@ -230,6 +230,21 @@ ejecutar código y tests que nadie ejecutaba.
     un solo argumento cuando Rails la llama con `(attribute, options = {})`.
     Dejaba en **500 permanente** la ficha de Activaciones de Engines del admin.
     En producción el eager loading carga siempre ese fichero.
+
+### Solo visibles ejecutando la aplicación
+
+39. **Producción devolvía 500 en cada petición** — `rack_attack.rb` configuraba el
+    `RedisCacheStore` con `reconnect_delay` y `reconnect_delay_max`, opciones de
+    `redis` 4.x. Con `redis` 5.x el cliente lanza `ArgumentError`, y como la
+    conexión es perezosa el fallo no salía al arrancar sino en cada petición. Por
+    eso la condición 5 daba verde: `rails runner` arranca, pero nada responde.
+40. **El limitador de tasa se degradaba siempre a memoria** — la verificación
+    hacía `.redis.ping`, pero en `redis` 5.x `.redis` devuelve un `ConnectionPool`.
+    En multiproceso eso significa un límite real por proceso.
+41. **Las páginas de engine daban 500 a usuarios con sesión** —
+    `application/_header.html.erb` y `_sidr_menu.html.erb` llamaban a rutas de la
+    app sin `main_app.`. Ningún spec lo cubría porque todos entraban como
+    invitados, y de invitado ese bloque del header no se dibuja.
 
 ### Otros
 
