@@ -666,7 +666,11 @@ RSpec.describe EngineUser::Militant, type: :model do
           user.militant_records_management(false)
           record = user.militant_records.order(id: :desc).first
 
-          expect(record.begin_in_vote_circle).to eq(existing_record.begin_in_vote_circle)
+          # Se compara contra el valor recargado: Ruby guarda nanosegundos y
+          # PostgreSQL solo microsegundos, asi que el objeto en memoria y el leido
+          # de la base difieren salvo que la fraccion caiga redonda. En macOS casi
+          # nunca salta y en Linux si.
+          expect(record.begin_in_vote_circle).to eq(existing_record.reload.begin_in_vote_circle)
         end
       end
 
@@ -693,7 +697,9 @@ RSpec.describe EngineUser::Militant, type: :model do
 
           new_record = user.militant_records.order(id: :desc).first
           expect(new_record.vote_circle_name).to eq('New Circle')
-          expect(new_record.begin_in_vote_circle).to eq(user.vote_circle_changed_at)
+          # Igual que arriba: ambos lados deben venir de la base para comparar
+          # con la misma precision
+          expect(new_record.begin_in_vote_circle).to eq(user.reload.vote_circle_changed_at)
         end
       end
 

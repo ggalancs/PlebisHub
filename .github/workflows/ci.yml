@@ -85,12 +85,11 @@ jobs:
             --out test-results/rspec/results.xml \
             --failure-exit-code 1
 
-      # Las suites de los 9 engines (2188 ejemplos) quedaban fuera de CI y por
-      # eso se pudrieron hasta acumular 447 fallos. Se ejecutan aparte y de
-      # momento sin bloquear el build, mientras se terminan de reparar; en
-      # cuanto lleguen a cero hay que quitar el continue-on-error.
-      - name: Run engine specs (informativo hasta llegar a cero)
-        continue-on-error: true
+      # Las suites de los 9 engines quedaban fuera de CI y por eso se pudrieron
+      # hasta acumular 447 fallos. Ya estan a cero (2.231 ejemplos), asi que
+      # pasan a bloquear el build: dejarlas en informativo es justo lo que
+      # permitio que se degradaran la vez anterior.
+      - name: Run engine specs
         run: |
           SKIP_COVERAGE_CHECK=1 bundle exec rspec engines/ \
             --format progress \
