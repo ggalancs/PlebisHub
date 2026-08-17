@@ -20,8 +20,8 @@ Estado tras cerrar el plan completo. Documento de referencia para retomar.
 
 | #   | Condición                 | Comando                                 | Estado                                                     |
 | --- | ------------------------- | --------------------------------------- | ---------------------------------------------------------- |
-| 1   | Suite raíz                | `bundle exec rspec spec`                | ✅ 10.185 ejemplos, 0 fallos                               |
-| 2   | Suites de engines         | `bundle exec rspec engines`             | ✅ 2.231 ejemplos, 0 fallos                                |
+| 1   | Suite raíz                | `bundle exec rspec spec`                | ✅ 10.185 ejemplos, 0 fallos (51 pendientes)               |
+| 2   | Suites de engines         | `bundle exec rspec engines`             | ✅ 2.231 ejemplos, 0 fallos, 0 pendientes                  |
 | 3   | Sin dependencia del orden | 3 semillas, ambas suites juntas         | ✅ 12.416 ejemplos, 0 fallos en las 3 (1234 / 4321 / 9876) |
 | 4   | Eager loading             | `bin/rails zeitwerk:check`              | ✅ _All is good_                                           |
 | 5   | Arranque en producción    | `RAILS_ENV=production bin/rails runner` | ✅                                                         |
