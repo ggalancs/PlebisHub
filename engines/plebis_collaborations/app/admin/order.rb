@@ -135,7 +135,7 @@ ActiveAdmin.register PlebisCollaborations::Order, as: 'Order' do
   action_item(:restore_order, only: :show) do
     if resource.deleted?
       link_to('Recuperar orden borrada', recover_admin_order_path(resource), method: :post,
-                                                                          data: { confirm: '¿Estas segura de querer recuperar esta order?' })
+                                                                             data: { confirm: '¿Estas segura de querer recuperar esta order?' })
     end
   end
 

@@ -168,7 +168,7 @@ ActiveAdmin.register PlebisVotes::VoteCircle, as: 'VoteCircle' do
       vc.country_code = country_code
 
       exterior_circles = PlebisVotes::VoteCircle.where('code not like all(array[?])', known_types).where(country_code: nil,
-                                                                                            autonomy_code: nil, province_code: nil)
+                                                                                                         autonomy_code: nil, province_code: nil)
       exterior_circles.find_each do |vc|
         vc.kind = exterior_type
         vc.town = nil

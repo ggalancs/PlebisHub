@@ -3,11 +3,12 @@
 require 'rails_helper'
 
 RSpec.describe 'Phase 3 PLEBIS_COLLABORATIONS Fixes', type: :model do
-  describe 'MEDIUM-3: require statement uses require_relative' do
-    it 'ActiveAdmin collaboration uses require_relative' do
+  describe 'MEDIUM-3: no hay require manual de un fichero gestionado por Zeitwerk' do
+    it 'ActiveAdmin collaboration no requiere collaborations_on_paper a mano' do
       source = Rails.root.join('engines/plebis_collaborations/app/admin/collaboration.rb').read
-      expect(source).to include("require_relative '../../../lib/collaborations_on_paper'")
       expect(source).not_to include("require 'collaborations_on_paper'")
+      expect(source).not_to include('require_relative')
+      expect(source).to include('CollaborationsOnPaper.new')
     end
   end
 

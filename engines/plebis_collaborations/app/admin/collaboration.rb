@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 require 'English'
-require 'collaborations_on_paper'
+# CollaborationsOnPaper lo autocarga Zeitwerk desde lib/; un require manual
+# sobre un fichero gestionado por Zeitwerk rompe la recarga en desarrollo.
 def show_order(o, html_output = true)
   text = if o.has_errors?
            'x'
@@ -1029,7 +1030,7 @@ ActiveAdmin.register PlebisCollaborations::Collaboration, as: 'Collaboration' do
 
     # -------------------------- Add Non User data --------------------------------------------------------------------------------
     c_ids = PlebisCollaborations::Order.paid.joins('LEFT JOIN users on orders.user_id = users.id').where('orders.target_territory like ?',
-                                                                                   'Autonómico%').where('orders.vote_circle_autonomy_code is not null and orders.amount > 0').where(orders: { vote_circle_id: nil }).where(users: { id: nil }).pluck(:parent_id).uniq!
+                                                                                                         'Autonómico%').where('orders.vote_circle_autonomy_code is not null and orders.amount > 0').where(orders: { vote_circle_id: nil }).where(users: { id: nil }).pluck(:parent_id).uniq!
     PlebisCollaborations::Collaboration.where(id: c_ids).find_each do |collaboration|
       query = PlebisCollaborations::Order.paid.where(parent_id: collaboration.id).group(:target_territory, PlebisCollaborations::Order.unique_month('payable_at')).order(:target_territory, PlebisCollaborations::Order.unique_month('payable_at')).pluck(
         :target_territory, PlebisCollaborations::Order.unique_month('payable_at'), 'count(orders.id) as count_id', 'sum(orders.amount) as sum_amount'
