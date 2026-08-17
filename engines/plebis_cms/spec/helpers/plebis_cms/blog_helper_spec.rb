@@ -381,8 +381,13 @@ RSpec.describe PlebisCms::BlogHelper, type: :helper do
   end
 
   describe 'module structure' do
-    it 'includes AutoHtml module' do
-      expect(PlebisCms::BlogHelper.included_modules).to include(AutoHtml)
+    # Antes se comprobaba `include AutoHtml`. En auto_html 2.x ese modulo es
+    # solo un espacio de nombres sin metodos de instancia, asi que incluirlo no
+    # aportaba nada: el que de verdad transforma el texto es ContentPipeline.
+    it 'delega la transformacion del texto en ContentPipeline' do
+      post = create(:post, content: 'Texto')
+      expect(PlebisCms::ContentPipeline).to receive(:content).with('Texto').and_return('<p>Texto</p>')
+      helper.formatted_content(post)
     end
 
     it 'is a module' do

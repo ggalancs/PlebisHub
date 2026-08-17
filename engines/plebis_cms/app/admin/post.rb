@@ -32,10 +32,10 @@ ActiveAdmin.register PlebisCms::Post, as: 'Post' do
         status_tag('Borrado', class: 'error') if post.deleted?
       end
       row :title
+      # `auto_html` desaparecio al pasar a auto_html 2.x: esta pantalla
+      # contestaba 500. Ver PlebisCms::ContentPipeline.
       row :content do
-        auto_html(post.content) do
-          redcarpet
-        end
+        PlebisCms::ContentPipeline.markdown(post.content)
       end
 
       row :slug

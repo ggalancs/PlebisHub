@@ -16,11 +16,6 @@ SimpleCov.start 'rails' do
   # OpenIdController: conditionally enabled via secrets.openid["enabled"], disabled in test
   add_filter 'app/controllers/open_id_controller.rb'
 
-  # Exclude helpers that are intentionally stubbed in tests
-  # BlogHelper: uses auto_html gem which doesn't work in test environment
-  # The stub in spec/support/blog_helper_stub.rb replicates the same logic and is tested instead
-  add_filter 'engines/plebis_cms/app/helpers/plebis_cms/blog_helper.rb'
-
   # Exclude dead concern - methods are overridden by direct definitions in User model
   # The User model (app/models/user.rb) defines still_militant?, militant_at?, etc. directly
   # which override this concern's methods. Tests for this logic are in spec/models/user_spec.rb
