@@ -5,7 +5,7 @@ module PlebisCms
     self.table_name = 'notices'
 
     validates :title, :body, presence: true
-    validates :link, allow_blank: true, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: 'must be a valid URL' }
+    validates :link, allow_blank: true, format: { with: URI::RFC2396_PARSER.make_regexp(%w[http https]), message: 'must be a valid URL' }
 
     default_scope { order(created_at: :desc) }
     paginates_per 5

@@ -268,10 +268,6 @@ module PlebisCollaborations
       status > 2 and deleted_at.nil?
     end
 
-    def admin_permalink
-      admin_collaboration_path(self)
-    end
-
     def first_order
       orders.sort { |a, b| a.payable_at <=> b.payable_at }.detect { |o| o.is_payable? or o.is_paid? }
     end
